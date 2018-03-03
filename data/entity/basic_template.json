@@ -1,0 +1,169 @@
+{
+	"spriteFilename": "data/sprite/player.png",
+	"headPosition": {
+		"x": 0.0,
+		"y": 0.0
+	},
+	"headSize": {
+		"width": 0.0,
+		"height": 0.0
+	},
+	"frameSize": {
+		"width": 128,
+		"height": 184
+	},
+	"spriteSize": {
+		"width": 128,
+		"height": 184
+	},
+	"defaultPhysicalSize": {
+		"width": 60,
+		"height": 86
+	},
+	"frameDepthOffset": 30.0,
+	"faceDirBias": -1.0,
+	"walkRightStepOffset": 2.0,
+	"animations": {
+		"TopSwordSwing": {
+			"index": {
+				"x": 0,
+				"y": 1
+			},
+			"speed": 0.08,
+			"n": 3,
+			"reversed": false,
+			"vertical": false
+		},	
+		"TopSwordOnHand": {
+			"index": {
+				"x": 3,
+				"y": 1
+			},
+			"speed": 0.08,
+			"n": 1,
+			"reversed": false,
+			"vertical": false
+		},			
+		"TopIdle": {
+			"index": {
+				"x": 0,
+				"y": 3
+			},
+			"speed": 0.08,
+			"n": 1,
+			"reversed": false,
+			"vertical": false
+		},
+		"TopWalking": {
+			"index": {
+				"x": 0,
+				"y": 4
+			},
+			"speed": 0.08,
+			"n": 1,
+			"reversed": false,
+			"vertical": false
+		},		
+		"BottomIdle": {
+			"index": {
+				"x": 2,
+				"y": 4
+			},
+			"speed": 0.08,
+			"n": 1,
+			"reversed": false,
+			"vertical": false
+		},	
+		"BottomWalking": {
+			"index": {
+				"x": 0,
+				"y": 4
+			},
+			"speed": 0.08,
+			"n": 2,
+			"reversed": false,
+			"vertical": false
+		},	
+		"TopKnockback": {
+			"index": {
+				"x": 2,
+				"y": 0
+			},
+			"speed": 0.08,
+			"n": 1,
+			"reversed": false,
+			"vertical": false
+		}
+	},
+	"frames": {
+		"SwordForward": [
+			{
+				"x": 73.0,
+				"y": -25.0,
+				"angle": -35.0,
+				"time":  110,
+				"damage": false
+			},
+			{
+				"x": 76.0,
+				"y": 21.0,
+				"angle": 65.0,
+				"time":  55,
+				"damage": true
+			},
+			{
+				"x": 61.0,
+				"y": 47.0,
+				"angle": 75.0,
+				"time":  90,
+				"damage": true
+			}					
+		],
+		"SwordIdle": [
+			{
+				"x": 74.0,
+				"y": 33.0,
+				"angle": 25.0,
+				"time":  45
+			}
+		]		
+	},
+	"hitbox": [
+		{
+			"name": "Head",
+			"type": 0,
+			"position": {
+				"x": 44.0,
+				"y": 0.0
+			},
+			"size": {
+				"width": 40.0,
+				"height": 40.0
+			}
+		},
+		{
+			"name": "Chest",
+			"type": 0,
+			"position": {
+				"x": 44.0,
+				"y": 46.0
+			},
+			"size": {
+				"width": 40.0,
+				"height": 50.0
+			}
+		},
+		{
+			"name": "Legs",
+			"type": 0,
+			"position": {
+				"x": 44.0,
+				"y": 102.0
+			},
+			"size": {
+				"width": 40.0,
+				"height": 30.0
+			}
+		}		
+	]
+}

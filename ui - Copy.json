@@ -1,0 +1,196 @@
+{
+	"type": "window",
+	"title": "Window",
+	"notitle": false,
+	"width": 800,
+	"height": 700,
+    "layout": "vbox",
+    "borderThickness":1.8,
+	"borderColor": "#212121",
+	"backgroundColor": "#ECEFF1",
+	"children": [
+		{
+			"type": "panel",
+			"flex": 1,		
+			"children": [
+				{
+					"type": "text",
+					"text": "TEXT TEST",
+					"fontColor": {"r":1, "g":0, "b":0, "a":1},
+					"fontSize": 20,
+					"width": 500
+				},
+				{
+					"type": "panel",
+					"flex": 1,
+					"layout": "hbox",
+					"children": [
+						{
+							"type": "panel",
+							"flex": 1
+						},
+						{
+							"type": "text",
+							"text": "CENTERED TEXT"
+						},
+						{
+							"type": "panel",
+							"flex": 1
+						}
+					]
+				},
+				{
+					"type": "panel",
+					"flex": 1,
+					"layout": "hbox",
+					"children": [
+						{
+							"type": "panel",
+							"flex": 1
+						},
+						{
+							"type": "text",
+							"text": "RIGHT TEXT"
+						}
+					]
+				},
+				{
+					"type": "panel",
+					"flex": 1,
+					"layout": "hbox",
+					"children": [
+						{
+							"type": "text",
+							"text": "LEFT TEXT"
+						},					
+						{
+							"type": "panel",
+							"flex": 1
+						}
+					]
+				},
+				{
+					"type": "panel",
+					"flex": 1,
+					"layout": "hbox",
+					"children": [
+						{
+							"type": "panel",
+							"flex": 1
+						},
+						{
+							"type": "panel",
+							"flex": 1
+						},
+						{
+							"type": "panel",
+							"flex": 1
+						},							
+						{
+							"type": "text",
+							"text": "2/3rd TEXT"
+						},					
+						{
+							"type": "panel",
+							"flex": 1
+						}
+					]
+				},
+				{
+					"type": "panel",
+					"flex": 1,
+					"layout": "hbox",
+					"children": [
+						{
+							"type": "panel",
+							"flex": 1
+						},		
+						{
+							"type": "text",
+							"text": "1/3rd TEXT"
+						},	
+						{
+							"type": "panel",
+							"flex": 1
+						},
+						{
+							"type": "panel",
+							"flex": 1
+						},
+						{
+							"type": "panel",
+							"flex": 1
+						}							
+					]
+				},
+				{
+					"type": "panel",
+					"flex": 1,
+					"layout": "hbox",
+					"children": [
+						{
+							"type": "panel",
+							"flex": 1
+						},
+						{
+							"type": "button",
+							"text": "CENTERED BUTTON",
+							"margin": {"hor":200.0, "vert": 0.0}
+						},
+						{
+							"type": "panel",
+							"flex": 1
+						}
+					]
+				}	
+			]
+		},
+		{
+			"type": "button",
+			"text": "Button 1",
+			"onClick": "method1",
+			"baseColor": {"r":0.15, "g":0.15, "b":1, "a":1},
+			"fontColor": {"r":0, "g":0, "b":0, "a":1},
+			"secondColor": {"r":0.15, "g":0.15, "b":0.90, "a":1}
+		},
+		{
+			"type": "button",
+			"text": "Button 16000",
+			"width": -1,
+			"height": -1
+		},
+		{
+			"type": "panel",
+			"flex": 0.25,
+			"layout": "hbox",
+			"children":[
+				{
+					"type": "panel",
+					"flex": 1					
+				},
+				{
+					"type": "checkbox",
+					"text": "asdasd CHECK BOX",
+					"onChange": "checkboxchange1",
+					"fontColor": {"r":0, "g":0, "b":1, "a":1},
+					"selectorColor": {"r":1, "g":0, "b":0, "a":1},
+					"boxColor": {"r":0, "g":0, "b":1, "a":1},
+					"fontSize": 14
+				},
+				{
+					"type": "panel",
+					"flex": 1					
+				}				
+			]
+		},
+		{
+			"type": "panel",
+			"width": 50,
+			"height": 50,
+			"layout": "hbox",
+			"backgroundColor": {"r":1, "g":1, "b":0, "a":1},
+			"onHover": "hovermethod",
+			"onUnhover": "unhovermethod"
+		}
+	]
+}

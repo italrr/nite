@@ -1,0 +1,387 @@
+#include "Console.hpp"
+#include "Font.hpp"
+#include "Texture.hpp"
+#include "Graphics.hpp"
+#include "Input.hpp"
+#include <string.h>
+#include <cmath>
+
+struct ProxyObject {
+  String name;
+  int type;
+  size_t size;
+  void *ref;
+  nite::Console::Function after;
+  void set(const String &name, int type, size_t s, void *ref);
+};
+
+struct BufferLine {
+  String line;
+  UInt64 time;
+  nite::Color color;
+};
+
+//typedef void (*Function)(Vector<String> parameters);
+static Vector<BufferLine> buffer;
+static String userInput = "";
+static Dict<String, ProxyObject> proxies;
+static Dict<String, nite::Console::Function> functions;
+static bool opened = false;
+static bool showTime = false;
+static int showLineNumber = 11;
+static int offset = 0;
+static Vector<String> inputHistory;
+static int currentHistorySelect;
+static Vector<String> predictions;
+
+nite::Console::CreateProxy pShowLineNumber("cl_consoleln", nite::Console::ProxyType::Int, sizeof(int), &showLineNumber);
+nite::Console::CreateProxy pOpened("console_op", nite::Console::ProxyType::Bool, sizeof(bool), &opened);
+
+bool nite::Console::createProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function){
+  ProxyObject proxy;
+  proxy.name = name;
+  proxy.type = type;
+  proxy.size = s;
+  proxy.ref = ref;
+  proxy.after = function;
+  proxies[name] = proxy;
+  return true;
+}
+
+void *nite::Console::getProxyReference(const String &name){
+  if(proxies.count(name) == 0) return NULL;
+  return proxies[name].ref;
+}
+
+nite::Console::CreateProxy::CreateProxy(const String &name, int type, size_t s, void *ref){
+  createProxy(name, type, s, ref, NULL);
+}
+
+nite::Console::CreateProxy::CreateProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function){
+  createProxy(name, type, s, ref, function);
+}
+
+bool nite::Console::createFunction(const String &name, nite::Console::Function function){
+  functions[name] = function;
+  return true;
+}
+
+nite::Console::CreateFunction::CreateFunction(const String &name, nite::Console::Function function){
+  createFunction(name, function);
+}
+
+void nite::Console::add(const String &input, const nite::Color &color){
+  BufferLine line;
+  line.line = input;
+  line.time = nite::getTicks();
+  line.color.set(color);
+  buffer.push_back(line);
+}
+
+void nite::Console::add(const String &input){
+  add(input, nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+}
+
+void nite::Console::render(){
+  static const int fs = 12 * nite::getGeneralScale();
+  static nite::Font font("data/font/VeraMono.ttf",fs);
+  static const auto lh = font.getHeight() + 2;
+  static nite::Texture tex("data/sprite/empty.png");
+  if(!opened) return;
+  int j = (buffer.size() - showLineNumber) - offset;
+  if(j < 0) j = 0;
+  nite::setRenderTarget(nite::RenderTargetPosterioriEngine);
+  nite::setDepth(nite::DepthTop);
+  nite::setColor(0.0f, 0.0f, 0.0f, 0.98f);
+  tex.draw(0, 0, nite::getWidth(), lh * (showLineNumber + 1), 0.0f, 0.0f, 0.0f);
+  nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+  int c = 0;
+  int w = buffer.size() >= showLineNumber ? showLineNumber : buffer.size();
+  for(int i = 0; i < w; ++i){
+    nite::setColor(buffer[i + j].color);
+    font.draw(buffer[i + j].line, 1.0f, 1.0f + lh * c++);
+  }
+  String tusr = "> "+userInput;
+  nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+  font.draw(tusr, 1.0f, 1.0f + lh * showLineNumber);
+  float tw = font.getWidth(tusr);
+  static float pointerA = 100.0f;
+  static bool pointerAC = true;
+  if(nite::lerpAbsolute(pointerA, pointerAC ? 0.0f : 100.0f, 0.30f)){
+    pointerAC = !pointerAC;
+  }
+  nite::setColor(1.0f, 1.0f, 1.0f, pointerA / 100.0f);
+  tex.draw(2.0f + tw, 0.0f + lh * showLineNumber, 1, font.getHeight() - 4.0f, 0.0f, 0.0f, 0.0f);
+  if(predictions.size() > 0){
+    nite::setColor(0.15f, 0.0f, 0.0f, 0.98f);
+    auto *ref = tex.draw(0, 0, nite::getWidth(), 0.0f, 0.0f, 0.0f, 0.0f);
+    int c = 0;
+    float mw = 0.0f;
+    nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+    for(int i = 0; i < predictions.size(); ++i){
+      ++c;
+      font.draw(predictions[i], 1.0f, 1.0f + lh * (showLineNumber + 1 + i) );  
+      mw = std::max(mw, font.getWidth(predictions[i]));
+      if(c >= 3) break;
+    }
+    if(ref != NULL){
+      ref->position.y = 1.0f + lh * (showLineNumber + 1);
+      ref->size.y = lh * c;
+      ref->size.x = mw + 2;
+    }
+  }
+}
+
+static bool isProxy(const String &name){
+  return proxies.count(name);
+}
+
+static bool isFunction(const String &name){
+  return functions.count(name);
+}
+
+static bool isAnything(const String &name){
+	return functions.count(name) > 0 || proxies.count(name) > 0;
+}
+
+static int queryInteger(ProxyObject &obj){
+  return *((int*)obj.ref);
+}
+
+static float queryFloat(ProxyObject &obj){
+  return *((float*)obj.ref);
+}
+
+static bool queryBool(ProxyObject &obj){
+  return *((bool*)obj.ref);
+}
+
+static String queryLiteral(ProxyObject &obj){
+  switch(obj.type){
+    case nite::Console::ProxyType::Int:
+      return nite::toStr(queryInteger(obj));
+    case nite::Console::ProxyType::Float:
+      return nite::toStr(queryFloat(obj));
+    case nite::Console::ProxyType::Bool:
+      return queryBool(obj) ? "true" : "false";
+    default:
+      return "[UNKOWN TYPE]";
+  }
+}
+
+struct ModifyObjectState {
+  String message;
+  String value;
+  bool success;
+  ModifyObjectState(){
+    success = false;
+  }
+};
+
+static void modifyInteger(ProxyObject &obj, int val){
+  memcpy(obj.ref, &val, sizeof(int));
+}
+
+static void modifyFloat(ProxyObject &obj, float val){
+  memcpy(obj.ref, &val, sizeof(float));
+}
+
+static void modifyBool(ProxyObject &obj, bool val){
+  memcpy(obj.ref, &val, sizeof(bool));
+}
+
+static ModifyObjectState modifyObject(ProxyObject &obj, int val){
+  if(obj.type != nite::Console::ProxyType::Int){
+    ModifyObjectState state;
+    state.message = "Attempting to assign integer to a non-integer object";
+    state.success = false;
+    return state;
+  }
+  modifyInteger(obj, val);
+  ModifyObjectState state;
+  state.success = true;
+  state.value = nite::toStr(val);
+  return state;
+}
+
+static ModifyObjectState modifyObject(ProxyObject &obj, float val){
+  if(obj.type != nite::Console::ProxyType::Float){
+    ModifyObjectState state;
+    state.message = "Attempting to assign float to a non-float object";
+    state.success = false;
+    return state;
+  }
+  modifyFloat(obj, val);
+  ModifyObjectState state;
+  state.success = true;
+  state.value = nite::toStr(val);
+  return state;
+}
+
+static ModifyObjectState modifyObject(ProxyObject &obj, bool val){
+  if(obj.type != nite::Console::ProxyType::Bool){
+    ModifyObjectState state;
+    state.message = "Attempting to assign boolean to a non-boolean object";
+    state.success = false;
+    return state;
+  }
+  modifyBool(obj, val);
+  ModifyObjectState state;
+  state.success = true;
+  state.value = val ? "true" : "false";
+  return state;
+}
+
+static bool isBoolean(const String &val){
+  return nite::toLower(val) == "true" || nite::toLower(val) == "false";
+}
+
+void nite::Console::interpret(const String &command){
+  if(inputHistory.size() == 0 || inputHistory[inputHistory.size()-1] != command){
+    inputHistory.push_back(command);
+    currentHistorySelect = -1;
+  }
+
+  predictions.clear();
+  static Vector<String> inputHistory;
+  static int currentHistorySelect;
+
+  auto tokens = split(command, ' ');
+  if(tokens.size() == 0){
+    nite::Console::add("Empty expression", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    return;
+  }
+  String imperative = tokens[0];
+  // Modify variable
+  if(isProxy(imperative)){
+    ProxyObject &op = proxies[imperative];
+    if(tokens.size() == 1){
+      nite::Console::add(command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
+      nite::Console::add(queryLiteral(op), nite::Color(0.15f, 0.80f, 0.22f, 1.0f));
+      return;
+    }else{
+      String assignment = tokens[1];
+      ModifyObjectState result;
+      if(nite::isNumber(assignment)){
+        if(op.type == nite::Console::ProxyType::Int){
+          result = modifyObject(op, (int)nite::toInt(assignment));
+        }else{
+          result = modifyObject(op, (float)nite::toFloat(assignment));
+        }
+      }else
+      if(isBoolean(assignment)){
+        result = modifyObject(op, assignment == "true");
+      }else{
+        nite::Console::add("'"+assignment+"' is an undefined symbol.", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+        return;
+      }
+      if(result.success){
+        nite::Console::add(op.name+" = "+result.value, nite::Color(0.0f, 0.9f, 0.0f, 1.0f));
+        if(op.after != NULL)
+          op.after(Vector<String>());
+      }else{
+        nite::Console::add(result.message, nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+      }
+    }
+  }else
+  // Function
+  if(isFunction(imperative)){
+    nite::Console::add(command, nite::Color(0.55f, 0.40f, 0.40f, 1.0f));
+    Vector<String> params;
+    for(int i = 1; i < tokens.size(); ++i){
+      params.push_back(tokens[i]);
+    }
+    nite::Console::Function function = functions[imperative];
+    function(params);
+  // I don't know
+  }else{
+    nite::Console::add(command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
+    nite::Console::add("Unknown expression or undefined symbol", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+  }
+}
+
+static void buildPredections(){
+	predictions.clear();	
+  for(auto const& x : functions){
+    int i = x.first.find(userInput);
+    if(i == 0){
+      predictions.push_back(x.first);
+    }
+  }
+  for(auto const& x : proxies){
+    int i = x.first.find(userInput);
+    if(i == 0){
+      predictions.push_back(x.first);
+    }    
+  }
+}
+
+void nite::Console::update(){
+  if(opened && nite::keyboardPress(nite::keyPAGEUP) && ((buffer.size() - showLineNumber) - offset) > 0 ){
+    ++offset;
+  }else
+  if(opened && nite::keyboardPress(nite::keyPAGEDOWN) && offset > 0){
+    --offset;
+  }
+  if(opened && nite::keyboardPressed(nite::keyENTER) && userInput.length() > 0){
+    nite::Console::interpret(strRemoveEndline(userInput));
+    userInput = "";
+  }
+  if(opened){
+    String orig = userInput;
+    userInput += nite::keyboardGetText();
+    if(orig != userInput && userInput.length() > 0){
+      buildPredections();
+    }
+  }
+  if(opened && nite::keyboardPress(nite::keyBACK) && userInput.length() > 0){
+    userInput.erase(userInput.length() - 1, 1);
+    if(userInput.length() > 0){
+      buildPredections();
+    }
+  }
+
+  if(opened && nite::keyboardPressed(nite::keyTAB) && predictions.size() > 0){
+    userInput = predictions[0];
+    predictions.clear();
+  }  
+
+  if(opened && nite::keyboardPressed(nite::keyUP) && inputHistory.size() > 0){
+    predictions.clear();
+    ++currentHistorySelect;
+    if(currentHistorySelect >= inputHistory.size()){
+      currentHistorySelect = inputHistory.size() - 1;
+    }
+    userInput = inputHistory[inputHistory.size() - 1 - currentHistorySelect];
+  }
+
+  if(opened && nite::keyboardPressed(nite::keyDOWN) && inputHistory.size() > 0){
+    predictions.clear();
+    --currentHistorySelect;
+    if(currentHistorySelect < 0){
+      currentHistorySelect = 0;
+    }
+    userInput = inputHistory[inputHistory.size() - 1 - currentHistorySelect];
+  }
+
+}
+
+void nite::Console::open(){
+  predictions.clear();
+  opened = true;
+}
+
+void nite::Console::close(){
+  predictions.clear();
+  opened = false;
+}
+
+static void cfClose(Vector<String> params){
+  nite::Console::close();
+}
+
+static auto cfCloseIns = nite::Console::CreateFunction("close", &cfClose);
+
+bool nite::Console::isOpen(){
+  return opened;
+}

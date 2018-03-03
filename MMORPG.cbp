@@ -1,0 +1,678 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="MMORPG"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="GLEW">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/libGLEW.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 GLEW"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="GLEW/fast">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/libGLEW.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 GLEW/fast"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="SOIL">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/libSOIL.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 SOIL"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="SOIL/fast">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/libSOIL.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 SOIL/fast"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="src">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/libsrc.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 src"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="src/fast">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/libsrc.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 src/fast"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="RaptorAudio">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/libRaptorAudio.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 RaptorAudio"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="RaptorAudio/fast">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/libRaptorAudio.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 RaptorAudio/fast"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="nite">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/libnite.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 nite"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="nite/fast">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/libnite.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 nite/fast"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Game">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/Game.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 Game"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Game/fast">
+				<Option output="C:/Users/irusso/ownCloud/ff/MMORPG/Game.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/irusso/Documents/MinGW/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/mingw32"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include/c++/backward"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../include"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/include-fixed"/>
+					<Add directory="c:\users\irusso\documents\mingw\bin\../lib/gcc/mingw32/4.8.1/../../../../mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 Game/fast"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="C:/Users/irusso/ownCloud/ff/MMORPG"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/Users/irusso/Documents/MinGW/bin/mingw32-make.exe -f &quot;C:/Users/irusso/ownCloud/ff/MMORPG/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/AI/AI.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/AI/AI.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Animation.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Animation.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Audio.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Audio.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Console.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Console.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Font.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Font.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/GLEW/glew.c">
+			<Option target="GLEW"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Graphics.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Graphics.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Input.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Input.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/JSON/Jzon.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/JSON/Jzon.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Network.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Network.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Object.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Object.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Packets.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Packets.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/AudioSource.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/AudioSource.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/AudioSourceFile.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/AudioSourceFile.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/AudioSourceMemory.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/AudioSourceMemory.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/BlockBuffer.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/BlockBuffer.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/DSPChain.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/DSPChain.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/DSPVariables.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/DSPVariables.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/HistoryBufferObject.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/HistoryBufferObject.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/MemorySoundObject.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/MemorySoundObject.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/MemorySoundObjectWavImpl.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/MemorySoundObjectWavImpl.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/OggDecoder.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/OggDecoder.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/RingBuffer.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/RingBuffer.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/SharedPointer.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/SharedPointer.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/SoundMixer.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/SoundMixer.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/SoundObject.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/SoundObject.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/StreamingSoundObject.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/StreamingSoundObject.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/StreamingSoundObjectOggImpl.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/StreamingSoundObjectOggImpl.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/StreamingSoundObjectWavImpl.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/StreamingSoundObjectWavImpl.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/WaveoutDevice.cpp">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/WaveoutDevice.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/stb_vorbis.c">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/RaptorAudio/stb_vorbis.h">
+			<Option target="RaptorAudio"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/SOIL/SOIL.c">
+			<Option target="SOIL"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/SOIL/SOIL.h">
+			<Option target="SOIL"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/SOIL/image_DXT.c">
+			<Option target="SOIL"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/SOIL/image_DXT.h">
+			<Option target="SOIL"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/SOIL/image_helper.c">
+			<Option target="SOIL"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/SOIL/image_helper.h">
+			<Option target="SOIL"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/SOIL/stb_image_aug.c">
+			<Option target="SOIL"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/SOIL/stb_image_aug.h">
+			<Option target="SOIL"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Shader.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Shader.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Shapes.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Shapes.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Texture.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Texture.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Tileset.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Tileset.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Tools/Files.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Tools/Hash.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Tools/Log.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Tools/MD5.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Tools/Math.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Tools/String.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Tools/System.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Tools/Time.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Types.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/Types.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/View.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/View.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/World.cpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Engine/World.hpp">
+			<Option target="nite"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Entity.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Entity.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Game.cpp">
+			<Option target="Game"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Game.hpp">
+			<Option target="Game"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Inventory.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Inventory.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Map.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Map.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Mob.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Mob.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Player.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Player.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Sword.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/Sword.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/BaseUIComponent.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/BaseUIComponent.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/ButtonUI.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/ButtonUI.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/CheckboxUI.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/CheckboxUI.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/PanelUI.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/PanelUI.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/TextUI.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/TextUI.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/UI.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/UI.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/WindowUI.cpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/src/UI/WindowUI.hpp">
+			<Option target="src"/>
+		</Unit>
+		<Unit filename="C:/Users/irusso/ownCloud/ff/MMORPG/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

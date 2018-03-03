@@ -1,0 +1,84 @@
+{
+	"type": "window",
+	"notitle": true,
+	"title": "Battle",
+	"unmovable": true,
+	"resizeable": false,
+	"width": "!! #gwidth - 16.0",
+	"height": 150.0,
+	"x": 8.0,
+	"y": "!! #gheight - $height - 8.0",
+	"borderThickness": 5.0,
+	"borderPattern": "data/ui/ui_corner2.png",
+	"layout": "vbox",
+	"borderColor": "#b1938b",
+	"backgroundColor": "#4e4e56",
+	"children": [
+		{
+			"type": "panel",
+			"flex": 1,
+			"layout": "hbox",
+			"children": [
+				{
+					"type": "panel",
+					"flex": 1
+				},
+				{
+					"type": "text",
+					"text": "- OFFENSE -",
+					"fontSize": 24,
+					"fontColor": "#dcd0c0"
+				},
+				{
+					"type": "panel",
+					"flex": 1
+				}
+			]
+		},
+		{
+			"type": "panel",
+			"layout": "hbox",
+			"flex": 1,
+			"margin": {"vert": 16},
+			"children": [
+				{
+					"type": "panel",
+					"flex": 1.25
+				},
+				{
+					"type": "button",
+					"text": "Primary",
+					"width": 120,
+					"margin": {"hor": 16},
+					"baseColor": "#ff6961",
+					"secondColor": "#ff6961",
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0}
+				},
+				{
+					"type": "button",
+					"text": "Secondary",
+					"width": 120,
+					"margin": {"hor": 16},
+					"baseColor": "#ff61a8",
+					"secondColor": "#ff61a8",
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0}
+				},
+				{
+					"type": "panel",
+					"flex": 1				
+				},
+				{
+					"type": "button",
+					"text": "Back",
+					"backgroundImage": "data/ui/icons/ic_backspace_arrow.png",
+					"margin": {"hor": 16},
+					"height": 30,
+					"baseColor": "#9966ff",
+					"secondColor": "#9966ff",
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
+					"onClick": "buttonOnBack"
+				}				
+			]
+		}
+	]
+}

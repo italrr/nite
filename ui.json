@@ -1,0 +1,18 @@
+{
+	"type": "window",
+	"title": "Test Window",
+	"notitle": false,
+	"width": 800,
+	"height": 700,
+    "layout": "inline",
+    "borderThickness":5.0,
+	"borderColor": "#212121",
+	"backgroundColor": "#ECEFF1",
+	"children": [
+		{
+			"type": "checkbox",
+			"text": "This is a checkbox",
+			"fontColor": "#ffa500"
+		}
+	]
+}
