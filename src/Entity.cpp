@@ -475,7 +475,7 @@ void Game::Entity::throwMelee(){
 		auto &ent = *static_cast<Entity*>(current.get());
 		auto data = ent.receiveMelee(melee);
 		if(data.hit){
-			nite::shakeScreen(nite::RenderTargetGame, 2.2f, 200);
+			// nite::shakeScreen(nite::RenderTargetGame, 2.2f, 200);
 			sendDamage(data);
 			break;
 		}
@@ -572,15 +572,17 @@ void Game::Entity::draw(){
 		if(faceDir == 1.0f){
 			_dif.x *= -1.0f;
 		}
-		blurDir.set(nite::Vec2(nite::getSign(_dif.x), nite::getSign(_dif.y)) * 0.06f);
+		blurDir.set(nite::Vec2(nite::getSign(_dif.x) * 0.03f, nite::getSign(_dif.y)));
 	}
 	auto *ref = weap.equipAnim.draw(weap.animNormal, p.x, p.y, weap.frameSize.x, weap.frameSize.y, _orig.x, _orig.y, 0.0f);
 	if(ref != NULL){
 		ref->angle = animFrame.angle * faceDir * dims.faceDirBias;
 		ref->smooth = true;
-		nite::Uniform uniforms;
-		uniforms.add("dir", blurDir);
-//		ref->apply(dirShader, uniforms);
+		if(isSwordSwinging){
+			nite::Uniform uniforms;
+			uniforms.add("dir", blurDir);
+//			ref->apply(dirShader, uniforms);
+		}
 	}
 
 	if(container != NULL && container->debugPhysics){

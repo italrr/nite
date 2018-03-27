@@ -1,6 +1,6 @@
-#include <ft2build.h>
-#include <freetype/freetype.h>
-#include <freetype/ftglyph.h>
+#include "FreeType/include/ft2build.h"
+#include "FreeType/include/freetype/freetype.h"
+#include "FreeType/include/freetype/ftglyph.h"
 #include FT_FREETYPE_H
 
 #include  <algorithm>

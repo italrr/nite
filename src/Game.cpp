@@ -6,6 +6,9 @@ using namespace nite;
 
 static Game::GameMaster *instance = NULL;
 
+static bool cameraFreeroam = false;
+static nite::Console::CreateProxy cpAnDatTo("cl_camera_freeroam", nite::Console::ProxyType::Bool, sizeof(bool), &cameraFreeroam);
+
 Game::Camera::Camera(){
 	followId = -1;
 }
@@ -13,10 +16,10 @@ Game::Camera::Camera(){
 void Game::Camera::update(nite::Vec2 &v, float mu){
 	static auto *inst = Game::getInstance();		
 	nite::setView(true, nite::RenderTargetGame);
-  nite::Vec2 P = nite::getView(nite::RenderTargetGame);
-  nite::Vec2 K = v - nite::getSize() * 0.5f;
-  P.lerp(K, mu);
-  setViewPosition(P, nite::RenderTargetGame);
+	nite::Vec2 P = nite::getView(nite::RenderTargetGame);
+	nite::Vec2 K = v - nite::getSize() * 0.5f;
+	P.lerp(K, mu);
+	setViewPosition(P, nite::RenderTargetGame);
 }
 
 void Game::Camera::update(nite::Vec2 &v){
@@ -25,12 +28,32 @@ void Game::Camera::update(nite::Vec2 &v){
 
 void Game::Camera::update(){
 	static auto *inst = Game::getInstance();	
+	if(cameraFreeroam){
+		nite::Vec2 np = nite::getView(nite::RenderTargetGame);
+		if(nite::keyboardCheck(nite::keyLEFT)){
+			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(32.0f, 0.0f));
+		}
+		if(nite::keyboardCheck(nite::keyRIGHT)){
+			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(32.0f, 0.0f));
+		}		
+		if(nite::keyboardCheck(nite::keyUP)){
+			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(0.0f, 32.0f));			
+		}
+		if(nite::keyboardCheck(nite::keyDOWN)){
+			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(0.0f, 32.0f));						
+		}		
+		nite::setView(true, nite::RenderTargetGame);
+		nite::setViewPosition(np, nite::RenderTargetGame);
+		return;
+	}
 	if(followId == -1 || !inst->world.exists(followId)) return;
 	update(inst->world.objects[followId]->position);
 }
 
 void Game::Camera::follow(int id){
 	this->followId = id;
+	cameraFreeroam = false;
+	nite::print("Following entity id "+nite::toStr(id));
 	// setView(id != -1, nite::RenderTargetGame);
 }
 
@@ -78,6 +101,9 @@ static void cfPlayerStatUp(Vector<String> params){
 	if(stat == "luk"){
 		added = game->player->addBaseStat(Game::BaseStatType::Luck, amnt);
 	}else	
+	if(stat == "cha"){
+		added = game->player->addBaseStat(Game::BaseStatType::Charisma, amnt);
+	}else		
 	if(stat == "int"){
 		added = game->player->addBaseStat(Game::BaseStatType::Intelligence, amnt);
 	}else{
@@ -113,6 +139,9 @@ static void cfPlayerStatReset(Vector<String> params){
 	}else	
 	if(stat == "luk"){
 		game->player->resetStat(Game::BaseStatType::Luck);
+	}else
+	if(stat == "cha"){
+		game->player->resetStat(Game::BaseStatType::Charisma);
 	}else	
 	if(stat == "int"){
 		game->player->resetStat(Game::BaseStatType::Intelligence);
@@ -126,6 +155,42 @@ static void cfPlayerStatReset(Vector<String> params){
 	
 }
 static auto cfPlayerStatResetIns = nite::Console::CreateFunction("player_statreset", &cfPlayerStatReset); 
+
+static void cfShowEntities(Vector<String> params){
+	static auto game = Game::getInstance();
+	String output;
+	for (auto& it : game->world.objects){
+		auto current = it.second;
+		if(auto ent = dynamic_cast<Game::Entity*>(current.get())){
+			output += "'"+ent->name+"' id: "+nite::toStr(ent->id)+", ";
+		}
+	}	
+	nite::print("Active entities: "+output);
+	
+}
+static auto cfShowEntitiesIns = nite::Console::CreateFunction("show_entities", &cfShowEntities); 
+
+static void cfCameraFollow(Vector<String> params){
+	static auto game = Game::getInstance();
+	if(params.size() < 1){
+		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	auto &_id = params[0];
+	if(!nite::isNumber(_id)){
+		nite::Console::add("'"+_id+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	auto id = nite::toInt(_id);
+	if(!game->world.exists(id)){
+		nite::Console::add("Entity id '"+_id+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;		
+	}
+	cameraFreeroam = false;
+	game->camera.follow(id);	
+}
+static auto cfCameraFollowIns = nite::Console::CreateFunction("cl_camera_follow", &cfCameraFollow); 
+
 
 void Game::GameMaster::start(){
 	instance = this;
@@ -234,7 +299,7 @@ void Game::GameMaster::start(){
 	auto playerEntity = static_cast<Entity*>(player.get());
 	playerEntity->addItem(sword);	
 	playerEntity->setActiveItem(Game::InventoryActiveSlot::Main, sword);	
-	camera.follow(player->id);
+	// camera.follow(player->id);
 }
 
 void Game::GameMaster::update(){

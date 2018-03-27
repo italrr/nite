@@ -11,12 +11,13 @@ void Game::Player::onCreate(){
   name = "Player Type";
   setupEntity(50, 1.0f);
   entityInit();
-  addBaseStat(BaseStatType::Strength, 100);
-  addBaseStat(BaseStatType::Agility, 0);
-  addBaseStat(BaseStatType::Dexterity, 0);
-  addBaseStat(BaseStatType::Intelligence, 0);
-  addBaseStat(BaseStatType::Endurance, 0);
-  addBaseStat(BaseStatType::Luck, 0);
+  addBaseStat(BaseStatType::Strength, 25);
+  addBaseStat(BaseStatType::Agility, 25);
+  addBaseStat(BaseStatType::Dexterity, 25);
+  addBaseStat(BaseStatType::Intelligence, 25);
+  addBaseStat(BaseStatType::Endurance, 25);
+  addBaseStat(BaseStatType::Luck, 25);
+  addBaseStat(BaseStatType::Charisma, 25);
   printEntity();
 }
 
