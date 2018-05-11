@@ -9,13 +9,13 @@
 bool __nite_showUISpacingFrames = false;
 static nite::Console::CreateProxy showUIFrames("cl_uiframes", nite::Console::ProxyType::Bool, sizeof(bool), &__nite_showUISpacingFrames);
 
+
 void nite::BaseUIComponent::updateListeners(){
   if(uninteract) return;
   nite::Vec2 rp(position + relativePosition);
   auto mp = nite::mousePosition();
   auto cps = computeSize();
   nite::Vec2 p = rp - cps * 0.5f + margin * 0.5f;
-
   // HOVER
   if(nite::isPointInRegion(mp, p, p + cps - margin)){
     isHovered = true;

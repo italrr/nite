@@ -174,4 +174,41 @@
 		bool fileFind(const String &path, unsigned Type, String Format, bool R, bool FP, Vector<String> &List);
 		size_t fileSize(const String &path);
 	}
+	/*
+	================
+	Async
+	================
+	*/	
+	namespace nite {
+
+		class AsyncTask;
+		typedef Lambda<void(nite::AsyncTask &context)> AsyncLambda;    
+		
+		namespace AsyncTaskStatus {
+			const static unsigned Idle = 0;
+			const static unsigned Running = 1;
+			const static unsigned Paused = 2;
+			const static unsigned Killed = 3;
+		}
+		
+		class AsyncTask {
+			private:
+			int id;
+			nite::AsyncLambda task;
+			int status
+			public:
+			int getStatus();
+			void pause();
+			void resume();
+			void start();
+			void stop();
+			AsyncTask();
+		}
+		
+		Shared<nite::AsyncTask*> spawnAsyncTask(AsyncLambda lambda);
+		void updateAsyncTask();
+		void stopAsyncTask();
+		
+		
+	}
 #endif

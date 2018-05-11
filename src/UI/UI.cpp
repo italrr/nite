@@ -1,5 +1,82 @@
 #include "UI.hpp"
 #include "../Engine/Tools/Tools.hpp"
+#include "../Engine/Console.hpp"
+#include "../Game.hpp"
+
+/////////////
+// COMMAND: ui_build
+////////////
+static void cfBuildUI(Vector<String> params){
+	static auto game = Game::getInstance();
+	if(params.size() < 1){
+		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	auto &path = params[0];
+	if(!nite::fileExists(path)){
+		nite::Console::add("'"+path+"' files does not exist.", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	auto win = static_cast<nite::WindowUI*>(game->ui.build(path).get());
+	nite::print("Built '"+win->getTitle()+"' from '"+path+"' Id: "+nite::toStr(win->id));
+	
+}
+static auto cfBuildUIIns = nite::Console::CreateFunction("ui_build", &cfBuildUI); 
+
+
+/////////////
+// COMMAND: ui_showinstances
+////////////
+static void cfUInstances(Vector<String> params){
+	static auto game = Game::getInstance();
+	String output;
+	auto &comps = game->ui.components;
+	for(int i = 0; i < comps.size(); ++i){
+		// it assumes all of the hosts are windows
+		auto win = static_cast<nite::WindowUI*>(comps[i].get());
+		output += "'"+win->getTitle()+"': "+nite::toStr(win->id);
+		output += i < comps.size()-1 ? ", " : ".";
+	}
+	if(comps.size() == 0){
+		output = "None.";
+	}
+	nite::print("Active windows: "+output);
+}
+static auto cfUInstancesIns = nite::Console::CreateFunction("ui_showinstances", &cfUInstances); 
+
+/////////////
+// COMMAND: ui_kill
+////////////
+static void cfUIKill(Vector<String> params){
+	static auto game = Game::getInstance();
+
+	if(params.size() < 1){
+		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	auto &_id = params[0];
+	if(!nite::isNumber(_id)){
+		nite::Console::add("'"+_id+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}	
+	auto id = nite::toInt(_id);
+	auto &comps = game->ui.components;
+	for(int i = 0; i < comps.size(); ++i){
+		if(comps[i]->id == id){
+			// it assumes all of the hosts are windows
+			auto win = static_cast<nite::WindowUI*>(comps[i].get());			
+			nite::print("Killed '"+win->getTitle()+"' Id was: "+nite::toStr(win->id));
+			win->close();
+			break;
+		}
+	}
+
+}
+static auto cfUiKillIns = nite::Console::CreateFunction("ui_kill", &cfUIKill); 
+static auto cfUICloseIns = nite::Console::CreateFunction("ui_close", &cfUIKill); 
+
+
+
 
 void nite::UIMaster::add(std::shared_ptr<BaseUIComponent> comp){
   if(comp == NULL){
@@ -488,6 +565,7 @@ void nite::UIMaster::update(){
   for(int i = 0; i < removeQueue.size(); ++i){
     for(int z = 0; z < components.size(); ++z){
       if(components[z].get() == removeQueue[i]){
+				components[z]->id = -1;
         removeFromSources(removeQueue[i]);
         components[z]->clear();
         components.erase(components.begin() + z);
@@ -501,9 +579,16 @@ std::shared_ptr<nite::BaseUIComponent> nite::UIMaster::build(const String &path)
   return build(path, Dict<String, nite::ListenerLambda>());
 }
 
+static int getUniqueId(){
+	static int seed = 1 + nite::randomInt(15, 35);
+	return ++seed;
+}
+
+
 std::shared_ptr<nite::BaseUIComponent> nite::UIMaster::build(const String &path, const Dict<String, nite::ListenerLambda> &listeners){
   JsonSource source;
   auto base = Shared<nite::BaseUIComponent>(new nite::WindowUI);
+	base->id = getUniqueId();
   add(base);
   source.listeners = listeners;  
   _build(base, path, source);

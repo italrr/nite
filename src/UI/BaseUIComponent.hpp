@@ -51,6 +51,7 @@
       BaseUIComponent *headComponent;
       float flex;
       bool solid;
+			int id;
       UInt64 uiCreatedTimeout;
       String componentName;
       bool uninteract;
