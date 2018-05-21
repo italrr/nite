@@ -184,6 +184,7 @@ set (nite_src
 		src/Engine/JSON/Jzon.cpp
 		src/Engine/Tools/Files.cpp
 		src/Engine/Tools/Hash.cpp
+		src/Engine/Tools/AsyncTask.cpp
 		src/Engine/Tools/Log.cpp
 		src/Engine/Tools/Math.cpp
 		src/Engine/Tools/String.cpp

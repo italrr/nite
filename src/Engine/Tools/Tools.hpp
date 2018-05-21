@@ -182,7 +182,7 @@
 	namespace nite {
 
 		class AsyncTask;
-		typedef Lambda<void(nite::AsyncTask &context)> AsyncLambda;    
+		typedef Lambda<void(const nite::AsyncTask &context)> AsyncLambda;    
 		
 		namespace AsyncTaskStatus {
 			const static unsigned Idle = 0;
@@ -193,19 +193,20 @@
 		
 		class AsyncTask {
 			private:
-			int id;
-			nite::AsyncLambda task;
-			int status
+				int id;
+				nite::AsyncLambda lambda;
+				int status;
 			public:
-			int getStatus();
-			void pause();
-			void resume();
-			void start();
-			void stop();
-			AsyncTask();
-		}
+				AsyncTask();							
+				int getStatus();
+				void pause();
+				void resume();
+				void start();
+				void stop();
+				void step();
+				Shared<nite::AsyncTask> spawn(nite::AsyncLambda lambda);
+		};
 		
-		Shared<nite::AsyncTask*> spawnAsyncTask(AsyncLambda lambda);
 		void updateAsyncTask();
 		void stopAsyncTask();
 		

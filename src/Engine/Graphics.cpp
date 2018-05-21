@@ -930,12 +930,11 @@ UInt64 nite::getDelta(){
 }
 
 void nite::graphicsUpdate(){
-	currentDelta = nite::getTicks() - initDelta;
-	initDelta = nite::getTicks();
+  currentDelta = nite::getTicks() - initDelta;
+  initDelta = nite::getTicks();
 
-	glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT);
   glClearColor(0, 0, 0, 1);
-
   for(int c = 0; c < RenderTargetNumber; ++c){
 		if(targets[c].objects.size() == 0) continue;
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targets[c].objectId);
@@ -969,6 +968,8 @@ void nite::graphicsUpdate(){
 
 static void gameExit(){
 	static auto *ins = Game::getInstance();
+	nite::updateAsyncTask();
+	nite::stopAsyncTask();	
 	ins->end();	
 }
 

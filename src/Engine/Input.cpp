@@ -263,7 +263,6 @@ bool nite::mouseReleased(unsigned Button){
 }
 
 #include "../Game.hpp"
-
 /*
 ================
 Refresh keys and buttons status (Should be executed every step in the main loop)
@@ -312,8 +311,9 @@ void nite::inputUpdate(){
 			break;
 		}
 	}
-	return;
+	nite::updateAsyncTask();
 }
+
 
 String nite::keyboardGetText(){
 	String Char = "";
