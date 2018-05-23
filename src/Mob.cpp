@@ -18,7 +18,7 @@ void Game::BasicMob::onCreate(){
   addBaseStat(BaseStatType::Intelligence, 0);
   addBaseStat(BaseStatType::Endurance, 100);
   addBaseStat(BaseStatType::Luck, 0);
-  printEntity();
+//   printEntity();
 
   add(std::shared_ptr<Game::OverworldBehavior>(new Game::TestStareOB()));
 }

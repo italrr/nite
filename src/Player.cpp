@@ -18,7 +18,6 @@ void Game::Player::onCreate(){
   addBaseStat(BaseStatType::Endurance, 25);
   addBaseStat(BaseStatType::Luck, 25);
   addBaseStat(BaseStatType::Charisma, 25);
-  printEntity();
 }
 
 void Game::Player::step(){

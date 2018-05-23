@@ -70,7 +70,7 @@ void nite::Tileset::load(const String &path){
   if (!node.isValid()){
 		 nite::print("Failed to read file "+path+": '"+parser.getError()+"'");
 	}
-
+	UInt64 startTime = nite::getTicks();
   // Basic data
   mapSize.set(node.get("width").toInt(), node.get("height").toInt());
   tileSize.set(node.get("tilewidth").toInt(), node.get("tileheight").toInt());
@@ -240,14 +240,14 @@ void nite::Tileset::load(const String &path){
         nite::TileLayerSingle &orig = layer.data[i];
         single.inTextureCoors.set(orig.inTextureCoors);
         single.inDrawCoors.set(orig.inMapCoors);
-    		int tw = imageSize.x; // Texture width
-    		int th = imageSize.y; // Texture height
-    		float itx = orig.inTextureCoors.x; // inTextureCoors x
-    		float ity = orig.inTextureCoors.y; // inTextureCoors y
-    		float bfsx = tileSize.x; // batch single size width
-    		float bfsy = tileSize.y; // batch single size height
-    		float dx = orig.inMapCoors.x; // in draw coors px
-    		float dy = orig.inMapCoors.y; // in draw coors py
+		int tw = imageSize.x; // Texture width
+		int th = imageSize.y; // Texture height
+		float itx = orig.inTextureCoors.x; // inTextureCoors x
+		float ity = orig.inTextureCoors.y; // inTextureCoors y
+		float bfsx = tileSize.x; // batch single size width
+		float bfsy = tileSize.y; // batch single size height
+		float dx = orig.inMapCoors.x; // in draw coors px
+		float dy = orig.inMapCoors.y; // in draw coors py
         single.box[0] = dx;
         single.box[1] = dy;
         single.box[2] = dx + bfsx;
@@ -287,6 +287,7 @@ void nite::Tileset::load(const String &path){
     }
     tileBaches.push_back(batch);
   }
+  nite::print("loaded tileset data from '"+path+"'. Time: "+nite::toStr(nite::getTicks()-startTime)+" msecs.");
 }
 
 nite::Renderable *nite::Tileset::draw(float x, float y){

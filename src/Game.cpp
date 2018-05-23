@@ -227,6 +227,7 @@ void Game::GameMaster::start(){
 
 	this->player = static_cast<Entity*>(player.get());
 	this->player->fullHeal();
+	this->player->position.set(map.playerSpawn);
 	
 	auto mob = Shared<nite::PhysicsObject>(new Game::BasicMob());
 	world.add(mob);
