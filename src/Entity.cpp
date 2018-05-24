@@ -472,13 +472,15 @@ void Game::Entity::throwMelee(){
 		if(current.get() == NULL){
 			continue;
 		}
-		auto &ent = *static_cast<Entity*>(current.get());
-		auto data = ent.receiveMelee(melee);
-		if(data.hit){
-			// nite::shakeScreen(nite::RenderTargetGame, 2.2f, 200);
-			sendDamage(data);
-			break;
-		}
+		if(Game::Entity *_ent = dynamic_cast<Game::Entity*>(current.get())){
+			auto &ent = *static_cast<Entity*>(current.get());
+			auto data = ent.receiveMelee(melee);
+			if(data.hit){
+				// nite::shakeScreen(nite::RenderTargetGame, 2.2f, 200);
+				sendDamage(data);
+				break;
+			}
+		}		
 	}	
 }
 

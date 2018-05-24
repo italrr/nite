@@ -332,7 +332,7 @@ static void drawTextureBatch(nite::Renderable *object){
 	if(!renTextureBatches) return;
 	flushFont();
 	nite::RenderableTextureBatchT &obj = *(nite::RenderableTextureBatchT*)object;
-	nite::TextureRegionBatch &batch = *(nite::TextureRegionBatch*)obj.batch;
+	nite::TextureRegionBatch &batch = obj.batch;
 	GLuint currentBind = textureList[obj.objectId].texture;
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_TEXTURE_2D);
@@ -465,8 +465,8 @@ void nite::Texture::setRegion(const nite::Rect &R){
 	region.set(R);
 }
 
-nite::RenderableTextureBatchT *nite::Texture::draw(nite::TextureRegionBatch *batch, float x, float y){
-	if(objectId <= -1 || batch == NULL) return NULL;
+nite::RenderableTextureBatchT *nite::Texture::draw(nite::TextureRegionBatch &batch, float x, float y){
+	if(objectId <= -1) return NULL;
 	nite::RenderableTextureBatchT *obj = new nite::RenderableTextureBatchT();
 	obj->objectId = objectId;
 	obj->smooth	= smooth;

@@ -295,7 +295,7 @@ nite::Renderable *nite::Tileset::draw(float x, float y){
     for(int c = 0; c < tileBaches[i].batches.size(); ++c){
       nite::TextureRegionBatch &ref = tileBaches[i].batches[c];
       nite::setDepth(ref.depth);
-      source.draw(&ref, 0.0f, 0.0f);
+      source.draw(ref, 0.0f, 0.0f);
     }
   }
   nite::setDepth(nite::DepthMiddle);
