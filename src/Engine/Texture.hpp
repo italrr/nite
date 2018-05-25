@@ -27,7 +27,7 @@
 			bool smooth;
 			nite::Vec2 scale;
 			bool repeat; // otherwise stretch. stretch  is by default
-			nite::TextureRegionBatch batch;
+			nite::TextureRegionBatch *batch;
 			RenderableTextureT(){
 				repeat = true;
 			}
@@ -36,7 +36,7 @@
 		struct RenderableTextureBatchT : public nite::Renderable {
 			int objectId;
 			bool smooth;
-			nite::TextureRegionBatch batch;
+			nite::TextureRegionBatch *batch;
 		};
 
 		class Texture {
@@ -49,7 +49,7 @@
 				Texture(const String &path);
 				Texture(const nite::Texture &other);
 				~Texture();
-				nite::RenderableTextureBatchT *draw(nite::TextureRegionBatch &batch, float x, float y);
+				nite::RenderableTextureBatchT *draw(nite::TextureRegionBatch *batch, float x, float y);
 				nite::RenderableTextureT *draw(float x, float y);
 				nite::RenderableTextureT *draw(float x, float y, float angle);
 				nite::RenderableTextureT *draw(const nite::Vec2 &P);

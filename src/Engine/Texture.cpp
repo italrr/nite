@@ -20,8 +20,6 @@ struct textureT {
 	GLuint texture;
 	bool empty;
 	String Hash;
-	unsigned char *data;
-	size_t size;
 	int Width;
 	int Height;
 	int Channels;
@@ -103,7 +101,7 @@ void nite::Texture::load(const String &path){
 
 void nite::Texture::load(const String &path, const nite::Color &transparency){
 	if(!nite::fileExists(path)){
-		nite::print("Error: Couldn't load Texture '"+path+"': It doesn't exist.");
+		nite::print("Error: Couldn't load '"+path+"': It doesn't exist.");
 		return;
 	}
 	unload();
@@ -126,7 +124,7 @@ void nite::Texture::load(const String &path, const nite::Color &transparency){
 	int Channels;
 	GLubyte *Pixels = SOIL_load_image(path.c_str(), &Width, &Height, &Channels, SOIL_LOAD_AUTO);
 	if (Pixels == NULL){
-		nite::print("Error: Couldn't load Texture '"+path+"': Unsupported format.");
+		nite::print("Error: Couldn't load '"+path+"': Unsupported format.");
 		return;
 	}
 	if(transparency.a != -1.0){
@@ -157,7 +155,7 @@ void nite::Texture::load(const String &path, const nite::Color &transparency){
 	textureList[objectId].Channels	= Channels;
 	region.set(0, 0, Width, Height);
 	nite::print("loaded texture '"+path+"'.");
-	//SOIL_free_image_data(Pixels);
+	SOIL_free_image_data(Pixels);
 }
 
 nite::Texture::Texture(){
@@ -221,7 +219,6 @@ static void drawTexture(nite::Renderable *object){
 	flushFont();
 	nite::RenderableTextureT &obj = *(nite::RenderableTextureT*)object;
 	GLuint currentBind = textureList[obj.objectId].texture;
-	nite::Vec2 tsize(textureList[obj.objectId].Width, textureList[obj.objectId].Height);
 	glColor4f(obj.color.r, obj.color.g, obj.color.b, obj.color.a);
 	glEnable(GL_TEXTURE_2D);
 	glPushMatrix();
@@ -230,8 +227,6 @@ static void drawTexture(nite::Renderable *object){
 	if(obj.angle != 0) glRotatef(obj.angle, 0.0, 0.0, 1.0);
 	if(currentBind != lastBind) // avoid re-binding the last texture.(an optimization, supposedly)
 		glBindTexture(GL_TEXTURE_2D, currentBind);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, obj.repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, obj.repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE);		
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, obj.smooth ? GL_LINEAR : GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, obj.smooth ? GL_LINEAR : GL_NEAREST);
 	for(int i = 0; i < obj.programs.size(); ++i){
@@ -289,10 +284,10 @@ static void drawTexture(nite::Renderable *object){
 		}
 	}
 	GLfloat Box[] = {
-		-obj.origin.x, 														-obj.origin.y,
+		-obj.origin.x, 									-obj.origin.y,
 		obj.size.x*obj.scale.x-obj.origin.x, 			-obj.origin.y,
 		obj.size.x*obj.scale.x-obj.origin.x, 			obj.size.y*obj.scale.y-obj.origin.y,
-		-obj.origin.x,														obj.size.y*obj.scale.y-obj.origin.y,
+		-obj.origin.x,									obj.size.y*obj.scale.y-obj.origin.y,
 	};
 	GLfloat texBox[] = {
 		obj.region.x / textureList[obj.objectId].Width,						obj.region.y / textureList[obj.objectId].Height,
@@ -332,7 +327,7 @@ static void drawTextureBatch(nite::Renderable *object){
 	if(!renTextureBatches) return;
 	flushFont();
 	nite::RenderableTextureBatchT &obj = *(nite::RenderableTextureBatchT*)object;
-	nite::TextureRegionBatch &batch = obj.batch;
+	nite::TextureRegionBatch &batch = *(nite::TextureRegionBatch*)obj.batch;
 	GLuint currentBind = textureList[obj.objectId].texture;
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_TEXTURE_2D);
@@ -465,8 +460,8 @@ void nite::Texture::setRegion(const nite::Rect &R){
 	region.set(R);
 }
 
-nite::RenderableTextureBatchT *nite::Texture::draw(nite::TextureRegionBatch &batch, float x, float y){
-	if(objectId <= -1) return NULL;
+nite::RenderableTextureBatchT *nite::Texture::draw(nite::TextureRegionBatch *batch, float x, float y){
+	if(objectId <= -1 || batch == NULL) return NULL;
 	nite::RenderableTextureBatchT *obj = new nite::RenderableTextureBatchT();
 	obj->objectId = objectId;
 	obj->smooth	= smooth;

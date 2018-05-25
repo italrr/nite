@@ -129,9 +129,7 @@
 		int carrySeedIndex;
 		Dict<int, int> itemHandling;
 		Dict<int, Shared<Game::BaseItem>> itemCarry;
-		virtual void onActiveItemSwitch(Shared<Game::BaseItem> &item){
-
-		}
+		virtual void onActiveItemSwitch(Shared<Game::BaseItem> &item){}
 		void setActiveItem(int slotId, Shared<Game::BaseItem> &item);
 		void setUnactiveItem(int slotId);
 		void setUnactiveItem(Shared<Game::BaseItem> &item);
