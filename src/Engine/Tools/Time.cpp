@@ -1,4 +1,3 @@
-#include "Tools.hpp"
 #include <unistd.h>
 #include <sys/time.h>
 
@@ -6,6 +5,8 @@
 	#include <windows.h>
 #endif
 #include <sys/time.h>
+
+#include "Tools.hpp"
 
 /*
 ================
@@ -130,7 +131,7 @@ Sleep the main thread in milliseconds
 ================
 */
 #ifdef _WIN32
-	static inline void usleep(__int64 usec){
+	static inline void __usleep(__int64 usec){
 	    HANDLE timer;
 	    LARGE_INTEGER ft;
 
@@ -143,11 +144,11 @@ Sleep the main thread in milliseconds
 #else
 	#include <chrono>
 	#include <thread>
-	static inline void usleep(int msec){
+	static inline void __usleep(int msec){
 		std::this_thread::sleep_for(std::chrono::milliseconds(msec));
 	}
 #endif
 
 void nite::Sleep(int _time){
-    usleep(_time);
+    __usleep(_time);
 }

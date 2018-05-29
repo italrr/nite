@@ -205,7 +205,14 @@ set (nite_src
 		src/Engine/Object.cpp
 		src/Engine/Tools/MD5.cpp
 		src/Engine/Console.cpp
-		src/Engine/Audio.cpp)
+		src/Engine/Audio.cpp
+		src/Engine/UI/UI.cpp
+		src/Engine/UI/WindowUI.cpp
+		src/Engine/UI/PanelUI.cpp
+		src/Engine/UI/TextUI.cpp
+		src/Engine/UI/ButtonUI.cpp
+		src/Engine/UI/CheckboxUI.cpp	
+		src/Engine/UI/BaseUIComponent.cpp		)
 
 add_library(nite ${nite_src})
 
@@ -217,14 +224,6 @@ set(src_files
 	src/Map.cpp
 	src/Sword.cpp
 	src/AI/AI.cpp
-	
-	src/UI/UI.cpp
-	src/UI/WindowUI.cpp
-	src/UI/PanelUI.cpp
-	src/UI/TextUI.cpp
-	src/UI/ButtonUI.cpp
-	src/UI/CheckboxUI.cpp	
-	src/UI/BaseUIComponent.cpp
 )
 add_library(src ${src_files})
 target_link_libraries(src nite)

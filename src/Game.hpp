@@ -12,7 +12,7 @@
   #include "Engine/Shader.hpp"
   #include "Engine/Console.hpp"
   #include "Engine/Font.hpp"
-  #include "UI/UI.hpp"
+  #include "Engine/UI/UI.hpp"
   #include "Entity.hpp"
   #include "Player.hpp"
   #include "Mob.hpp"

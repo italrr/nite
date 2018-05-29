@@ -34,6 +34,15 @@ static Vector<String> inputHistory;
 static int currentHistorySelect;
 static Vector<String> predictions;
 
+static bool _init = false;
+static void _preinit(){
+  if(_init) return;
+  // Zeroing maps 'proxies' and 'functions'
+  proxies.clear();
+  functions.clear();
+  _init = true;
+}
+
 nite::Console::CreateProxy pShowLineNumber("cl_consoleln", nite::Console::ProxyType::Int, sizeof(int), &showLineNumber);
 nite::Console::CreateProxy pOpened("console_op", nite::Console::ProxyType::Bool, sizeof(bool), &opened);
 
@@ -44,6 +53,7 @@ bool nite::Console::createProxy(const String &name, int type, size_t s, void *re
   proxy.size = s;
   proxy.ref = ref;
   proxy.after = function;
+  _preinit();
   proxies[name] = proxy;
   return true;
 }
@@ -62,6 +72,7 @@ nite::Console::CreateProxy::CreateProxy(const String &name, int type, size_t s, 
 }
 
 bool nite::Console::createFunction(const String &name, nite::Console::Function function){
+  _preinit();
   functions[name] = function;
   return true;
 }

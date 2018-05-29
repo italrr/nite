@@ -7,11 +7,11 @@
 	#include <memory>
 	#include <functional>
 
-	#define Shared std::shared_ptr
+	#define Shared	std::shared_ptr
 	#define Lambda	std::function
-	#define String 	std::string
+	#define String	std::string
 	#define Vector 	std::vector
-	#define Dict 		std::map
+	#define Dict	std::map
 
 	#define Int8 		int8_t
 	#define UInt8 	uint8_t

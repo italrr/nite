@@ -1,12 +1,11 @@
-#include "Audio.hpp"
-#include "Types.hpp"
-#include "Tools/Tools.hpp"
-#include "RaptorAudio/RaptorAudio.h"
-#include "RaptorAudio/SharedPointer.h"
 #include <iomanip>
 #include <string>
 #include <sstream>
 #include <fstream>
+#include "RaptorAudio/RaptorAudio.h"
+#include "RaptorAudio/SharedPointer.h"
+#include "Tools/Tools.hpp"
+#include "Audio.hpp"
 
 using namespace Raptor::Audio;
 using namespace Raptor::Utility;

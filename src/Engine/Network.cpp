@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Network.hpp"
-#include "Tools/Tools.hpp"
 
 #ifdef _WIN32
 	#include <winsock2.h>
@@ -16,6 +14,9 @@
 	#include <netinet/in.h>
 	#include <fcntl.h>
 #endif
+
+#include "Tools/Tools.hpp"
+#include "Network.hpp"
 
 using namespace nite;
 
@@ -38,7 +39,7 @@ init socket
 void nite::socketInit(){
 	#ifdef _WIN32
 		WSADATA WsaData;
-		WSAStartup(MAKEWORD(2,2), &WsaData) == NO_ERROR;
+		WSAStartup(MAKEWORD(2,2), &WsaData);
 	#endif
 }
 
