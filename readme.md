@@ -1,7 +1,12 @@
 nite
 ---
 
-nite is a portable 2D RPG/Topdown game engine written in C++. Originally, it was a toy/learning project.
+nite Engine is a 2D game engine written by Italo Russo. Originally as toy/learning project. 
+Since the last year I've been using it to make a simply RPG Game. This repo contains
+the engine itself + the game, both somewhat separated from each other (Engine + UI are nite).
+
+nite is written in C++ and using OpenGL to render. nite is a portable engine, but right
+now it only works well on Windows.
 
 **Attention: Documentation is work in progress.**
 
@@ -57,7 +62,7 @@ render them into textures.
 nite uses a very simple AAxBB collision and physics system. 
 Hitboxes also work this way. 
 ![alt text](http://198.199.91.93/imgs/3.png)
-In the image, orage rectangle are hitboxes either for receiving damage
+In the image, orange rectangle are hitboxes either for receiving damage
 or dealing it. 
 Green rectangle represents the object's collision mask.
 
@@ -71,7 +76,7 @@ game without having to recompile. It supports autocomplete, too.
 nite includes a very basic AI and path finding system. It is still in
 development. The idea is that entities could have multiple behaviours that
 could work in synergy to make enemies actions organic and somewhat
-impredictable.
+unpredectible.
 
 - UI System
 ![alt text](http://198.199.91.93/imgs/5.png)
