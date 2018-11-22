@@ -85,11 +85,9 @@ labels, windows and panels. Input text boxes are coming soon.
 ![alt text](http://198.199.91.93/imgs/5.png)
 ![alt text](http://198.199.91.93/imgs/6.png)
 
-Panels have a cohesive layout system, which uses the flex box concept 
-to accomodate components.
+- Panels have a cohesive layout system, which uses the flex box concept to accomodate components.
 ![alt text](https://j.gifs.com/Q0XzB7.gif)
 ![alt text](http://198.199.91.93/imgs/7.png)
-
 Also, UI is loaded from JSON files dynamically. Meaning the engine
 constantly listens to changes on the file and reloads as soon as it
 detects the file changed.
