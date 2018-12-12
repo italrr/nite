@@ -6,7 +6,7 @@
 	namespace nite {
 
 		const size_t MAX_PACKET_SIZE 						= 2048;
-		const size_t MAX_TANSPORT_PACKET_SIZE 	= 10240;
+		const size_t MAX_TRANSPORT_PACKET_SIZE 	= 10240;
 
 		void socketInit();
 		void socketEnd();
