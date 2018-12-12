@@ -54,6 +54,7 @@ void nite::Color::set(const String &hex){
   r = ((hexValue >> 16) & 0xFF) / 255.0;  // Extract the RR byte
   g = ((hexValue >> 8) & 0xFF) / 255.0;   // Extract the GG byte
   b = ((hexValue) & 0xFF) / 255.0;        // Extract the BB byte
+  a = 1.0f;
 }
 
 void nite::Color::set(float r, float g, float b, float a){

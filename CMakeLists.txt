@@ -204,7 +204,6 @@ set (nite_src
 		src/Engine/World.cpp
 		src/Engine/Object.cpp
 		src/Engine/Tools/MD5.cpp
-		src/Engine/Console.cpp
 		src/Engine/Audio.cpp
 		src/Engine/UI/UI.cpp
 		src/Engine/UI/WindowUI.cpp
@@ -212,7 +211,8 @@ set (nite_src
 		src/Engine/UI/TextUI.cpp
 		src/Engine/UI/ButtonUI.cpp
 		src/Engine/UI/CheckboxUI.cpp	
-		src/Engine/UI/BaseUIComponent.cpp		)
+		src/Engine/UI/BaseUIComponent.cpp		
+		src/Engine/Console.cpp		)
 
 add_library(nite ${nite_src})
 

@@ -24,6 +24,7 @@
       bool isOpen();
       void render();
       void update();
+      void end();
       struct CreateProxy {
         CreateProxy(const String &name, int type, size_t s, void *ref);
         CreateProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function);

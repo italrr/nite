@@ -283,6 +283,7 @@ void Game::GameMaster::end(){
 }
 
 void Game::GameMaster::onEnd(){
+	nite::Console::end();
 
 }
 

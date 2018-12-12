@@ -24,27 +24,41 @@ struct BufferLine {
 //typedef void (*Function)(Vector<String> parameters);
 static Vector<BufferLine> buffer;
 static String userInput = "";
-static Dict<String, ProxyObject> proxies;
-static Dict<String, nite::Console::Function> functions;
+static Dict<String, ProxyObject> *proxies;
+static Dict<String, nite::Console::Function> *functions;
 static bool opened = false;
 static bool showTime = false;
 static int showLineNumber = 11;
+static int showPredictionNumber = 5;
 static int offset = 0;
 static Vector<String> inputHistory;
 static int currentHistorySelect;
 static Vector<String> predictions;
 
+#include <stdio.h>
+
 static bool _init = false;
 static void _preinit(){
   if(_init) return;
   // Zeroing maps 'proxies' and 'functions'
-  proxies.clear();
-  functions.clear();
+  proxies = new Dict<String, ProxyObject>();
+  functions = new Dict<String, nite::Console::Function>();
+  proxies->clear();
+  functions->clear();
   _init = true;
 }
 
+
 nite::Console::CreateProxy pShowLineNumber("cl_consoleln", nite::Console::ProxyType::Int, sizeof(int), &showLineNumber);
 nite::Console::CreateProxy pOpened("console_op", nite::Console::ProxyType::Bool, sizeof(bool), &opened);
+nite::Console::CreateProxy pShowPredictionNumber("cl_consolepreln", nite::Console::ProxyType::Int, sizeof(int), &showPredictionNumber);
+
+void nite::Console::end(){
+  delete proxies;
+  delete functions;
+  proxies->clear();
+  functions->clear();  
+}
 
 bool nite::Console::createProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function){
   ProxyObject proxy;
@@ -54,13 +68,13 @@ bool nite::Console::createProxy(const String &name, int type, size_t s, void *re
   proxy.ref = ref;
   proxy.after = function;
   _preinit();
-  proxies[name] = proxy;
+  (*proxies)[name] = proxy;
   return true;
 }
 
 void *nite::Console::getProxyReference(const String &name){
-  if(proxies.count(name) == 0) return NULL;
-  return proxies[name].ref;
+  if(proxies->count(name) == 0) return NULL;
+  return (*proxies)[name].ref;
 }
 
 nite::Console::CreateProxy::CreateProxy(const String &name, int type, size_t s, void *ref){
@@ -73,11 +87,11 @@ nite::Console::CreateProxy::CreateProxy(const String &name, int type, size_t s, 
 
 bool nite::Console::createFunction(const String &name, nite::Console::Function function){
   _preinit();
-  functions[name] = function;
+
+  (*functions)[name] = function;
   return true;
 }
-
-nite::Console::CreateFunction::CreateFunction(const String &name, nite::Console::Function function){
+nite::Console::CreateFunction::CreateFunction(const String &name, nite::Console::Function function){\
   createFunction(name, function);
 }
 
@@ -133,7 +147,7 @@ void nite::Console::render(){
       ++c;
       font.draw(predictions[i], 1.0f, 1.0f + lh * (showLineNumber + 1 + i) );  
       mw = std::max(mw, font.getWidth(predictions[i]));
-      if(c >= 3) break;
+      if(c >= showPredictionNumber) break;
     }
     if(ref != NULL){
       ref->position.y = 1.0f + lh * (showLineNumber + 1);
@@ -144,15 +158,15 @@ void nite::Console::render(){
 }
 
 static bool isProxy(const String &name){
-  return proxies.count(name);
+  return proxies->count(name);
 }
 
 static bool isFunction(const String &name){
-  return functions.count(name);
+  return functions->count(name);
 }
 
 static bool isAnything(const String &name){
-	return functions.count(name) > 0 || proxies.count(name) > 0;
+	return functions->count(name) > 0 || proxies->count(name) > 0;
 }
 
 static int queryInteger(ProxyObject &obj){
@@ -265,7 +279,7 @@ void nite::Console::interpret(const String &command){
   String imperative = tokens[0];
   // Modify variable
   if(isProxy(imperative)){
-    ProxyObject &op = proxies[imperative];
+    ProxyObject &op = (*proxies)[imperative];
     if(tokens.size() == 1){
       nite::Console::add(command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
       nite::Console::add(queryLiteral(op), nite::Color(0.15f, 0.80f, 0.22f, 1.0f));
@@ -302,7 +316,7 @@ void nite::Console::interpret(const String &command){
     for(int i = 1; i < tokens.size(); ++i){
       params.push_back(tokens[i]);
     }
-    nite::Console::Function function = functions[imperative];
+    nite::Console::Function function = (*functions)[imperative];
     function(params);
   // I don't know
   }else{
@@ -313,13 +327,13 @@ void nite::Console::interpret(const String &command){
 
 static void buildPredections(){
 	predictions.clear();	
-  for(auto const& x : functions){
+  for(auto const& x : (*functions)){
     int i = x.first.find(userInput);
     if(i == 0){
       predictions.push_back(x.first);
     }
   }
-  for(auto const& x : proxies){
+  for(auto const& x : (*proxies)){
     int i = x.first.find(userInput);
     if(i == 0){
       predictions.push_back(x.first);
