@@ -54,10 +54,10 @@ nite::Console::CreateProxy pOpened("console_op", nite::Console::ProxyType::Bool,
 nite::Console::CreateProxy pShowPredictionNumber("cl_consolepreln", nite::Console::ProxyType::Int, sizeof(int), &showPredictionNumber);
 
 void nite::Console::end(){
-  delete proxies;
-  delete functions;
   proxies->clear();
-  functions->clear();  
+  functions->clear();
+  delete proxies;
+  delete functions;  
 }
 
 bool nite::Console::createProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function){
@@ -109,7 +109,7 @@ void nite::Console::add(const String &input){
 
 void nite::Console::render(){
   static const int fs = 12 * nite::getGeneralScale();
-  static nite::Font font("data/font/VeraMono.ttf",fs);
+  static nite::Font font(nite::DefaultFontPath,fs);
   static const auto lh = font.getHeight() + 2;
   static nite::Texture tex("data/sprite/empty.png");
   if(!opened) return;

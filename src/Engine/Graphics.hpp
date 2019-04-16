@@ -23,8 +23,10 @@
 		#elif defined(linux)
 			const static String niteCurrentPlatform = "LINUX";
 		#else
-			const static String niteCurrentPlatform = "UNDEFINED OS";
+			const static String niteCurrentPlatform = "UNSUPPORTED OS";
 		#endif
+
+		const static String DefaultFontPath = "data/font/VeraMono.ttf";
 
 		struct Renderable;
 		typedef void (*RenderFunction)(Renderable *object);

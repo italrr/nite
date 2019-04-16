@@ -2,3 +2,8 @@ CMakeFiles/
 *.a
 CMakeCache.txt
 .codelite/
+.vscode/
+cmake_install.cmake
+img/
+Game.exe
+Makefile

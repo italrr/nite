@@ -9,7 +9,7 @@
 	"x": 8.0,
 	"y": "!! #gheight - $height - 8.0",
 	"borderThickness": 5.0,
-	"borderPattern": "data/ui/ui_corner2.png",
+	"borderPattern": "data/ui/ui_corner1.png",
 	"layout": "vbox",
 	"borderColor": "#b1938b",
 	"backgroundColor": "#4e4e56",

@@ -1,0 +1,12 @@
+{ "columns":10,
+ "image":"src_romdou1.png",
+ "imageheight":320,
+ "imagewidth":320,
+ "margin":0,
+ "name":"_test",
+ "spacing":0,
+ "tilecount":100,
+ "tileheight":32,
+ "tilewidth":32,
+ "type":"tileset"
+}

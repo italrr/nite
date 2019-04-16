@@ -25,7 +25,7 @@ static auto cfBuildUIIns = nite::Console::CreateFunction("ui_build", &cfBuildUI)
 
 
 /////////////
-// COMMAND: ui_showinstances
+// COMMAND: ui_show
 ////////////
 static void cfUInstances(Vector<String> params){
 	static auto game = Game::getInstance();
@@ -42,7 +42,7 @@ static void cfUInstances(Vector<String> params){
 	}
 	nite::print("Active windows: "+output);
 }
-static auto cfUInstancesIns = nite::Console::CreateFunction("ui_showinstances", &cfUInstances); 
+static auto cfUInstancesIns = nite::Console::CreateFunction("ui_show", &cfUInstances); 
 
 /////////////
 // COMMAND: ui_kill
