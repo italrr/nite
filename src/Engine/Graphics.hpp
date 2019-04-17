@@ -131,6 +131,7 @@
 		void setZoomDiscrete(unsigned T, float Z);
 		void setAngle(unsigned T, float Z);
 		void addRenderList(Renderable *object);
+		void dropFrame();
 		void graphicsInit();
 		void graphicsEnd();
 		bool isGraphicsInit();

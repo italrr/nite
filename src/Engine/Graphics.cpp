@@ -929,6 +929,16 @@ UInt64 nite::getDelta(){
 	return currentDelta;
 }
 
+void nite::dropFrame(){
+	size_t total = 0;
+  for(int c = 0; c < RenderTargetNumber; ++c){
+		if(targets[c].objects.size() == 0) continue;
+		total += targets[c].objects.size();
+    targets[c].clear();
+  }
+	nite::print("Drop frame request: "+nite::toStr(total)+" objects");
+}
+
 void nite::graphicsUpdate(){
   currentDelta = nite::getTicks() - initDelta;
   initDelta = nite::getTicks();

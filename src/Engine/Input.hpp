@@ -27,6 +27,7 @@
 		bool isMouseInRegion(const nite::Vec2 &P, const nite::Vec2 &Q, unsigned target);
 		bool isMouseInRegion(float x, float y, float x2, float y2);
 		bool isMouseInRegion(const nite::Vec2 &P,  const nite::Vec2 &Q);
+		int translateKey(String key);
 
 		const unsigned keyA 				= 0;
 		const unsigned keyB 				= 1;

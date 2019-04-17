@@ -92,7 +92,7 @@ void Game::GameMaster::start(){
 	
 	
 	// Load a placeholder map
-	map.load("data/map/test.json", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+	map.load("data/map/romdou/romdou.json");
 
 	
 	auto player = Shared<nite::PhysicsObject>(new Game::Player());
@@ -134,8 +134,8 @@ void Game::GameMaster::update(){
 	// Update World
 	nite::viewUpdate();
 	nite::inputUpdate();
-
 	nite::Console::update();
+
 	ui.update();
 	map.update();
 	camera.update();
@@ -165,6 +165,7 @@ Game::GameMaster *Game::getInstance(){
 }
 
 int main(int argc, char* argv[]){
+
 	Vector<String> params;
 	for(int i = 0; i < argc; ++i){
 		params.push_back(String(argv[i]));

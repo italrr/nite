@@ -48,6 +48,39 @@ float nite::mouseSpeed(){
 	return nite::distance(lastMousePosition, currentMousePosition);
 }
 
+/*
+================
+Translate a key string representation to the actual code
+================
+*/
+int nite::translateKey(String key){
+	key = nite::toUpper(key);
+	if(key == "A"){return nite::keyA;} else if(key == "B"){return nite::keyB;} else if(key == "C"){return nite::keyC;} else if(key == "D"){return nite::keyD;} else if(key == "E"){return nite::keyE;} else
+	if(key == "F"){return nite::keyF;} else if(key == "G"){return nite::keyG;} else if(key == "H"){return nite::keyH;} else if(key == "I"){return nite::keyI;} else if(key == "J"){return nite::keyJ;} else
+	if(key == "K"){return nite::keyK;} else if(key == "L"){return nite::keyL;} else if(key == "M"){return nite::keyM;} else if(key == "N"){return nite::keyN;} else if(key == "O"){return nite::keyO;} else
+	if(key == "P"){return nite::keyP;} else if(key == "Q"){return nite::keyQ;} else if(key == "R"){return nite::keyR;} else if(key == "S"){return nite::keyS;} else if(key == "T"){return nite::keyT;} else
+	if(key == "U"){return nite::keyU;} else if(key == "V"){return nite::keyV;} else if(key == "W"){return nite::keyW;} else if(key == "X"){return nite::keyX;} else if(key == "Y"){return nite::keyY;} else
+	if(key == "Z"){return nite::keyZ;} else if(key == "0"){return nite::key0;} else if(key == "1"){return nite::key1;} else if(key == "2"){return nite::key2;} else if(key == "3"){return nite::key3;} else
+	if(key == "4"){return nite::key4;} else if(key == "5"){return nite::key5;} else if(key == "6"){return nite::key6;} else if(key == "7"){return nite::key7;} else if(key == "8"){return nite::key8;} else
+	if(key == "9"){return nite::key9;} else if(key == "ESCAPE"){return nite::keyESCAPE;} else if(key == "LCONTROL"){return nite::keyLCONTROL;} else if(key == "LSHIFT"){return nite::keyLSHIFT;} else
+	if(key == "LALT"){return nite::keyLALT;} else if(key == "LSYSTEM"){return nite::keyLSYSTEM;} else if(key == "RCONTROL"){return nite::keyRCONTROL;} else if(key == "RSHIFT"){return nite::keyRSHIFT;} else
+	if(key == "RALT"){return nite::keyRALT;} else if(key == "RSYSTEM"){return nite::keyRSYSTEM;} else if(key == "MENU"){return nite::keyMENU;} else if(key == "LBRACKET"){return nite::keyLBRACKET;} else
+	if(key == "RBRACKET"){return nite::keyRBRACKET;} else if(key == "SEMICOLON"){return nite::keySEMICOLON;} else if(key == "COMMA"){return nite::keyCOMMA;} else if(key == "PERIOD"){return nite::keyPERIOD;} else
+	if(key == "QUOTE"){return nite::keyQUOTE;} else if(key == "SLASH"){return nite::keySLASH;} else if(key == "BACKSLASH"){return nite::keyBACKSLASH;} else if(key == "TILDE"){return nite::keyTILDE;} else
+	if(key == "EQUAL"){return nite::keyEQUAL;} else if(key == "DASH"){return nite::keyDASH;} else if(key == "SPACE"){return nite::keySPACE;} else if(key == "ENTER"){return nite::keyENTER;} else
+	if(key == "BACK"){return nite::keyBACK;} else if(key == "PAGEUP"){return nite::keyPAGEUP;} else if(key == "PAGEDOWN"){return nite::keyPAGEDOWN;} else if(key == "END"){return nite::keyEND;} else
+	if(key == "HOME"){return nite::keyHOME;} else if(key == "INSERT"){return nite::keyINSERT;} else if(key == "DELETE"){return nite::keyDELETE;} else if(key == "ADD"){return nite::keyADD;} else
+	if(key == "SUBTRACT"){return nite::keySUBTRACT;} else if(key == "MULTIPLY"){return nite::keyMULTIPLY;} else if(key == "DIVIDE"){return nite::keyDIVIDE;} else if(key == "LEFT"){return nite::keyLEFT;} else
+	if(key == "RIGHT"){return nite::keyRIGHT;} else if(key == "UP"){return nite::keyUP;} else if(key == "DOWN"){return nite::keyDOWN;} else if(key == "NUMPAD0"){return nite::keyNUMPAD0;} else
+	if(key == "NUMPAD1"){return nite::keyNUMPAD1;} else if(key == "NUMPAD2"){return nite::keyNUMPAD2;} else if(key == "NUMPAD3"){return nite::keyNUMPAD3;} else if(key == "NUMPAD4"){return nite::keyNUMPAD4;} else
+	if(key == "NUMPAD5"){return nite::keyNUMPAD5;} else if(key == "NUMPAD6"){return nite::keyNUMPAD6;} else if(key == "NUMPAD7"){return nite::keyNUMPAD7;} else if(key == "NUMPAD8"){return nite::keyNUMPAD8;} else
+	if(key == "NUMPAD9"){return nite::keyNUMPAD9;} else if(key == "F1"){return nite::keyF1;} else if(key == "F2"){return nite::keyF2;} else if(key == "F3"){return nite::keyF3;} else if(key == "F4"){return nite::keyF4;} else
+	if(key == "F5"){return nite::keyF5;} else if(key == "F6"){return nite::keyF6;} else if(key == "F7"){return nite::keyF7;} else if(key == "F8"){return nite::keyF8;} else if(key == "F9"){return nite::keyF9;} else
+	if(key == "F10"){return nite::keyF10;} else if(key == "F11"){return nite::keyF11;} else if(key == "F12"){return nite::keyF12;} else if(key == "F14"){return nite::keyF14;} else if(key == "F14"){return nite::keyF14;} else
+	if(key == "F15"){return nite::keyF15;} else if(key == "PAUSE"){return nite::keyPAUSE;}else
+	return -1;
+}
+
 static const int niteKeys[] = {
 	SDLK_a,SDLK_b,SDLK_c,SDLK_d,SDLK_e,SDLK_f,SDLK_g,SDLK_h,SDLK_i,
 	SDLK_j,SDLK_k,SDLK_l,SDLK_m,SDLK_n,SDLK_o,SDLK_p,SDLK_q,SDLK_r,

@@ -21,6 +21,18 @@ struct BufferLine {
   nite::Color color;
 };
 
+struct Bind {
+  unsigned key;
+  String command;
+  Bind(){
+
+  }
+  Bind(unsigned key, String command){
+    this->key = key;
+    this->command = command;
+  }
+};
+
 //typedef void (*Function)(Vector<String> parameters);
 static Vector<BufferLine> buffer;
 static String userInput = "";
@@ -34,6 +46,7 @@ static int offset = 0;
 static Vector<String> inputHistory;
 static int currentHistorySelect;
 static Vector<String> predictions;
+static Dict<unsigned, Bind> binds;
 
 #include <stdio.h>
 
@@ -45,9 +58,37 @@ static void _preinit(){
   functions = new Dict<String, nite::Console::Function>();
   proxies->clear();
   functions->clear();
+  binds.clear();
   _init = true;
 }
 
+/////////////
+// COMMAND: bind
+////////////
+static void cfBind(Vector<String> params){
+	if(params.size() < 2){
+		nite::Console::add("Not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+  String &_key = params[0];
+  String command = params[1]; 
+  // TODO: these two erase can cause the whole game to crash. improve this.
+  while(command.at(0) == '"'){
+    command.erase(0, 1);
+  }
+  while(command.at(command.size()-1) == '"'){
+    command.erase(command.size()-1, command.size());
+  }  
+  int key = nite::translateKey(_key);
+  if(key == -1){
+    nite::Console::add("bind failed: '"+_key+"' is an unknown key", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    return;
+  }
+  Bind bind;
+  binds[key] = Bind(key, command); 
+  nite::print("binded '"+command+"' to keystroke '"+_key+"'");
+}
+static auto cfBindIns = nite::Console::CreateFunction("bind", &cfBind);  
 
 nite::Console::CreateProxy pShowLineNumber("cl_consoleln", nite::Console::ProxyType::Int, sizeof(int), &showLineNumber);
 nite::Console::CreateProxy pOpened("console_op", nite::Console::ProxyType::Bool, sizeof(bool), &opened);
@@ -56,6 +97,7 @@ nite::Console::CreateProxy pShowPredictionNumber("cl_consolepreln", nite::Consol
 void nite::Console::end(){
   proxies->clear();
   functions->clear();
+  binds.clear();
   delete proxies;
   delete functions;  
 }
@@ -261,6 +303,27 @@ static bool isBoolean(const String &val){
   return nite::toLower(val) == "true" || nite::toLower(val) == "false";
 }
 
+// TODO: This needs some improvement
+static Vector<String> splitTokens(String input, char sep){
+  Vector<String> tokens;
+  bool quote = false;
+  for(int i = 0; i < input.size(); ++i){
+    if(input.at(i) == '"'){
+      quote = !quote;
+    }
+    if(input.at(i) == sep && !quote){
+      tokens.push_back(input.substr(0, i));
+      input = input.substr(i + 1, input.size() - i);
+      i = -1;
+    }
+  	if(i == input.size() - 1){
+      	tokens.push_back(input);
+		  break;
+	  }	
+  }
+  return tokens;
+}
+
 void nite::Console::interpret(const String &command){
   if(inputHistory.size() == 0 || inputHistory[inputHistory.size()-1] != command){
     inputHistory.push_back(command);
@@ -342,6 +405,12 @@ static void buildPredections(){
 }
 
 void nite::Console::update(){
+  for (auto& it : binds){
+    auto &bind = binds[it.first];
+    if(nite::keyboardPressed(bind.key)){
+      nite::Console::interpret(bind.command);
+    }
+	}
   if(opened && nite::keyboardPress(nite::keyPAGEUP) && ((buffer.size() - showLineNumber) - offset) > 0 ){
     ++offset;
   }else

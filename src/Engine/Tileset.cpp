@@ -78,7 +78,7 @@ void nite::Tileset::load(const String &path){
 
   // Read first tileset
   Jzon::Node tilesets = node.get("tilesets").get(0);
-  sourceFilename = "data/map/"+tilesets.get("image").toString();
+  sourceFilename = nite::getFilePath(path)+"/"+tilesets.get("image").toString();
   imageSize.set(tilesets.get("imagewidth").toFloat(), tilesets.get("imageheight").toFloat());
   spacing = tilesets.get("spacing").toFloat();
   margin = tilesets.get("margin").toFloat();
