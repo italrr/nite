@@ -76,9 +76,9 @@ void Game::Map::update(){
 }
 
 void Game::Map::reload(){
-	nite::print("map '"+path+"' reload requested...");
+    nite::Console::add("map '"+path+"' reload requested...", nite::Color(0.80f, 0.80f, 0.22f, 1.0f));
 	if(!nite::fileExists(path)){
-		nite::print("cannot loaded map '"+path+"'. It doesn't exist.");
+		nite::Console::add("cannot loaded map '"+path+"'. It doesn't exist.", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 		return;
 	}
 	clear();
@@ -95,7 +95,7 @@ void Game::Map::render(){
 void Game::Map::clear(){
   static auto game = Game::getInstance();
   nite::dropFrame();
-  
+
   tiles.clear();
   tiles = nite::Tileset();
   for(int i = 0; i < locals.size(); ++i){

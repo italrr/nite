@@ -324,7 +324,7 @@ static Vector<String> splitTokens(String input, char sep){
   return tokens;
 }
 
-void nite::Console::interpret(const String &command){
+void nite::Console::interpret(const String &command, bool remoteExec){
   if(inputHistory.size() == 0 || inputHistory[inputHistory.size()-1] != command){
     inputHistory.push_back(command);
     currentHistorySelect = -1;
@@ -344,7 +344,7 @@ void nite::Console::interpret(const String &command){
   if(isProxy(imperative)){
     ProxyObject &op = (*proxies)[imperative];
     if(tokens.size() == 1){
-      nite::Console::add(command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
+      nite::Console::add((remoteExec ? "> " : "")+command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
       nite::Console::add(queryLiteral(op), nite::Color(0.15f, 0.80f, 0.22f, 1.0f));
       return;
     }else{
@@ -364,7 +364,7 @@ void nite::Console::interpret(const String &command){
         return;
       }
       if(result.success){
-        nite::Console::add(op.name+" = "+result.value, nite::Color(0.0f, 0.9f, 0.0f, 1.0f));
+        nite::Console::add((remoteExec ? "> " : "")+op.name+" = "+result.value, nite::Color(0.0f, 0.9f, 0.0f, 1.0f));
         if(op.after != NULL)
           op.after(Vector<String>());
       }else{
@@ -374,7 +374,7 @@ void nite::Console::interpret(const String &command){
   }else
   // Function
   if(isFunction(imperative)){
-    nite::Console::add(command, nite::Color(0.55f, 0.40f, 0.40f, 1.0f));
+    nite::Console::add((remoteExec ? "> " : "")+command, nite::Color(0.55f, 0.40f, 0.40f, 1.0f));
     Vector<String> params;
     for(int i = 1; i < tokens.size(); ++i){
       params.push_back(tokens[i]);
@@ -383,7 +383,7 @@ void nite::Console::interpret(const String &command){
     function(params);
   // I don't know
   }else{
-    nite::Console::add(command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
+    nite::Console::add((remoteExec ? "> " : "")+command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
     nite::Console::add("Unknown expression or undefined symbol", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
   }
 }
@@ -408,7 +408,7 @@ void nite::Console::update(){
   for (auto& it : binds){
     auto &bind = binds[it.first];
     if(nite::keyboardPressed(bind.key)){
-      nite::Console::interpret(bind.command);
+      nite::Console::interpret(bind.command, true);
     }
 	}
   if(opened && nite::keyboardPress(nite::keyPAGEUP) && ((buffer.size() - showLineNumber) - offset) > 0 ){
@@ -418,7 +418,7 @@ void nite::Console::update(){
     --offset;
   }
   if(opened && nite::keyboardPressed(nite::keyENTER) && userInput.length() > 0){
-    nite::Console::interpret(strRemoveEndline(userInput));
+    nite::Console::interpret(strRemoveEndline(userInput), false);
     userInput = "";
   }
   if(opened){

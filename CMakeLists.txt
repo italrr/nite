@@ -203,6 +203,7 @@ set (nite_src
 		src/Engine/World.cpp
 		src/Engine/World.cpp
 		src/Engine/Object.cpp
+		src/Engine/nScript.cpp
 		src/Engine/Tools/MD5.cpp
 		src/Engine/Audio.cpp
 		src/Engine/UI/UI.cpp

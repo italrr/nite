@@ -18,7 +18,7 @@
       void *getProxyReference(const String &name);
       void add(const String &input);
       void add(const String &input, const nite::Color &color);
-      void interpret(const String &command);
+      void interpret(const String &command, bool remoteExec);
       void open();
       void close();
       bool isOpen();

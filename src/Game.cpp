@@ -1,6 +1,7 @@
 #include "Game.hpp"
 #include "Sword.hpp"
 #include "Engine/Shapes.hpp"
+#include "Engine/nScript.hpp"
 
 using namespace nite;
 
@@ -120,6 +121,7 @@ void Game::GameMaster::start(){
 void Game::GameMaster::update(){
 	// nite::setZoom(nite::RenderTargetGame, 0.80f);
 	// Basic Shortcuts
+	// TODO: make debugPhysics toggle be assigned from nScript files instead of hardcoded
 	if(nite::keyboardPressed(nite::keyF1)){
 		world.debugPhysics = !world.debugPhysics;
 	}
@@ -174,8 +176,8 @@ int main(int argc, char* argv[]){
 
 	Game::GameMaster game;
 	game.start();
-
-
+	nite::nScript initDebug("debug_init.ns");
+	initDebug.execute();
 	while(game.isRunning){
 		game.update();
 		game.render();
