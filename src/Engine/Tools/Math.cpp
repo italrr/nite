@@ -87,6 +87,9 @@ float nite::distance(float x1, float y1, float x2, float y2){
 #include "../Graphics.hpp"
 bool nite::lerp(float &x1, float x2, float _Step){ // Apply game's delta
 	if(x1 == x2) return true;
+	if(_Step > 1.0f){
+		_Step = 1.0f;
+	}
 	float Step = 1.0f - nite::pow(1.0f - _Step, nite::getDelta() * nite::getTimescale() * 0.077f);
 	x1 = (1.0f-Step)*x1 + Step*x2;
 	if(abs(x1-x2)<0.10f) x1 = x2; // TODO: Check this!
@@ -95,6 +98,9 @@ bool nite::lerp(float &x1, float x2, float _Step){ // Apply game's delta
 
 bool nite::lerpDiscrete(float &x1, float x2, float _Step){
 	if(x1 == x2) return true;
+	if(_Step > 1.0f){
+		_Step = 1.0f;
+	}	
 	float Step = 1.0f - nite::pow(1.0f - _Step, nite::getDelta() * 0.077f);
 	x1 = (1.0f-Step)*x1 + Step*x2;
 	// if(abs(x1-x2)<1.0f) x1 = x2;
@@ -104,6 +110,9 @@ bool nite::lerpDiscrete(float &x1, float x2, float _Step){
 
 bool nite::lerpAbsolute(float &x1, float x2, float Step){
 	if(x1 == x2) return true;
+	if(Step > 1.0f){
+		Step = 1.0f;
+	}	
 	x1 = (1.0f-Step)*x1 + Step*x2;
 	if(abs(x1-x2)<1.0f) x1 = x2;
 	return false;

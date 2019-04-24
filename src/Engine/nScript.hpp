@@ -17,7 +17,7 @@
                 executed using nite::Console's interpret.
 
                 nite Script files are different from the .jsons
-                nite uses to load configs and other type of data.
+                nite uses to load configs and other types of data.
 
             TODO:
                 Proposition to make nite Script featureful/complex enough to

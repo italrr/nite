@@ -16,8 +16,8 @@
       bool createProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function);
       bool createFunction(const String &name, nite::Console::Function function);
       void *getProxyReference(const String &name);
-      void add(const String &input);
-      void add(const String &input, const nite::Color &color);
+      void add(const String &input, bool print = true);
+      void add(const String &input, const nite::Color &color, bool print = true);
       void interpret(const String &command, bool remoteExec);
       void open();
       void close();

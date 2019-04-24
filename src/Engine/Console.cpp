@@ -5,6 +5,10 @@
 #include "Input.hpp"
 #include <string.h>
 #include <cmath>
+#include <pthread.h>
+#include <iostream>
+
+static pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 struct ProxyObject {
   String name;
@@ -86,7 +90,7 @@ static void cfBind(Vector<String> params){
   }
   Bind bind;
   binds[key] = Bind(key, command); 
-  nite::print("binded '"+command+"' to keystroke '"+_key+"'");
+  nite::Console::add("binded '"+command+"' to keystroke '"+_key+"'");
 }
 static auto cfBindIns = nite::Console::CreateFunction("bind", &cfBind);  
 
@@ -133,20 +137,26 @@ bool nite::Console::createFunction(const String &name, nite::Console::Function f
   (*functions)[name] = function;
   return true;
 }
-nite::Console::CreateFunction::CreateFunction(const String &name, nite::Console::Function function){\
+nite::Console::CreateFunction::CreateFunction(const String &name, nite::Console::Function function){
   createFunction(name, function);
 }
 
-void nite::Console::add(const String &input, const nite::Color &color){
+void nite::Console::add(const String &input, const nite::Color &color, bool print){
   BufferLine line;
   line.line = input;
   line.time = nite::getTicks();
   line.color.set(color);
   buffer.push_back(line);
+  if(print){
+    pthread_mutex_lock(&count_mutex);
+    String ts = nite::getTimestamp();
+    std::cout << "[" << ts << "] " << input << std::endl;
+    pthread_mutex_unlock(&count_mutex);    
+  }
 }
 
-void nite::Console::add(const String &input){
-  add(input, nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+void nite::Console::add(const String &input, bool print){
+  add(input, nite::Color(1.0f, 1.0f, 1.0f, 1.0f), print);
 }
 
 void nite::Console::render(){

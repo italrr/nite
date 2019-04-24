@@ -82,6 +82,32 @@ static void cfCameraFollow(Vector<String> params){
 }
 static auto cfCameraFollowIns = nite::Console::CreateFunction("cl_camera_follow", &cfCameraFollow); 
 
+/////////////
+// COMMAND: cl_camera_snap
+////////////
+static void cfCameraSnap(Vector<String> params){
+	static auto game = Game::getInstance();
+	if(params.size() < 1){
+		nite::Console::add("Not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	auto &_x = params[0];
+	auto &_y = params[1];
+	if(!nite::isNumber(_x)){
+		nite::Console::add("'"+_x+"' is not a valid parameter. It must be a number", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	if(!nite::isNumber(_y)){
+		nite::Console::add("'"+_y+"' is not a valid parameter. It must be a number", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}	
+	auto x = nite::toInt(_x);
+	auto y = nite::toInt(_y);
+	cameraFreeroam = false;
+	nite::setViewPosition(nite::Vec2(x, y), nite::RenderTargetGame);
+	nite::print("camera snapped to "+nite::Vec2(x, y).str());
+}
+static auto cfCameraSnapIns = nite::Console::CreateFunction("cl_camera_snap", &cfCameraSnap); 
 
 void Game::GameMaster::start(){
 	instance = this;

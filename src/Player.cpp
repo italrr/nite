@@ -132,7 +132,6 @@ void Game::Player::onCreate(){
 }
 
 void Game::Player::step(){
-
   if(nite::keyboardCheck(nite::keyUP) && nite::keyboardCheck(nite::keyRIGHT)){
     entityMove(45.0f, walkPushRate);
   }else

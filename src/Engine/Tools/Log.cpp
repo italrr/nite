@@ -8,7 +8,7 @@ static pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 void nite::print(const String &Message){
 	pthread_mutex_lock(&count_mutex);
 	String Timestamp = nite::getTimestamp();
-	nite::Console::add(Message);
+	nite::Console::add(Message, false);
 	std::cout << "[" << Timestamp << "] " << Message << std::endl;
 	pthread_mutex_unlock(&count_mutex);
 }

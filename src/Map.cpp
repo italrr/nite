@@ -95,7 +95,6 @@ void Game::Map::render(){
 void Game::Map::clear(){
   static auto game = Game::getInstance();
   nite::dropFrame();
-
   tiles.clear();
   tiles = nite::Tileset();
   for(int i = 0; i < locals.size(); ++i){
