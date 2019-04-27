@@ -7,10 +7,13 @@
 
   namespace Game {
     struct BasicMob : public Entity {
-      Vector<std::shared_ptr<Game::OverworldBehavior>> overworldAI;
       void onCreate();
-      void add(std::shared_ptr<Game::OverworldBehavior> behavior);
+      
       void step();
+
+      // AI
+      Vector<std::shared_ptr<Game::AI::BaseBehavior>> behaviors;
+      void addBehavior(std::shared_ptr<Game::AI::BaseBehavior> behavior);
     };
   }
 

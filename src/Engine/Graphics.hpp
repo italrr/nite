@@ -26,7 +26,7 @@
 			const static String niteCurrentPlatform = "UNSUPPORTED OS";
 		#endif
 
-		const static String DefaultFontPath = "data/font/VeraMono.ttf";
+		const static String DefaultFontPath = "data/font/SpaceMono-Regular.ttf";
 
 		struct Renderable;
 		typedef void (*RenderFunction)(Renderable *object);

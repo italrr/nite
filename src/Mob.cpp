@@ -20,18 +20,19 @@ void Game::BasicMob::onCreate(){
   addBaseStat(BaseStatType::Luck, 0);
 //   printEntity();
 
-  add(std::shared_ptr<Game::OverworldBehavior>(new Game::TestStareOB()));
+  addBehavior(std::shared_ptr<Game::AI::BaseBehavior>(new Game::AI::StareBehavior()));
+  addBehavior(std::shared_ptr<Game::AI::BaseBehavior>(new Game::AI::DumbFollowBehavior()));
 }
 
-void Game::BasicMob::add(std::shared_ptr<Game::OverworldBehavior> behavior){
+void Game::BasicMob::addBehavior(std::shared_ptr<Game::AI::BaseBehavior> behavior){
   behavior->init();
-  overworldAI.push_back(behavior);
+  behaviors.push_back(behavior);
 }
 
 void Game::BasicMob::step(){
-  for(int i = 0; i < overworldAI.size(); ++i){
-    if(overworldAI[i]->isReady()){
-      overworldAI[i]->think(*this);
+  for(int i = 0; i < behaviors.size(); ++i){
+    if(behaviors[i]->isReady()){
+      behaviors[i]->think(*this);
     }
   }
 }

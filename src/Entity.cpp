@@ -44,6 +44,43 @@ static void cfEntityJumpToMouse(Vector<String> params){
 static auto cfEntityJumpToMouseIns = nite::Console::CreateFunction("ent_jump_to_mouse", &cfEntityJumpToMouse); 
 
 /////////////
+// COMMAND: ent_move
+////////////
+static void cfEntityMove(Vector<String> params){
+	static auto game = Game::getInstance();
+	if(params.size() < 1){
+		nite::Console::add("Not enough parameters(3)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	String &param0 = params[0]; // ent id
+	String &param1 = params[0]; // x
+	String &param2 = params[0]; // y
+
+	if(!nite::isNumber(param0)){
+		nite::Console::add("'"+param0+"' is not a valid parameter. entity id is expected", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	if(!nite::isNumber(param1)){
+		nite::Console::add("'"+param1+"' is not a valid parameter. x position is expected", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	if(!nite::isNumber(param2)){
+		nite::Console::add("'"+param2+"' is not a valid parameter. y position is expected", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	int id = nite::toInt(param0);	
+	nite::Vec2 position(nite::toFloat(param1), nite::toFloat(param2));	
+	if(!game->world.exists(id)){
+		nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return;
+	}
+	auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());
+	entity->position = position;
+	nite::print("Entity id "+param0+" '"+entity->name+"' was manually moved to "+position.str());
+}
+static auto cfEntityMoveIns = nite::Console::CreateFunction("ent_move", &cfEntityMove); 
+
+/////////////
 // COMMAND: ent_show
 ////////////
 static void cfShowEntities(Vector<String> params){
