@@ -132,29 +132,30 @@ void Game::Player::onCreate(){
 }
 
 void Game::Player::step(){
+	bool isSpace = nite::keyboardCheck(nite::keySPACE);
   if(nite::keyboardCheck(nite::keyUP) && nite::keyboardCheck(nite::keyRIGHT)){
-    entityMove(-0.7854f, walkPushRate);
+    entityMove(-0.7854f, walkPushRate, isSpace);
   }else
   if(nite::keyboardCheck(nite::keyDOWN) && nite::keyboardCheck(nite::keyRIGHT)){
-    entityMove(-5.498f, walkPushRate);
+    entityMove(-5.498f, walkPushRate, isSpace);
   }else
   if(nite::keyboardCheck(nite::keyUP) && nite::keyboardCheck(nite::keyLEFT)){
-    entityMove(-2.356f, walkPushRate);
+    entityMove(-2.356f, walkPushRate, isSpace);
   }else		
   if(nite::keyboardCheck(nite::keyDOWN) && nite::keyboardCheck(nite::keyLEFT)){
-    entityMove(-3.927f, walkPushRate);
+    entityMove(-3.927f, walkPushRate, isSpace);
   }else				
   if(nite::keyboardCheck(nite::keyUP)){
-    entityMove(-1.571f, walkPushRate);
+    entityMove(-1.571f, walkPushRate, isSpace);
   }else
   if(nite::keyboardCheck(nite::keyRIGHT)){
-    entityMove(0.0f, walkPushRate);
+    entityMove(0.0f, walkPushRate, isSpace);
   }else
   if(nite::keyboardCheck(nite::keyDOWN)){
-    entityMove(-4.712f, walkPushRate);
+    entityMove(-4.712f, walkPushRate, isSpace);
   }else
   if(nite::keyboardCheck(nite::keyLEFT)){
-    entityMove(3.142f, walkPushRate);
+    entityMove(3.142f, walkPushRate, isSpace);
   }		
 
   if(nite::keyboardPressed(nite::keyZ)){

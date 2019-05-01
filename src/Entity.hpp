@@ -127,6 +127,7 @@
 			nite::Vec2 defaultPhysicalSize;
 			float frameDepthOffset;
 			float faceDirBias;
+			float globalDepthOffsetY;
 			float walkRightStepOffset;
 			String spriteFilename;
 			bool load(const String &path);
@@ -136,6 +137,7 @@
 			FrameData topWalking;
 			FrameData bottomWalking;
 			FrameData topKnockback;
+			FrameData bottomKnockback;
 			FrameData topSwordSwing;
 			FrameData topSwordOnHand;
 			// Frame Animation
@@ -156,6 +158,7 @@
 			unsigned animTopSwordSwinging;
 			unsigned animTopSwordOnHand;
 			unsigned animTopKnockback;
+			unsigned animBottomKnockback;
 			unsigned animBottomIdle;
 			unsigned animBottomWalking;
 			unsigned animCurrentTop;
@@ -176,7 +179,6 @@
 			UInt64 swordSwingTimeout;
 			bool isSwordSwinging;
 			
-
 			// Etc
 			AnimationData dims;
 			nite::Texture entityShadow;
@@ -214,7 +216,7 @@
 			bool lvUp();
 			void onCreate();
 			void onDestroy();
-			void entityMove(float angle, float mod);
+			void entityMove(float angle, float mod, bool holdStance = false);
 			void step();
 			void draw();
 			void init();

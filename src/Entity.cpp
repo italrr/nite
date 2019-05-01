@@ -354,17 +354,17 @@ void Game::Entity::entityStep(){
 
   auto fixStance = [&](){
 	if(currentStance == Game::EntityStance::Neutral){
-		animCurrentBottom = animBottomIdle;
-		animCurrentTop = animTopIdle;
+			animCurrentBottom = animBottomIdle;
+			animCurrentTop = animTopIdle;
 	  }
 	  if(currentStance == Game::EntityStance::Melee){
-		animCurrentTop = animTopSwordSwinging;
-		animCurrentBottom = animBottomIdle;
+			animCurrentTop = animTopSwordSwinging;
+			animCurrentBottom = animBottomIdle;
 	  }
 	  if(currentStance == Game::EntityStance::KnockedBack){
-		animCurrentTop = animTopKnockback;
-		animCurrentBottom = animTopKnockback;
-		
+			animCurrentTop = animTopKnockback;
+			animCurrentBottom = animBottomKnockback;
+			
 	  }	  
   };
 	
@@ -373,7 +373,7 @@ void Game::Entity::entityStep(){
   // Knockback
   if(isKnockedback && currentStance == Game::EntityStance::KnockedBack){
 	  animCurrentTop = animTopKnockback;
-	  animCurrentBottom = animTopKnockback;	  
+	  animCurrentBottom = animBottomKnockback;	  
 	  if(nite::getTicks() - knockbackTimeout > 200){
 		  isKnockedback = false;
 		  reverseStance();
@@ -381,32 +381,32 @@ void Game::Entity::entityStep(){
   }else
   // Sword Swinging & Hand hold state
   if(isSwordSwinging && currentStance == Game::EntityStance::Melee){
-	animCurrentTop = animTopSwordSwinging;
-	
-	int _rate = atkRate / 35.0f;
-	UInt64 nextStepTimeout = dims.faSwordForward.frames[swordSwingLastStep % dims.faSwordForward.frames.size()].time;
-	nextStepTimeout = _rate > nextStepTimeout ? 0 : nextStepTimeout - _rate;
-	if(nite::getTicks() - swordSwingTimeout > nite::timescaled(nextStepTimeout)){
-		swordSwingTimeout = nite::getTicks();
-		if(swordSwingLastStep > 0){
-			throwMelee();
-		}		
-		++swordSwingLastStep;
-		if(swordSwingLastStep >= dims.faSwordForward.frames.size()){
-			isSwordSwinging = false;
-			animCurrentTop = animTopSwordOnHand;
+		animCurrentTop = animTopSwordSwinging;
+		
+		int _rate = atkRate / 35.0f;
+		UInt64 nextStepTimeout = dims.faSwordForward.frames[swordSwingLastStep % dims.faSwordForward.frames.size()].time;
+		nextStepTimeout = _rate > nextStepTimeout ? 0 : nextStepTimeout - _rate;
+		if(nite::getTicks() - swordSwingTimeout > nite::timescaled(nextStepTimeout)){
+			swordSwingTimeout = nite::getTicks();
+			if(swordSwingLastStep > 0){
+				throwMelee();
+			}		
+			++swordSwingLastStep;
+			if(swordSwingLastStep >= dims.faSwordForward.frames.size()){
+				isSwordSwinging = false;
+				animCurrentTop = animTopSwordOnHand;
+			}
 		}
-	}
 
-    entityAnim.setManualClicking(animTopSwordSwinging, true);
-    entityAnim.setFrame(animTopSwordSwinging, swordSwingLastStep % entityAnim.animations[animTopSwordSwinging].index.size());
-	
+			entityAnim.setManualClicking(animTopSwordSwinging, true);
+			entityAnim.setFrame(animTopSwordSwinging, swordSwingLastStep % entityAnim.animations[animTopSwordSwinging].index.size());
+		
   }else
   if(!isSwordSwinging && currentStance == Game::EntityStance::Melee){
-	animCurrentTop = animTopSwordOnHand;
+		animCurrentTop = animTopSwordOnHand;
   }
   // Walking State
-  if(isWalking){
+  if(!isKnockedback && isWalking){
     animCurrentBottom = animBottomWalking;
     if(nite::getTicks()-walkingStepTimeout > nite::timescaled(128 - walkRate * 2.0)){
       walkingStepTimeout = nite::getTicks();
@@ -592,6 +592,7 @@ bool Game::AnimationData::load(const String &path){
   defaultPhysicalSize.set(node.get("defaultPhysicalSize").get("width").toFloat(), node.get("defaultPhysicalSize").get("height").toFloat());
   frameDepthOffset = node.get("frameDepthOffset").toFloat();
   faceDirBias = node.get("faceDirBias").toFloat();
+	globalDepthOffsetY = node.get("globalDepthOffsetY").toFloat();
   walkRightStepOffset = node.get("walkRightStepOffset").toFloat();
   spriteFilename = node.get("spriteFilename").toString();
   // Frames
@@ -602,6 +603,7 @@ bool Game::AnimationData::load(const String &path){
   topSwordSwing.parse(node.get("animations").get("TopSwordSwing"));
   topSwordOnHand.parse(node.get("animations").get("TopSwordOnHand"));
   topKnockback.parse(node.get("animations").get("TopKnockback"));
+	bottomKnockback.parse(node.get("animations").get("BottomKnockback"));
   // Frame Animations
   auto faNode = node.get("frames");
   faSwordForward.load(faNode.get("SwordForward"));
@@ -657,6 +659,7 @@ void Game::Entity::entityReloadAnimation(){
 	animTopSwordSwinging = parseAnimation(entityAnim, ss, dims.topSwordSwing);
 	animTopSwordOnHand = parseAnimation(entityAnim, ss, dims.topSwordOnHand);
 	animTopKnockback = parseAnimation(entityAnim, ss, dims.topKnockback);
+	animBottomKnockback = parseAnimation(entityAnim, ss, dims.bottomKnockback);
 	nite::print("reloaded entity '"+path+"' animations");
 }
 
@@ -689,11 +692,11 @@ void Game::Entity::onDestroy(){
 // This method must be used to move entities
 // Do not use PhyshicsObject's methods nor manually modifiying Vec2 position
 // NOTE: Angle is radians
-void Game::Entity::entityMove(float angle, float mod){ 
-  if(nite::toDegrees(angle) <= 45 || nite::toDegrees(angle) >= 315){
+void Game::Entity::entityMove(float angle, float mod, bool holdStance){ 
+  if(!holdStance && (nite::toDegrees(angle) <= 45 || nite::toDegrees(angle) >= 315)){
 	  faceDirection = EntityFacing::Right;
   }
-  if(nite::toDegrees(angle) >= 135 && nite::toDegrees(angle) <= 225){
+  if(!holdStance && (nite::toDegrees(angle) >= 135 && nite::toDegrees(angle) <= 225)){
 	  faceDirection = EntityFacing::Left;
   }
   isWalking = true;
@@ -707,13 +710,14 @@ void Game::Entity::step(){
 
 void Game::Entity::dealDamage(const Game::DamageInfo &dmg){
 	int fdamage = dmg.amount - this->def;
+	// int fdamage = 10;
 	if(fdamage <= 0){
 		nite::print("0 damage to entity '"+this->name+"'");
 		return;
 	}
 	if(dmg.knockback){
 		float an = nite::arctan(position.y - dmg.owner->position.y, position.x - dmg.owner->position.x);
-		float mod = 27.57f;
+		float mod = 50.57f;
 		this->knockback(an, mod);
 	}
 	nite::print("dealt "+nite::toStr(fdamage)+" entity '"+this->name+"'");
@@ -823,6 +827,7 @@ void Game::Entity::draw(){
   nite::setColor(0.7f, 0.7f, 0.7f, 0.5f);
   // entityShadow.draw(position.x, position.y + dims.frameSize.y * 0.25f, entityShadow.getWidth(), entityShadow.getHeight(), 0.5f, 0.5f, 0.0f);
   nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+	nite::setDepth(-position.y + dims.globalDepthOffsetY); // dynamic depth using y
   auto *ref = batch.draw(position.x, position.y - frameDepthOffset + stepOffset, frameSize.x * faceDir, frameSize.y, 0.5f, 0.5f, 0.0f);
   if(ref != NULL){
 	  ref->smooth = true;  

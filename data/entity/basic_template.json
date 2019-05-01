@@ -23,6 +23,7 @@
 	"frameDepthOffset": 30.0,
 	"faceDirBias": -1.0,
 	"walkRightStepOffset": 2.0,
+	"globalDepthOffsetY": -47.0,
 	"animations": {
 		"TopSwordSwing": {
 			"index": {
@@ -85,6 +86,16 @@
 			"vertical": false
 		},	
 		"TopKnockback": {
+			"index": {
+				"x": 2,
+				"y": 0
+			},
+			"speed": 0.08,
+			"n": 1,
+			"reversed": false,
+			"vertical": false
+		},	
+		"BottomKnockback": {
 			"index": {
 				"x": 2,
 				"y": 0

@@ -30,6 +30,18 @@
 	  Camera();
 	};
 
+	struct StepTimer {
+		StepTimer(String name);
+		StepTimer();
+		UInt64 lastTick;
+		UInt64 time;
+		String name;
+		String report;
+		void init();
+		void end();
+		String getStatus();
+	};
+
 	struct GameMaster {
 	  Game::Camera camera;
 	  Game::Map map;
@@ -43,7 +55,8 @@
 	  void render();
 	  void end();
 	  void onEnd();
-	
+		Game::StepTimer stepGeneralTimer;
+		Game::StepTimer drawGeneralTimer;
 	};
 
 	Game::GameMaster *getInstance();

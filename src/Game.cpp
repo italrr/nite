@@ -109,6 +109,27 @@ static void cfCameraSnap(Vector<String> params){
 }
 static auto cfCameraSnapIns = nite::Console::CreateFunction("cl_camera_snap", &cfCameraSnap); 
 
+
+Game::StepTimer::StepTimer(String name){
+	this->name = name;
+}
+
+Game::StepTimer::StepTimer(){
+	name = "StepTimer";
+}
+
+void Game::StepTimer::init(){
+	lastTick = nite::getTicks();
+}
+
+void Game::StepTimer::end(){
+	time = nite::getTicks() - lastTick;
+}
+
+String Game::StepTimer::getStatus(){
+	return "["+name+"] Elapsed "+nite::toStr(time)+" msecs";
+}
+
 void Game::GameMaster::start(){
 	instance = this;
 	// nite Engine init
@@ -116,6 +137,9 @@ void Game::GameMaster::start(){
 	nite::inputInit();
 	renderEntities = true;
 	isRunning = true;
+
+	stepGeneralTimer.name = "STEP GENERAL";
+	drawGeneralTimer.name = "DRAW GENERAL";
 	
 	
 	// Load a placeholder map
@@ -129,11 +153,11 @@ void Game::GameMaster::start(){
 	this->player->fullHeal();
 	this->player->position.set(map.playerSpawn);
 	
-	auto mob = Shared<nite::PhysicsObject>(new Game::BasicMob());
-	world.add(mob);
-	mob->position.set(1920, 1500);
-	auto mobEntity = static_cast<Entity*>(mob.get());
-	mobEntity->fullHeal();	
+	// auto mob = Shared<nite::PhysicsObject>(new Game::BasicMob());
+	// world.add(mob);
+	// mob->position.set(1920, 1500);
+	// auto mobEntity = static_cast<Entity*>(mob.get());
+	// mobEntity->fullHeal();	
 	
 
 	auto sword = Shared<Game::BaseItem>(new Sword());
@@ -176,7 +200,7 @@ void Game::GameMaster::render(){
 	nite::Console::render();
 	ui.render();
 	map.render();
-	world.render();		
+	world.render();	
 }
 
 void Game::GameMaster::end(){
