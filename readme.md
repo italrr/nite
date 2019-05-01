@@ -1,12 +1,10 @@
-nite
+nite Engine
 ---
 
-nite Engine is a 2D game engine written by Italo Russo. Originally as toy/learning project. 
-Since the last year I've been using it to make a simply RPG Game. This repo contains
-the engine itself + the game, both somewhat separated from each other (Engine + UI are nite).
+nite Engine is a 2D game engine written by Italo Russo. This has been and on-going project of mine which I started some years ago, slowly adding features and
+mechanics. The engine is intended for RPG-top down games.
 
-nite is written in C++ and using OpenGL to render. nite is a portable engine, but right
-now it only works well on Windows.
+nite is written in C++ and using OpenGL to render. nite is portable, although right now it only works well on Windows.
 
 **Attention: Documentation is work in progress.**
 
@@ -22,7 +20,7 @@ now it only works well on Windows.
 - Util types (nite::Color, nite::Vec2, nite::Rect, nite::Polygon)
 - Basic primitive shape rendering
 - Integrated console
-- Multi-layered tileset system
+- Multi-layered and complex tileset system
 - Input support (Keyboard and mouse for now)
 - Object / world simulation (Non-Networked)
 - Shader support
@@ -33,6 +31,8 @@ now it only works well on Windows.
 - Entity system
 - Basic AI for entities
 - UI System based on flex-boxes
+- Basic scripting language (nite Script)
+
 
 How to build?
 ------------
