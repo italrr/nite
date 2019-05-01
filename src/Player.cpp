@@ -133,31 +133,31 @@ void Game::Player::onCreate(){
 
 void Game::Player::step(){
   if(nite::keyboardCheck(nite::keyUP) && nite::keyboardCheck(nite::keyRIGHT)){
-    entityMove(45.0f, walkPushRate);
+    entityMove(-0.7854f, walkPushRate);
   }else
   if(nite::keyboardCheck(nite::keyDOWN) && nite::keyboardCheck(nite::keyRIGHT)){
-    entityMove(315.0f, walkPushRate);
+    entityMove(-5.498f, walkPushRate);
   }else
   if(nite::keyboardCheck(nite::keyUP) && nite::keyboardCheck(nite::keyLEFT)){
-    entityMove(135.0f, walkPushRate);
+    entityMove(-2.356f, walkPushRate);
   }else		
   if(nite::keyboardCheck(nite::keyDOWN) && nite::keyboardCheck(nite::keyLEFT)){
-    entityMove(225.0f, walkPushRate);
+    entityMove(-3.927f, walkPushRate);
   }else				
   if(nite::keyboardCheck(nite::keyUP)){
-    entityMove(90.0f, walkPushRate);
+    entityMove(-1.571f, walkPushRate);
   }else
   if(nite::keyboardCheck(nite::keyRIGHT)){
     entityMove(0.0f, walkPushRate);
   }else
   if(nite::keyboardCheck(nite::keyDOWN)){
-    entityMove(270.0f, walkPushRate);
+    entityMove(-4.712f, walkPushRate);
   }else
   if(nite::keyboardCheck(nite::keyLEFT)){
-    entityMove(180.0f, walkPushRate);
+    entityMove(3.142f, walkPushRate);
   }		
 
   if(nite::keyboardPressed(nite::keyZ)){
-	entityUseActiveSlot(Game::InventoryActiveSlot::Main);
+		entityUseActiveSlot(Game::InventoryActiveSlot::Main);
   }
 }

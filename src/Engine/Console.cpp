@@ -184,7 +184,7 @@ void nite::Console::render(){
   float tw = font.getWidth(tusr);
   static float pointerA = 100.0f;
   static bool pointerAC = true;
-  if(nite::lerpAbsolute(pointerA, pointerAC ? 0.0f : 100.0f, 0.30f)){
+  if(nite::lerpAbsolute(pointerA, pointerAC ? 0.0f : 100.0f, 0.10f)){
     pointerAC = !pointerAC;
   }
   nite::setColor(1.0f, 1.0f, 1.0f, pointerA / 100.0f);

@@ -38,7 +38,7 @@ void Game::AI::DumbFollowBehavior::think(Entity &subject){
 
   // find player
   auto &player = *static_cast<Game::Player*>(game->player);
-  auto angle = nite::toDegrees(nite::arctan(subject.position.y - player.position.y, player.position.x - subject.position.x));
+  auto angle = nite::arctan(player.position.y - subject.position.y, player.position.x - subject.position.x);
   subject.entityMove(angle, subject.walkPushRate);
 
 }

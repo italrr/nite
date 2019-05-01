@@ -20,7 +20,7 @@ void Game::BasicMob::onCreate(){
   addBaseStat(BaseStatType::Luck, 0);
 //   printEntity();
 
-  addBehavior(std::shared_ptr<Game::AI::BaseBehavior>(new Game::AI::StareBehavior()));
+  // addBehavior(std::shared_ptr<Game::AI::BaseBehavior>(new Game::AI::StareBehavior()));
   addBehavior(std::shared_ptr<Game::AI::BaseBehavior>(new Game::AI::DumbFollowBehavior()));
 }
 

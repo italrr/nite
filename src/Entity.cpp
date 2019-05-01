@@ -284,7 +284,6 @@ static void cfEntityStatReset(Vector<String> params){
 }
 static auto cfEntityStatResetIns = nite::Console::CreateFunction("ent_statreset", &cfEntityStatReset); 
 
-
 Game::ComplexStat::ComplexStat() {
   maxCarry = 25;
   walkRate = 0.25f;
@@ -689,17 +688,17 @@ void Game::Entity::onDestroy(){
 
 // This method must be used to move entities
 // Do not use PhyshicsObject's methods nor manually modifiying Vec2 position
-// NOTE: Angle is degress
+// NOTE: Angle is radians
 void Game::Entity::entityMove(float angle, float mod){ 
-  if(angle <= 45 || angle >= 315){
+  if(nite::toDegrees(angle) <= 45 || nite::toDegrees(angle) >= 315){
 	  faceDirection = EntityFacing::Right;
   }
-  if(angle >= 135 && angle <= 225){
+  if(nite::toDegrees(angle) >= 135 && nite::toDegrees(angle) <= 225){
 	  faceDirection = EntityFacing::Left;
   }
   isWalking = true;
   walkingTimeout = nite::getTicks();
-  move(nite::toRadians(angle), mod + 0.25f * walkRate);
+  move(angle, mod + 0.25f * walkRate);
 }
 
 void Game::Entity::step(){
