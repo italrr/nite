@@ -2,7 +2,7 @@ nite Engine
 ---
 
 nite Engine is a 2D game engine written by Italo Russo. This has been an on-going project of mine which I started some years ago, slowly adding new features and
-mechanics. The engine is intended for RPG top-down games.
+mechanics. The engine is intended for top-down RPG games.
 
 nite is written in C++, it uses OpenGL to render. nite is portable, although right now it only works well on Windows.
 
