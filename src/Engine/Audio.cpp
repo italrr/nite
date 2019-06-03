@@ -2,13 +2,13 @@
 #include <string>
 #include <sstream>
 #include <fstream>
-#include "RaptorAudio/RaptorAudio.h"
-#include "RaptorAudio/SharedPointer.h"
+//#include "RaptorAudio/RaptorAudio.h"
+//#include "RaptorAudio/SharedPointer.h"
 #include "Tools/Tools.hpp"
 #include "Audio.hpp"
 
-using namespace Raptor::Audio;
-using namespace Raptor::Utility;
+//using namespace Raptor::Audio;
+//using namespace Raptor::Utility;
 #define RATE 44100
 static bool init = false;
 static float globalVolume = 1.0f;
@@ -17,7 +17,7 @@ struct SoundT {
 	Vector<nite::Audio*> owners;
 	bool empty;
 	String Hash;
-	StreamingSoundObject* song;
+	char* song;
 	size_t size;
     char *buffer;
 	void clear(){
@@ -95,7 +95,7 @@ nite::Audio& nite::Audio::operator= (const nite::Audio &other){
 
 void nite::Audio::load(const String &filename, unsigned mode){
 	if(!init){
-		SoundMixer::InitializeMixer(RATE, 4410, SoundMixerProfiles::SOUND_MIXER_SPEAKERS);
+		//SoundMixer::InitializeMixer(RATE, 4410, SoundMixerProfiles::SOUND_MIXER_SPEAKERS);
 		init = false;
 	}
 	if(!nite::fileExists(filename)){
@@ -105,9 +105,10 @@ void nite::Audio::load(const String &filename, unsigned mode){
 	this->filename = String(filename);
 	size_t size = 0;
 	char *buffer = NULL;
-	StreamingSoundObject *song = NULL;
+	//StreamingSoundObject *song = NULL;
+	char *song = NULL;
 	if(mode == nite::AudioMode::Stream){
-		song = new StreamingSoundObject(this->filename.c_str());
+		song = NULL;//new StreamingSoundObject(this->filename.c_str());
 	}else
 	if(mode == nite::AudioMode::Memory){
 		std::ifstream file (filename.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
@@ -121,7 +122,7 @@ void nite::Audio::load(const String &filename, unsigned mode){
 			nite::print("Error: Couldn't load '"+filename+"': It failed to open.");
 			return;
 		}
-		song = new StreamingSoundObject(buffer, AudioOrigins::AUDIO_ORIGIN_OPENMEMORY_POINT, size);
+		song = NULL; //new StreamingSoundObject(buffer, AudioOrigins::AUDIO_ORIGIN_OPENMEMORY_POINT, size);
 	}
 
 	String fileHash = nite::hashFile(filename);
@@ -166,17 +167,17 @@ void nite::Audio::unload(){
 }
 
 static int indexQueue = 0;
-static Dict <int, SoundObjectProperties> soundQueue;
+//static Dict <int, SoundObjectProperties> soundQueue;
 #include "Graphics.hpp"
 int nite::Audio::play(bool loop, float vol, float pitch){
 	if(objectId <= -1) return -1;
-	SharedProperties sprop = CreateSharedProperties();
-	sprop->sp_PitchShift = pitch * nite::getTimescale();
-	sprop->sp_Volume = vol * globalVolume;
-	SoundObjectProperties prop = SoundMixer::GetMixer()->CreateProperties(soundList[objectId].song, sprop);
-	prop->SetLooping(loop);
-	SoundMixer::GetMixer()->PlaySoundObject(prop);
-	soundQueue[indexQueue++] = prop;
+	//SharedProperties sprop = CreateSharedProperties();
+	//sprop->sp_PitchShift = pitch * nite::getTimescale();
+	//sprop->sp_Volume = vol * globalVolume;
+	//SoundObjectProperties prop = SoundMixer::GetMixer()->CreateProperties(soundList[objectId].song, sprop);
+	//prop->SetLooping(loop);
+	//SoundMixer::GetMixer()->PlaySoundObject(prop);
+	//soundQueue[indexQueue++] = prop;
 }
 
 int nite::Audio::play(bool loop){
@@ -184,18 +185,18 @@ int nite::Audio::play(bool loop){
 }
 
 void nite::Audio::stop(int id){
-	if (soundQueue.find(id) == soundQueue.end()) return;
-	SoundMixer::GetMixer()->Stop(soundQueue[id]);
+	//if (soundQueue.find(id) == soundQueue.end()) return;
+	//SoundMixer::GetMixer()->Stop(soundQueue[id]);
 }
 
 void nite::Audio::pause(int id){
-	if (soundQueue.find(id) == soundQueue.end()) return;
-	SoundMixer::GetMixer()->Pause(soundQueue[id]);
-	soundQueue.erase(id);
+	//if (soundQueue.find(id) == soundQueue.end()) return;
+	///SoundMixer::GetMixer()->Pause(soundQueue[id]);
+	//soundQueue.erase(id);
 }
 
 void nite::Audio::resume(int id){
-	if (soundQueue.find(id) == soundQueue.end()) return;
-	SoundMixer::GetMixer()->Resume(soundQueue[id]);
-	soundQueue.erase(id);
+	//if (soundQueue.find(id) == soundQueue.end()) return;
+	//SoundMixer::GetMixer()->Resume(soundQueue[id]);
+	//soundQueue.erase(id);
 }

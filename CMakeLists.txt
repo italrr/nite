@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 2.6)
 
 project(MMORPG CXX C)
 
-include_directories("C:\\Users\\irusso\\Documents\\MinGW\\include")
-
 set(CMAKE_C_FLAGS "-DGLEW_STATIC -g")
 set(CMAKE_CXX_FLAGS "-DGLEW_STATIC -std=c++11 -g")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/builds/cmake)
@@ -84,9 +82,6 @@ foreach (d ZLIB BZip2 PNG HarfBuzz)
 endforeach ()
 
 if (UNIX)
-  check_include_file("unistd.h" HAVE_UNISTD_H)
-  check_include_file("fcntl.h" HAVE_FCNTL_H)
-  check_include_file("stdint.h" HAVE_STDINT_H)
 
   file(READ "src/Engine/FreeType/builds/unix/ftconfig.in"
     FTCONFIG_H)
