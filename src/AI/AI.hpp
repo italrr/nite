@@ -8,7 +8,6 @@
 
     namespace AI {
 
-
       namespace Type {
         static const unsigned Idle = 0;
         static const unsigned Offensive = 1;

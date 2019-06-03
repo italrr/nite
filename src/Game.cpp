@@ -153,11 +153,11 @@ void Game::GameMaster::start(){
 	this->player->fullHeal();
 	this->player->position.set(map.playerSpawn);
 	
-	// auto mob = Shared<nite::PhysicsObject>(new Game::BasicMob());
-	// world.add(mob);
-	// mob->position.set(1920, 1500);
-	// auto mobEntity = static_cast<Entity*>(mob.get());
-	// mobEntity->fullHeal();	
+	auto mob = Shared<nite::PhysicsObject>(new Game::BasicMob());
+	world.add(mob);
+	mob->position.set(1920, 1500);
+	auto mobEntity = static_cast<Entity*>(mob.get());
+	mobEntity->fullHeal();	
 	
 
 	auto sword = Shared<Game::BaseItem>(new Sword());
