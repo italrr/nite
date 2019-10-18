@@ -436,7 +436,7 @@ static inline bool isClippingOut(float x, float y, float w, float h, float origX
 
 nite::RenderableFont *nite::Font::draw(const String &text, float x, float y){
 	if(objectId <= -1) return NULL;
-	if(isClippingOut(x, y, 25, 25, 0.0, 0.0)) return NULL;
+	// if(isClippingOut(x, y, 25, 25, 0.0, 0.0)) return NULL;
 	nite::RenderableFont *obj = new nite::RenderableFont();
 	obj->text = text;
 	obj->position.x = x;
@@ -466,7 +466,7 @@ nite::RenderableFont *nite::Font::draw(const String &text, const nite::Vec2 &P, 
 
 nite::RenderableFont *nite::Font::draw(const String &text, float x, float y, float origX, float origY, float scaleX, float scaleY, float angle){
 	if(objectId <= -1) return NULL;
-	if(isClippingOut(x, y, 25, 25, 0.0, 0.0)) return NULL;
+	// if(isClippingOut(x, y, 25, 25, 0.0, 0.0)) return NULL;
 	nite::RenderableFont *obj = new nite::RenderableFont();
 	obj->text = text;
 	obj->objectId = objectId;
@@ -487,7 +487,7 @@ nite::RenderableFont *nite::Font::draw(const String &text, float x, float y, flo
 
 nite::RenderableFont *nite::Font::draw(const String &text, float x, float y, float origX, float origY, float angle){
 	if(objectId <= -1) return NULL;
-	if(isClippingOut(x, y, 25, 25, 0.0, 0.0)) return NULL;
+	// if(isClippingOut(x, y, 25, 25, 0.0, 0.0)) return NULL;
 	nite::RenderableFont *obj = new nite::RenderableFont();
 	obj->text	= text;
 	obj->objectId	= objectId;

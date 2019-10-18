@@ -493,6 +493,7 @@ static void _build(Shared<nite::BaseUIComponent> &ui, const String &path, JsonSo
   auto layout = _parseLayout(node, ui);
   auto borderColor = _parseColor("borderColor", node, asWindow->getBorderColor(), ui);
   auto backgroundColor = _parseColor("backgroundColor", node, asWindow->getBackgroundColor(), ui);
+  auto titleColor = _parseColor("titleColor", node, asWindow->getTitleColor(), ui);
   auto title = _parseString("title", node, asWindow->getTitle(), ui);
   auto noTitle = _parseBool("notitle", node, false, ui);
   auto unmovable = _parseBool("unmovable", node, false, ui);
@@ -511,6 +512,7 @@ static void _build(Shared<nite::BaseUIComponent> &ui, const String &path, JsonSo
   asWindow->setBorderThickness(borderthickness);
   asWindow->setShowTitle(!noTitle);
   asWindow->setSize(size);
+  asWindow->setTitleColor(titleColor);
   asWindow->setLayout(layout);
   asWindow->setBorderColor(borderColor);
   asWindow->setBackgroundColor(backgroundColor);

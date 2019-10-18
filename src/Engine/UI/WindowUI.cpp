@@ -54,6 +54,7 @@ void nite::WindowUI::defaultInit(){
 	enableTitle = true;
 	baseColor.set(0.0f, 0.0f, 0.0f, 1.0f);
 	leftBorderColor.set(0.88f, 0.1f, 0.1f, 1.0f);
+	titleColor.set(1.0f, 1.0f, 1.0f, 1.0f);
 	toDestroy = false;
 	generalAlpha = 100.0;
 }
@@ -75,12 +76,21 @@ nite::Color nite::WindowUI::getBorderColor(){
 	return leftBorderColor;
 }
 
+nite::Color nite::WindowUI::getTitleColor(){
+	return titleColor;
+}
+
 String nite::WindowUI::getTitle(){
 	return title;
 }
 
 void nite::WindowUI::setBorderColor(const nite::Color &color){
 	this->leftBorderColor.set(color);
+	recalculate();  
+}
+
+void nite::WindowUI::setTitleColor(const nite::Color &color){
+	this->titleColor.set(color);
 	recalculate();  
 }
 
@@ -165,7 +175,7 @@ void nite::WindowUI::rerenderDecoration(){
 
 	// Render Title
 	if(enableTitle){
-		nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+		nite::setColor(titleColor);
 		auto *titleRef = basicFont.draw(title, nite::Vec2(size.x * 0.5f, headerHeight * 0.65f), nite::Vec2(0.5f), 0.65f, 0.0f);
 		if(titleRef != NULL){
 			titleRef->setShadow(nite::Color(0.0f, 0.0f, 0.0f, 1.0f), nite::Vec2(1.5f));

@@ -1,17 +1,17 @@
 #ifndef GAME_ENTITY_HPP
-  #define GAME_ENTITY_HPP
+  	#define GAME_ENTITY_HPP
 
-  #define GAME_MAX_LEVEL 48
+	#define GAME_MAX_LEVEL 48
 	#define GAME_MAX_STAT 100
 	#define GAME_MAX_ATK_RATE GAME_MAX_STAT * (3.85f + GAME_MAX_LEVEL * 0.15f) + GAME_MAX_STAT * (1.1f + GAME_MAX_LEVEL * 0.1f)
 
-  #include "Engine/Tools/Tools.hpp"
-  #include "Engine/Object.hpp"
-  #include "Engine/Texture.hpp"
-  #include "Engine/Animation.hpp"  
-  #include "Inventory.hpp"
+  	#include "Engine/Tools/Tools.hpp"
+  	#include "Engine/Object.hpp"
+  	#include "Engine/Texture.hpp"
+  	#include "Engine/Animation.hpp"  
+  	#include "Inventory.hpp"
   
-  namespace Game {
+	namespace Game {
 
 		namespace EntityStance {
 			static const unsigned Undefined = 999;
@@ -242,6 +242,6 @@
 			bool knockback;
 		};
 
-  }
+  	}
 
 #endif 

@@ -10,22 +10,29 @@
       static const unsigned Empty = 0;
       static const unsigned SolidStatic = 1;
       static const unsigned SolidMovable = 2;
-      static const unsigned undefined = 999;
+      static const unsigned Undefined = 999;
     }
 
     struct NavMap { // for ai
       nite::Vec2 size;
-      size_t totalSize;
-      nite::Vec2 blockSize;
+      nite::Vec2 mapBlockSize;
+      nite::Vec2 nvBlockSize;
+      nite::Vec2 nvSize;
+      nite::Vec2 mapSize;
       int *grid; 
-      void build(Vector<nite::PhysicsObject*> &locals);
+      void build(Vector<nite::PhysicsObject*> &locals, float nvmBs, float mBs, float width, float height);
+      NavMap(Vector<nite::PhysicsObject*> &locals, float nvmBs, float mBs, float width, float height);
+      NavMap();
     };
 
     struct Map {
       nite::Tileset tiles;
 	    String path;
+      Game::NavMap navMap;
 	    nite::Color transparency;
 	    Vector<nite::PhysicsObject*> locals;
+      nite::Vec2 mapSize;
+      nite::Vec2 tileSize;
 	    nite::Vec2 playerSpawn;
       void load(const String &path, const nite::Color &transparency);
       void load(const String &path);

@@ -14,6 +14,41 @@ static void cfMapReload(Vector<String> params){
 static auto cfMapReloadIns = nite::Console::CreateFunction("map_reload", &cfMapReload); 
 
 
+void Game::NavMap::build(Vector<nite::PhysicsObject*> &locals, float nvmBs, float mBs, float width, float height){
+	this->mapBlockSize = nite::Vec2(mBs);
+	this->nvBlockSize = nite::Vec2(nvmBs);
+	this->mapSize = nite::Vec2(width * mBs, height * mBs);
+	this->nvSize = nite::Vec2(width / nvmBs, height / nvmBs);
+
+	nite::print("Building NavMap "+this->mapSize.str());	
+
+	// int xbn = width / bs;
+	// int ybn = height / bs;
+	// int blockNumber = width / bs + height / bs;
+
+	// grid = new int[blockNumber];
+
+	
+
+	// auto isInBlock = [&](int id, float x, float y){
+	// 	float idx = id;
+	// 	float idy = id;
+	// 	return x > idx && x < idx + bs && y > idy && y < idy + bs;
+	// };
+	
+
+
+}
+
+Game::NavMap::NavMap(Vector<nite::PhysicsObject*> &locals, float nvmBs, float mBs, float width, float height){
+	build(locals, nvmBs, mBs, width, height);
+}
+
+Game::NavMap::NavMap(){
+
+}
+
+
 void Game::Map::load(const String &path, const nite::Color &transparency){
 	static auto game = Game::getInstance();
 	this->path = path;
@@ -33,6 +68,10 @@ void Game::Map::load(const String &path, const nite::Color &transparency){
 	// load tilesets
 	tiles.load(path);
 	tiles.loadSources(transparency);
+
+	// load map metadata
+	mapSize.set(node.get("width").toInt(), node.get("height").toInt());
+    tileSize.set(node.get("tilewidth").toInt(), node.get("tileheight").toInt());
 
 	
 	// load objects
@@ -61,6 +100,9 @@ void Game::Map::load(const String &path, const nite::Color &transparency){
 			}
 		}
 	}
+	// build nav map
+	navMap.build(locals, 32.0f, (tileSize.x + tileSize.y) / 2.0f, mapSize.x, mapSize.y); //we'll be use 32x32 for nvm block size 
+	
 	// this->mapFile = map;
 	// loaded = true;
 	// loadTimeout = nite::getTicks();

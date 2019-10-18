@@ -29,6 +29,7 @@
           nite::Color leftBorderColor;
           nite::Texture borderCorner;
           nite::Color borderColor;
+          nite::Color titleColor;
           String title;
           bool toRerender;
           bool grabbed;
@@ -50,10 +51,12 @@
           void setBackgroundImage(const nite::Texture &bgi);
           void setCornerPattern(const nite::Texture &tex);
           void updateListeners();
+          void setTitleColor(const nite::Color &color);
           void setBorderColor(const nite::Color &color);
           void setBackgroundColor(const nite::Color &color);
           nite::Color getBackgroundColor();
           nite::Color getBorderColor();
+          nite::Color getTitleColor();
           void setPosition(const nite::Vec2 &pos);
           String getTitle();
           nite::Vec2 computeSize();

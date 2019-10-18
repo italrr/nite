@@ -1,6 +1,7 @@
 {
 	"type": "window",
 	"title": "Test Window",
+	"titleColor": {"r":1, "g":1, "b":0, "a":1},
 	"notitle": false,
 	"width": 800,
 	"height": 700,
@@ -11,8 +12,8 @@
 	"children": [
 		{
 			"type": "checkbox",
-			"text": "This is a checkbox",
-			"fontColor": "#ffa500"
+			"text": "checkbox",
+			"fontColor": "#212121"
 		}
 	]
 }

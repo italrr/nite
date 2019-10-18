@@ -344,7 +344,7 @@ void nite::Console::interpret(const String &command, bool remoteExec){
   static Vector<String> inputHistory;
   static int currentHistorySelect;
 
-  auto tokens = split(command, ' ');
+  auto tokens = splitTokens(command, ' ');
   if(tokens.size() == 0){
     nite::Console::add("Empty expression", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
     return;

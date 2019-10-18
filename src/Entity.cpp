@@ -53,8 +53,8 @@ static void cfEntityMove(Vector<String> params){
 		return;
 	}
 	String &param0 = params[0]; // ent id
-	String &param1 = params[0]; // x
-	String &param2 = params[0]; // y
+	String &param1 = params[1]; // x
+	String &param2 = params[2]; // y
 
 	if(!nite::isNumber(param0)){
 		nite::Console::add("'"+param0+"' is not a valid parameter. entity id is expected", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
@@ -398,8 +398,8 @@ void Game::Entity::entityStep(){
 			}
 		}
 
-			entityAnim.setManualClicking(animTopSwordSwinging, true);
-			entityAnim.setFrame(animTopSwordSwinging, swordSwingLastStep % entityAnim.animations[animTopSwordSwinging].index.size());
+		entityAnim.setManualClicking(animTopSwordSwinging, true);
+		entityAnim.setFrame(animTopSwordSwinging, swordSwingLastStep % entityAnim.animations[animTopSwordSwinging].index.size());
 		
   }else
   if(!isSwordSwinging && currentStance == Game::EntityStance::Melee){
