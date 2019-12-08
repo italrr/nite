@@ -1,0 +1,44 @@
+{
+	"id": 2,
+	"name": "Gun",
+	"description": "This is a simple Gun.",
+	"type": 0,
+	"equipType": 1,
+	"weight": 7.0,
+	"amountable": false,
+	"damage": 8.0,
+	"defense": 0.0,
+	"lifespan": 60.0,
+	"handling": 0.0,
+	"ammoType": 0,
+	"magSize": 10,
+	"spriteFilename": "data/sprite/gun.png",
+	"barrelPosition": {
+		"x": 0.0,
+		"y": -20.0
+	},
+	"sprieSize": {
+		"width": 32,
+		"height": 32
+	},
+	"frameSize": {
+		"width": 32,
+		"height": 32
+	},
+	"origin": {
+		"x": 23,
+		"y": 22
+	},
+	"animations": {
+		"normal": {
+			"index": {
+				"x": 0,
+				"y": 0
+			},
+			"speed": 0.08,
+			"n": 1,
+			"reversed": false,
+			"vertical": false
+		}	
+	}
+}

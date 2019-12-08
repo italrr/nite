@@ -24,7 +24,41 @@
 	"faceDirBias": -1.0,
 	"walkRightStepOffset": 2.0,
 	"globalDepthOffsetY": -47.0,
+	"gunPositionOnHand": {
+		"x": 80.0,
+		"y": -28.0
+	},
 	"animations": {
+		"TopCast": {
+			"index": {
+				"x": 4,
+				"y": 0
+			},
+			"speed": 0.08,
+			"n": 2,
+			"reversed": false,
+			"vertical": false
+		},	
+		"TopGunShoot": {
+			"index": {
+				"x": 0,
+				"y": 2
+			},
+			"speed": 0.08,
+			"n": 2,
+			"reversed": false,
+			"vertical": false
+		},	
+		"TopGunOnHand": {
+			"index": {
+				"x": 0,
+				"y": 2
+			},
+			"speed": 0.08,
+			"n": 1,
+			"reversed": false,
+			"vertical": false
+		},		
 		"TopSwordSwing": {
 			"index": {
 				"x": 0,
@@ -125,7 +159,7 @@
 			{
 				"x": 61.0,
 				"y": 47.0,
-				"angle": 75.0,
+				"angle": 85.0,
 				"time":  90,
 				"damage": true
 			}					
@@ -135,7 +169,31 @@
 				"x": 74.0,
 				"y": 33.0,
 				"angle": 25.0,
-				"time":  45
+				"time":  0
+			}
+		],
+		"GunShoot": [
+			{
+				"x": 80.0,
+				"y": -21.0,
+				"angle": 355,
+				"time":  30,
+				"damage": false
+			},
+			{
+				"x": 80.0,
+				"y": -28.0,
+				"angle": 350,
+				"time":  45,
+				"damage": true
+			}					
+		],
+		"GunIdle": [
+			{
+				"x": 80.0,
+				"y": -21.0,
+				"angle": 0,
+				"time":  0
 			}
 		]		
 	},

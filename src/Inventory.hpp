@@ -38,15 +38,16 @@
 	}
 
 	namespace ItemType {
-		static const unsigned undefined = 0;
-		static const unsigned Equip = 1;
+		static const unsigned Undefined = 999;
+		static const unsigned Equip = 0;
 	}
 	namespace EquipType {
-		static const unsigned undefined = 0;
-		static const unsigned Sword = 1;
+		static const unsigned Undefined = 999;
+		static const unsigned Sword = 0;
+		static const unsigned Gun = 1;
 	}	
 	namespace ItemEffectType {
-		static const unsigned undefined = 0;
+		static const unsigned Undefined = 999;
 		
 			
 	}

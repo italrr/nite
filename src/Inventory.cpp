@@ -7,7 +7,7 @@
 
 Game::Inventory::Inventory(){
 	carrySeedIndex = nite::randomInt(350, 750);
-	nite::print(carrySeedIndex);
+	// nite::print(carrySeedIndex);
 }
 
 int Game::Inventory::addItem(Shared<Game::BaseItem> &item){
@@ -22,6 +22,7 @@ int Game::Inventory::addItem(Shared<Game::BaseItem> &item){
 		itemCarry[carrySeedIndex] = item;	
 		item->inCarryId = carrySeedIndex;
 		item->container = this;
+		item->onCarryAdd();
 		finalId = carrySeedIndex;
 	}else{
 		ins->quantity += item->quantity;
@@ -33,7 +34,7 @@ int Game::Inventory::addItem(Shared<Game::BaseItem> &item){
 void Game::Inventory::setActiveItem(int slotId, Shared<Game::BaseItem> &item){
 	int inCarryId = item->inCarryId;
 	if(!containsItem(inCarryId)){
-		nite::print("entity: can't set active "+nite::toStr(item->id)+" "+item->name);
+		nite::print("entity: can't set active "+nite::toStr(item->id)+" "+item->name+". entity is not carrying it");
 		return;
 	}
 	switch(slotId){
@@ -62,7 +63,7 @@ void Game::Inventory::setUnactiveItem(int slotId){
 void Game::Inventory::setUnactiveItem(Shared<Game::BaseItem> &item){
 	int inCarryId = item->inCarryId;
 	if(!containsItem(inCarryId)){
-		nite::print("entity: can't unset active "+nite::toStr(item->id)+" "+item->name);
+		nite::print("entity: can't unset active "+nite::toStr(item->id)+" "+item->name+". entity is not carrying it");
 		return;
 	}
 	for (auto& pair : itemHandling) {
@@ -89,6 +90,7 @@ bool Game::Inventory::removeItem(int id){
 	if(!itemCarry.count(id)){
 		return false;
 	}
+	itemCarry[id]->onCarryRemove();
 	itemCarry[id]->inCarryId = -1;
 	itemCarry[id]->container = NULL;
 	itemCarry.erase(id);

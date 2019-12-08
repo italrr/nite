@@ -1,5 +1,6 @@
 #include "Game.hpp"
 #include "Sword.hpp"
+#include "Gun.hpp"
 #include "Engine/Shapes.hpp"
 #include "Engine/nScript.hpp"
 
@@ -54,7 +55,7 @@ void Game::Camera::update(){
 void Game::Camera::follow(int id){
 	this->followId = id;
 	cameraFreeroam = false;
-	nite::print("Following entity id "+nite::toStr(id));
+	nite::print("following entity id "+nite::toStr(id));
 	// setView(id != -1, nite::RenderTargetGame);
 }
 
@@ -162,10 +163,18 @@ void Game::GameMaster::start(){
 
 	auto sword = Shared<Game::BaseItem>(new Sword());
 	sword.get()->load("data/weap/base_sword.json");
+
+	auto gun = Shared<Game::BaseItem>(new Gun());
+	gun.get()->load("data/weap/base_gun.json");
+
+
 	auto playerEntity = static_cast<Entity*>(player.get());
 	playerEntity->addItem(sword);	
-	playerEntity->setActiveItem(Game::InventoryActiveSlot::Main, sword);	
-	 camera.follow(player->id);
+	playerEntity->addItem(gun);	
+
+	
+	playerEntity->setActiveItem(Game::InventoryActiveSlot::Main, gun);	
+	camera.follow(player->id);
 }
 
 void Game::GameMaster::update(){

@@ -1,5 +1,6 @@
-#include "Map.hpp"
 #include "Engine/Console.hpp"
+#include "Engine/Shapes.hpp"
+#include "Map.hpp"
 #include "Game.hpp"
 
 /////////////
@@ -14,40 +15,61 @@ static void cfMapReload(Vector<String> params){
 static auto cfMapReloadIns = nite::Console::CreateFunction("map_reload", &cfMapReload); 
 
 
-void Game::NavMap::build(Vector<nite::PhysicsObject*> &locals, float nvmBs, float mBs, float width, float height){
-	this->mapBlockSize = nite::Vec2(mBs);
-	this->nvBlockSize = nite::Vec2(nvmBs);
-	this->mapSize = nite::Vec2(width * mBs, height * mBs);
-	this->nvSize = nite::Vec2(width / nvmBs, height / nvmBs);
-
-	nite::print("Building NavMap "+this->mapSize.str());	
-
-	// int xbn = width / bs;
-	// int ybn = height / bs;
-	// int blockNumber = width / bs + height / bs;
-
-	// grid = new int[blockNumber];
-
-	
-
-	// auto isInBlock = [&](int id, float x, float y){
-	// 	float idx = id;
-	// 	float idy = id;
-	// 	return x > idx && x < idx + bs && y > idy && y < idy + bs;
-	// };
-	
+static bool showNvMap = false;
+static nite::Console::CreateProxy cpRenAutoReso("map_shownvmap", nite::Console::ProxyType::Bool, sizeof(bool), &showNvMap);
 
 
-}
-
-Game::NavMap::NavMap(Vector<nite::PhysicsObject*> &locals, float nvmBs, float mBs, float width, float height){
-	build(locals, nvmBs, mBs, width, height);
+Game::NavMap::NavMap(Vector<nite::PhysicsObject*> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock){
+	build(locals, nvmBs, mBs, mapSizeInBlock);
 }
 
 Game::NavMap::NavMap(){
 
 }
 
+void Game::NavMap::build(Vector<nite::PhysicsObject*> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock){
+	this->mapBlockSize = mBs;
+	this->nvBlockSize = nvmBs;
+	this->mapSize = mapSizeInBlock * mBs;
+	this->nvSize = this->mapSize / this->nvBlockSize;
+	this->blockNumber = nvSize.x * nvSize.y;
+	nite::print("Building NavMap ("+nite::toStr(this->blockNumber)+" blocks): mapBlockSize "+mBs.str()+" | mapSize "+mapSize.str()+" |  navMapSize "+nvSize.str());	
+	this->grid = Shared<Game::NavMapBlock>(new Game::NavMapBlock[blockNumber]);
+
+	for(int i = 0; i < this->blockNumber; ++i){
+		nite::Vec2 p = nite::Vec2(i % (int)(nvSize.x), (int)(i / nvSize.x)) * this->nvBlockSize; 
+		auto &block = this->grid.get()[i];
+		block.value = Game::NavMapType::Empty;
+		block.position = p;
+		block.size = this->nvBlockSize;
+		block.index = i;
+		for(int j = 0; j < locals.size(); ++j){
+			nite::PhysicsObject dummy;
+			dummy.solid = true;
+			dummy.unmovable = false;
+			dummy.size = this->nvBlockSize;			
+			dummy.position.set(p);
+			if(dummy.isCollidingWith(locals[j])){
+				block.value = locals[j]->unmovable ? Game::NavMapType::SolidStatic : Game::NavMapType::SolidMovable;
+			}
+		}
+	}
+}
+
+void Game::NavMap::draw(float x, float y){
+	// for debugging only
+	nite::setDepth(nite::DepthTop);
+	static nite::Texture tex("data/sprite/empty.png");
+	nite::setRenderTarget(nite::RenderTargetGame);
+	float ga = 0.85f;
+	nite::setColor(0.0f, 0.0f, 0.0f, 1.0f);
+	tex.draw(x, y, 16.0f, 16.0f, 0.5f, 0.5f, 0.0f);
+	for(int i = 0; i < this->blockNumber; ++i){
+		auto &block = this->grid.get()[i];
+		nite::setColor(block.value == Game::NavMapType::Empty ? nite::Color(0.0f, 1.0f, 0.0f, ga) : nite::Color(1.0f, 0.0f, 0.0f, ga));	
+		tex.draw(x + block.position.x, y + block.position.y, block.size.x, block.size.y, 0.0f, 0.0f, 0.0f);
+	}
+}
 
 void Game::Map::load(const String &path, const nite::Color &transparency){
 	static auto game = Game::getInstance();
@@ -101,7 +123,7 @@ void Game::Map::load(const String &path, const nite::Color &transparency){
 		}
 	}
 	// build nav map
-	navMap.build(locals, 32.0f, (tileSize.x + tileSize.y) / 2.0f, mapSize.x, mapSize.y); //we'll be use 32x32 for nvm block size 
+	navMap.build(locals, nite::Vec2(32.0f), tileSize, mapSize); //we'll be use 32x32 for nvm block size 
 	
 	// this->mapFile = map;
 	// loaded = true;
@@ -128,10 +150,13 @@ void Game::Map::reload(){
 }
 
 void Game::Map::render(){
-  nite::setDepth(0.0);
+  nite::setDepth(0.0f);
   nite::setRenderTarget(nite::RenderTargetGame);
   nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-  tiles.draw(0, 0);
+  tiles.draw(0.0f, 0.0f);
+  if(showNvMap){
+  	this->navMap.draw(0.0f, 0.0f);
+  }
 }
 
 void Game::Map::clear(){

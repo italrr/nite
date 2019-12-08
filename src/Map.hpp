@@ -13,16 +13,25 @@
       static const unsigned Undefined = 999;
     }
 
+    struct NavMapBlock {
+      nite::Vec2 position;
+      nite::Vec2 size;
+      unsigned value;
+      int index;
+    };
+
     struct NavMap { // for ai
       nite::Vec2 size;
       nite::Vec2 mapBlockSize;
       nite::Vec2 nvBlockSize;
       nite::Vec2 nvSize;
       nite::Vec2 mapSize;
-      int *grid; 
-      void build(Vector<nite::PhysicsObject*> &locals, float nvmBs, float mBs, float width, float height);
-      NavMap(Vector<nite::PhysicsObject*> &locals, float nvmBs, float mBs, float width, float height);
+      size_t blockNumber;
+      Shared<Game::NavMapBlock> grid; 
+      void build(Vector<nite::PhysicsObject*> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock);
+      NavMap(Vector<nite::PhysicsObject*> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock);
       NavMap();
+      void draw(float x, float y);
     };
 
     struct Map {

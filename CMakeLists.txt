@@ -219,6 +219,8 @@ set(src_files
 	src/Mob.cpp
 	src/Map.cpp
 	src/Sword.cpp
+	src/Gun.cpp
+	src/Bullet.cpp
 	src/AI/AI.cpp
 )
 add_library(src ${src_files})

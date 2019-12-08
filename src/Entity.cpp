@@ -4,6 +4,8 @@
 #include "Engine/Input.hpp"
 #include "Engine/Font.hpp"
 #include "Sword.hpp"
+#include "Gun.hpp"
+#include "Bullet.hpp"
 #include "Engine/Tools/Tools.hpp"
 #include "Engine/World.hpp"
 #include "Engine/Shapes.hpp"
@@ -309,29 +311,69 @@ Game::BaseStat::BaseStat(){
 }
 
 void Game::Entity::onActiveItemSwitch(Shared<Game::BaseItem> &item){
-	currentStance = Game::EntityStance::Melee;
+	switch(item->type){
+		case Game::ItemType::Equip: {
+			auto &equip = *static_cast<Game::BaseEquip*>(item.get()); // cast as BaseEquip
+			switch(equip.equipType){
+				case Game::EquipType::Sword: {
+					currentStance = Game::EntityStance::Melee;
+				} break;
+				case Game::EquipType::Gun: {
+					currentStance = Game::EntityStance::Gun;
+				} break;				
+				default: {
+					nite::print("entity: no stance for item '"+item->name+"' "+nite::toStr(item->id)+". unknown type");
+				} break;
+			}
+		} break;
+		default: {
+			nite::print("entity: no stance for item '"+item->name+"' "+nite::toStr(item->id));
+			return;
+		} break;
+	}	
 }
 
 void Game::Entity::entityUseActiveSlot(int slotId){
 	// METHOD USAGE ACCORDING TO TYPE
 	// WEAPON
-	auto onWeapUsage = [&](const Game::BaseItem &item){
+	auto onSwordUse = [&](const Game::BaseItem &item){
 		if(isSwordSwinging) return;
 		swordSwingLastStep = 0;
 		isSwordSwinging = true;
 		swordSwingTimeout = nite::getTicks();
 	};
+	auto onGunUse = [&](const Game::BaseItem &item){
+		if(isShootingGun) return;
+		gunShootLastStep = 0;
+		isShootingGun = true;
+		gunShootTimeout = nite::getTicks();		
+	};	
 	// USABLE
-	if(itemHandling.count(slotId) == 0 && isSwordSwinging){
+	if(itemHandling.count(slotId) == 0){
+		nite::print("entity: nothing active on slot "+nite::toStr(slotId));
+		return;
+	}
+	if(isSwordSwinging || isShootingGun){
 		return;	
 	}
 	auto &item = *itemCarry[itemHandling[slotId]].get();
 	switch(item.type){
 		case Game::ItemType::Equip: {
-			onWeapUsage(item);
+			auto &equip = *static_cast<Game::BaseEquip*>(itemCarry[itemHandling[slotId]].get()); // cast as BaseEquip
+			switch(equip.equipType){
+				case Game::EquipType::Sword: {
+					onSwordUse(equip);
+				} break;
+				case Game::EquipType::Gun: {
+					onGunUse(equip);
+				} break;				
+				default: {
+					nite::print("entity: cannot use equip item '"+item.name+"' "+nite::toStr(item.id)+". unknown type");
+				} break;
+			}
 		} break;
 		default: {
-			nite::print("cannot equip item '"+item.name+"' "+nite::toStr(item.id));
+			nite::print("entity: cannot equip item '"+item.name+"' "+nite::toStr(item.id));
 			return;
 		} break;
 	}
@@ -354,13 +396,17 @@ void Game::Entity::entityStep(){
 
   auto fixStance = [&](){
 	if(currentStance == Game::EntityStance::Neutral){
-			animCurrentBottom = animBottomIdle;
 			animCurrentTop = animTopIdle;
+			animCurrentBottom = animBottomIdle;
 	  }
 	  if(currentStance == Game::EntityStance::Melee){
 			animCurrentTop = animTopSwordSwinging;
 			animCurrentBottom = animBottomIdle;
 	  }
+	  if(currentStance == Game::EntityStance::Gun){
+			animCurrentTop = animTopGunOnHand;
+			animCurrentBottom = animBottomIdle;
+	  }	  
 	  if(currentStance == Game::EntityStance::KnockedBack){
 			animCurrentTop = animTopKnockback;
 			animCurrentBottom = animBottomKnockback;
@@ -369,7 +415,7 @@ void Game::Entity::entityStep(){
   };
 	
   fixStance();
-  
+  int acvslot = Game::InventoryActiveSlot::Main;
   // Knockback
   if(isKnockedback && currentStance == Game::EntityStance::KnockedBack){
 	  animCurrentTop = animTopKnockback;
@@ -382,29 +428,58 @@ void Game::Entity::entityStep(){
   // Sword Swinging & Hand hold state
   if(isSwordSwinging && currentStance == Game::EntityStance::Melee){
 		animCurrentTop = animTopSwordSwinging;
-		
 		int _rate = atkRate / 35.0f;
 		UInt64 nextStepTimeout = dims.faSwordForward.frames[swordSwingLastStep % dims.faSwordForward.frames.size()].time;
 		nextStepTimeout = _rate > nextStepTimeout ? 0 : nextStepTimeout - _rate;
+		auto &weap = *static_cast<Game::Sword*>(itemCarry[itemHandling[acvslot]].get()); // assuming it is a sword, might have to add some extra checks for this
 		if(nite::getTicks() - swordSwingTimeout > nite::timescaled(nextStepTimeout)){
+			if(swordSwingLastStep == 0){
+				weap.onSwingStart(this);
+			}
 			swordSwingTimeout = nite::getTicks();
 			if(swordSwingLastStep > 0){
-				throwMelee();
+				throwMelee(&weap);
 			}		
 			++swordSwingLastStep;
 			if(swordSwingLastStep >= dims.faSwordForward.frames.size()){
+				weap.onSwingFinish(this);
 				isSwordSwinging = false;
 				animCurrentTop = animTopSwordOnHand;
 			}
 		}
-
 		entityAnim.setManualClicking(animTopSwordSwinging, true);
 		entityAnim.setFrame(animTopSwordSwinging, swordSwingLastStep % entityAnim.animations[animTopSwordSwinging].index.size());
-		
   }else
   if(!isSwordSwinging && currentStance == Game::EntityStance::Melee){
 		animCurrentTop = animTopSwordOnHand;
+  }else
+  // Shoot shooting & Hand hold state
+  if(isShootingGun && currentStance == Game::EntityStance::Gun){
+		animCurrentTop = animTopGunShoot;
+		int _rate = atkRate / 35.0f; // shoot speed, might consider another stat for this
+		auto &frame = dims.faGunShoot.frames[gunShootLastStep % dims.faGunShoot.frames.size()];
+		UInt64 nextStepTimeout = frame.time;
+		nextStepTimeout = _rate > nextStepTimeout ? 0 : nextStepTimeout - _rate;
+		auto &weap = *static_cast<Game::Gun*>(itemCarry[itemHandling[acvslot]].get()); // assuming it is a gun, might have to add some extra checks for this
+		if(nite::getTicks() - gunShootTimeout > nite::timescaled(nextStepTimeout)){
+			gunShootTimeout = nite::getTicks();
+			if(gunShootLastStep > 0 && frame.damage){ // 'damage' for gun is when the bullet is shot. there must be only one frame with 'damage'
+				weap.onShot(this);
+				shootBullet(&weap);
+			}		
+			++gunShootLastStep;
+			if(gunShootLastStep >= dims.faGunShoot.frames.size()){
+				isShootingGun = false;
+				animCurrentTop = animTopGunOnHand;
+			}
+		}
+		entityAnim.setManualClicking(animTopGunShoot, true);
+		entityAnim.setFrame(animTopGunShoot, gunShootLastStep % entityAnim.animations[animTopGunShoot].index.size());
+  }else
+  if(!isShootingGun && currentStance == Game::EntityStance::Gun){
+		animCurrentTop = animTopGunOnHand;
   }
+
   // Walking State
   if(!isKnockedback && isWalking){
     animCurrentBottom = animBottomWalking;
@@ -575,47 +650,53 @@ void Game::FrameData::parse(const Jzon::Node &node){
 }
 
 bool Game::AnimationData::load(const String &path){
-  clear();	
-  filePath = path;
-  lastHash = nite::hashFile(path);
-  Jzon::Parser parser;
-  Jzon::Node node = parser.parseFile(path);
-  if (!node.isValid()){
-     nite::print("Failed to read file "+path+": '"+parser.getError()+"'");
-     return false;
-  }
-  // Basic data
-  headPosition.set(node.get("headPosition").get("x").toFloat(), node.get("headPosition").get("y").toFloat());
-  headSize.set(node.get("headSize").get("width").toFloat(), node.get("headSize").get("height").toFloat());
-  frameSize.set(node.get("frameSize").get("width").toFloat(), node.get("frameSize").get("height").toFloat());
-  spriteSize.set(node.get("spriteSize").get("width").toFloat(), node.get("spriteSize").get("height").toFloat());
-  defaultPhysicalSize.set(node.get("defaultPhysicalSize").get("width").toFloat(), node.get("defaultPhysicalSize").get("height").toFloat());
-  frameDepthOffset = node.get("frameDepthOffset").toFloat();
-  faceDirBias = node.get("faceDirBias").toFloat();
+	clear();	
+	filePath = path;
+	lastHash = nite::hashFile(path);
+	Jzon::Parser parser;
+	Jzon::Node node = parser.parseFile(path);
+	if (!node.isValid()){
+		nite::print("Failed to read file "+path+": '"+parser.getError()+"'");
+		return false;
+	}
+	// Basic data
+	headPosition.set(node.get("headPosition").get("x").toFloat(), node.get("headPosition").get("y").toFloat());
+	headSize.set(node.get("headSize").get("width").toFloat(), node.get("headSize").get("height").toFloat());
+	frameSize.set(node.get("frameSize").get("width").toFloat(), node.get("frameSize").get("height").toFloat());
+	spriteSize.set(node.get("spriteSize").get("width").toFloat(), node.get("spriteSize").get("height").toFloat());
+	defaultPhysicalSize.set(node.get("defaultPhysicalSize").get("width").toFloat(), node.get("defaultPhysicalSize").get("height").toFloat());
+	frameDepthOffset = node.get("frameDepthOffset").toFloat();
+	faceDirBias = node.get("faceDirBias").toFloat();
 	globalDepthOffsetY = node.get("globalDepthOffsetY").toFloat();
-  walkRightStepOffset = node.get("walkRightStepOffset").toFloat();
-  spriteFilename = node.get("spriteFilename").toString();
-  // Frames
-  topIdle.parse(node.get("animations").get("TopIdle"));
-  topWalking.parse(node.get("animations").get("TopIdle"));
-  bottomWalking.parse(node.get("animations").get("BottomWalking"));
-  bottomIdle.parse(node.get("animations").get("BottomIdle"));
-  topSwordSwing.parse(node.get("animations").get("TopSwordSwing"));
-  topSwordOnHand.parse(node.get("animations").get("TopSwordOnHand"));
-  topKnockback.parse(node.get("animations").get("TopKnockback"));
+	walkRightStepOffset = node.get("walkRightStepOffset").toFloat();
+	spriteFilename = node.get("spriteFilename").toString();
+	gunOnHandPosition.set(node.get("gunPositionOnHand").get("x").toFloat(), node.get("gunPositionOnHand").get("y").toFloat());
+	// Frames
+	topIdle.parse(node.get("animations").get("TopIdle"));
+	topWalking.parse(node.get("animations").get("TopIdle"));
+	bottomWalking.parse(node.get("animations").get("BottomWalking"));
+	bottomIdle.parse(node.get("animations").get("BottomIdle"));
+	topSwordSwing.parse(node.get("animations").get("TopSwordSwing"));
+	topSwordOnHand.parse(node.get("animations").get("TopSwordOnHand"));
+	topKnockback.parse(node.get("animations").get("TopKnockback"));
 	bottomKnockback.parse(node.get("animations").get("BottomKnockback"));
-  // Frame Animations
-  auto faNode = node.get("frames");
-  faSwordForward.load(faNode.get("SwordForward"));
-  faSwordOnHand.load(faNode.get("SwordIdle"));
-  nite::print("loaded entity data '"+path+"'");
-  // Hitboxes
-  auto hbNode = node.get("hitbox");
-  hitboxes.clear();
-  for(int i = 0; i < hbNode.getCount(); ++i){
-	  hitboxes.push_back(nite::Hitbox(hbNode.get(i)));
-  }
-  return true;
+	topGunOnHand.parse(node.get("animations").get("TopGunOnHand"));
+	topGunShoot.parse(node.get("animations").get("TopGunShoot"));
+	topCast.parse(node.get("animations").get("TopCast"));
+	// Frame Animations
+	auto faNode = node.get("frames");
+	faSwordForward.load(faNode.get("SwordForward"));
+	faSwordOnHand.load(faNode.get("SwordIdle"));
+	faGunOnHand.load(faNode.get("GunIdle"));
+	faGunShoot.load(faNode.get("GunShoot"));
+	nite::print("loaded entity data '"+path+"'");
+	// Hitboxes
+	auto hbNode = node.get("hitbox");
+	hitboxes.clear();
+	for(int i = 0; i < hbNode.getCount(); ++i){
+		hitboxes.push_back(nite::Hitbox(hbNode.get(i)));
+	}
+	return true;
 }
 
 void Game::AnimationData::update(){
@@ -636,6 +717,8 @@ void Game::AnimationData::update(){
 void Game::AnimationData::clear(){
 	faSwordForward.clear();
 	faSwordOnHand.clear();
+	faGunShoot.clear();
+	faGunOnHand.clear();
 }
 
 static unsigned parseAnimation(nite::Animation &an, const nite::Vec2 &ss, const Game::FrameData &fd){
@@ -660,6 +743,9 @@ void Game::Entity::entityReloadAnimation(){
 	animTopSwordOnHand = parseAnimation(entityAnim, ss, dims.topSwordOnHand);
 	animTopKnockback = parseAnimation(entityAnim, ss, dims.topKnockback);
 	animBottomKnockback = parseAnimation(entityAnim, ss, dims.bottomKnockback);
+	animTopGunOnHand = parseAnimation(entityAnim, ss, dims.topGunOnHand);
+	animTopGunShoot = parseAnimation(entityAnim, ss, dims.topGunShoot);
+	animTopCast = parseAnimation(entityAnim, ss, dims.topCast);
 	nite::print("reloaded entity '"+path+"' animations");
 }
 
@@ -732,14 +818,25 @@ void Game::Entity::knockback(float angle, float intensity){
 	push(angle, intensity);
 }
 
-void Game::Entity::throwMelee(){
+void Game::Entity::shootBullet(Game::BaseEquip *_weap){
+	auto &weap = *static_cast<Game::Gun*>(_weap);
+	auto bullet = Shared<Game::BaseBullet>(new Game::BaseBullet());
+	float an = faceDirection == Game::EntityFacing::Right ? 0.0f : 3.142f;
+	float mod = 42.0f;
+	nite::Vec2 flip = nite::Vec2(faceDirection == 1.0f ? -1.0f : 1.0f, 1.0f);
+	bullet->position.set(position + dims.gunOnHandPosition * flip + weap.barrelPosition * flip);
+	bullet->setup(this, mod, an, 0, 0, 2000);
+	container->add(bullet);
+}
+
+void Game::Entity::throwMelee(Game::BaseEquip *_weap){
+	auto &weap = *static_cast<Game::Sword*>(_weap);
 	if(container == NULL){
 		return;
 	}
 	nite::Hitbox melee = getMeleeHitbox();
+	int acvslot = Game::InventoryActiveSlot::Main;
 	auto sendDamage = [&](MeleeHitInformation &data){
-		int acvslot = Game::InventoryActiveSlot::Main;
-		auto &weap = *static_cast<Sword*>(itemCarry[itemHandling[acvslot]].get());
 		Game::DamageInfo dmg;
 		dmg.subject = data.subject;
 		dmg.owner = this;
@@ -754,10 +851,10 @@ void Game::Entity::throwMelee(){
 			continue;
 		}
 		if(Game::Entity *_ent = dynamic_cast<Game::Entity*>(current.get())){
-			auto &ent = *static_cast<Entity*>(current.get());
-			auto data = ent.receiveMelee(melee);
+			auto data = _ent->receiveMelee(melee);
 			if(data.hit){
 				// nite::shakeScreen(nite::RenderTargetGame, 2.2f, 200);
+				weap.onHit(this, _ent);
 				sendDamage(data);
 				break;
 			}
@@ -808,87 +905,115 @@ nite::Hitbox Game::Entity::getMeleeHitbox(){
 }
 
 void Game::Entity::draw(){
-  static nite::Font font(nite::DefaultFontPath, 16);
-  nite::setRenderTarget(nite::RenderTargetGame);
-  nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-  nite::setDepth(nite::DepthMiddle);
-  float faceDir = dims.faceDirBias * (EntityFacing::Right == faceDirection ? 1.0f : -1.0f);
-
-  nite::Vec2 &frameSize = dims.frameSize;
-  float &frameDepthOffset = dims.frameDepthOffset;
-
-  batch.begin();
-  auto *refTop = entityAnim.draw(animCurrentTop, 0.0f, 0.0f, frameSize.x, frameSize.y, 0.0f, 0.0f, 0.0f);
-  auto *refBottom = entityAnim.draw(animCurrentBottom, 0.0f, 0.0f, frameSize.x, frameSize.y, 0.0f, 0.0f, 0.0f);
-  batch.end();
-  batch.flush();
-
-  float stepOffset = (isWalking && walkingLastStep % 2 == 0) ? dims.walkRightStepOffset : 0.0f;
-  nite::setColor(0.7f, 0.7f, 0.7f, 0.5f);
-  // entityShadow.draw(position.x, position.y + dims.frameSize.y * 0.25f, entityShadow.getWidth(), entityShadow.getHeight(), 0.5f, 0.5f, 0.0f);
-  nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-	nite::setDepth(-position.y + dims.globalDepthOffsetY); // dynamic depth using y
-  auto *ref = batch.draw(position.x, position.y - frameDepthOffset + stepOffset, frameSize.x * faceDir, frameSize.y, 0.5f, 0.5f, 0.0f);
-  if(ref != NULL){
-	  ref->smooth = true;  
-  }
-  // Draw stance
-  int acvslot = Game::InventoryActiveSlot::Main;
-  if(itemHandling.count(acvslot) > 0 && itemHandling[acvslot] != -1){
-	auto &weap = *static_cast<Sword*>(itemCarry[itemHandling[acvslot]].get());
-	nite::Vec2 _orig(weap.origin / weap.frameSize);
+	static nite::Font font(nite::DefaultFontPath, 16);
+	nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-	auto &swingFrame = dims.faSwordForward.frames[swordSwingLastStep % dims.faSwordForward.frames.size()]; 
-	auto &onHandFrame = dims.faSwordOnHand.frames[swordSwingLastStep % dims.faSwordOnHand.frames.size()];
-	auto &animFrame = isSwordSwinging ? swingFrame : onHandFrame;
-	nite::Vec2 ofs = animFrame.position - weap.frameSize * 0.5f;
-	nite::Vec2 p(0.0f + ofs.x, 0.0f + stepOffset + ofs.y);
-	nite::Vec2 blurDir(0.032f, 0.032f);
-	static nite::Shader dirShader("data/shaders/directional_blur_f.glsl", "data/shaders/directional_blur_v.glsl");
-	if(faceDir == 1.0f){
-		//nite::print(nite::toStr(frameSize.x)+" "+nite::toStr(p.x));
-		p.x *= -1.0f;
-	}
-	p = p + position;
-	if(swordSwingLastStep > 0 && isSwordSwinging){
-		auto &currentFrame = dims.faSwordForward.frames[(swordSwingLastStep % dims.faSwordForward.frames.size()) - 1];
-		nite::Vec2 _dif = (currentFrame.position - weap.frameSize * 0.5f) - ofs;
-		if(faceDir == 1.0f){
-			_dif.x *= -1.0f;
-		}
-		blurDir.set(nite::Vec2(nite::getSign(_dif.x) * 0.03f, nite::getSign(_dif.y)));
-	}
-	auto *ref = weap.equipAnim.draw(weap.animNormal, p.x, p.y, weap.frameSize.x, weap.frameSize.y, _orig.x, _orig.y, 0.0f);
-	if(ref != NULL){
-		ref->angle = animFrame.angle * faceDir * dims.faceDirBias;
-		ref->smooth = true;
-		if(isSwordSwinging){
-			nite::Uniform uniforms;
-			uniforms.add("dir", blurDir);
-//			ref->apply(dirShader, uniforms);
-		}
-	}
+	nite::setDepth(nite::DepthMiddle);
+	float faceDir = dims.faceDirBias * (EntityFacing::Right == faceDirection ? 1.0f : -1.0f);
 
-	if(container != NULL && container->debugPhysics){
-		// for(int i = 0; i < weap.hitboxes.size(); ++i){
+	nite::Vec2 &frameSize = dims.frameSize;
+	float &frameDepthOffset = dims.frameDepthOffset;
+
+	batch.begin();
+	auto *refTop = entityAnim.draw(animCurrentTop, 0.0f, 0.0f, frameSize.x, frameSize.y, 0.0f, 0.0f, 0.0f);
+	auto *refBottom = entityAnim.draw(animCurrentBottom, 0.0f, 0.0f, frameSize.x, frameSize.y, 0.0f, 0.0f, 0.0f);
+	batch.end();
+	batch.flush();
+
+	float stepOffset = (isWalking && walkingLastStep % 2 == 0) ? dims.walkRightStepOffset : 0.0f;
+	nite::setColor(0.7f, 0.7f, 0.7f, 0.5f);
+	// entityShadow.draw(position.x, position.y + dims.frameSize.y * 0.25f, entityShadow.getWidth(), entityShadow.getHeight(), 0.5f, 0.5f, 0.0f);
+	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+	nite::setDepth(-position.y + dims.globalDepthOffsetY); // dynamic depth using y
+	auto *ref = batch.draw(position.x, position.y - frameDepthOffset + stepOffset, frameSize.x * faceDir, frameSize.y, 0.5f, 0.5f, 0.0f);
+	if(ref != NULL){
+		ref->smooth = true;  
+	}
+	nite::setDepth(nite::DepthMiddle);
+	// Draw stance
+	int acvslot = Game::InventoryActiveSlot::Main;
+	auto swordStance = [&](Game::Sword &weap){
+		nite::Vec2 _orig(weap.origin / weap.frameSize);
+		nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+		auto &swingFrame = dims.faSwordForward.frames[swordSwingLastStep % dims.faSwordForward.frames.size()]; 
+		auto &onHandFrame = dims.faSwordOnHand.frames[swordSwingLastStep % dims.faSwordOnHand.frames.size()];
+		auto &animFrame = isSwordSwinging ? swingFrame : onHandFrame;
+		nite::Vec2 ofs = animFrame.position - weap.frameSize * 0.5f;
+		nite::Vec2 p(0.0f + ofs.x, 0.0f + stepOffset + ofs.y);
+		nite::Vec2 blurDir(0.032f, 0.032f);
+		static nite::Shader dirShader("data/shaders/directional_blur_f.glsl", "data/shaders/directional_blur_v.glsl");
+		if(faceDir == 1.0f){
+			//nite::print(nite::toStr(frameSize.x)+" "+nite::toStr(p.x));
+			p.x *= -1.0f;
+		}
+		p = p + position;
+		if(swordSwingLastStep > 0 && isSwordSwinging){
+			auto &currentFrame = dims.faSwordForward.frames[(swordSwingLastStep % dims.faSwordForward.frames.size()) - 1];
+			nite::Vec2 _dif = (currentFrame.position - weap.frameSize * 0.5f) - ofs;
+			if(faceDir == 1.0f){
+				_dif.x *= -1.0f;
+			}
+			blurDir.set(nite::Vec2(nite::getSign(_dif.x) * 0.03f, nite::getSign(_dif.y)));
+		}
+		auto *ref = weap.equipAnim.draw(weap.animNormal, p.x, p.y, weap.frameSize.x, weap.frameSize.y, _orig.x, _orig.y, 0.0f);
+		if(ref != NULL){
+			ref->angle = animFrame.angle * faceDir * dims.faceDirBias;
+			ref->smooth = true;
+			if(isSwordSwinging){
+				nite::Uniform uniforms;
+				// uniforms.add("dir", blurDir);
+				ref->apply(dirShader, uniforms);
+			}
+		}
+
+		if(container != NULL && container->debugPhysics){
+			// for(int i = 0; i < weap.hitboxes.size(); ++i){
 			// auto &hit = weap.hitboxes[i];
 			// Using weap's own frameSize as hitbox for now
 			nite::setColor(nite::Color(1.0f, 0.5f, 0));
 			auto devi = (weap.frameSize.x - nite::cos(nite::toRadians(animFrame.angle * faceDir)) * weap.frameSize.x) * faceDir * dims.faceDirBias;
 			nite::Draw::Rectangle(p - weap.frameSize * _orig + nite::Vec2(devi, 0.0f), weap.frameSize, false, nite::Vec2(0.0f), 0);
-		// }  
-	}	
-  }  
-  if(container != NULL && container->debugPhysics){
-	// Debugging
-	for(int i = 0; i < dims.hitboxes.size(); ++i){
+			// }  
+		}
+	};
+	auto gunStance = [&](Game::Gun &weap){
+		auto &shootFrame = dims.faGunShoot.frames[gunShootLastStep % dims.faGunShoot.frames.size()]; 
+		auto &onHandFrame = dims.faGunOnHand.frames[gunShootLastStep % dims.faGunOnHand.frames.size()];
+		auto &animFrame = isShootingGun ? shootFrame : onHandFrame;				
+		nite::Vec2 _orig(weap.origin / weap.frameSize);
+		nite::Vec2 ofs = animFrame.position - weap.frameSize * 0.5f;
+		nite::Vec2 p(0.0f + ofs.x, 0.0f + stepOffset + ofs.y);
+		if(faceDir == 1.0f){
+			//nite::print(nite::toStr(frameSize.x)+" "+nite::toStr(p.x));
+			p.x *= -1.0f;
+		}
+		p = p + position;		
+		auto *ref = weap.equipAnim.draw(weap.animNormal, p.x, p.y, weap.frameSize.x * (faceDir == 1.0f ? -1.0f : 1.0f), weap.frameSize.y, _orig.x, _orig.y, 0.0f);
+		if(ref != NULL){
+			ref->angle = animFrame.angle * faceDir * dims.faceDirBias;
+		}		
+	};
+	if(itemHandling.count(acvslot) > 0 && itemHandling[acvslot] != -1){
+		auto item = static_cast<Game::BaseEquip*>(itemCarry[itemHandling[acvslot]].get()); // assuming it's always an equip for now
+		switch(item->equipType){
+			case Game::EquipType::Sword: {
+				swordStance(*static_cast<Game::Sword*>(item));
+			} break;
+			case Game::EquipType::Gun: {
+				gunStance(*static_cast<Game::Gun*>(item));
+			} break;			
+		}
+	}  
+	if(container != NULL && container->debugPhysics){
+		// Debugging
+		for(int i = 0; i < dims.hitboxes.size(); ++i){
 		auto &hit = dims.hitboxes[i];
 		nite::setColor(nite::Color(1.0f, 0.5f, 0));
 		nite::Draw::Rectangle(position - frameSize * 0.5f + hit.position, hit.size, false, nite::Vec2(0.0f), 0);
-	}  
-	nite::setColor(nite::Color(1.0f, 0.0f, 0.5f));	
-	nite::Draw::Rectangle(position - frameSize * 0.5f , frameSize, false, nite::Vec2(0.0f), 0);
-  }
+		}  
+		nite::setColor(nite::Color(1.0f, 0.0f, 0.5f));	
+		nite::Draw::Rectangle(position - frameSize * 0.5f , frameSize, false, nite::Vec2(0.0f), 0);
+	}
 }
 
 void Game::FrameAnimation::clear(){

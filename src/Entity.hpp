@@ -18,6 +18,9 @@
 			static const unsigned Neutral = 1;
 			static const unsigned Melee = 2;
 			static const unsigned KnockedBack = 3;
+			static const unsigned Gun = 4;
+			static const unsigned Cast = 5;
+			static const unsigned Bow = 6;
 		}
 
 		struct HealthStat {
@@ -111,9 +114,9 @@
 		};
 
 		struct FrameAnimation {
-				Vector<FrameAnimationData> frames;
-				void load(const Jzon::Node &node);
-				void clear();
+			Vector<FrameAnimationData> frames;
+			void load(const Jzon::Node &node);
+			void clear();
 		};
 
 		struct Entity;
@@ -130,6 +133,7 @@
 			float globalDepthOffsetY;
 			float walkRightStepOffset;
 			String spriteFilename;
+			nite::Vec2 gunOnHandPosition;
 			bool load(const String &path);
 			void clear();
 			FrameData topIdle;
@@ -140,9 +144,14 @@
 			FrameData bottomKnockback;
 			FrameData topSwordSwing;
 			FrameData topSwordOnHand;
+			FrameData topGunShoot;
+			FrameData topGunOnHand;
+			FrameData topCast;
 			// Frame Animation
 			FrameAnimation faSwordForward;
 			FrameAnimation faSwordOnHand;
+			FrameAnimation faGunShoot;
+			FrameAnimation faGunOnHand;			
 			void update();
 			UInt64 lastFileCheck;
 			String lastHash;
@@ -155,6 +164,9 @@
 			// Animations
 			unsigned animTopIdle;
 			unsigned animTopWalking;
+			unsigned animTopGunShoot;
+			unsigned animTopGunOnHand;
+			unsigned animTopCast;
 			unsigned animTopSwordSwinging;
 			unsigned animTopSwordOnHand;
 			unsigned animTopKnockback;
@@ -178,6 +190,16 @@
 			int swordSwingLastStep;
 			UInt64 swordSwingTimeout;
 			bool isSwordSwinging;
+
+			// Gun Shooting Mechanic
+			int gunShootLastStep;
+			UInt64 gunShootTimeout;
+			bool isShootingGun;	
+
+			// Cast Mechanic	
+			int castLastStep;
+			UInt64 castTimeout;
+			bool isCasting;					
 			
 			// Etc
 			AnimationData dims;
@@ -208,7 +230,8 @@
 			int addBaseStat(int type, int amnt);
 			nite::Hitbox getMeleeHitbox();
 			void dealDamage(const Game::DamageInfo &dmg);
-			void throwMelee();
+			void throwMelee(Game::BaseEquip *_weap);
+			void shootBullet(Game::BaseEquip *_weap);
 			Game::MeleeHitInformation receiveMelee(nite::Hitbox &input);
 			void kill();
 			void setupEntity(int lv, float baseScale);
