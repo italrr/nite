@@ -1,5 +1,5 @@
-#ifndef NITE_SHAPE
-	#define NITE_SHAPE
+#ifndef NITE_SHAPE_HPP
+	#define NITE_SHAPE_HPP
 	#include "Graphics.hpp"
 	namespace nite {
 		struct RenderableRectangle : public nite::Renderable {

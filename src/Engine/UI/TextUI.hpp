@@ -1,5 +1,5 @@
-#ifndef NITE_TEXT_UI
-  #define NITE_TEXT_UI
+#ifndef NITE_TEXT_UI_HPP
+  #define NITE_TEXT_UI_HPP
 
   #include "BaseUIComponent.hpp"
   #include "../Font.hpp"

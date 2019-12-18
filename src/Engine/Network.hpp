@@ -1,5 +1,5 @@
-#ifndef NITE_NETWORK
-	#define NITE_NETWORK
+#ifndef NITE_NETWORK_HPP
+	#define NITE_NETWORK_HPP
 
 	#include "Types.hpp"
 

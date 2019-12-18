@@ -1,5 +1,5 @@
-#ifndef NITE_FONT
-	#define NITE_FONT
+#ifndef NITE_FONT_HPP
+	#define NITE_FONT_HPP
 	#include "Graphics.hpp"
 	namespace nite {
 		class Font;

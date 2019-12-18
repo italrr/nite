@@ -1,5 +1,5 @@
-#ifndef NITE_BUTTON_UI
-  #define NITE_BUTTON_UI
+#ifndef NITE_BUTTON_UI_HPP
+  #define NITE_BUTTON_UI_HPP
 
   #include "BaseUIComponent.hpp"
   #include "../Font.hpp"

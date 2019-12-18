@@ -1,10 +1,20 @@
 nite Engine
----
+----------
 
-nite Engine is a 2D game engine written by Italo Russo. This has been an on-going project of mine which I started some years ago, slowly adding new features and
-mechanics. The engine is intended for top-down RPG games.
+nite Engine is a 2D game engine purely in C++. This has been an on-going project which I started some years ago, slowly adding new features and
+mechanics. Originally as a toy & learning project. One key feature of nite is making most of the engine completely customizable through JSON files and using its own scripting system (nite Script).
 
-nite is written in C++, it uses OpenGL to render. nite is portable, although right now it only works well on Windows.
+About the Game
+--------------
+The game being developed with this engine is an RPG heavily oriented to the Standard RPG System. The core feature will be the use of RNG for generating the campaigns from
+the very beginning to the end. The end goal is to be able to create engaging RPG campaigns with high complexity and unpredictability, but fairness above both. We'll be experimenting with different
+maze generation algorithms to make this possible. Might consider using Neural Networks.
+
+Another very important aspect of the game, and a big goal for nite, is the to be able to create challenging enemy AI. As of right now, AI is bare bones at best. But it's
+something we'll be heavily focused on, too.
+
+This game is inspired by another older project of the original creator: [https://play.google.com/store/apps/details?id=com.nite.rushindungeons](https://play.google.com/store/apps/details?id=com.nite.rushindungeons)
+
 
 **Attention: Documentation is work in progress.**
 
@@ -29,65 +39,33 @@ nite is written in C++, it uses OpenGL to render. nite is portable, although rig
 - JSON support
 - Camera support (Entity follow, shake-screen, tilt/rotations, Zoom-in and out)
 - Entity system
-- Basic AI for entities (Coming soon a more rich and complex AI system)
+- Basic AI for entities
 - UI System based on flex-boxes
 - Basic scripting language (nite Script)
+
+### Coming Soon
+- General clean up and more bug fixing
+- RING (A combination of maze generation algorithms and other technologies to create a highly complex and engaging campaign)
+- Better AI templates for enemies ('Hunting', 'Gather', and 'Wandering' personalities will be the firsts)
+- More features for the UI System (Text boxes, Scrolling, Focus)
+- Proper Audio Support
 
 
 How to build?
 ------------
 
 ### Requirements 
-
+- CMake 2.8 or later
 - SDL2 (2.0.1 or later)
 - pthread
-- CMake 2.8 or later
 
 ### Building
 
-1. Run
-> cmake .
+1. Prepare
+> `cmake .`
 
-2. Done
+2. Compile
+> `make`
 
-### Screenshots
-
-- Basic Font Rendering
-![alt text](http://198.199.91.93/imgs/8.png)
-nite uses FreeType2 internally to render fonts. It loads them from a ttf and
-render them into textures.
-
-- Physics Engine & Hitbox system
-![alt text](http://198.199.91.93/imgs/1.png)
-nite uses a very simple AAxBB collision and physics system. 
-Hitboxes also work this way. 
-![alt text](http://198.199.91.93/imgs/3.png)
-In the image, orange rectangle are hitboxes either for receiving damage
-or dealing it. 
-Green rectangle represents the object's collision mask.
-
-- Console
-![alt text](http://198.199.91.93/imgs/2.png)
-nite features an in-game command line to manipulate the world of the
-game without having to recompile. It supports autocomplete, too.
-
-- Basic AI and path finding system
-![alt text](http://198.199.91.93/imgs/4.png)
-nite includes a very basic AI and path finding system. It is still in
-development. The idea is that entities could have multiple behaviours that
-could work in synergy to make enemies actions organic and somewhat
-unpredectible.
-
-- UI System
-![alt text](http://198.199.91.93/imgs/5.png)
-nite also features an UI System. It has buttons, checkboxes,
-labels, windows and panels. Input text boxes are coming soon.
-![alt text](http://198.199.91.93/imgs/5.png)
-![alt text](http://198.199.91.93/imgs/6.png)
-
-- Panels have a cohesive layout system, which uses the flex box concept to accomodate components.
-![alt text](https://j.gifs.com/Q0XzB7.gif)
-![alt text](http://198.199.91.93/imgs/7.png)
-Also, UI is loaded from JSON files dynamically. Meaning the engine
-constantly listens to changes on the file and reloads as soon as it
-detects the file changed.
+2. Run
+> `./Game`

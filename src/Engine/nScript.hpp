@@ -1,5 +1,5 @@
-#ifndef NITE_NSCRIPT
-	#define NITE_NSCRIPT
+#ifndef NITE_NSCRIPT_HPP
+	#define NITE_NSCRIPT_HPP
 
 	#include "Types.hpp"
 

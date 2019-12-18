@@ -1,5 +1,5 @@
-#ifndef NITE_PANEL_UI
-  #define NITE_PANEL_UI
+#ifndef NITE_PANEL_UI_HPP
+  #define NITE_PANEL_UI_HPP
 
   #include "BaseUIComponent.hpp"
   #include "../Tools/Tools.hpp"

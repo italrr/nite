@@ -1,5 +1,5 @@
-#ifndef NITE_SHADER
-	#define NITE_SHADER
+#ifndef NITE_SHADER_HPP
+	#define NITE_SHADER_HPP
 
 	#include "Types.hpp"
 	#include "Graphics.hpp"

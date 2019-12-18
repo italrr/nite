@@ -1,5 +1,5 @@
-#ifndef NITE_VIEW
-	#define NITE_VIEW
+#ifndef NITE_VIEW_HPP
+	#define NITE_VIEW_HPP
 
 	#include "Types.hpp"
 

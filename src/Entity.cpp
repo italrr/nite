@@ -594,11 +594,11 @@ int Game::Entity::addBaseStat(int type, int amnt){
 
 void Game::Entity::kill(){
 	nite::print("Killed entity id "+nite::toStr(id)+" '"+name+"'");
-  if(dead){
-	  return;
-  }
-  dead = true;
-  onDeath();
+	if(dead){
+		return;
+	}
+	dead = true;
+	onDeath();
 }
 
 void Game::Entity::switchStance(int stance){
@@ -746,6 +746,7 @@ void Game::Entity::entityReloadAnimation(){
 	animTopGunOnHand = parseAnimation(entityAnim, ss, dims.topGunOnHand);
 	animTopGunShoot = parseAnimation(entityAnim, ss, dims.topGunShoot);
 	animTopCast = parseAnimation(entityAnim, ss, dims.topCast);
+	gunShootBang.load("data/sprite/shoot_bang.png", nite::Color(1.0f, 0.0f, 0.0f));
 	nite::print("reloaded entity '"+path+"' animations");
 }
 
@@ -988,6 +989,10 @@ void Game::Entity::draw(){
 			p.x *= -1.0f;
 		}
 		p = p + position;		
+		if(isShootingGun){ 
+			auto bangp = nite::Vec2(p + weap.barrelPosition);
+			gunShootBang.draw(bangp.x, bangp.y, gunShootBang.getWidth() * (faceDir == 1.0f ? -1.0f : 1.0f), gunShootBang.getHeight(), 0.5f, 0.5f, 0.0f);
+		}
 		auto *ref = weap.equipAnim.draw(weap.animNormal, p.x, p.y, weap.frameSize.x * (faceDir == 1.0f ? -1.0f : 1.0f), weap.frameSize.y, _orig.x, _orig.y, 0.0f);
 		if(ref != NULL){
 			ref->angle = animFrame.angle * faceDir * dims.faceDirBias;
@@ -1007,9 +1012,9 @@ void Game::Entity::draw(){
 	if(container != NULL && container->debugPhysics){
 		// Debugging
 		for(int i = 0; i < dims.hitboxes.size(); ++i){
-		auto &hit = dims.hitboxes[i];
-		nite::setColor(nite::Color(1.0f, 0.5f, 0));
-		nite::Draw::Rectangle(position - frameSize * 0.5f + hit.position, hit.size, false, nite::Vec2(0.0f), 0);
+			auto &hit = dims.hitboxes[i];
+			nite::setColor(nite::Color(1.0f, 0.5f, 0));
+			nite::Draw::Rectangle(position - frameSize * 0.5f + hit.position, hit.size, false, nite::Vec2(0.0f), 0);
 		}  
 		nite::setColor(nite::Color(1.0f, 0.0f, 0.5f));	
 		nite::Draw::Rectangle(position - frameSize * 0.5f , frameSize, false, nite::Vec2(0.0f), 0);

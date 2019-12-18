@@ -13,10 +13,10 @@ void Game::BasicMob::onCreate(){
   setupEntity(50, 1.0f);
   entityInit();
   addBaseStat(BaseStatType::Strength, 0);
-  addBaseStat(BaseStatType::Agility, 0);
+  addBaseStat(BaseStatType::Agility, 100);
   addBaseStat(BaseStatType::Dexterity, 0);
   addBaseStat(BaseStatType::Intelligence, 0);
-  addBaseStat(BaseStatType::Endurance, 100);
+  addBaseStat(BaseStatType::Endurance, 0);
   addBaseStat(BaseStatType::Luck, 0);
 //   printEntity();
 

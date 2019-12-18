@@ -1,5 +1,5 @@
-#ifndef GAME_WORLD
-	#define GAME_WORLD
+#ifndef GAME_WORLD_HPP
+	#define GAME_WORLD_HPP
 
 	#include <unordered_map>
 	#include "Object.hpp"

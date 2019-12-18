@@ -1,5 +1,5 @@
-#ifndef NITE_ANIMATION
-	#define NITE_ANIMATION
+#ifndef NITE_ANIMATION_HPP
+	#define NITE_ANIMATION_HPP
 	#include "Texture.hpp"
 	#include "Tools/Tools.hpp"
 	namespace nite {

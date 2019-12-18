@@ -1,5 +1,5 @@
-#ifndef NITE_TILESET
-	#define NITE_TILESET
+#ifndef NITE_TILESET_HPP
+	#define NITE_TILESET_HPP
 	#include "Graphics.hpp"
 	#include "Texture.hpp"
 	namespace nite {

@@ -1,5 +1,5 @@
-#ifndef NITE_GRAPHICS
-	#define NITE_GRAPHICS
+#ifndef NITE_GRAPHICS_HPP
+	#define NITE_GRAPHICS_HPP
 	#include "Types.hpp"
 	namespace nite {
 		const static int DepthTop = -2147483647;

@@ -1,5 +1,5 @@
-#ifndef GAME_BASE_BULLET
-    #define GAME_BASE_BULLET
+#ifndef GAME_BASE_BULLET_HPP
+    #define GAME_BASE_BULLET_HPP
 
 	#include "Engine/Object.hpp"
     #include "Entity.hpp"

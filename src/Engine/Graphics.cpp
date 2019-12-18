@@ -5,6 +5,7 @@
 #include "Graphics.hpp"
 #include "View.hpp"
 #include "Console.hpp"
+#include "../Game.hpp"
 #define NO_SDL_GLEXT
 #include <fstream>
 #include <signal.h>
@@ -974,8 +975,6 @@ void nite::graphicsUpdate(){
 	SDL_GL_SwapWindow(Window);
 }
 
-#include "../Game.hpp"
-
 static void gameExit(){
 	static auto *ins = Game::getInstance();
 	nite::updateAsyncTask();
@@ -1100,7 +1099,7 @@ void nite::graphicsInit(){
 		size.set(displayWidth, displayHeight);
 	}
 
-	const char *n = "S P E C T R U M";
+	const char *n = "RUSH IN DUNGEONS";
 
 	Window = SDL_CreateWindow(n, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, size.x, size.y, Flags);
 	Context = SDL_GL_CreateContext(Window);

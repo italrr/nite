@@ -205,6 +205,7 @@
 			AnimationData dims;
 			nite::Texture entityShadow;
 			nite::Animation entityAnim;
+			nite::Texture gunShootBang;
 			nite::Batch batch;
 			int faceDirection;
 			float baseScaleEntity;

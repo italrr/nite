@@ -1,5 +1,5 @@
-#ifndef NITE_NETWORK_DATA_PACKETS
-	#define NITE_NETWORK_DATA_PACKETS
+#ifndef NITE_NETWORK_DATA_PACKETS_HPP
+	#define NITE_NETWORK_DATA_PACKETS_HPP
 
 	/*
 		A nite data packet is simple two bytes for the header and the rest of

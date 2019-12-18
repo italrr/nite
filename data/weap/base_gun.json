@@ -14,8 +14,8 @@
 	"magSize": 10,
 	"spriteFilename": "data/sprite/gun.png",
 	"barrelPosition": {
-		"x": 0.0,
-		"y": -20.0
+		"x": 16.0,
+		"y": -16.0
 	},
 	"sprieSize": {
 		"width": 32,

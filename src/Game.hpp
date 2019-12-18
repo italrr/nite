@@ -1,5 +1,5 @@
-#ifndef GAME_H
-  #define GAME_H
+#ifndef GAME_HPP
+  #define GAME_HPP
 
   #include <memory>
   #include "Engine/Graphics.hpp"
@@ -18,6 +18,7 @@
   #include "Mob.hpp"
   #include "Map.hpp"
   #include "Inventory.hpp"
+  #include "RING/RING.hpp"
 
   namespace Game {
 

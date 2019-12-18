@@ -1,4 +1,6 @@
 #include "Gun.hpp"
+#include "Game.hpp"
+#include "Bullet.hpp"
 
 void Game::Gun::loadSpecific(const String &path){
 	Jzon::Parser parser;

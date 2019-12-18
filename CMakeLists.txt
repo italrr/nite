@@ -213,6 +213,10 @@ set (nite_src
 add_library(nite ${nite_src})
 
 set(src_files
+	# RING #
+	src/RING/RING.cpp
+	
+	# GENERAL #
 	src/Entity.cpp
 	src/Player.cpp
 	src/Inventory.cpp

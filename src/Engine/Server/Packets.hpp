@@ -1,5 +1,5 @@
-#ifndef GAME_PACKETS
-  #define GAME_PACKETS
+#ifndef GAME_PACKETS_HPP
+  #define GAME_PACKETS_HPP
 
   const UInt16 PACKET_EMPTY               = 0;
   /*

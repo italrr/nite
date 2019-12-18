@@ -1,5 +1,5 @@
-#ifndef NITE_UI
-  #define NITE_UI
+#ifndef NITE_UI_HPP
+  #define NITE_UI_HPP
 
   #include "BaseUIComponent.hpp"
   #include "WindowUI.hpp"

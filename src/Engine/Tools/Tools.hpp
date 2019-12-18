@@ -1,5 +1,5 @@
-#ifndef NITE_TOOLS
-	#define NITE_TOOLS
+#ifndef NITE_TOOLS_HPP
+	#define NITE_TOOLS_HPP
 
 	#include "../Types.hpp"
 

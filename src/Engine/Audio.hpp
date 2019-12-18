@@ -1,5 +1,5 @@
-#ifndef NITE_AUDIO_H
-  #define NITE_AUDIO_H
+#ifndef NITE_AUDIO_HPP
+  #define NITE_AUDIO_HPP
 
   #include "Types.hpp"
 

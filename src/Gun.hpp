@@ -1,5 +1,5 @@
-#ifndef GAME_BASE_GUN
-	#define GAME_BASE_GUN
+#ifndef GAME_BASE_GUN_HPP
+	#define GAME_BASE_GUN_HPP
 
 	#include "Inventory.hpp"
     #include "Entity.hpp"
@@ -16,9 +16,8 @@
             nite::Vec2 barrelPosition;
 		    int magSize; 
             int currentLoad;
-		    unsigned ammoType;            
+		    unsigned ammoType;        
 			void loadSpecific(const String &path);
-
             virtual void onShot(Game::Entity *carrier){
 
             }

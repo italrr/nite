@@ -1,5 +1,5 @@
-#ifndef NITE_CONSOLE_H
-  #define NITE_CONSOLE_H
+#ifndef NITE_CONSOLE_HPP
+  #define NITE_CONSOLE_HPP
 
   #include "Tools/Tools.hpp"
 

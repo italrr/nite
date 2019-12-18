@@ -1,5 +1,5 @@
-#ifndef WORLD_H
-  #define WORLD_H
+#ifndef WORLD_HPP
+  #define WORLD_HPP
     #include "../Types.hpp"
     struct entityT;
     struct worldT {

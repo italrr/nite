@@ -1,5 +1,5 @@
-#ifndef NITE_BASIC_UI_COMPONENT
-  #define NITE_BASIC_UI_COMPONENT
+#ifndef NITE_BASIC_UI_COMPONENT_HPP
+  #define NITE_BASIC_UI_COMPONENT_HPP
 
   #include "../Graphics.hpp"
   #include "../Tools/Tools.hpp"

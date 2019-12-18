@@ -1,5 +1,5 @@
-#ifndef NITE_TEXTURE
-	#define NITE_TEXTURE
+#ifndef NITE_TEXTURE_HPP
+	#define NITE_TEXTURE_HPP
 	#include "Graphics.hpp"
 	namespace nite {
 

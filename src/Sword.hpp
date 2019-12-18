@@ -1,5 +1,5 @@
-#ifndef GAME_BASE_SWORD
-	#define GAME_BASE_SWORD
+#ifndef GAME_BASE_SWORD_HPP
+	#define GAME_BASE_SWORD_HPP
 
 	#include "Inventory.hpp"
 	#include "Entity.hpp"

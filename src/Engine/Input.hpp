@@ -1,5 +1,5 @@
-#ifndef NITE_INPUT
-	#define NITE_INPUT
+#ifndef NITE_INPUT_HPP
+	#define NITE_INPUT_HPP
 
 	#include "Types.hpp"
 

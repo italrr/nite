@@ -1,5 +1,5 @@
-#ifndef NITE_CHECKBOX_UI
-  #define NITE_CHECKBOX_UI
+#ifndef NITE_CHECKBOX_UI_HPP
+  #define NITE_CHECKBOX_UI_HPP
 
   #include "BaseUIComponent.hpp"
   #include "../Tools/Tools.hpp"

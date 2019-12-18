@@ -1,5 +1,5 @@
-#ifndef NITE_TYPES
-	#define NITE_TYPES
+#ifndef NITE_TYPES_HPP
+	#define NITE_TYPES_HPP
 
 	#include <vector>
 	#include <map>
