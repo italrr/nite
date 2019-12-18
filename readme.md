@@ -6,9 +6,7 @@ mechanics. Originally as a toy & learning project. One key feature of nite is ma
 
 About the Game
 --------------
-The game being developed with this engine is an RPG heavily oriented to the Standard RPG System. The core feature will be the use of RNG for generating the campaigns from
-the very beginning to the end. The end goal is to be able to create engaging RPG campaigns with high complexity and unpredictability, but fairness above both. We'll be experimenting with different
-maze generation algorithms to make this possible. Might consider using Neural Networks.
+The game being developed with this engine is an RPG heavily oriented to the [Standard RPG System](https://en.wikipedia.org/wiki/Standard_RPG_System) and [RPG Attribute System](https://en.wikipedia.org/wiki/Attribute_(role-playing_games)) for gameplay. The core feature will be the use of RNG for generating the campaigns from the very beginning to the end. The end goal is to be able to create engaging RPG campaigns with high complexity and unpredictability, but fairness above both. We'll be experimenting with different maze generation algorithms to make this possible. Might consider using Neural Networks.
 
 Another very important aspect of the game, and a big goal for nite, is the to be able to create challenging enemy AI. As of right now, AI is bare bones at best. But it's
 something we'll be heavily focused on, too.
@@ -46,7 +44,7 @@ This game is inspired by another older project of the original creator: [https:/
 ### Coming Soon
 - General clean up and more bug fixing
 - RING (A combination of maze generation algorithms and other technologies to create a highly complex and engaging campaign)
-- Better AI templates for enemies ('Hunting', 'Gather', and 'Wandering' personalities will be the firsts)
+- Better AI templates for enemies ('Hunting', 'Gather', and 'Wandering' personalities will be the first ones)
 - More features for the UI System (Text boxes, Scrolling, Focus)
 - Proper Audio Support
 
