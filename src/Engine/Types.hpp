@@ -125,8 +125,8 @@
 			Vec2 operator-(const Vec2 &v);
 			void set(const Vec2 &v);
 			void set(float X, float Y);
-			bool lerp(const Vec2 &v, float Step);
-			bool lerpDiscrete(const Vec2 &v, float Step);
+			bool lerp(const Vec2 &v, float step);
+			bool lerpDiscrete(const Vec2 &v, float step);
 			String str();
 			operator String();
 		};

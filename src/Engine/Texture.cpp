@@ -93,16 +93,16 @@ bool nite::Texture::isLoaded(){
 	return objectId >= 0;
 }
 
-void nite::Texture::load(const String &path){
+bool nite::Texture::load(const String &path){
 	nite::Color c;
 	c.a = -1.0;
-	load(path, c);
+	return load(path, c);
 }
 
-void nite::Texture::load(const String &path, const nite::Color &transparency){
+bool nite::Texture::load(const String &path, const nite::Color &transparency){
 	if(!nite::fileExists(path)){
 		nite::print("Error: Couldn't load '"+path+"': It doesn't exist.");
-		return;
+		return false;
 	}
 	unload();
 	String fileHash = nite::hashMemory((char*)path.c_str(), path.length());
@@ -112,11 +112,11 @@ void nite::Texture::load(const String &path, const nite::Color &transparency){
 		textureList[objectId].empty = 0;
 		textureList[objectId].owners.push_back(this);
 		textureList[objectId].Hash = fileHash;
-    textureList[objectId].filename = path;
+    	textureList[objectId].filename = path;
 	}else{
 		textureList[objectId].owners.push_back(this);
 		region.set(0, 0, textureList[objectId].Width, textureList[objectId].Height);
-		return;
+		return false;
 	}
 
 	int Width;
@@ -125,7 +125,7 @@ void nite::Texture::load(const String &path, const nite::Color &transparency){
 	GLubyte *Pixels = SOIL_load_image(path.c_str(), &Width, &Height, &Channels, SOIL_LOAD_AUTO);
 	if (Pixels == NULL){
 		nite::print("Error: Couldn't load '"+path+"': Unsupported format.");
-		return;
+		return false;
 	}
 	if(transparency.a != -1.0){
 		for(int i = 0; i < Width * Height * Channels; i += 4){
@@ -156,6 +156,7 @@ void nite::Texture::load(const String &path, const nite::Color &transparency){
 	region.set(0, 0, Width, Height);
 	nite::print("loaded texture '"+path+"'.");
 	SOIL_free_image_data(Pixels);
+	return true;
 }
 
 nite::Texture::Texture(){

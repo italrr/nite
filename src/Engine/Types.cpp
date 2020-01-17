@@ -304,19 +304,19 @@ Vector 2D
 */
 
 bool nite::Vec2::operator<(float c){
-	return x < c and y < c;
+	return x < c && y < c;
 }
 
 bool nite::Vec2::operator>(float c){
-	return x > c and y > c;
+	return x > c && y > c;
 }
 
 bool nite::Vec2::operator<=(float c){
-	return x <= c and y <= c;
+	return x <= c && y <= c;
 }
 
 bool nite::Vec2::operator>=(float c){
-	return x >= c and y >= c;
+	return x >= c && y >= c;
 }
 
 bool nite::Vec2::operator!=(float c){
@@ -357,19 +357,19 @@ nite::Vec2::Vec2(float c){
 }
 
 bool nite::Vec2::operator<(const nite::Vec2 &v){
-	return x < v.x and y < v.y;
+	return x < v.x && y < v.y;
 }
 
 bool nite::Vec2::operator>(const nite::Vec2 &v){
-	return x > v.x and y > v.y;
+	return x > v.x && y > v.y;
 }
 
 bool nite::Vec2::operator<=(const nite::Vec2 &v){
-	return x <= v.x and y <= v.y;
+	return x <= v.x && y <= v.y;
 }
 
 bool nite::Vec2::operator>=(const nite::Vec2 &v){
-	return x >= v.x and y >= v.y;
+	return x >= v.x && y >= v.y;
 }
 
 nite::Vec2 nite::Vec2::operator/(float c){
@@ -382,7 +382,7 @@ nite::Vec2 nite::Vec2::operator/(float c){
 
 nite::Vec2 nite::Vec2::operator/(const nite::Vec2 &v){
 	Vec2 R = *this;
-	if (v.x == 0 or v.y ==0) R;
+	if (v.x == 0 || v.y ==0) R;
 	R.x /= v.x;
 	R.y /= v.y;
 	return R;
@@ -437,24 +437,24 @@ nite::Vec2 nite::Vec2::operator-(const nite::Vec2 &v){
 }
 
 bool nite::Vec2::operator==(float c){
-	return x == c and y == c;
+	return x == c && y == c;
 }
 
 bool nite::Vec2::operator==(const nite::Vec2 &v){
-	return x == v.x and y == v.y;
+	return x == v.x && y == v.y;
 }
 
-bool nite::Vec2::lerp(const Vec2 &v, float Step){
+bool nite::Vec2::lerp(const Vec2 &v, float step){
 	if (x == v.x && y == v.y) return true;
-	nite::lerp(x, v.x, Step);
-	nite::lerp(y, v.y, Step);
+	nite::lerp(x, v.x, step);
+	nite::lerp(y, v.y, step);
 	return false;
 }
 
-bool nite::Vec2::lerpDiscrete(const Vec2 &v, float Step){
+bool nite::Vec2::lerpDiscrete(const Vec2 &v, float step){
 	if (x == v.x && y == v.y) return true;
-	nite::lerpDiscrete(x, v.x, Step);
-	nite::lerpDiscrete(y, v.y, Step);
+	nite::lerpDiscrete(x, v.x, step);
+	nite::lerpDiscrete(y, v.y, step);
 	return false;
 }
 
@@ -525,43 +525,43 @@ void nite::Rect::set(float c){
 }
 
 bool nite::Rect::operator<(float c){
-	return x < c and y < c and w < c and h < c;
+	return x < c && y < c && w < c && h < c;
 }
 
 bool nite::Rect::operator>(float c){
-	return x > c and y > c and w > c and h > c;
+	return x > c && y > c && w > c && h > c;
 }
 
 bool nite::Rect::operator<=(float c){
-	return x <= c and y <= c and w <= c and h <= c;
+	return x <= c && y <= c && w <= c && h <= c;
 }
 
 bool nite::Rect::operator>=(float c){
-	return x >= c and y >= c and w >= c and h >= c;
+	return x >= c && y >= c && w >= c && h >= c;
 }
 
 bool nite::Rect::operator!=(float c){
-	return !(x == c and y == c and w == c and c == h);
+	return !(x == c && y == c && w == c && c == h);
 }
 
 bool nite::Rect::operator!=(const Rect &r){
-	return !(r.x == x and r.y == y and r.w == w and r.h == h);
+	return !(r.x == x && r.y == y && r.w == w && r.h == h);
 }
 
 bool nite::Rect::operator<(const nite::Rect &r){
-	return x < r.x and y < r.y and w < r.w and h < r.h;
+	return x < r.x && y < r.y && w < r.w && h < r.h;
 }
 
 bool nite::Rect::operator>(const nite::Rect &r){
-	return x > r.x and y > r.y and w > r.w and h > r.h;
+	return x > r.x && y > r.y && w > r.w && h > r.h;
 }
 
 bool nite::Rect::operator<=(const nite::Rect &r){
-	return x <= r.x and y <= r.y and w <= r.w and h <= r.h;
+	return x <= r.x && y <= r.y && w <= r.w && h <= r.h;
 }
 
 bool nite::Rect::operator>=(const nite::Rect &r){
-	return x >= r.x and y >= r.y and w >= r.w and h >= r.h;
+	return x >= r.x && y >= r.y && w >= r.w && h >= r.h;
 }
 
 nite::Rect nite::Rect::operator/(float c){
@@ -576,7 +576,7 @@ nite::Rect nite::Rect::operator/(float c){
 
 nite::Rect nite::Rect::operator/(const nite::Rect &r){
 	Rect R = *this;
-	if (r.x == 0 or r.y ==0 or r.w == 0 or r.h == 0) R;
+	if (r.x == 0 || r.y ==0 || r.w == 0 || r.h == 0) R;
 	R.x /= r.x;
 	R.y /= r.y;
 	R.w /= r.w;
@@ -647,11 +647,11 @@ nite::Rect nite::Rect::operator-(const nite::Rect &r){
 }
 
 bool nite::Rect::operator==(float c){
-	return x == c and y == c and w == c and h == c;
+	return x == c && y == c && w == c && h == c;
 }
 
 bool nite::Rect::operator==(const nite::Rect &r){
-	return x == r.x and y == r.y and w == r.w and h == r.h;
+	return x == r.x && y == r.y && w == r.w && h == r.h;
 }
 
 nite::Rect::operator String(){

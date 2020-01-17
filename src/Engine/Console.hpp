@@ -12,9 +12,11 @@
       }
 
       typedef void (*Function)(Vector<String> parameters);
+      // typedef std::function<void(Vector<String>) Lambda;
       bool createProxy(const String &name, int type, size_t s, void *ref);
       bool createProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function);
       bool createFunction(const String &name, nite::Console::Function function);
+      // bool createFunction(const String &name, nite::Console::Lambda &lambda);
       void *getProxyReference(const String &name);
       void add(const String &input, bool print = true);
       void add(const String &input, const nite::Color &color, bool print = true);
@@ -31,6 +33,7 @@
       };
       struct CreateFunction {
         CreateFunction(const String &name, nite::Console::Function function);
+        // CreateFunction(const String &name, nite::Console::Lambda &lambda);
       };
     }
   }

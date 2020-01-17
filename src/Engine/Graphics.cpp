@@ -942,32 +942,32 @@ void nite::dropFrame(){
 
 void nite::graphicsUpdate(){
   currentDelta = nite::getTicks() - initDelta;
-  initDelta = nite::getTicks();
+	initDelta = nite::getTicks();
 
-  glClear(GL_COLOR_BUFFER_BIT);
-  glClearColor(0, 0, 0, 1);
-  for(int c = 0; c < RenderTargetNumber; ++c){
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0, 0, 0, 1);
+	for(int c = 0; c < RenderTargetNumber; ++c){
 		if(targets[c].objects.size() == 0) continue;
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targets[c].objectId);
 		setupTarget();
 		for(int i = 0; i < targets[c].objects.size(); ++i){
 			targets[c].objects[i]->function(targets[c].objects[i]);
 		}
-  }
+	}
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor (1, 1, 1, 1);
 
-  for(int c = 0; c < RenderTargetNumber; ++c){
+	for(int c = 0; c < RenderTargetNumber; ++c){
 		if(targets[c].objects.size() == 0) continue;
-    drawTarget(targets[c]);
-  }
+		drawTarget(targets[c]);
+	}
 
-  for(int c = 0; c < RenderTargetNumber; ++c){
+	for(int c = 0; c < RenderTargetNumber; ++c){
 		if(targets[c].objects.size() == 0) continue;
-    targets[c].clear();
-  }
+		targets[c].clear();
+	}
 
 	nite::setDepth(0);
 	flushTexture();

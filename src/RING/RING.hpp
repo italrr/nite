@@ -1,5 +1,11 @@
 #ifndef GAME_RING_HPP
     #define GAME_RING_HPP
+    
+    #include "../Engine/Tools/Tools.hpp"
+    #include "../Game.hpp"
+    #include "Blueprint.hpp"
+    #include "Map.hpp"
+
     /*
         [R]USH [I]N DU[N]GEONS [G]ENERATOR
 
@@ -9,30 +15,23 @@
         We'll be using different types of Maze generators at the
         beginning, but our ultimate goal is to combine the technologies.
 
-        Our first experimentation will be using Prim.
+        Our first experimentation will be using Depth-First Search.
 
     */
-    #define RING_DEFAULT_UNIT_SIZE nite::Vec2(16.0f, 16.0f)
+
     namespace Game {
-        
-        namespace RINGEnvType {
-            unsigned Dungeon = 0;
+
+        namespace RING {
+
+            struct Campaign {
+
+            };
+
+            struct Master {
+  
+            };
+
         }
-
-        struct RINGBase {
-            nite::Vec2 envSize; // unit size
-            float scale;
-            float difficulty;
-            float complexity;
-            unsigned type;
-            
-            void init(); // default
-        };
-
-        struct RING {
-            bool build(int width, int height, Game::RINGBase env);
-        }; 
-
    }
 
 #endif

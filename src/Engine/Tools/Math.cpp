@@ -23,6 +23,10 @@ float nite::sin(float an){
 	return std::sin(an);
 }
 
+int nite::odd(int n){
+	return n % 2 == 0 ? n + 1 : n;
+}
+
 float nite::cos(float an){
 	return std::cos(an);
 }

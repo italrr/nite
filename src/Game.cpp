@@ -3,6 +3,7 @@
 #include "Gun.hpp"
 #include "Engine/Shapes.hpp"
 #include "Engine/nScript.hpp"
+#include "RING/RING.hpp"
 
 using namespace nite;
 
@@ -32,16 +33,16 @@ void Game::Camera::update(){
 	static auto *inst = Game::getInstance();	
 	if(cameraFreeroam){
 		nite::Vec2 np = nite::getView(nite::RenderTargetGame);
-		if(nite::keyboardCheck(nite::keyLEFT)){
+		if(nite::keyboardCheck(nite::keyA)){
 			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(32.0f, 0.0f));
 		}
-		if(nite::keyboardCheck(nite::keyRIGHT)){
+		if(nite::keyboardCheck(nite::keyD)){
 			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(32.0f, 0.0f));
 		}		
-		if(nite::keyboardCheck(nite::keyUP)){
+		if(nite::keyboardCheck(nite::keyW)){
 			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(0.0f, 32.0f));			
 		}
-		if(nite::keyboardCheck(nite::keyDOWN)){
+		if(nite::keyboardCheck(nite::keyS)){
 			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(0.0f, 32.0f));						
 		}		
 		nite::setView(true, nite::RenderTargetGame);
@@ -144,7 +145,7 @@ void Game::GameMaster::start(){
 	
 	
 	// Load a placeholder map
-	map.load("data/map/romdou/romdou.json");
+	// map.load("data/map/romdou/romdou.json");
 
 	
 	auto player = Shared<nite::PhysicsObject>(new Game::Player());
@@ -154,11 +155,11 @@ void Game::GameMaster::start(){
 	this->player->fullHeal();
 	this->player->position.set(map.playerSpawn);
 	
-	auto mob = Shared<nite::PhysicsObject>(new Game::BasicMob());
-	world.add(mob);
-	mob->position.set(1920, 1500);
-	auto mobEntity = static_cast<Entity*>(mob.get());
-	mobEntity->fullHeal();	
+	// auto mob = Shared<nite::PhysicsObject>(new Game::BasicMob());
+	// world.add(mob);
+	// mob->position.set(1920, 1500);
+	// auto mobEntity = static_cast<Entity*>(mob.get());
+	// mobEntity->fullHeal();	
 	
 
 	auto sword = Shared<Game::BaseItem>(new Sword());
@@ -168,13 +169,10 @@ void Game::GameMaster::start(){
 	gun.get()->load("data/weap/base_gun.json");
 
 
-	auto playerEntity = static_cast<Entity*>(player.get());
-	playerEntity->addItem(sword);	
-	playerEntity->addItem(gun);	
-
-	
-	playerEntity->setActiveItem(Game::InventoryActiveSlot::Main, gun);	
-	camera.follow(player->id);
+	this->player->addItem(sword);	
+	this->player->addItem(gun);	
+	this->player->setActiveItem(Game::InventoryActiveSlot::Main, gun);	
+	camera.follow(this->player->id);
 }
 
 void Game::GameMaster::update(){
@@ -237,9 +235,35 @@ int main(int argc, char* argv[]){
 	game.start();
 	nite::nScript initDebug("debug_init.ns");
 	initDebug.execute();
+
+	// Game::RINGBase base;
+	// Game::RING campaign;
+
+	// campaign.build(30, 30, base);
+	// campaign.start(game);
+
+	Shared<Game::RING::Blueprint> bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
+	Game::RING::Map map;
+	Game::RING::TileTemplate temp("./data/tileset/dungeon.json");
+	bp->generate();
+	map.build(bp, temp, 3);
+
+	nite::print(map.startPosition);
+	game.player->position.set(map.startPosition);
+
 	while(game.isRunning){
 		game.update();
 		game.render();
+		
+		nite::setDepth(nite::DepthMiddle);
+		nite::setRenderTarget(nite::RenderTargetUI);
+		nite::setColor(nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+		
+		//bp.minimap.draw(0, 0);
+		if(nite::keyboardPressed(nite::keyF5)){
+			bp->generate();
+		}		
+		map.draw();
 	}
 	game.onEnd();
 

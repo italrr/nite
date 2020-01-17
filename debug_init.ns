@@ -1,3 +1,4 @@
 bind F12 "map_reload"
 bind ESCAPE "exit"
 bind F2 "ui_build ui.json"
+bind F4 "cl_camera_freeroam true"

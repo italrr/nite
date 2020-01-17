@@ -141,6 +141,7 @@
 		float getAngle(float x, float y);
 		double pow(double b, double ex);
 		double sqrt(double n);
+		int odd(int n);
 		float getSign(float n);
 		UInt64 timescaled(UInt64 t);
 		float distance(const Vec2 &P, const Vec2 &Q);

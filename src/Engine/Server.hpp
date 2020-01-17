@@ -1,5 +1,5 @@
-#ifndef ENTITY_H
-  #define ENTITY_H
+#ifndef ENTITY_HPP
+  #define ENTITY_HPP
     #include "../Types.hpp"
     #include "../Network.hpp"
     #include "../Packets.hpp"
@@ -32,7 +32,7 @@
       String name;
       int getEmptySlot();
       Vector<clientT> Clients;
-      worldT World;
+      // worldT World;
       void dropClient(clientT &Client, const String &Reason);
       void parsePackets(clientT &Client);
       clientT connectRequest(int Sock, const nite::IP_Port &NC);

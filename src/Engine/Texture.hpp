@@ -6,15 +6,15 @@
 		struct TextureRegionSingle {
 			float box[8];
 			float texBox[8];
-		  nite::Vec2 inTextureCoors;
-		  nite::Vec2 inDrawCoors;
+			nite::Vec2 inTextureCoors;
+			nite::Vec2 inDrawCoors;
 		};
 
 		struct TextureRegionBatch {
-		  nite::Vec2 position;
-		  nite::Vec2 size;
+			nite::Vec2 position;
+			nite::Vec2 size;
 			int depth;
-		  Vector<nite::TextureRegionSingle> regions;
+			Vector<nite::TextureRegionSingle> regions;
 		};
 
 		struct RenderableTextureT : public nite::Renderable {
@@ -42,8 +42,8 @@
 		class Texture {
 			public:
 				bool isLoaded();
-				void load(const String &path);
-				void load(const String &path, const nite::Color &transparency);
+				bool load(const String &path);
+				bool load(const String &path, const nite::Color &transparency);
 				Texture();
 				Texture(const String &path, const nite::Color &transparency);
 				Texture(const String &path);
