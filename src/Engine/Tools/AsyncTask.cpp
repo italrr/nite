@@ -28,6 +28,7 @@ void nite::AsyncTask::resume(){
 void nite::AsyncTask::start(){
 	if(status == nite::AsyncTaskStatus::Idle){
 		status = nite::AsyncTaskStatus::Running;
+		startTime = nite::getTicks();
 	}	
 }
 
@@ -41,22 +42,26 @@ void nite::AsyncTask::stop(){
 nite::AsyncTask::AsyncTask(){
 	status = nite::AsyncTaskStatus::Idle;
 	id = getUniqueId();
-	lambda = [](const nite::AsyncTask &context){
+	lambda = [](nite::AsyncTask &context){
 		return;
 	};
 }
 
 Shared<nite::AsyncTask> nite::AsyncTask::spawn(nite::AsyncLambda lambda){
+	return spawn(lambda, 0);
+}
+
+Shared<nite::AsyncTask> nite::AsyncTask::spawn(nite::AsyncLambda lambda, UInt64 delayTime){
 	auto task = Shared<nite::AsyncTask>(new nite::AsyncTask());
 	task->lambda = lambda;
+	task->delayTime = delayTime;
 	task->start();
 	pool.push_back(task);
 	return task;
 }
 
-
 void nite::AsyncTask::step(){
-	if(status == nite::AsyncTaskStatus::Running){
+	if(status == nite::AsyncTaskStatus::Running && nite::getTicks()-startTime > delayTime){
 		lambda(*this);
 	}
 }

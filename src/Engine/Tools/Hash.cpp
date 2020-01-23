@@ -17,6 +17,17 @@ String nite::hashMemory(char *Data, size_t size){
 
 /*
 ================
+Calculate MD5 from string
+================
+*/
+String nite::hashString(const String &str){
+	char Buffer[33];
+	CalculateMD5((char*)str.c_str(), str.size(), Buffer);
+	return Buffer;
+}
+
+/*
+================
 Calculate MD5 from File
 ================
 */

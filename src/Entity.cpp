@@ -178,7 +178,7 @@ static auto cfEntityKillIns = nite::Console::CreateFunction("ent_kill", &cfEntit
 static void cfEntityStatUp(Vector<String> params){
 	static auto game = Game::getInstance();
 	if(params.size() < 3){
-		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		nite::Console::add("Not enough parameters(3)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 		return;
 	}
 	String &param0 = params[0];
@@ -249,12 +249,21 @@ static void cfEntityStatReset(Vector<String> params){
 	}
 	int id = nite::toInt(param0);	
 	if(!game->world.exists(id)){
-		nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		nite::Console::add("entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 		return;
 	}
 	auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());	
 
 	bool success = true;
+	if(stat == "all"){
+		entity->resetStat(Game::BaseStatType::Strength);
+		entity->resetStat(Game::BaseStatType::Agility);
+		entity->resetStat(Game::BaseStatType::Dexterity);
+		entity->resetStat(Game::BaseStatType::Endurance);
+		entity->resetStat(Game::BaseStatType::Luck);
+		entity->resetStat(Game::BaseStatType::Charisma);
+		entity->resetStat(Game::BaseStatType::Intelligence);
+	}else
 	if(stat == "str"){
 		entity->resetStat(Game::BaseStatType::Strength);
 	}else
@@ -277,10 +286,10 @@ static void cfEntityStatReset(Vector<String> params){
 		entity->resetStat(Game::BaseStatType::Intelligence);
 	}else{
 		success = false;
-		nite::print("Invalid stat "+stat);
+		nite::print("invalid stat "+stat);
 	}
 	if(success){
-		nite::print("Reset entity id "+param0+" '"+entity->name+"' stat "+stat+" to 0");
+		nite::print("reset entity id "+param0+" '"+entity->name+"' stat "+stat+" to 0");
 	}
 	
 }
@@ -541,7 +550,29 @@ void Game::Entity::recalculateStats(){
 
 void Game::Entity::resetStat(int type){
 	statPoints += agiStat;
-	agiStat = 0;
+	switch(type){
+		case BaseStatType::Strength:{
+			strStat = 0;
+		} break;
+		case BaseStatType::Agility:{
+			agiStat = 0;
+		} break;
+		case BaseStatType::Dexterity:{
+			dexStat = 0;
+		} break;
+		case BaseStatType::Endurance:{
+			enduStat = 0;
+		} break;
+		case BaseStatType::Luck:{
+			lukStat = 0;
+		} break;
+		case BaseStatType::Intelligence:{
+			intStat = 0;
+		} break;
+		case BaseStatType::Charisma:{
+			charismaStat = 0;
+		} break;
+	}
 	recalculateStats();	
 }
 

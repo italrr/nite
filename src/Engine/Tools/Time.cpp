@@ -149,6 +149,6 @@ Sleep the main thread in milliseconds
 	}
 #endif
 
-void nite::Sleep(int _time){
+void nite::sleep(int _time){
     __usleep(_time);
 }

@@ -36,6 +36,7 @@
 	namespace nite {
 		String hashMemory(char *Data, size_t size);
 		String hashFile(const String &path);
+		String hashString(const String &str);
 	}
 
 	/*
@@ -57,7 +58,7 @@
 		String secondsToText(long long unsigned secs);
 		String getTime(unsigned time);
 		String getTimestamp();
-		void Sleep(int time);
+		void sleep(int time);
 		UInt64 getTicks();
 		UInt32 getTocks();
 	}
@@ -183,7 +184,7 @@
 	namespace nite {
 
 		class AsyncTask;
-		typedef Lambda<void(const nite::AsyncTask &context)> AsyncLambda;    
+		typedef Lambda<void(nite::AsyncTask &context)> AsyncLambda;    
 		
 		namespace AsyncTaskStatus {
 			const static unsigned Idle = 0;
@@ -197,6 +198,8 @@
 				int id;
 				nite::AsyncLambda lambda;
 				int status;
+				UInt64 startTime;
+				UInt64 delayTime;
 			public:
 				AsyncTask();							
 				int getStatus();
@@ -206,6 +209,7 @@
 				void stop();
 				void step();
 				Shared<nite::AsyncTask> spawn(nite::AsyncLambda lambda);
+				Shared<nite::AsyncTask> spawn(nite::AsyncLambda lambda, UInt64 delayTime);
 		};
 		
 		void updateAsyncTask();
