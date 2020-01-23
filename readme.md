@@ -32,7 +32,7 @@ This game is inspired by another older project of the original author: [https://
 - Input support (Keyboard and mouse for now)
 - Object / world simulation (Networked simulation in progress!)
 - Shader support
-- Network support (Game logic is not networked as of now)
+- Network support (UDP socket support, plus some abstraction for packets)
 - Integrated basic tools (File reading, Hashing, Math, AsyncTask, etc)
 - JSON support
 - Camera support (Entity follow, shake-screen, tilt/rotations, Zoom-in and out)
@@ -50,6 +50,9 @@ This game is inspired by another older project of the original author: [https://
 - Better AI templates for enemies ('Hunting', 'Gather', and 'Wandering' personalities will be the first ones)
 - More features for the UI System (Text boxes, Scrolling, Focus)
 - Proper Audio Support
+
+### Maybe?
+- canvas (nScript)
 
 
 How to build?
