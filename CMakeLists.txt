@@ -173,6 +173,7 @@ ENDIF(MINGW)
 
 # Build ninte #
 set (nite_src
+		src/Engine/Tools/hashids.cpp
 		src/Engine/Input.cpp
 		src/Engine/Graphics.cpp
 		src/Engine/Types.cpp
@@ -218,7 +219,10 @@ set(src_files
 	src/RING/Search.cpp
 	src/RING/Blueprint.cpp
 	src/RING/Map.cpp
-	
+	# Network #
+	src/Network/Server.cpp
+	src/Network/Client.cpp
+	src/Network/Network.cpp
 	# GENERAL #
 	src/Entity.cpp
 	src/Player.cpp

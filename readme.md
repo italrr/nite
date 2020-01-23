@@ -30,28 +30,27 @@ This game is inspired by another older project of the original author: [https://
 - Integrated console
 - Multi-layered and complex tileset system
 - Input support (Keyboard and mouse for now)
-- Object / world simulation (Non-Networked)
+- Object / world simulation (Networked simulation in progress!)
 - Shader support
 - Network support (Game logic is not networked as of now)
 - Integrated basic tools (File reading, Hashing, Math, AsyncTask, etc)
 - JSON support
 - Camera support (Entity follow, shake-screen, tilt/rotations, Zoom-in and out)
-- Entity system
+- Entity system (Networked in progress!)
 - Basic AI for entities
-- UI System based on flex-boxes
+- UI System based on flex-boxes and sourcing from JSONs
 - Basic scripting language (nite Script)
 
 ### In Progress
 - RING (A combination of maze generation algorithms and other technologies to create a highly complex and engaging campaign)
+- Networked world simulation, and client & server interfaces
+- Grooming and more minor bugs fixing
 
 ### Coming Soon
-- General clean up and more bug fixing
 - Better AI templates for enemies ('Hunting', 'Gather', and 'Wandering' personalities will be the first ones)
 - More features for the UI System (Text boxes, Scrolling, Focus)
 - Proper Audio Support
 
-### Possible ideas
-- Draft plan for a networked world simulation (And multiplayer support alongside)
 
 How to build?
 ------------

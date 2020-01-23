@@ -2,73 +2,44 @@
 	#define NITE_NETWORK_HPP
 
 	#include "Types.hpp"
+	#include "Packets.hpp"
 
 	namespace nite {
-
-		const size_t MAX_PACKET_SIZE 						= 2048;
-		const size_t MAX_TRANSPORT_PACKET_SIZE 	= 10240;
+		static const UInt16 NetworkDefaultPort = 14101; 
 
 		void socketInit();
 		void socketEnd();
-		class IP_Port {
-			public:
-				IP_Port();
-				IP_Port(String _IP, unsigned _Port);
-				String IP;
-				unsigned Port;
-				String str();
+
+		struct IP_Port {
+			IP_Port();
+			IP_Port(const String &ip, UInt16 port);
+			String ip;
+			UInt16 port;
+			Int32 address;
+			String str();
+			void set(const String &ip, UInt16 port);
+			operator std::string() const;
 		};
-		/*
-		================
-		UDP
-		================
-		*/
+
 		class UDPSocket	{
 			private:
-				int socketId;
+				Int32 sock;
+				UInt16 port;
 				bool opened;
 				bool nonBlocking;
 			public:
 				UDPSocket();
 				~UDPSocket();
-				bool open(unsigned Port);
+				bool open(UInt16 port);
 				void close();
 				bool isOpen();
 				bool setNonBlocking(bool m);
-				bool sendData(IP_Port &Dest, char *Data, unsigned size);
-				int receiveData(IP_Port &Sender, char *Data, unsigned size);
+				bool send(const IP_Port &dest, char *data, size_t size);
+				bool send(const IP_Port &dest, nite::Packet &packet);
+				bool recv(IP_Port &sender, char *buffer);
+				bool recv(IP_Port &sender, nite::Packet &buffer);
 		};
-		/*
-		================
-		TCP
-		================
-		*/
-		class TCPSocket {
-			private:
-				int socketId;
-				bool opened;
-				bool connected;
-				bool listening;
-				bool nonBlocking;
-			public:
-				TCPSocket();
-				~TCPSocket();
-				bool openSocket(unsigned Port);
-				void close();
-				bool isOpen();
-				bool isListening();
-				bool isConnected();
-				void disconnect();
-				bool setNonBlocking(bool m);
-				bool setListen(unsigned Backlog);
-				int acceptClient(IP_Port &Who);
-				bool connectIP(const IP_Port &IP);
-				bool sendData(int Sock, char *Data, unsigned size);
-				bool sendData(char *Data, unsigned size);
-				int receiveData(int Sock, char *Data, unsigned size);
-				int receiveData(char *Data, unsigned size);
-		};
-		void socketClose(int s);
+
 	}
 
 #endif

@@ -5,111 +5,103 @@
 #include "Tools/Tools.hpp"
 #include "Packets.hpp"
 
-using namespace nite;
-
-void Packet::setHeader(UInt16 Header){
-	memcpy(Data, &Header, sizeof(UInt16));
-	return;
-}
-
-UInt16 Packet::getHeader(){
-	UInt16 p;
-	memcpy(&p, Data, sizeof(UInt16));
-	return p;
-}
-
-unsigned Packet::getSize(){
-	return index;
-}
-
-void Packet::Reset(){
-	index = sizeof(UInt16);
-}
-
-void Packet::setIndex(unsigned i){
-	index = i;
-}
-
-unsigned Packet::getIndex(){
-	return index;
-}
-
-bool Packet::writeString(String str){
-	if(index >= MAX_PACKET_SIZE || index+str.length()+1>MAX_PACKET_SIZE){
-		return false;
-	}
-	unsigned s = str.length();
-	static char c[1] = {'\0'};
-	memcpy(Data+index, str.c_str(), s);
-	index += s;
-	memcpy(Data+index, c, 1);
-	index++;
-	return true;
-}
-
-bool Packet::readString(String &str){
-	if(index >= MAX_PACKET_SIZE){
-		return false;
-	}
-	unsigned end 	= 0;
-	unsigned Si 	= 0;
-	for(unsigned i=index; i<MAX_PACKET_SIZE; i++){
-		Si++;
-		if (Data[i] == '\0'){
-			end = i;
-			break;
-		}
-	}
-	if (!end){
-		return false;
-	}
-	char Buf[Si];
-	memcpy(Buf, Data+index, Si);
-	str = Buf;
-	index += Si;
-	return true;
-}
-
-bool Packet::Write(void *data, unsigned Si){
-	if(index >= MAX_PACKET_SIZE || index+Si > MAX_PACKET_SIZE){
-		return false;
-	}
-	memcpy(Data+index, data, Si);
-	index += Si;
-	return true;
-}
-
-bool Packet::Read(void *data, unsigned Si){
-	if(index >= MAX_PACKET_SIZE || index+Si>MAX_PACKET_SIZE){
-		return false;
-	}
-	memcpy(data, Data+index, Si);
-	index += Si;
-	return true;
-}
-
-void Packet::clear(){
-	memset(Data, '0', MAX_PACKET_SIZE);
-	index	= sizeof(UInt16);
-}
-
-Packet::Packet(UInt16 Header){
-	memset(Data, '0', MAX_PACKET_SIZE);
-	index	= sizeof(UInt16);
-	Max 	= MAX_PACKET_SIZE;
+nite::Packet::Packet(UInt16 Header){
+	clear();
 	setHeader(Header);
 }
 
-Packet::Packet(){
-	memset(Data, '0', MAX_PACKET_SIZE);
-	index	= sizeof(UInt16);
-	Max 	= MAX_PACKET_SIZE;
+nite::Packet::Packet(){
+	clear();
 }
 
-unsigned Packet::getMax(){
-	return Max;
-}
-
-Packet::~Packet(){
+nite::Packet::~Packet(){
 
 }
+
+void nite::Packet::copy(const Packet &other){
+	memcpy(this->data, other.data, nite::NetworkMaxPacketSize);
+	this->index = other.index;
+}
+
+nite::Packet& nite::Packet::operator= (const nite::Packet &other){
+	copy(other);
+}
+
+void nite::Packet::clear(){
+	memset(data, '0', nite::NetworkMaxPacketSize);
+	index = nite::NetworkHeaderSize + nite::NetworkOrderSize; // starts from the send byte mark
+}
+
+void nite::Packet::setHeader(UInt16 header){
+	memcpy(data, &header, nite::NetworkHeaderSize);
+}
+
+UInt16 nite::Packet::getHeader(){
+	UInt16 header;
+	memcpy(&header, data, nite::NetworkHeaderSize);
+	return header;
+}
+
+UInt32 nite::Packet::getOrder(){
+	UInt32 order;
+	memcpy(&order, data + nite::NetworkHeaderSize, nite::NetworkOrderSize);
+	return order;
+}
+
+void nite::Packet::setOrder(UInt32 order){
+	memcpy(data + nite::NetworkHeaderSize, &order, nite::NetworkOrderSize);
+}
+
+void nite::Packet::reset(){
+	index = nite::NetworkHeaderSize + nite::NetworkOrderSize; 
+}
+
+void nite::Packet::setIndex(size_t index){
+	this->index = index;
+}
+
+bool nite::Packet::write(const String str){
+	if((index >= nite::NetworkMaxPacketSize) || (index + str.length() + 1 > nite::NetworkMaxPacketSize)){
+		return false;
+	}
+	size_t sl = str.length() + 1;
+	memcpy(data + index, str.c_str(), sl);
+	index += sl;
+	return true;
+}
+
+bool nite::Packet::read(String &str){
+	if(index >= nite::NetworkMaxPacketSize){
+		return false;
+	}
+	for(size_t i = index; i < nite::NetworkMaxPacketSize; ++i){
+		if (this->data[i] == '\0'){
+			size_t size = i - index; // don't include the nullterminated
+			char buff[size];
+			memcpy(buff, data + index, size);
+			str = String(buff, size);
+			index = i + 1;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool nite::Packet::write(void *data, size_t size){
+	if((index >= nite::NetworkMaxPacketSize) || (index + size > nite::NetworkMaxPacketSize)){
+		return false;
+	}
+	memcpy(this->data + index, data, size);
+	index += size;
+	return true;
+}
+
+bool nite::Packet::read(void *data, size_t size){
+	if((index >= nite::NetworkMaxPacketSize) || (index + size > nite::NetworkMaxPacketSize)){
+		return false;
+	}
+	memcpy(data, this->data + index, size);
+	index += size;
+	return true;
+}
+

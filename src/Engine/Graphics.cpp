@@ -15,6 +15,7 @@
 #include "GLEW/GL/glew.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include "Network.hpp"
 
 using namespace nite;
 
@@ -1044,7 +1045,7 @@ void nite::graphicsInit(){
 		nite::print("Error: SDL was unable to start. "+Error);
 		 gameExit();
 	}
-
+	nite::socketInit();
 	signal(SIGINT, ctrlC);
 
 	int Flags = SDL_WINDOW_OPENGL;
@@ -1106,7 +1107,7 @@ void nite::graphicsInit(){
 	SDL_GL_MakeCurrent(Window, Context);
 	if (glewInit() != GLEW_OK){
 		nite::print("GLEW failed to initialize.");
-		// Game::exit();
+		nite::exit();
 	}
 
 	graphicsInitd = true;
@@ -1123,6 +1124,7 @@ void nite::graphicsInit(){
 }
 
 void nite::graphicsEnd(){
+	nite::socketEnd();
 	SDL_DestroyWindow(Window);
 	SDL_GL_DeleteContext(Context);
 }

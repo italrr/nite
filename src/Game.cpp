@@ -4,6 +4,8 @@
 #include "Engine/Shapes.hpp"
 #include "Engine/nScript.hpp"
 #include "RING/RING.hpp"
+#include "Network/Client.hpp"
+#include "Network/Server.hpp"
 
 using namespace nite;
 
@@ -148,31 +150,31 @@ void Game::GameMaster::start(){
 	// map.load("data/map/romdou/romdou.json");
 
 	
-	auto player = Shared<nite::PhysicsObject>(new Game::Player());
-	world.add(player);
+	// auto player = Shared<nite::PhysicsObject>(new Game::Player());
+	// world.add(player);
 
-	this->player = static_cast<Entity*>(player.get());
-	this->player->fullHeal();
-	this->player->position.set(map.playerSpawn);
+	// this->player = static_cast<Entity*>(player.get());
+	// this->player->fullHeal();
+	// this->player->position.set(map.playerSpawn);
 	
-	// auto mob = Shared<nite::PhysicsObject>(new Game::BasicMob());
-	// world.add(mob);
-	// mob->position.set(1920, 1500);
-	// auto mobEntity = static_cast<Entity*>(mob.get());
-	// mobEntity->fullHeal();	
+	// // auto mob = Shared<nite::PhysicsObject>(new Game::BasicMob());
+	// // world.add(mob);
+	// // mob->position.set(1920, 1500);
+	// // auto mobEntity = static_cast<Entity*>(mob.get());
+	// // mobEntity->fullHeal();	
 	
 
-	auto sword = Shared<Game::BaseItem>(new Sword());
-	sword.get()->load("data/weap/base_sword.json");
+	// auto sword = Shared<Game::BaseItem>(new Sword());
+	// sword.get()->load("data/weap/base_sword.json");
 
-	auto gun = Shared<Game::BaseItem>(new Gun());
-	gun.get()->load("data/weap/base_gun.json");
+	// auto gun = Shared<Game::BaseItem>(new Gun());
+	// gun.get()->load("data/weap/base_gun.json");
 
 
-	this->player->addItem(sword);	
-	this->player->addItem(gun);	
-	this->player->setActiveItem(Game::InventoryActiveSlot::Main, gun);	
-	camera.follow(this->player->id);
+	// this->player->addItem(sword);	
+	// this->player->addItem(gun);	
+	// this->player->setActiveItem(Game::InventoryActiveSlot::Main, gun);	
+	// camera.follow(this->player->id);
 }
 
 void Game::GameMaster::update(){
@@ -223,7 +225,35 @@ Game::GameMaster *Game::getInstance(){
 	return instance;
 }
 
+// #include "Engine/Network.hpp"
+// #include <string.h>
+
 int main(int argc, char* argv[]){
+	// nite::socketInit();
+	// nite::UDPSocket sv;
+	// nite::UDPSocket cl;
+
+	// sv.open(nite::NetworkDefaultPort);
+	// cl.open(nite::NetworkDefaultPort + 1);
+
+	// sv.setNonBlocking(true);
+	// cl.setNonBlocking(true);
+
+	// nite::IP_Port sender;
+	
+	// nite::Packet buffer;
+	// nite::Packet silly;
+	// silly.setHeader(158);
+	// silly.write("Hello");
+	// while(true){
+	// 	cl.send(nite::IP_Port(), silly);
+	// 	if(sv.recv(sender, buffer) > 0){
+	// 		String str;
+	// 		buffer.read(str);
+	// 		nite::print(str);
+	// 	}
+	// }
+	// nite::socketEnd();
 
 	Vector<String> params;
 	for(int i = 0; i < argc; ++i){
@@ -233,8 +263,8 @@ int main(int argc, char* argv[]){
 
 	Game::GameMaster game;
 	game.start();
-	nite::nScript initDebug("debug_init.ns");
-	initDebug.execute();
+	// nite::nScript initDebug("debug_init.ns");
+	// initDebug.execute();
 
 	// Game::RINGBase base;
 	// Game::RING campaign;
@@ -242,17 +272,37 @@ int main(int argc, char* argv[]){
 	// campaign.build(30, 30, base);
 	// campaign.start(game);
 
-	Shared<Game::RING::Blueprint> bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
-	Game::RING::Map map;
-	Game::RING::TileTemplate temp("./data/tileset/dungeon.json");
-	bp->generate();
-	map.build(bp, temp, 3);
+	// Shared<Game::RING::Blueprint> bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
+	// Game::RING::Map map;
+	// Game::RING::TileSource temp("./data/tileset/dungeon.json");
+	// bp->generate();
+	// map.build(bp, temp, 3);
 
-	nite::print(map.startPosition);
-	game.player->position.set(map.startPosition);
+	// nite::print(map.startPosition);
+	// game.player->position.set(map.startPosition);
+
+	
+	Game::Client cl;
+	Game::Server sv;
+
+	cl.setup("pepper");
+	
+
+	sv.listen(4, nite::NetworkDefaultPort);
+
+	
+	nite::AsyncTask task;
+	task.spawn(nite::AsyncLambda([&](nite::AsyncTask &context){
+		cl.connect("127.0.0.1", nite::NetworkDefaultPort);
+		context.stop();
+	}), 1000);
 
 	while(game.isRunning){
+		 nite::setZoom(nite::RenderTargetGame, 0.75f);
+
 		game.update();
+		cl.step();
+		sv.step();
 		game.render();
 		
 		nite::setDepth(nite::DepthMiddle);
@@ -260,10 +310,10 @@ int main(int argc, char* argv[]){
 		nite::setColor(nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
 		
 		//bp.minimap.draw(0, 0);
-		if(nite::keyboardPressed(nite::keyF5)){
-			bp->generate();
-		}		
-		map.draw();
+		// if(nite::keyboardPressed(nite::keyF5)){
+		// 	bp->generate();
+		// }		
+		// map.draw();
 	}
 	game.onEnd();
 
