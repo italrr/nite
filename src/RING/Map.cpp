@@ -569,15 +569,15 @@ namespace DEFAULT_MAPPING {
     #undef A
 };
 
-Game::RING::TileTemplate::TileTemplate(const String &path){
+Game::RING::TileSource::TileSource(const String &path){
     load(path);
 }
 
-Game::RING::TileTemplate::TileTemplate(){
+Game::RING::TileSource::TileSource(){
 
 }
 
-void Game::RING::TileTemplate::load(const String &path){
+void Game::RING::TileSource::load(const String &path){
     Jzon::Parser parser;
     Jzon::Node node = parser.parseFile(path);
     if (!node.isValid()){
@@ -606,15 +606,47 @@ void Game::RING::TileTemplate::load(const String &path){
             this->ignoresForFloor.push_back(node.get("ignoresForFloor").get(i).toString());
         }
     }
+    if(node.has("dynamicYDepth") && node.get("dynamicYDepth").isArray()){
+        for(int i = 0; i < node.get("dynamicYDepth").getCount(); ++i){
+            this->dynamicYDepth.push_back(node.get("dynamicYDepth").get(i).toString());
+        }
+    }    
     if(node.has("floorVariants") && node.get("floorVariants").isArray()){
         for(int i = 0; i < node.get("floorVariants").getCount(); ++i){
             this->floorVariants.push_back(node.get("floorVariants").get(i).toString());
         }
     }
+    if(node.has("specialWallMasks") && node.get("specialWallMasks").isObject()){
+        auto objs = node.get("specialWallMasks");
+        for(auto obj : objs){
+            Game::RING::TileSourceWalkMask mask;
+            mask.key = obj.first;
+            mask.size.x = obj.second.get("width").toFloat();
+            mask.size.y = obj.second.get("height").toFloat();
+            mask.offset.x = obj.second.get("xOffset").toFloat();
+            mask.offset.y = obj.second.get("yOffset").toFloat();            
+            this->specialWallMasks.push_back(mask);
+        }        
+    }
     nite::print("loaded builder template json '"+path+"'");
 }
 
-String Game::RING::TileTemplate::getFloorVariant(Game::RING::Blueprint &bp){
+
+Game::RING::TileSourceWalkMask Game::RING::TileSource::getSpecialWallMask(int mappVal){
+    Game::RING::TileSourceWalkMask empty;
+    for(auto mapp : this->mapping){
+        if(mapp.second == mappVal){
+            for(int i = 0; i < this->specialWallMasks.size(); ++i){
+                if(this->specialWallMasks[i].key == mapp.first){
+                    return this->specialWallMasks[i];
+                }
+            }
+        }
+    }
+    return empty;
+}
+
+String Game::RING::TileSource::getFloorVariant(Game::RING::Blueprint &bp){
     bool jackpot = nite::randomInt(1, 100) < 100 * this->floorVarianceFactor;
     if(floorVariants.size() == 0 || !jackpot){
         return floorDefault;
@@ -627,7 +659,16 @@ String Game::RING::TileTemplate::getFloorVariant(Game::RING::Blueprint &bp){
     return current;
 }
 
-bool Game::RING::TileTemplate::isIgnoredForFLoors(const String &key){
+bool Game::RING::TileSource::isDynamicYDepth(const String &key){
+    for(int i = 0; i < dynamicYDepth.size(); ++i){
+        if(dynamicYDepth[i] == key){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Game::RING::TileSource::isIgnoredForFLoors(const String &key){
     for(int i = 0; i < ignoresForFloor.size(); ++i){
         if(ignoresForFloor[i] == key){
             return true;
@@ -637,11 +678,21 @@ bool Game::RING::TileTemplate::isIgnoredForFLoors(const String &key){
 }
 
 Game::RING::Layer::Layer(int width, int height, int depth){
+    set(width, height, depth, false);
+}
+
+Game::RING::Layer::Layer(int width, int height, int depth, bool dynamicY){
+    set(width, height, depth, dynamicY);
+}
+
+void Game::RING::Layer::set(int width, int height, int depth, bool dynamicY){
+    clear();
     this->width = width;
     this->height = height;
     this->total = this->width * this->height;
     this->grid = new int[this->total];
     this->depth = depth;
+    this->dynamicY = dynamicY;
 }
 
 Game::RING::Layer::~Layer(){
@@ -670,8 +721,9 @@ void Game::RING::Layer::fill(int val){
 
 // for debugging (To be removed)
 static MappingCriteria *stored = NULL;
+#include "../Game.hpp"
 
-void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::TileTemplate &temp, int scale){
+void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::TileSource &temp, int scale){
     UInt64 initTime = nite::getTicks();
     nite::print("about to build RING map using RING blueprint...");
     this->temp = temp;
@@ -685,18 +737,23 @@ void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::
     // create layers
     Game::RING::Layer *floor = new Game::RING::Layer(this->width, this->height, 0);
     Game::RING::Layer *walls = new Game::RING::Layer(this->width, this->height, 1);
-    Game::RING::Layer *specials = new Game::RING::Layer(this->width, this->height, 2);
+    Game::RING::Layer *dynamicY = new Game::RING::Layer(this->width, this->height, 2, true);
+    Game::RING::Layer *specials = new Game::RING::Layer(this->width, this->height, 3);
     this->layers.push_back(floor);
     this->layers.push_back(walls);
+    this->layers.push_back(dynamicY);
     this->layers.push_back(specials);
 
     Game::RING::Layer mirror(this->width, this->height, 0);
+    Game::RING::Layer allWalls(this->width, this->height, 0);
 
     // fill out grid 
     walls->fill(-1);
     floor->fill(-1);
+    dynamicY->fill(-1);
     specials->fill(-1);
     mirror.fill(-1);
+    allWalls.fill(-1);
 
     // fill grid using blueprint 
     for(int i = 0; i < this->size; ++i){
@@ -709,7 +766,12 @@ void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::
         auto isMatch = DEFAULT_MAPPING::match(crit);
         stored[i] = crit;
         if(isMatch.key != ""){
-            walls->grid[i] = this->temp.mapping[isMatch.key];
+            if(this->temp.isDynamicYDepth(isMatch.key)){
+                dynamicY->grid[i] = this->temp.mapping[isMatch.key];
+            }else{
+                walls->grid[i] = this->temp.mapping[isMatch.key];
+            }
+            allWalls.grid[i] = this->temp.mapping[isMatch.key];
         }
         // everything that is a "path" or an inner wall gets to have a floor using ignoresForFloor for exceptions
         if(mirror.grid[i] == Game::RING::CellType::Path || (isMatch.key.length() > 0 && !this->temp.isIgnoredForFLoors(isMatch.key))){ 
@@ -717,15 +779,47 @@ void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::
         }        
     }
     // set start
-    startPosition.x = (bp->start % bp->width) * scale * temp.tileSize.x + temp.tileSize.x * scale * 0.5f;
-    startPosition.y = (bp->start / bp->width) * scale * temp.tileSize.y + temp.tileSize.y * scale * 0.5f;
+    this->startCell = (bp->start % bp->width) * scale + (bp->start / bp->width) * scale;
+    this->startPosition.x = (bp->start % bp->width) * scale * temp.tileSize.x + temp.tileSize.x * scale * 0.5f;
+    this->startPosition.y = (bp->start / bp->width) * scale * temp.tileSize.y + temp.tileSize.y * scale * 0.5f;
+    
+    static auto ins = Game::getInstance();
 
+    // add physics walls
+    /* TODO: move this out of here, since this is "start game" code
+        build only generates theorical data, it *must* not spawn anything to the world.
+        there will be an entity in charge of turning this object into the real game.
+    */
+    // TODO: create proper entity to store this kind of data (walls, npcs, events)
+    for(int i = 0; i < this->size; ++i){
+        if(mirror.grid[i] != Game::RING::CellType::Wall){
+            continue;
+        }
+		auto mask = Shared<nite::PhysicsObject>(new nite::PhysicsObject());
+        mask->solid = true;
+        mask->unmovable = true;
+        mask->size.set(temp.tileSize);
+        locals.push_back(mask.get());
+        ins->world.add(mask);
+        nite::Vec2 p;
+        p.x = (i % width) * temp.tileSize.x + temp.tileSize.x * 0.5f;
+        p.y = (i / width) * temp.tileSize.y + temp.tileSize.y * 0.5f;
+        Game::RING::TileSourceWalkMask specMask = this->temp.getSpecialWallMask(allWalls.grid[i]);
+        if(specMask.key != ""){
+            mask->size.set(specMask.size);
+            p.x += specMask.offset.x;        
+            p.y += specMask.offset.y;
+        }
+        mask->position.set(p.x, p.y);
+    }
+
+    allWalls.clear();
     mirror.clear();
     nite::print("built RING map. time: "+nite::toStr(nite::getTicks() - initTime)+" msecs");
 }
 
 void Game::RING::Map::draw(){
-    nite::setDepth(0.0f);
+    nite::setDepth(nite::DepthMiddle);
     nite::setRenderTarget(nite::RenderTargetGame);   
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f); 
     static nite::Texture emp("data/sprite/empty.png"); 
@@ -747,6 +841,7 @@ void Game::RING::Map::draw(){
             nite::Vec2 mrp = nite::mousePosition() + nite::getView(nite::RenderTargetGame);
             int inx = (i %  this->width) * temp.tileSize.x;
             int iny = (i / this->width) * temp.tileSize.y;
+            nite::setDepth(layers[j]->dynamicY ? -(0.0f + iny + 128.0f*0.5f + 128.0f) : nite::DepthMiddle);
             bool inRegion = nite::isPointInRegion(mrp, nite::Vec2(inx, iny), nite::Vec2(inx, iny) + nite::Vec2(128.0f));
 
             if(inRegion && nite::mousePressed(nite::butLEFT)){
@@ -758,7 +853,6 @@ void Game::RING::Map::draw(){
             //     emp.draw(nite::Vec2(inx, iny), nite::Vec2(128, 128), nite::Vec2(0.0f), 0.0f);
             //     continue;
             // }
-
             nite::setColor(1.0f, 1.0f, 1.0f, inRegion ? 0.5f : 1.0f); 
             int v = grid[i] - 1;
             float tileY = v / scellwidth;
@@ -767,12 +861,18 @@ void Game::RING::Map::draw(){
             auto obj = temp.source.draw(inx, iny);
         }
     }
+    nite::setDepth(nite::DepthMiddle);
 }
 
 Game::RING::Map::Map(){
 }
 
 Game::RING::Map::~Map(){
+    // clean locals
+    for(int i = 0; i < locals.size(); ++i){
+        locals[i]->destroy();
+    }
+    // clean layers
     for(int i = 0; i < layers.size(); ++i){
         layers[i]->clear();
         delete layers[i];

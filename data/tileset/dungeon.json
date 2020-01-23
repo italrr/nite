@@ -38,9 +38,22 @@
 		"wall_vertical_rbottom": 289,
 		"wall_vertical_ltop": 226,
 		"wall_vertical_lmiddle": 258,
-		"wall_vertical_lbottom": 290,		
-		"wall_connect_rb": 261
+		"wall_vertical_lbottom": 290
 	},
+	"dynamicYDepth": [
+		"wall_horizontal_tmiddle",
+		"wall_corner_tbottom_right",
+		"wall_corner_tbottom_left",
+		"wall_vertical_rtop",
+		"wall_vertical_ltop",
+		"wall_vertical_rmiddle",
+		"wall_vertical_lmiddle",
+		"wall_vertical_rbottom",
+		"wall_vertical_lbottom",
+		"wall_horizontal_bmiddle",
+		"wall_corner_bbottom_right",
+		"wall_corner_bbottom_left"
+	],
 	"ignoresForFloor": [
 		"wall_corner_ttop_left",
 		"wall_horizontal_tmiddle",
@@ -56,5 +69,58 @@
 		"floor_c05",
 		"floor_c06"
 		
-	]
+	],
+	"specialWallMasks": {
+		"wall_corner_tbottom_right": {
+			"width": 48,
+			"height": 128,
+			"xOffset": 48,
+			"yOffset": 0
+		},	
+		"wall_corner_tbottom_left": {
+			"width": 48,
+			"height": 128,
+			"xOffset": -48,
+			"yOffset": 0
+		},		
+		
+		"wall_vertical_rtop": {
+			"width": 48,
+			"height": 128,
+			"xOffset": 48,
+			"yOffset": 0
+		},
+
+		"wall_vertical_rbottom": {
+			"width": 48,
+			"height": 128,
+			"xOffset": 48,
+			"yOffset": 0
+		},
+
+		"wall_vertical_ltop": {
+			"width": 48,
+			"height": 128,
+			"xOffset": -48,
+			"yOffset": 0
+		},
+		"wall_vertical_lbottom": {
+			"width": 48,
+			"height": 128,
+			"xOffset": -48,
+			"yOffset": 0
+		},
+		"wall_vertical_rmiddle": {
+			"width": 48,
+			"height": 128,
+			"xOffset": 48,
+			"yOffset": 0
+		},
+		"wall_vertical_lmiddle": {
+			"width": 48,
+			"height": 128,
+			"xOffset": -48,
+			"yOffset": 0
+		}		
+	}
 }

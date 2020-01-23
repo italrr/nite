@@ -4,12 +4,23 @@
     #include "../Engine/Tools/Tools.hpp"
     #include "../Engine/Texture.hpp"
     #include "../Engine/Tileset.hpp"
+    #include "../Engine/Object.hpp"
     #include "Blueprint.hpp"
 
     namespace Game {
         namespace RING {
 
-            struct TileTemplate {
+            struct TileSourceWalkMask {
+                nite::Vec2 size;
+                nite::Vec2 offset;
+                String key;
+                TileSourceWalkMask(){
+                    this->key = "";
+                }              
+            };
+
+            struct TileSource {
+
                 String name;
                 String description;
                 String sourcePath;
@@ -19,16 +30,20 @@
                 nite::Vec2 spacing;
                 nite::Vec2 tileSize;
                 nite::Color transparency;
-                TileTemplate(const String &path);
-                TileTemplate();
+                TileSource(const String &path);
+                TileSource();
                 void load(const String &path);
                 bool isIgnoredForFLoors(const String &key);
+                bool isDynamicYDepth(const String &key);
                 Dict<String, int> mapping;
                 String floorDefault;
                 Vector<String> floorVariants;
+                Vector<String> dynamicYDepth;;
                 Vector<String> ignoresForFloor;
+                Vector<TileSourceWalkMask> specialWallMasks;
                 String lastFloorVariant;
                 String getFloorVariant(Game::RING::Blueprint &bp);
+                Game::RING::TileSourceWalkMask getSpecialWallMask(int mappVal);
                 float floorVarianceFactor;
             };
 
@@ -38,24 +53,28 @@
                 int height;
                 int depth;
                 int total;
+                bool dynamicY;
                 Layer(int width, int height, int depth);
+                Layer(int width, int height, int depth, bool dynamicY);
+                void set(int width, int height, int depth, bool dynamicY);
                 ~Layer();
                 void clear();
                 void fill(int val);
             };
 
             struct Map {
-                Game::RING::TileTemplate temp;
+                Game::RING::TileSource temp;
                 Vector<Game::RING::Layer*> layers;
                 Shared<Game::RING::Blueprint> bp;
+                Vector<nite::PhysicsObject*> locals;
                 int width;
                 int height;
-                int start;
+                int startCell;
                 nite::Vec2 startPosition;
                 nite::Vec2 cellSize;
                 int size;
                 int scale; // one real unit is x times a unit of the blueprint
-                void build(Shared<Game::RING::Blueprint> bp, const Game::RING::TileTemplate &temp, int scale);
+                void build(Shared<Game::RING::Blueprint> bp, const Game::RING::TileSource &temp, int scale);
                 Map();
                 ~Map();
                 void draw();
