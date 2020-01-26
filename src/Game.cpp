@@ -297,12 +297,21 @@ int main(int argc, char* argv[]){
 		context.stop();
 	}), 1000);
 
+	// nite::AsyncTask task2;
+	// task.spawn(nite::AsyncLambda([&](nite::AsyncTask &context){
+	// 	cl.disconnect();
+	// 	context.stop();
+	// }), 5000);	
+	UInt64 dd = nite::getTicks();
+
 	while(game.isRunning){
 		 nite::setZoom(nite::RenderTargetGame, 0.75f);
 
 		game.update();
 		cl.step();
-		sv.step();
+		if(nite::getTicks()-dd < 5000){
+			sv.step();
+		}
 		game.render();
 		
 		nite::setDepth(nite::DepthMiddle);

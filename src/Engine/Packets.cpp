@@ -14,13 +14,18 @@ nite::Packet::Packet(){
 	clear();
 }
 
+nite::Packet::Packet(UInt32 order){
+	clear();
+	setOrder(order);
+}
+
 nite::Packet::~Packet(){
 
 }
 
 void nite::Packet::copy(const Packet &other){
 	memcpy(this->data, other.data, nite::NetworkMaxPacketSize);
-	this->index = other.index;
+	reset();
 }
 
 nite::Packet& nite::Packet::operator= (const nite::Packet &other){
