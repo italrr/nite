@@ -94,7 +94,12 @@
             static const UInt16 SV_CLIENT_DISCONNECT    = 7; 
             /*
                 STRING REASON (OPTIONAL)
-            */                                   
+            */     
+            static const UInt16 SV_REMOTE_CMD_EXEC      = 8;  // ACK
+            /*
+                STRING CMD
+            */            
+                                         
 
         }
 

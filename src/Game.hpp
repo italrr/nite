@@ -1,65 +1,24 @@
 #ifndef GAME_HPP
 	#define GAME_HPP
 
-	#include <memory>
-	#include "Engine/Graphics.hpp"
-	#include "Engine/Input.hpp"
-	#include "Engine/View.hpp"
-	#include "Engine/Object.hpp"
-	#include "Engine/World.hpp"
-	#include "Engine/Texture.hpp"
 	#include "Engine/Tools/Tools.hpp"
-	#include "Engine/Shader.hpp"
-	#include "Engine/Console.hpp"
-	#include "Engine/Font.hpp"
-	#include "Engine/UI/UI.hpp"
-	#include "Entity.hpp"
-	#include "Player.hpp"
-	#include "Mob.hpp"
-	#include "Map.hpp"
-	#include "Inventory.hpp"
+	#include "Orchestrator.hpp"
 
 	namespace Game {
 
-		struct Camera {
-			int followId;
-			void update();
-			void update(nite::Vec2 &v, float mu);
-			void update(nite::Vec2 &v);
-			void follow(int id);
-			Camera();
-		};
-
-		struct StepTimer {
-			StepTimer(String name);
-			StepTimer();
-			UInt64 lastTick;
-			UInt64 time;
-			String name;
-			String report;
-			void init();
-			void end();
-			String getStatus();
-		};
-
-		struct GameMaster {
-			Game::Camera camera;
-			Game::Map map;
-			nite::World world;
-			nite::UIMaster ui;
-			Game::Entity *player;
+		struct GameCore {
+			Game::Orchestrator orch;
 			bool isRunning;
-			bool renderEntities;
 			void start();
 			void update();
 			void render();
 			void end();
 			void onEnd();
-			Game::StepTimer stepGeneralTimer;
-			Game::StepTimer drawGeneralTimer;
+			nite::StepTimer stepGeneralTimer;
+			nite::StepTimer drawGeneralTimer;
 		};
 
-		Game::GameMaster *getInstance();
+		Game::GameCore *getGameCoreInstance();
 
 	}  
 

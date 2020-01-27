@@ -183,6 +183,7 @@ set (nite_src
 		src/Engine/Tools/AsyncTask.cpp
 		src/Engine/Tools/Log.cpp
 		src/Engine/Tools/Math.cpp
+		src/Engine/Tools/AsyncTask.cpp
 		src/Engine/Tools/String.cpp
 		src/Engine/Tools/System.cpp
 		src/Engine/Tools/Time.cpp
@@ -224,6 +225,8 @@ set(src_files
 	src/Network/Client.cpp
 	src/Network/Network.cpp
 	# GENERAL #
+	src/Camera.cpp
+	src/Orchestrator.cpp
 	src/Entity.cpp
 	src/Player.cpp
 	src/Inventory.cpp

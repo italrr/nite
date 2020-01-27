@@ -62,11 +62,26 @@
                 void fill(int val);
             };
 
+            struct WallMask {
+                nite::Vec2 position;
+                nite::Vec2 size;
+                bool solid;
+                WallMask(const nite::Vec2 &position, const nite::Vec2 &size, bool solid){
+                    this->position.set(position);
+                    this->size.set(size);
+                    this->solid = solid;
+                }
+                WallMask(){
+
+                }
+            };
+
             struct Map {
                 Game::RING::TileSource temp;
                 Vector<Game::RING::Layer*> layers;
                 Shared<Game::RING::Blueprint> bp;
-                Vector<nite::PhysicsObject*> locals;
+                Vector<Game::RING::WallMask> wallMasks;
+
                 int width;
                 int height;
                 int startCell;

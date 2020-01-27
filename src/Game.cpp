@@ -1,259 +1,45 @@
 #include "Game.hpp"
-#include "Sword.hpp"
-#include "Gun.hpp"
-#include "Engine/Shapes.hpp"
+#include "Engine/View.hpp"
+#include "Engine/Graphics.hpp"
+#include "Engine/Input.hpp"
 #include "Engine/nScript.hpp"
-#include "RING/RING.hpp"
-#include "Network/Client.hpp"
-#include "Network/Server.hpp"
 
-using namespace nite;
+static Game::GameCore *instance = NULL;
 
-static Game::GameMaster *instance = NULL;
-
-static bool cameraFreeroam = false;
-static nite::Console::CreateProxy cpAnDatTo("cl_camera_freeroam", nite::Console::ProxyType::Bool, sizeof(bool), &cameraFreeroam);
-
-Game::Camera::Camera(){
-	followId = -1;
-}
-
-void Game::Camera::update(nite::Vec2 &v, float mu){
-	static auto *inst = Game::getInstance();		
-	nite::setView(true, nite::RenderTargetGame);
-	nite::Vec2 P = nite::getView(nite::RenderTargetGame);
-	nite::Vec2 K = v - nite::getSize() * 0.5f;
-	P.lerp(K, mu);
-	setViewPosition(P, nite::RenderTargetGame);
-}
-
-void Game::Camera::update(nite::Vec2 &v){
-	update(v, 0.15f);
-}
-
-void Game::Camera::update(){
-	static auto *inst = Game::getInstance();	
-	if(cameraFreeroam){
-		nite::Vec2 np = nite::getView(nite::RenderTargetGame);
-		if(nite::keyboardCheck(nite::keyA)){
-			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(32.0f, 0.0f));
-		}
-		if(nite::keyboardCheck(nite::keyD)){
-			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(32.0f, 0.0f));
-		}		
-		if(nite::keyboardCheck(nite::keyW)){
-			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(0.0f, 32.0f));			
-		}
-		if(nite::keyboardCheck(nite::keyS)){
-			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(0.0f, 32.0f));						
-		}		
-		nite::setView(true, nite::RenderTargetGame);
-		nite::setViewPosition(np, nite::RenderTargetGame);
-		return;
-	}
-	if(followId == -1 || !inst->world.exists(followId)) return;
-	update(inst->world.objects[followId]->position);
-}
-
-void Game::Camera::follow(int id){
-	this->followId = id;
-	cameraFreeroam = false;
-	nite::print("following entity id "+nite::toStr(id));
-	// setView(id != -1, nite::RenderTargetGame);
-}
-
-/////////////
-// COMMAND: cl_camera_follow
-////////////
-static void cfCameraFollow(Vector<String> params){
-	static auto game = Game::getInstance();
-	if(params.size() < 1){
-		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto &_id = params[0];
-	if(!nite::isNumber(_id)){
-		nite::Console::add("'"+_id+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto id = nite::toInt(_id);
-	if(!game->world.exists(id)){
-		nite::Console::add("Entity id '"+_id+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;		
-	}
-	cameraFreeroam = false;
-	game->camera.follow(id);	
-}
-static auto cfCameraFollowIns = nite::Console::CreateFunction("cl_camera_follow", &cfCameraFollow); 
-
-/////////////
-// COMMAND: cl_camera_snap
-////////////
-static void cfCameraSnap(Vector<String> params){
-	static auto game = Game::getInstance();
-	if(params.size() < 1){
-		nite::Console::add("Not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto &_x = params[0];
-	auto &_y = params[1];
-	if(!nite::isNumber(_x)){
-		nite::Console::add("'"+_x+"' is not a valid parameter. It must be a number", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	if(!nite::isNumber(_y)){
-		nite::Console::add("'"+_y+"' is not a valid parameter. It must be a number", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}	
-	auto x = nite::toInt(_x);
-	auto y = nite::toInt(_y);
-	cameraFreeroam = false;
-	nite::setViewPosition(nite::Vec2(x, y), nite::RenderTargetGame);
-	nite::print("camera snapped to "+nite::Vec2(x, y).str());
-}
-static auto cfCameraSnapIns = nite::Console::CreateFunction("cl_camera_snap", &cfCameraSnap); 
-
-
-Game::StepTimer::StepTimer(String name){
-	this->name = name;
-}
-
-Game::StepTimer::StepTimer(){
-	name = "StepTimer";
-}
-
-void Game::StepTimer::init(){
-	lastTick = nite::getTicks();
-}
-
-void Game::StepTimer::end(){
-	time = nite::getTicks() - lastTick;
-}
-
-String Game::StepTimer::getStatus(){
-	return "["+name+"] Elapsed "+nite::toStr(time)+" msecs";
-}
-
-void Game::GameMaster::start(){
+void Game::GameCore::start(){
 	instance = this;
-	// nite Engine init
 	nite::graphicsInit();
-	nite::inputInit();
-	renderEntities = true;
+	orch.start();
 	isRunning = true;
-
 	stepGeneralTimer.name = "STEP GENERAL";
 	drawGeneralTimer.name = "DRAW GENERAL";
-	
-	
-	// Load a placeholder map
-	// map.load("data/map/romdou/romdou.json");
-
-	
-	// auto player = Shared<nite::PhysicsObject>(new Game::Player());
-	// world.add(player);
-
-	// this->player = static_cast<Entity*>(player.get());
-	// this->player->fullHeal();
-	// this->player->position.set(map.playerSpawn);
-	
-	// // auto mob = Shared<nite::PhysicsObject>(new Game::BasicMob());
-	// // world.add(mob);
-	// // mob->position.set(1920, 1500);
-	// // auto mobEntity = static_cast<Entity*>(mob.get());
-	// // mobEntity->fullHeal();	
-	
-
-	// auto sword = Shared<Game::BaseItem>(new Sword());
-	// sword.get()->load("data/weap/base_sword.json");
-
-	// auto gun = Shared<Game::BaseItem>(new Gun());
-	// gun.get()->load("data/weap/base_gun.json");
-
-
-	// this->player->addItem(sword);	
-	// this->player->addItem(gun);	
-	// this->player->setActiveItem(Game::InventoryActiveSlot::Main, gun);	
-	// camera.follow(this->player->id);
 }
 
-void Game::GameMaster::update(){
-	// nite::setZoom(nite::RenderTargetGame, 0.80f);
-	// Basic Shortcuts
-	// TODO: make debugPhysics toggle be assigned from nScript files instead of hardcoded
-	if(nite::keyboardPressed(nite::keyF1)){
-		world.debugPhysics = !world.debugPhysics;
-	}
-	if(nite::keyboardPressed(nite::keyTILDE)){
-		if(nite::Console::isOpen()){
-			nite::Console::close();
-		}else{
-			nite::Console::open();
-		}
-	}
-
-	// Update World
-	nite::viewUpdate();
-	nite::inputUpdate();
-	nite::Console::update();
-
-	ui.update();
-	map.update();
-	camera.update();
-	world.update();
-	world.step();
-}
-
-void Game::GameMaster::render(){	
-	nite::graphicsUpdate();
-	nite::Console::render();
-	ui.render();
-	map.render();
-	world.render();	
-}
-
-void Game::GameMaster::end(){
+void Game::GameCore::end(){
 	isRunning = false;
 }
 
-void Game::GameMaster::onEnd(){
-	nite::Console::end();
-
+void Game::GameCore::onEnd(){
+	orch.end();
 }
 
-Game::GameMaster *Game::getInstance(){
+void Game::GameCore::update(){
+	nite::setZoom(nite::RenderTargetGame, 0.75f);
+	nite::viewUpdate();
+	nite::inputUpdate();
+	orch.update();
+}
+
+void Game::GameCore::render(){	
+	nite::graphicsUpdate();
+	orch.render();
+}
+
+Game::GameCore *Game::getGameCoreInstance(){
 	return instance;
 }
 
-// #include "Engine/Network.hpp"
-// #include <string.h>
-
 int main(int argc, char* argv[]){
-	// nite::socketInit();
-	// nite::UDPSocket sv;
-	// nite::UDPSocket cl;
-
-	// sv.open(nite::NetworkDefaultPort);
-	// cl.open(nite::NetworkDefaultPort + 1);
-
-	// sv.setNonBlocking(true);
-	// cl.setNonBlocking(true);
-
-	// nite::IP_Port sender;
-	
-	// nite::Packet buffer;
-	// nite::Packet silly;
-	// silly.setHeader(158);
-	// silly.write("Hello");
-	// while(true){
-	// 	cl.send(nite::IP_Port(), silly);
-	// 	if(sv.recv(sender, buffer) > 0){
-	// 		String str;
-	// 		buffer.read(str);
-	// 		nite::print(str);
-	// 	}
-	// }
-	// nite::socketEnd();
 
 	Vector<String> params;
 	for(int i = 0; i < argc; ++i){
@@ -261,68 +47,12 @@ int main(int argc, char* argv[]){
 	}
 	nite::setParameters(params);
 
-	Game::GameMaster game;
+	Game::GameCore game;
 	game.start();
-	// nite::nScript initDebug("debug_init.ns");
-	// initDebug.execute();
-
-	// Game::RINGBase base;
-	// Game::RING campaign;
-
-	// campaign.build(30, 30, base);
-	// campaign.start(game);
-
-	// Shared<Game::RING::Blueprint> bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
-	// Game::RING::Map map;
-	// Game::RING::TileSource temp("./data/tileset/dungeon.json");
-	// bp->generate();
-	// map.build(bp, temp, 3);
-
-	// nite::print(map.startPosition);
-	// game.player->position.set(map.startPosition);
-
-	
-	Game::Client cl;
-	Game::Server sv;
-
-	cl.setup("pepper");
-	
-
-	sv.listen(4, nite::NetworkDefaultPort);
-
-	
-	nite::AsyncTask task;
-	task.spawn(nite::AsyncLambda([&](nite::AsyncTask &context){
-		cl.connect("127.0.0.1", nite::NetworkDefaultPort);
-		context.stop();
-	}), 1000);
-
-	// nite::AsyncTask task2;
-	// task.spawn(nite::AsyncLambda([&](nite::AsyncTask &context){
-	// 	cl.disconnect();
-	// 	context.stop();
-	// }), 5000);	
-	UInt64 dd = nite::getTicks();
 
 	while(game.isRunning){
-		 nite::setZoom(nite::RenderTargetGame, 0.75f);
-
 		game.update();
-		cl.step();
-		if(nite::getTicks()-dd < 5000){
-			sv.step();
-		}
 		game.render();
-		
-		nite::setDepth(nite::DepthMiddle);
-		nite::setRenderTarget(nite::RenderTargetUI);
-		nite::setColor(nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
-		
-		//bp.minimap.draw(0, 0);
-		// if(nite::keyboardPressed(nite::keyF5)){
-		// 	bp->generate();
-		// }		
-		// map.draw();
 	}
 	game.onEnd();
 

@@ -2,6 +2,8 @@
 #include <map>
 #include "Tools/Tools.hpp"
 #include "Input.hpp"
+#include "Console.hpp"
+#include "UI/UI.hpp"
 
 //#include "nite.h"
 //#include "View.h"
@@ -338,13 +340,22 @@ void nite::inputUpdate(){
 				buttonState[getButton(Events.button.button)] = 0;
 			break;
 			case SDL_QUIT:
-					auto *ins = Game::getInstance();
+					auto *ins = Game::getGameCoreInstance();
 					ins->end();
 				// Game::exit();
 			break;
 		}
 	}
-	nite::updateAsyncTask();
+	if(nite::keyboardPressed(nite::keyTILDE)){
+		if(nite::Console::isOpen()){
+			nite::Console::close();
+		}else{
+			nite::Console::open();
+		}
+	}	
+	nite::Console::update();
+	nite::UI::update();	
+	nite::AsyncTask::update();
 }
 
 

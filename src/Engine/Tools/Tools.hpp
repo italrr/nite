@@ -178,42 +178,83 @@
 	}
 	/*
 	================
+	StepTimer
+	================
+	*/	
+	namespace nite {
+		struct StepTimer {
+			StepTimer(String name);
+			StepTimer();
+			UInt64 lastTick;
+			UInt64 time;
+			String name;
+			String report;
+			void init();
+			void end();
+			String getStatus();
+		};		
+	}
+	/*
+	================
 	Async
 	================
 	*/	
 	namespace nite {
 
-		class AsyncTask;
-		typedef Lambda<void(nite::AsyncTask &context)> AsyncLambda;    
+		// class AsyncTask;
+		// typedef Lambda<void(nite::AsyncTask &context)> AsyncLambda;    
 		
-		namespace AsyncTaskStatus {
-			const static unsigned Idle = 0;
-			const static unsigned Running = 1;
-			const static unsigned Paused = 2;
-			const static unsigned Killed = 3;
+		// class AsyncTask {
+		// 	private:
+		// 		int id;
+		// 		nite::AsyncLambda lambda;
+		// 		int status;
+		// 		UInt64 startTime;
+		// 		UInt64 delayTime;
+		// 	public:
+		// 		AsyncTask();							
+		// 		int getStatus();
+		// 		void pause();
+		// 		void resume();
+		// 		void start();
+		// 		void stop();
+		// 		void step();
+		// 		Shared<nite::AsyncTask> spawn(nite::AsyncLambda lambda);
+		// 		Shared<nite::AsyncTask> spawn(nite::AsyncLambda lambda, UInt64 delayTime);
+		// };
+
+		namespace AsyncTask {
+
+			namespace State {
+				const static unsigned Idle = 0;
+				const static unsigned Running = 1;
+				const static unsigned Paused = 2;
+				const static unsigned Killed = 3;
+			}
+					
+			class Context;
+			typedef Lambda<void(nite::AsyncTask::Context &context)> ALambda;  
+
+			struct Context {
+					int id;
+					nite::AsyncTask::ALambda lambda;
+					int state;
+					UInt64 startTime;
+					UInt64 delayTime;
+					Context();
+					void start();
+					void step();
+					void stop();
+					void pause();
+					void resume();
+			};
+
+			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda);
+			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda, UInt64 delayTime);
+					
+			void update();
+			void end();
 		}
-		
-		class AsyncTask {
-			private:
-				int id;
-				nite::AsyncLambda lambda;
-				int status;
-				UInt64 startTime;
-				UInt64 delayTime;
-			public:
-				AsyncTask();							
-				int getStatus();
-				void pause();
-				void resume();
-				void start();
-				void stop();
-				void step();
-				Shared<nite::AsyncTask> spawn(nite::AsyncLambda lambda);
-				Shared<nite::AsyncTask> spawn(nite::AsyncLambda lambda, UInt64 delayTime);
-		};
-		
-		void updateAsyncTask();
-		void stopAsyncTask();
 		
 		
 	}

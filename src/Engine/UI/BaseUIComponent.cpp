@@ -62,10 +62,7 @@ void nite::BaseUIComponent::add(std::shared_ptr<nite::BaseUIComponent> component
 }
 
 void nite::BaseUIComponent::destroy(){
-  if(currentMaster != NULL){
-    currentMaster->remove(this);
-    currentMaster = NULL;
-  }
+  nite::UI::remove(this);
 }  
 
 void nite::Layout::VBox::recalculate(BaseUIComponent &head){

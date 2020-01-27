@@ -102,7 +102,6 @@
         headComponent = NULL;
         renderOnTarget = nite::RenderTargetUI;
         isHovered = false;
-        currentMaster = NULL;
         uninteract = false;
       }
 

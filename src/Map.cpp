@@ -7,9 +7,9 @@
 // COMMAND: map_reload
 ////////////
 static void cfMapReload(Vector<String> params){
-	static auto game = Game::getInstance();
-	auto &map = game->map;
-	map.reload();
+	static auto game = Game::getGameCoreInstance();
+	// auto &map = game->map;
+	// map.reload();
 	
 }
 static auto cfMapReloadIns = nite::Console::CreateFunction("map_reload", &cfMapReload); 
@@ -72,7 +72,7 @@ void Game::NavMap::draw(float x, float y){
 }
 
 void Game::Map::load(const String &path, const nite::Color &transparency){
-	static auto game = Game::getInstance();
+	static auto game = Game::getGameCoreInstance();
 	this->path = path;
 	this->transparency = transparency;
 
@@ -111,7 +111,7 @@ void Game::Map::load(const String &path, const nite::Color &transparency){
 				mask->unmovable = true;
 				mask->size.set(size);
 				locals.push_back(mask.get());
-				game->world.add(mask);
+				// game->world.add(mask);
 				mask->position.set(position + size * 0.5f);
 			}    
 			// PLAYER SPAWN
@@ -160,12 +160,12 @@ void Game::Map::render(){
 }
 
 void Game::Map::clear(){
-  static auto game = Game::getInstance();
+  static auto game = Game::getGameCoreInstance();
   nite::dropFrame();
   tiles.clear();
   tiles = nite::Tileset();
   for(int i = 0; i < locals.size(); ++i){
-    game->world.remove(locals[i]->id);
+    // game->world.remove(locals[i]->id);
     //delete locals[i];
   }
   locals.clear();

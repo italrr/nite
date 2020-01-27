@@ -16,6 +16,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include "Network.hpp"
+#include "UI/UI.hpp"
 
 using namespace nite;
 
@@ -974,12 +975,14 @@ void nite::graphicsUpdate(){
 	flushTexture();
 	flushFont();
 	SDL_GL_SwapWindow(Window);
+	nite::Console::render();
+	nite::UI::render();
 }
 
 static void gameExit(){
-	static auto *ins = Game::getInstance();
-	nite::updateAsyncTask();
-	nite::stopAsyncTask();	
+	static auto *ins = Game::getGameCoreInstance();
+	nite::AsyncTask::update();
+	nite::AsyncTask::end();	
 	ins->end();	
 }
 
@@ -1124,6 +1127,8 @@ void nite::graphicsInit(){
 }
 
 void nite::graphicsEnd(){
+	nite::print("graphics end");
+	nite::Console::end();
 	nite::socketEnd();
 	SDL_DestroyWindow(Window);
 	SDL_GL_DeleteContext(Context);

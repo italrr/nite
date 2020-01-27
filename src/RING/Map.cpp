@@ -783,7 +783,7 @@ void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::
     this->startPosition.x = (bp->start % bp->width) * scale * temp.tileSize.x + temp.tileSize.x * scale * 0.5f;
     this->startPosition.y = (bp->start / bp->width) * scale * temp.tileSize.y + temp.tileSize.y * scale * 0.5f;
     
-    static auto ins = Game::getInstance();
+    //static auto ins = Game::getGameCoreInstance();
 
     // add physics walls
     /* TODO: move this out of here, since this is "start game" code
@@ -795,22 +795,21 @@ void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::
         if(mirror.grid[i] != Game::RING::CellType::Wall){
             continue;
         }
-		auto mask = Shared<nite::PhysicsObject>(new nite::PhysicsObject());
-        mask->solid = true;
-        mask->unmovable = true;
-        mask->size.set(temp.tileSize);
-        locals.push_back(mask.get());
-        ins->world.add(mask);
+        Game::RING::WallMask mask;
+        mask.size.set(temp.tileSize);
+        // locals.push_back(mask.get());
+        // ins->world.add(mask);
         nite::Vec2 p;
         p.x = (i % width) * temp.tileSize.x + temp.tileSize.x * 0.5f;
         p.y = (i / width) * temp.tileSize.y + temp.tileSize.y * 0.5f;
         Game::RING::TileSourceWalkMask specMask = this->temp.getSpecialWallMask(allWalls.grid[i]);
         if(specMask.key != ""){
-            mask->size.set(specMask.size);
+            mask.size.set(specMask.size);
             p.x += specMask.offset.x;        
             p.y += specMask.offset.y;
         }
-        mask->position.set(p.x, p.y);
+        mask.position.set(p.x, p.y);
+        wallMasks.push_back(mask);
     }
 
     allWalls.clear();
@@ -868,10 +867,6 @@ Game::RING::Map::Map(){
 }
 
 Game::RING::Map::~Map(){
-    // clean locals
-    for(int i = 0; i < locals.size(); ++i){
-        locals[i]->destroy();
-    }
     // clean layers
     for(int i = 0; i < layers.size(); ++i){
         layers[i]->clear();

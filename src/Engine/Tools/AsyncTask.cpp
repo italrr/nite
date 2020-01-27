@@ -5,54 +5,56 @@ static int getUniqueId(){
 	return ++seed;
 }
 
-static Vector<Shared<nite::AsyncTask>> pool;
-		
-int nite::AsyncTask::getStatus(){
-	return status;
-}
+static Vector<Shared<nite::AsyncTask::Context>> pool;
 
-void nite::AsyncTask::pause(){
-	if(status == nite::AsyncTaskStatus::Killed){
+void nite::AsyncTask::Context::pause(){
+	if(state == nite::AsyncTask::State::Killed){
 		return;
 	}
-	status =  nite::AsyncTaskStatus::Paused;
+	state =  nite::AsyncTask::State::Paused;
 }
 
-void nite::AsyncTask::resume(){
-	if(status != nite::AsyncTaskStatus::Killed){
+void nite::AsyncTask::Context::resume(){
+	if(state != nite::AsyncTask::State::Killed){
 		return;
 	}	
-	status = nite::AsyncTaskStatus::Running;
+	state = nite::AsyncTask::State::Running;
 }
 
-void nite::AsyncTask::start(){
-	if(status == nite::AsyncTaskStatus::Idle){
-		status = nite::AsyncTaskStatus::Running;
+void nite::AsyncTask::Context::start(){
+	if(state == nite::AsyncTask::State::Idle){
+		state = nite::AsyncTask::State::Running;
 		startTime = nite::getTicks();
 	}	
 }
 
-void nite::AsyncTask::stop(){
-	if(status == nite::AsyncTaskStatus::Killed){
+void nite::AsyncTask::Context::stop(){
+	if(state == nite::AsyncTask::State::Killed){
 		return;
 	}	
-	status = nite::AsyncTaskStatus::Killed;
+	state = nite::AsyncTask::State::Killed;
 }
 
-nite::AsyncTask::AsyncTask(){
-	status = nite::AsyncTaskStatus::Idle;
+nite::AsyncTask::Context::Context(){
+	state = nite::AsyncTask::State::Idle;
 	id = getUniqueId();
-	lambda = [](nite::AsyncTask &context){
+	lambda = [](nite::AsyncTask::Context &context){
 		return;
 	};
 }
 
-Shared<nite::AsyncTask> nite::AsyncTask::spawn(nite::AsyncLambda lambda){
+void nite::AsyncTask::Context::step(){
+	if(state == nite::AsyncTask::State::Running && nite::getTicks()-startTime > delayTime){
+		lambda(*this);
+	}
+}
+
+Shared<nite::AsyncTask::Context> nite::AsyncTask::spawn(nite::AsyncTask::ALambda lambda){
 	return spawn(lambda, 0);
 }
 
-Shared<nite::AsyncTask> nite::AsyncTask::spawn(nite::AsyncLambda lambda, UInt64 delayTime){
-	auto task = Shared<nite::AsyncTask>(new nite::AsyncTask());
+Shared<nite::AsyncTask::Context> nite::AsyncTask::spawn(nite::AsyncTask::ALambda lambda, UInt64 delayTime){
+	auto task = Shared<nite::AsyncTask::Context>(new nite::AsyncTask::Context());
 	task->lambda = lambda;
 	task->delayTime = delayTime;
 	task->start();
@@ -60,16 +62,10 @@ Shared<nite::AsyncTask> nite::AsyncTask::spawn(nite::AsyncLambda lambda, UInt64 
 	return task;
 }
 
-void nite::AsyncTask::step(){
-	if(status == nite::AsyncTaskStatus::Running && nite::getTicks()-startTime > delayTime){
-		lambda(*this);
-	}
-}
-
-void nite::updateAsyncTask(){
+void nite::AsyncTask::update(){
 	for(int i = 0; i < pool.size(); ++i){
 		auto task = pool[i].get();
-		if(task->getStatus() == nite::AsyncTaskStatus::Killed){
+		if(task->state == nite::AsyncTask::State::Killed){
 			pool.erase(pool.begin() + i);
 			--i;
 		}
@@ -80,7 +76,7 @@ void nite::updateAsyncTask(){
 	}
 }
 
-void nite::stopAsyncTask(){
+void  nite::AsyncTask::end(){
 	for(int i = 0; i < pool.size(); ++i){
 		auto task = pool[i].get();
 		task->stop();

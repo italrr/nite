@@ -34,11 +34,11 @@ void Game::AI::DumbFollowBehavior::init(){
 }
 
 void Game::AI::DumbFollowBehavior::think(Entity &subject){
-	static auto game = Game::getInstance();
+	static auto game = Game::getGameCoreInstance();
 
   // find player
-  auto &player = *static_cast<Game::Player*>(game->player);
-  auto angle = nite::arctan(player.position.y - subject.position.y, player.position.x - subject.position.x);
-  subject.entityMove(angle, subject.walkPushRate);
+  // auto &player = *static_cast<Game::Player*>(game->player);
+  // auto angle = nite::arctan(player.position.y - subject.position.y, player.position.x - subject.position.x);
+  // subject.entityMove(angle, subject.walkPushRate);
 
 }

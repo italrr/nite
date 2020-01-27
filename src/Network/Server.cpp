@@ -66,6 +66,24 @@ void Game::Server::removeClient(UInt64 uid){
     clients.erase(it);
 }
 
+void Game::Server::close(){
+    if(!init){
+        return;
+    }
+    nite::print("[server] closing server down...");
+    nite::print("[server] dropping clients...");
+    Vector<UInt32> ids;
+    for(auto cl : clients){
+        ids.push_back(cl.first);
+    }
+    for(int i = 0; i < ids.size(); ++i){
+        dropClient(ids[i], "server closing down");
+    }
+    this->init = false;
+    sock.close();
+    nite::print("[server] closed server down");
+}
+
 void Game::Server::step(){
     if(!init){
         return;

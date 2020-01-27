@@ -23,7 +23,7 @@ static nite::Console::CreateProxy cpGlobalTimescale("cl_anautocheck", nite::Cons
 // COMMAND: ent_jump_to_mouse
 ////////////
 static void cfEntityJumpToMouse(Vector<String> params){
-	static auto game = Game::getInstance();
+	static auto game = Game::getGameCoreInstance();
 	if(params.size() < 1){
 		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 		return;
@@ -34,14 +34,14 @@ static void cfEntityJumpToMouse(Vector<String> params){
 		return;
 	}
 	int id = nite::toInt(param0);	
-	if(!game->world.exists(id)){
-		nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());
+	// if(!game->world.exists(id)){
+	// 	nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	// 	return;
+	// }
+	// auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());
 	auto mp = nite::getView(nite::RenderTargetGame) + nite::mousePosition();
-	entity->position = mp;
-	nite::print("Entity id "+param0+" '"+entity->name+"' was manually moved to "+mp.str());
+	// entity->position = mp;
+	// nite::print("Entity id "+param0+" '"+entity->name+"' was manually moved to "+mp.str());
 }
 static auto cfEntityJumpToMouseIns = nite::Console::CreateFunction("ent_jump_to_mouse", &cfEntityJumpToMouse); 
 
@@ -49,7 +49,7 @@ static auto cfEntityJumpToMouseIns = nite::Console::CreateFunction("ent_jump_to_
 // COMMAND: ent_move
 ////////////
 static void cfEntityMove(Vector<String> params){
-	static auto game = Game::getInstance();
+	static auto game = Game::getGameCoreInstance();
 	if(params.size() < 1){
 		nite::Console::add("Not enough parameters(3)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 		return;
@@ -72,13 +72,13 @@ static void cfEntityMove(Vector<String> params){
 	}
 	int id = nite::toInt(param0);	
 	nite::Vec2 position(nite::toFloat(param1), nite::toFloat(param2));	
-	if(!game->world.exists(id)){
-		nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());
-	entity->position = position;
-	nite::print("Entity id "+param0+" '"+entity->name+"' was manually moved to "+position.str());
+	// if(!game->world.exists(id)){
+	// 	nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	// 	return;
+	// }
+	// auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());
+	// entity->position = position;
+	// nite::print("Entity id "+param0+" '"+entity->name+"' was manually moved to "+position.str());
 }
 static auto cfEntityMoveIns = nite::Console::CreateFunction("ent_move", &cfEntityMove); 
 
@@ -86,14 +86,14 @@ static auto cfEntityMoveIns = nite::Console::CreateFunction("ent_move", &cfEntit
 // COMMAND: ent_show
 ////////////
 static void cfShowEntities(Vector<String> params){
-	static auto game = Game::getInstance();
+	static auto game = Game::getGameCoreInstance();
 	String output;
-	for (auto& it : game->world.objects){
-		auto current = it.second;
-		if(auto ent = dynamic_cast<Game::Entity*>(current.get())){
-			output += "'"+ent->name+"' id: "+nite::toStr(ent->id)+", ";
-		}
-	}	
+	// for (auto& it : game->world.objects){
+	// 	auto current = it.second;
+	// 	if(auto ent = dynamic_cast<Game::Entity*>(current.get())){
+	// 		output += "'"+ent->name+"' id: "+nite::toStr(ent->id)+", ";
+	// 	}
+	// }	
 	nite::print("Active entities: "+output);
 	
 }
@@ -104,7 +104,7 @@ static auto cfShowEntitiesIns = nite::Console::CreateFunction("ent_show", &cfSho
 // COMMAND: ent_reloadanims
 ////////////
 static void cfReloadEntityAnims(Vector<String> params){
-	static auto game = Game::getInstance();
+	static auto game = Game::getGameCoreInstance();
 	if(params.size() < 1){
 		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 		return;
@@ -115,12 +115,12 @@ static void cfReloadEntityAnims(Vector<String> params){
 		return;
 	}
 	int id = nite::toInt(param0);	
-	if(!game->world.exists(id)){
-		nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());	
-	entity->entityReloadAnimation();
+	// if(!game->world.exists(id)){
+	// 	nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	// 	return;
+	// }
+	// auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());	
+	// entity->entityReloadAnimation();
 }
 static auto cfReloadEntityAnimsIns = nite::Console::CreateFunction("ent_reloadanims", &cfReloadEntityAnims);  
 
@@ -128,7 +128,7 @@ static auto cfReloadEntityAnimsIns = nite::Console::CreateFunction("ent_reloadan
 // COMMAND: ent_info
 ////////////
 static void cfPrintEntityInfo(Vector<String> params){
-	static auto game = Game::getInstance();
+	static auto game = Game::getGameCoreInstance();
 	if(params.size() < 1){
 		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 		return;
@@ -139,12 +139,12 @@ static void cfPrintEntityInfo(Vector<String> params){
 		return;
 	}
 	int id = nite::toInt(param0);	
-	if(!game->world.exists(id)){
-		nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());
-	entity->printEntity();
+	// if(!game->world.exists(id)){
+	// 	nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	// 	return;
+	// }
+	// auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());
+	// entity->printEntity();
 }
 static auto cfPrintEntityInfoIns = nite::Console::CreateFunction("ent_info", &cfPrintEntityInfo);  
 
@@ -152,7 +152,7 @@ static auto cfPrintEntityInfoIns = nite::Console::CreateFunction("ent_info", &cf
 // COMMAND: ent_kill
 ////////////
 static void cfEntityKill(Vector<String> params){
-	static auto game = Game::getInstance();
+	static auto game = Game::getGameCoreInstance();
 	if(params.size() < 1){
 		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 		return;
@@ -163,12 +163,12 @@ static void cfEntityKill(Vector<String> params){
 		return;
 	}
 	int id = nite::toInt(param0);	
-	if(!game->world.exists(id)){
-		nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());
-	entity->kill();
+	// if(!game->world.exists(id)){
+	// 	nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	// 	return;
+	// }
+	// auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());
+	// entity->kill();
 }
 static auto cfEntityKillIns = nite::Console::CreateFunction("ent_kill", &cfEntityKill);  
 
@@ -176,7 +176,7 @@ static auto cfEntityKillIns = nite::Console::CreateFunction("ent_kill", &cfEntit
 // COMMAND: ent_statadd
 ////////////
 static void cfEntityStatUp(Vector<String> params){
-	static auto game = Game::getInstance();
+	static auto game = Game::getGameCoreInstance();
 	if(params.size() < 3){
 		nite::Console::add("Not enough parameters(3)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 		return;
@@ -189,45 +189,45 @@ static void cfEntityStatUp(Vector<String> params){
 		return;
 	}
 	int id = nite::toInt(param0);	
-	if(!game->world.exists(id)){
-		nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());
+	// if(!game->world.exists(id)){
+	// 	nite::Console::add("Entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	// 	return;
+	// }
+	// auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());
 	if(!nite::isNumber(amount)){
 		nite::Console::add("'"+amount+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 		return;
 	}	
-	int amnt = nite::toInt(amount);
-	int added = 0;
-	bool success = true;
-	if(stat == "str"){
-		added = entity->addBaseStat(Game::BaseStatType::Strength, amnt);
-	}else
-	if(stat == "agi"){
-		added = entity->addBaseStat(Game::BaseStatType::Agility, amnt);
-	}else
-	if(stat == "dex"){
-		added = entity->addBaseStat(Game::BaseStatType::Dexterity, amnt);
-	}else	
-	if(stat == "end"){
-		added = entity->addBaseStat(Game::BaseStatType::Endurance, amnt);
-	}else	
-	if(stat == "luk"){
-		added = entity->addBaseStat(Game::BaseStatType::Luck, amnt);
-	}else	
-	if(stat == "cha"){
-		added = entity->addBaseStat(Game::BaseStatType::Charisma, amnt);
-	}else		
-	if(stat == "int"){
-		added = entity->addBaseStat(Game::BaseStatType::Intelligence, amnt);
-	}else{
-		success = false;
-		nite::print("Invalid stat "+stat);
-	}
-	if(success){
-		nite::print("Entity id "+param0+" '"+entity->name+"' stat "+stat+" by "+nite::toStr(added));
-	}
+	// int amnt = nite::toInt(amount);
+	// int added = 0;
+	// bool success = true;
+	// if(stat == "str"){
+	// 	added = entity->addBaseStat(Game::BaseStatType::Strength, amnt);
+	// }else
+	// if(stat == "agi"){
+	// 	added = entity->addBaseStat(Game::BaseStatType::Agility, amnt);
+	// }else
+	// if(stat == "dex"){
+	// 	added = entity->addBaseStat(Game::BaseStatType::Dexterity, amnt);
+	// }else	
+	// if(stat == "end"){
+	// 	added = entity->addBaseStat(Game::BaseStatType::Endurance, amnt);
+	// }else	
+	// if(stat == "luk"){
+	// 	added = entity->addBaseStat(Game::BaseStatType::Luck, amnt);
+	// }else	
+	// if(stat == "cha"){
+	// 	added = entity->addBaseStat(Game::BaseStatType::Charisma, amnt);
+	// }else		
+	// if(stat == "int"){
+	// 	added = entity->addBaseStat(Game::BaseStatType::Intelligence, amnt);
+	// }else{
+	// 	success = false;
+	// 	nite::print("Invalid stat "+stat);
+	// }
+	// if(success){
+	// 	nite::print("Entity id "+param0+" '"+entity->name+"' stat "+stat+" by "+nite::toStr(added));
+	// }
 	
 }
 static auto cfEntityStatUpIns = nite::Console::CreateFunction("ent_statadd", &cfEntityStatUp);  
@@ -236,7 +236,7 @@ static auto cfEntityStatUpIns = nite::Console::CreateFunction("ent_statadd", &cf
 // COMMAND: ent_statreset
 ////////////
 static void cfEntityStatReset(Vector<String> params){
-	static auto game = Game::getInstance();
+	static auto game = Game::getGameCoreInstance();
 	if(params.size() < 1){
 		nite::Console::add("Not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 		return;
@@ -248,49 +248,49 @@ static void cfEntityStatReset(Vector<String> params){
 		return;
 	}
 	int id = nite::toInt(param0);	
-	if(!game->world.exists(id)){
-		nite::Console::add("entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());	
+	// if(!game->world.exists(id)){
+	// 	nite::Console::add("entity id '"+param0+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	// 	return;
+	// }
+	// auto entity = static_cast<Game::Entity*>(game->world.objects[id].get());	
 
-	bool success = true;
-	if(stat == "all"){
-		entity->resetStat(Game::BaseStatType::Strength);
-		entity->resetStat(Game::BaseStatType::Agility);
-		entity->resetStat(Game::BaseStatType::Dexterity);
-		entity->resetStat(Game::BaseStatType::Endurance);
-		entity->resetStat(Game::BaseStatType::Luck);
-		entity->resetStat(Game::BaseStatType::Charisma);
-		entity->resetStat(Game::BaseStatType::Intelligence);
-	}else
-	if(stat == "str"){
-		entity->resetStat(Game::BaseStatType::Strength);
-	}else
-	if(stat == "agi"){
-		entity->resetStat(Game::BaseStatType::Agility);
-	}else
-	if(stat == "dex"){
-		entity->resetStat(Game::BaseStatType::Dexterity);
-	}else	
-	if(stat == "end"){
-		entity->resetStat(Game::BaseStatType::Endurance);
-	}else	
-	if(stat == "luk"){
-		entity->resetStat(Game::BaseStatType::Luck);
-	}else
-	if(stat == "cha"){
-		entity->resetStat(Game::BaseStatType::Charisma);
-	}else	
-	if(stat == "int"){
-		entity->resetStat(Game::BaseStatType::Intelligence);
-	}else{
-		success = false;
-		nite::print("invalid stat "+stat);
-	}
-	if(success){
-		nite::print("reset entity id "+param0+" '"+entity->name+"' stat "+stat+" to 0");
-	}
+	// bool success = true;
+	// if(stat == "all"){
+	// 	entity->resetStat(Game::BaseStatType::Strength);
+	// 	entity->resetStat(Game::BaseStatType::Agility);
+	// 	entity->resetStat(Game::BaseStatType::Dexterity);
+	// 	entity->resetStat(Game::BaseStatType::Endurance);
+	// 	entity->resetStat(Game::BaseStatType::Luck);
+	// 	entity->resetStat(Game::BaseStatType::Charisma);
+	// 	entity->resetStat(Game::BaseStatType::Intelligence);
+	// }else
+	// if(stat == "str"){
+	// 	entity->resetStat(Game::BaseStatType::Strength);
+	// }else
+	// if(stat == "agi"){
+	// 	entity->resetStat(Game::BaseStatType::Agility);
+	// }else
+	// if(stat == "dex"){
+	// 	entity->resetStat(Game::BaseStatType::Dexterity);
+	// }else	
+	// if(stat == "end"){
+	// 	entity->resetStat(Game::BaseStatType::Endurance);
+	// }else	
+	// if(stat == "luk"){
+	// 	entity->resetStat(Game::BaseStatType::Luck);
+	// }else
+	// if(stat == "cha"){
+	// 	entity->resetStat(Game::BaseStatType::Charisma);
+	// }else	
+	// if(stat == "int"){
+	// 	entity->resetStat(Game::BaseStatType::Intelligence);
+	// }else{
+	// 	success = false;
+	// 	nite::print("invalid stat "+stat);
+	// }
+	// if(success){
+	// 	nite::print("reset entity id "+param0+" '"+entity->name+"' stat "+stat+" to 0");
+	// }
 	
 }
 static auto cfEntityStatResetIns = nite::Console::CreateFunction("ent_statreset", &cfEntityStatReset); 

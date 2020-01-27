@@ -39,6 +39,7 @@
             Game::SvClient *getClient(UInt64 uid);
             void listen(UInt8 maxClients, UInt16 port);
             void step();
+            void close();
         };
 
     }
