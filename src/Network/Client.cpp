@@ -12,10 +12,12 @@ Game::Client::~Client(){
 
 void Game::Client::clear(){
     svOrder = 0;
+    sentOrder = 1;
+    rcvOrder = 0;
     serverId = 0;
-    lastOrder = 0;
     connected = false;
     sock.close();
+    clients.clear();
     deliveries.clear();
     setState(Game::NetState::Disconnected); 
 }
@@ -38,6 +40,7 @@ void Game::Client::connect(const String &ip, UInt16 port){
     lastPacketTimeout = nite::getTicks();
     sock.setNonBlocking(true);
     nite::Packet connect;
+    connect.setOrder(0);
     connect.setHeader(Game::PacketType::SV_CONNECT_REQUEST);
     connect.write((char*)&Game::CLIENT_VERSION, sizeof(UInt32));
     connect.write(this->nickname);
@@ -64,7 +67,7 @@ void Game::Client::disconnect(const String &reason){
     if(!init || state == Game::NetState::Disconnected){
         return;
     }
-    nite::Packet disc(++lastOrder);
+    nite::Packet disc(++sentOrder);
     disc.setHeader(Game::PacketType::SV_CLIENT_DISCONNECT);
     disc.write(reason);
     sock.send(sv, disc);
@@ -72,7 +75,7 @@ void Game::Client::disconnect(const String &reason){
     clear();
 }
 
-void Game::Client::step(){
+void Game::Client::update(){
     // exit if no connection
     if(state == Game::NetState::Disconnected || !init){
         return;
@@ -80,12 +83,14 @@ void Game::Client::step(){
     nite::Packet handler;
     nite::IP_Port sender;
     if(sock.recv(sender, handler)){
-        UInt64 netId = sender.address+sender.port;
+        UInt64 netId = sender.address + sender.port + sock.getSock();
         bool isSv = netId == this->serverId && state != Game::NetState::Disconnected;
-        if(isSv){
+        bool isLast = isLast && handler.getOrder() > rcvOrder;
+        if(isSv && isLast){
             lastPacket = handler;
             lastPacketTimeout = nite::getTicks();
-        }
+            rcvOrder = handler.getOrder();
+        }   
         switch(handler.getHeader()){
             /*
                 SV_ACK
@@ -109,7 +114,7 @@ void Game::Client::step(){
                 if(!isSv){
                     break;
                 }
-                nite::Packet pong(++lastOrder);
+                nite::Packet pong(++sentOrder);
                 pong.setHeader(Game::PacketType::SV_PONG);
                 sock.send(this->sv, pong);                
             } break;
@@ -149,11 +154,61 @@ void Game::Client::step(){
                     this->serverId = netId;
                     this->connected = true;
                     handler.read(&clientId, sizeof(UInt64));
+                    Game::ClClient yourself;
+                    yourself.uid = clientId;
+                    yourself.nickname = nickname;
+                    this->clients[clientId] = yourself;
                     setState(Game::NetState::Connected);
                     nite::print("[client] connected to "+this->sv.str()+" | clientId "+nite::toStr(this->clientId));                    
                 }
-                sendAck(sender, handler.getOrder());
+                sendAck(sender, handler.getOrder(), ++sentOrder);
             } break;
+            /*
+                SV_CLIENT_JOIN
+            */
+            case Game::PacketType::SV_CLIENT_JOIN: {
+                UInt64 uid;
+                String nick;
+                handler.read(&uid, sizeof(UInt64));
+                handler.read(nick);
+                this->clients[uid] = Game::ClClient(uid, nick);
+                nite::print(nick+" joined the game");
+                // TODO: add in-game notification for this message
+                sendAck(sender, handler.getOrder(), ++sentOrder);
+            } break;
+            /*
+                SV_NOTI_CLIENT_DROP
+            */
+            case Game::PacketType::SV_NOTI_CLIENT_DROP: {
+                UInt64 uid;
+                String reason;
+                handler.read(&uid, sizeof(UInt64));
+                handler.read(reason);
+                auto it = clients.find(uid);
+                if(it != clients.end()){
+                    nite::print(it->second.nickname+" left the game: "+reason);
+                    clients.erase(it);
+                }
+                // TODO: add in-game notification for this message
+                sendAck(sender, handler.getOrder(), ++sentOrder);
+            } break;            
+            /*
+
+                SV_CLIENT_LIST
+            */
+           case Game::PacketType::SV_CLIENT_LIST: {
+               clients.clear();
+               UInt16 n;
+               handler.read(&n, sizeof(UInt16));
+               for(int i = 0; i < n; ++i){
+                    Game::ClClient player;           
+                    handler.read(&player.uid, sizeof(UInt64));
+                    handler.read(&player.ping, sizeof(UInt64));
+                    handler.read(player.nickname);  
+                    clients[player.uid] = player;
+               }
+               sendAck(this->sv, handler.getOrder(), ++sentOrder);
+           } break;
         }
     }
     // timeout
@@ -162,10 +217,10 @@ void Game::Client::step(){
         clear();
         return;
     }
-    // ping
-    if(nite::getTicks()-lastPing > 1000){
+    // // ping
+    if(nite::getTicks()-lastPing > 250){
         lastPing = nite::getTicks();
-        nite::Packet ping(++lastOrder);
+        nite::Packet ping(++sentOrder);
         ping.setHeader(Game::PacketType::SV_PING);
         sock.send(this->sv, ping);
     }

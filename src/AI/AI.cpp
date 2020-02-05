@@ -14,15 +14,15 @@ void Game::AI::StareBehavior::init(){
 
 void Game::AI::StareBehavior::think(Entity &subject){
   auto &world = *subject.container;
-  for (auto& it : world.objects){
-    auto &target = *it.second.get();
-    if(&target == &subject) continue;
-    float x = nite::distance(subject.position, target.position);
-    if(x > 450){
-      continue;
-    }
-    subject.faceDirection = subject.position.x < target.position.x ? EntityFacing::Right : EntityFacing::Left;
-  }
+  // for (auto& it : world.objects){
+  //   auto &target = *it.second.get();
+  //   if(&target == &subject) continue;
+  //   float x = nite::distance(subject.position, target.position);
+  //   if(x > 450){
+  //     continue;
+  //   }
+  //   subject.faceDirection = subject.position.x < target.position.x ? EntityFacing::Right : EntityFacing::Left;
+  // }
 }
 
 

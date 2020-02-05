@@ -234,13 +234,13 @@
 					
 			class Context;
 			typedef Lambda<void(nite::AsyncTask::Context &context)> ALambda;  
-
 			struct Context {
 					int id;
 					nite::AsyncTask::ALambda lambda;
 					int state;
 					UInt64 startTime;
 					UInt64 delayTime;
+					void *payload; // hacky, but practical. TODO: nicer way to do this?
 					Context();
 					void start();
 					void step();
@@ -249,8 +249,10 @@
 					void resume();
 			};
 
-			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda);
+			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda, void *payload);
+			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda, UInt64 delayTime, void *payload);
 			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda, UInt64 delayTime);
+			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda);
 					
 			void update();
 			void end();

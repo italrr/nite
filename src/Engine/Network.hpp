@@ -21,13 +21,14 @@
 			operator std::string() const;
 		};
 
-		class UDPSocket	{
+		struct UDPSocket	{
 			private:
 				Int32 sock;
 				UInt16 port;
 				bool opened;
 				bool nonBlocking;
 			public:
+				Int32 getSock();
 				UDPSocket();
 				~UDPSocket();
 				bool open(UInt16 port);

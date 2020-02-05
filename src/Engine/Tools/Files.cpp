@@ -62,7 +62,6 @@ String nite::getFormat(const String &filename){
 Find files/directories with/out full path and recursively or not
 ================
 */
-
 bool nite::fileFind(const String &path, unsigned Type, String Format, bool R, bool FP, Vector<String> &List){
 
     DIR *Directory;
@@ -78,7 +77,7 @@ bool nite::fileFind(const String &path, unsigned Type, String Format, bool R, bo
 
     //Check if the dir if not null
     if (Directory == NULL){
-		return 0;
+		return false;
 	}
 
 	String filename;
@@ -125,7 +124,7 @@ bool nite::fileFind(const String &path, unsigned Type, String Format, bool R, bo
 
 	}
     closedir (Directory);
-    return 1;
+    return true;
 }
 
 /*
@@ -134,12 +133,9 @@ Check if a file exists
 ================
 */
 bool nite::fileExists(const String &path){
-    struct stat target_type;
-    stat(path.c_str(), &target_type);
-    if (S_ISREG(target_type.st_mode)) {
-        return 1;
-    }
-    return 0;
+    struct stat tt;
+    stat(path.c_str(), &tt);
+    return S_ISREG(tt.st_mode);
 }
 
 /*
@@ -148,12 +144,9 @@ Check if a directory exists
 ================
 */
 bool nite::directoryExists(const String &path){
-    struct stat target_type;
-    stat(path.c_str(), &target_type);
-    if (S_ISDIR(target_type.st_mode)) {
-        return 1;
-    }
-    return 0;
+    struct stat tt;
+    stat(path.c_str(), &tt);
+    return S_ISDIR(tt.st_mode);
 }
 
 /*
@@ -165,7 +158,7 @@ size_t nite::fileSize(const String &path){
     if (!nite::fileExists(path)){
         return 0;
     }
-    struct stat target_type;
-    stat(path.c_str(), &target_type);
-    return target_type.st_size;
+    struct stat tt;
+    stat(path.c_str(), &tt);
+    return tt.st_size;
 }

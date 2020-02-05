@@ -12,18 +12,18 @@ void Game::Net::setState(unsigned state){
 }
 
 void Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet){
-    persSend(client, packet, 1000, 3);
+    persSend(client, packet, 250, 3);
 }
 
-void Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 timeout, int retries){
+void Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries){
     if(!init){
         return;
     }    
     Game::PersisentDelivey pd;
-    pd.retryInterval = timeout / retries;
-    pd.timeout = timeout;
+    pd.retryInterval = retryInterval;
     pd.retries = retries;
     pd.retry = 0; 
+    pd.netId = client.address + client.port + sock.getSock();
     pd.packet = packet;
     pd.cl = client;
     pd.order = packet.getOrder();
@@ -49,11 +49,22 @@ void Game::Net::updateDeliveries(){
     // drop expired ones
     for(int i = 0; i < deliveries.size(); ++i){
         auto &del = deliveries[i];
-        if(del.retry >= del.retries){
+        // only drops packages with positive retries
+        if(del.retries != -1 && del.retry >= del.retries){
             deliveries.erase(deliveries.begin() + i);
             --i;
         }
     }    
+}
+
+void Game::Net::dropPersFor(UInt64 netId){
+    for(int i = 0; i < deliveries.size(); ++i){
+        auto &del = deliveries[i];
+        if(del.netId = netId){
+            deliveries.erase(deliveries.begin() + i);
+            --i;
+        }
+    }
 }
 
 void Game::Net::ack(nite::Packet &packet){
@@ -65,18 +76,19 @@ void Game::Net::ack(nite::Packet &packet){
     for(int i = 0; i < deliveries.size(); ++i){
         if(deliveries[i].order == order){
             deliveries.erase(deliveries.begin() + i);
-            return;
+            --i;
         }
     }
 }
 
-void Game::Net::sendAck(nite::IP_Port &client, UInt32 order){
+void Game::Net::sendAck(nite::IP_Port &client, UInt32 ackId, UInt32 order){
     if(!init){
         return;
     }
     nite::Packet ack;
+    ack.setOrder(order);
     ack.setHeader(Game::PacketType::SV_ACK);
-    ack.write(&order, nite::NetworkOrderSize);
+    ack.write(&ackId, nite::NetworkOrderSize);
     sock.send(client, ack);
 }
 

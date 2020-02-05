@@ -342,7 +342,7 @@ void Game::Entity::onActiveItemSwitch(Shared<Game::BaseItem> &item){
 	}	
 }
 
-void Game::Entity::entityUseActiveSlot(int slotId){
+void Game::Entity::entityUseActiveSlot(UInt16 slotId){
 	// METHOD USAGE ACCORDING TO TYPE
 	// WEAPON
 	auto onSwordUse = [&](const Game::BaseItem &item){
@@ -548,7 +548,7 @@ void Game::Entity::recalculateStats(){
   recalculateComplexStats();
 }
 
-void Game::Entity::resetStat(int type){
+void Game::Entity::resetStat(UInt8 type){
 	statPoints += agiStat;
 	switch(type){
 		case BaseStatType::Strength:{
@@ -576,9 +576,9 @@ void Game::Entity::resetStat(int type){
 	recalculateStats();	
 }
 
-int Game::Entity::addBaseStat(int type, int amnt){
-  int toAdd = 0;
-  auto inc = [&](int &target){
+Int32 Game::Entity::addBaseStat(UInt8 type, UInt32 amnt){
+  Int32 toAdd = 0;
+  auto inc = [&](UInt32 &target){
 	int toRest = statPoints;
 	// handle remaining points
 	if(amnt <= toRest){
@@ -632,7 +632,7 @@ void Game::Entity::kill(){
 	onDeath();
 }
 
-void Game::Entity::switchStance(int stance){
+void Game::Entity::switchStance(UInt8 stance){
 	if(stance == currentStance) return;
 	lastStance = currentStance;
 	currentStance = stance;
@@ -644,7 +644,7 @@ void Game::Entity::reverseStance(){
 	lastStance = w;
 }
 
-void Game::Entity::setupEntity(int lv, float baseScale){
+void Game::Entity::setupEntity(UInt32 lv, float baseScale){
   this->lv = 0;
   this->baseScaleEntity = baseScale;
   this->exp = 0;
@@ -858,7 +858,7 @@ void Game::Entity::shootBullet(Game::BaseEquip *_weap){
 	nite::Vec2 flip = nite::Vec2(faceDirection == 1.0f ? -1.0f : 1.0f, 1.0f);
 	bullet->position.set(position + dims.gunOnHandPosition * flip + weap.barrelPosition * flip);
 	bullet->setup(this, mod, an, 0, 0, 2000);
-	container->add(bullet);
+	// container->add(bullet);
 }
 
 void Game::Entity::throwMelee(Game::BaseEquip *_weap){
@@ -877,21 +877,21 @@ void Game::Entity::throwMelee(Game::BaseEquip *_weap){
 		dmg.knockback = true;
 		data.subject->dealDamage(dmg);
 	};
-	for (auto &it : container->objects){
-		auto current = it.second;
-		if(current.get() == NULL){
-			continue;
-		}
-		if(Game::Entity *_ent = dynamic_cast<Game::Entity*>(current.get())){
-			auto data = _ent->receiveMelee(melee);
-			if(data.hit){
-				// nite::shakeScreen(nite::RenderTargetGame, 2.2f, 200);
-				weap.onHit(this, _ent);
-				sendDamage(data);
-				break;
-			}
-		}		
-	}	
+	// for (auto &it : container->objects){
+	// 	auto current = it.second;
+	// 	if(current.get() == NULL){
+	// 		continue;
+	// 	}
+	// 	if(Game::Entity *_ent = dynamic_cast<Game::Entity*>(current.get())){
+	// 		auto data = _ent->receiveMelee(melee);
+	// 		if(data.hit){
+	// 			// nite::shakeScreen(nite::RenderTargetGame, 2.2f, 200);
+	// 			weap.onHit(this, _ent);
+	// 			sendDamage(data);
+	// 			break;
+	// 		}
+	// 	}		
+	// }	
 }
 
 Game::MeleeHitInformation Game::Entity::receiveMelee(nite::Hitbox &input){
@@ -998,15 +998,15 @@ void Game::Entity::draw(){
 			}
 		}
 
-		if(container != NULL && container->debugPhysics){
-			// for(int i = 0; i < weap.hitboxes.size(); ++i){
-			// auto &hit = weap.hitboxes[i];
-			// Using weap's own frameSize as hitbox for now
-			nite::setColor(nite::Color(1.0f, 0.5f, 0));
-			auto devi = (weap.frameSize.x - nite::cos(nite::toRadians(animFrame.angle * faceDir)) * weap.frameSize.x) * faceDir * dims.faceDirBias;
-			nite::Draw::Rectangle(p - weap.frameSize * _orig + nite::Vec2(devi, 0.0f), weap.frameSize, false, nite::Vec2(0.0f), 0);
-			// }  
-		}
+		// if(container != NULL && container->debugPhysics){
+		// 	// for(int i = 0; i < weap.hitboxes.size(); ++i){
+		// 	// auto &hit = weap.hitboxes[i];
+		// 	// Using weap's own frameSize as hitbox for now
+		// 	nite::setColor(nite::Color(1.0f, 0.5f, 0));
+		// 	auto devi = (weap.frameSize.x - nite::cos(nite::toRadians(animFrame.angle * faceDir)) * weap.frameSize.x) * faceDir * dims.faceDirBias;
+		// 	nite::Draw::Rectangle(p - weap.frameSize * _orig + nite::Vec2(devi, 0.0f), weap.frameSize, false, nite::Vec2(0.0f), 0);
+		// 	// }  
+		// }
 	};
 	auto gunStance = [&](Game::Gun &weap){
 		auto &shootFrame = dims.faGunShoot.frames[gunShootLastStep % dims.faGunShoot.frames.size()]; 
@@ -1040,16 +1040,16 @@ void Game::Entity::draw(){
 			} break;			
 		}
 	}  
-	if(container != NULL && container->debugPhysics){
-		// Debugging
-		for(int i = 0; i < dims.hitboxes.size(); ++i){
-			auto &hit = dims.hitboxes[i];
-			nite::setColor(nite::Color(1.0f, 0.5f, 0));
-			nite::Draw::Rectangle(position - frameSize * 0.5f + hit.position, hit.size, false, nite::Vec2(0.0f), 0);
-		}  
-		nite::setColor(nite::Color(1.0f, 0.0f, 0.5f));	
-		nite::Draw::Rectangle(position - frameSize * 0.5f , frameSize, false, nite::Vec2(0.0f), 0);
-	}
+	// if(container != NULL && container->debugPhysics){
+	// 	// Debugging
+	// 	for(int i = 0; i < dims.hitboxes.size(); ++i){
+	// 		auto &hit = dims.hitboxes[i];
+	// 		nite::setColor(nite::Color(1.0f, 0.5f, 0));
+	// 		nite::Draw::Rectangle(position - frameSize * 0.5f + hit.position, hit.size, false, nite::Vec2(0.0f), 0);
+	// 	}  
+	// 	nite::setColor(nite::Color(1.0f, 0.0f, 0.5f));	
+	// 	nite::Draw::Rectangle(position - frameSize * 0.5f , frameSize, false, nite::Vec2(0.0f), 0);
+	// }
 }
 
 void Game::FrameAnimation::clear(){

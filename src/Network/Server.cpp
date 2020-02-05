@@ -9,6 +9,22 @@ Game::Server::~Server(){
 
 }
 
+void Game::Server::preinit(){
+    nite::print("looking for tileset sources...");
+    Vector<String> tilesets;
+    String path = "./data/tileset/";
+    nite::fileFind(path, nite::Find::File, ".json", false, false, tilesets);
+    for(int i = 0; i < tilesets.size(); ++i){
+        Game::SvTilesetSource ts;
+        String fullpath = path+tilesets[i];
+        ts.hash = nite::hashFile(fullpath);
+        ts.path = fullpath;
+        ts.size = nite::fileSize(fullpath);
+        this->tilesets[ts.hash] = ts;
+    }
+    nite::print("found "+nite::toStr(tilesets.size())+" tileset source(s)");
+}
+
 void Game::Server::listen(UInt8 maxClients, UInt16 port){
     if(maxClients == 0){
         maxClients = 4;
@@ -40,17 +56,41 @@ Game::SvClient *Game::Server::getClient(const String &nick){
     return NULL;
 }
 
+void Game::Server::sendInfoPlayerList(UInt64 uid){
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        nite::print("failed to send player list to client '"+nite::toStr(uid)+"': it's not connected");
+        return;
+    }
+    UInt16 total = clients.size();
+    nite::Packet info(++cl->svOrder);
+    info.setHeader(Game::PacketType::SV_CLIENT_LIST);
+    info.write(&total, sizeof(UInt16));
+    for(auto cl : clients){
+        info.write(&cl.second.clientId, sizeof(UInt64));
+        info.write(&cl.second.ping, sizeof(UInt64));
+        info.write(cl.second.nickname);
+    }
+    persSend(cl->cl, info, 750, -1);
+}
+
 void Game::Server::dropClient(UInt64 uid, String reason){
     auto cl = this->getClient(uid);
     if(cl == NULL){
         nite::print("[server] cannot drop client "+nite::toStr(uid)+": it's not connected");
         return;
     }
-    nite::Packet drop(++cl->lastOrder);
+    nite::Packet drop(++cl->lastSentOrder);
     drop.setHeader(Game::PacketType::SV_CLIENT_DROP);
     drop.write(reason);
     sock.send(cl->cl, drop);
     removeClient(uid);
+    // notify client dropped to others
+    nite::Packet noti(++cl->svOrder);
+    noti.setHeader(Game::PacketType::SV_NOTI_CLIENT_DROP);
+    noti.write(&uid, sizeof(UInt64));
+    noti.write(reason);
+    persSendAll(noti, 750, -1);
 }
 
 void Game::Server::dropClient(UInt64 uid){
@@ -58,6 +98,7 @@ void Game::Server::dropClient(UInt64 uid){
 }
 
 void Game::Server::removeClient(UInt64 uid){
+    dropPersFor(uid);
     auto client = getClient(uid);
     if(!client){
         return;
@@ -79,25 +120,35 @@ void Game::Server::close(){
     for(int i = 0; i < ids.size(); ++i){
         dropClient(ids[i], "server closing down");
     }
-    this->init = false;
-    sock.close();
+    clear();
     nite::print("[server] closed server down");
 }
 
-void Game::Server::step(){
+void Game::Server::clear(){
+    this->init = false;
+    sock.close();
+    deliveries.clear();
+    clients.clear();
+    players.clear();
+    maps.clear();
+    tilesets.clear();
+    world.clear();
+}
+
+void Game::Server::update(){
     if(!init){
         return;
     }
     nite::IP_Port sender;
     nite::Packet handler;
     if(sock.recv(sender, handler)){
-        UInt64 netId = sender.address+sender.port;
+        UInt64 netId = sender.address+sender.port+sock.getSock();
         auto client = this->getClient(netId);
-        bool isLast = client && client->lastOrder > handler.getOrder();
+        bool isLast = client && handler.getOrder() > client->lastRecvOrder;
         if(client && isLast){
             client->lastPacketTimeout = nite::getTicks();
             client->lastPacket = handler;
-            client->lastOrder = handler.getOrder();
+            client->lastRecvOrder = handler.getOrder();
         }
         switch(handler.getHeader()){
             /*
@@ -137,7 +188,7 @@ void Game::Server::step(){
                 if(!client){
                     break;
                 }
-                nite::Packet pong(++client->lastOrder);
+                nite::Packet pong(++client->lastSentOrder);
                 pong.setHeader(Game::PacketType::SV_PONG);
                 sock.send(client->cl, pong);                
             } break;                             
@@ -147,7 +198,7 @@ void Game::Server::step(){
             case Game::PacketType::SV_CONNECT_REQUEST : {
                 nite::print("[server] incoming connection...");
                 if(clients.size() == maxClients){
-                    nite::Packet reject;
+                    nite::Packet reject((UInt32)0);
                     reject.setHeader(Game::PacketType::SV_CONNECT_REJECT);
                     reject.write("server is full");
                     nite::print("[server] rejected client "+nite::toStr(netId)+" : server full");
@@ -169,15 +220,35 @@ void Game::Server::step(){
                     cl.role = Game::SvClientRole::Player;
                     cl.cl = sender;
                     clients[netId] = cl;
-                    nite::Packet accepted(++cl.svOrder);
+                    nite::Packet accepted(++clients[netId].svOrder);
                     accepted.setHeader(Game::PacketType::SV_CONNECT_ACCEPT);
                     accepted.write(&netId, sizeof(UInt64));
-                    persSend(cl.cl, accepted);
-                    nite::print("[server] accepted clientId "+nite::toStr(netId)+" | nick '"+nick+"'");
+                    persSend(clients[netId].cl, accepted);
+                    nite::print("[server] accepted clientId "+nite::toStr(netId)+" | nickname '"+nick+"'");
+                    // notify clients someone joined
+                    nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
+                        nite::Packet notify;
+                        UInt64 *uid = static_cast<UInt64*>(ct.payload);
+                        auto &cl = clients[*uid];
+                        notify.setHeader(Game::PacketType::SV_CLIENT_JOIN);
+                        notify.write(&cl.clientId, sizeof(UInt64));
+                        notify.write(cl.nickname);
+                        persSendAll(notify, 750, -1);     
+                        sendInfoPlayerList(*uid);
+                        delete uid;
+                        ct.stop();                   
+                    }), 100, new UInt64(netId));
                 }
-                
             } break;           
         }
+    }
+
+    // refresh player info
+    if(nite::getTicks()-lastPlayerInfoSent > 1000){
+        lastPlayerInfoSent = nite::getTicks();
+        for(auto cl : clients){
+            sendInfoPlayerList(cl.first);
+        }        
     }
 
     // timeout
@@ -188,20 +259,91 @@ void Game::Server::step(){
         }
     }
     for(int i = 0; i < timedoutClients.size(); ++i){
-        removeClient(timedoutClients[i]);
+        dropClient(timedoutClients[i], "timeout");
         nite::print("[server] dropped clientId "+nite::toStr(timedoutClients[i])+": timeout");
     }
 
     // ping
     for(auto cl : clients){
         auto &client = clients[cl.first];
-        if(nite::getTicks()-client.lastPing > 1000){
+        if(nite::getTicks()-client.lastPing > 250){
             client.lastPing = nite::getTicks();
-            nite::Packet ping(++client.lastOrder);
+            nite::Packet ping(++client.lastSentOrder);
             ping.setHeader(Game::PacketType::SV_PING);
             sock.send(client.cl, ping);
         }
     }
-
+    
+    game();
     updateDeliveries();
+}
+
+void Game::Server::sendAll(nite::Packet packet){
+    for(auto cl : clients){
+        nite::Packet cpy = packet;
+        cpy.setOrder(++cl.second.lastSentOrder);
+        sock.send(cl.second.cl, cpy);
+    }
+}
+
+void Game::Server::persSendAll(nite::Packet packet, UInt64 timeout, int retries){
+    for(auto cl : clients){
+        nite::Packet cpy = packet;
+        cpy.setOrder(++cl.second.svOrder); // pers expect ack
+        persSend(cl.second.cl, cpy, timeout, retries);
+    }
+}
+
+void Game::Server::game(){
+
+}
+
+void Game::Server::setupGame(int maxClients, int maps){
+    if(maps <= 0){
+        maps = 1;
+    }
+    if(maxClients <= 0){
+        maxClients = 4;
+    }
+    nite::print("setting up game for "+nite::toStr(maxClients)+" players | "+nite::toStr(maps)+" maps");
+    Game::RING::TileSource src("data/tileset/dungeon.json");
+    // build maps
+    for(int i = 0; i < maps; ++i){
+        Shared<Game::RING::Blueprint> bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
+        Shared<Game::RING::Map> map = Shared<Game::RING::Map>(new Game::RING::Map());
+        bp->generate(35, 35);
+        map->build(bp, src, 3);
+        this->maps.push_back(map);
+    }
+    listen(maxClients,nite::NetworkDefaultPort);
+}
+
+void Game::Server::spawn(Shared<Game::NetObject> obj){
+    this->world.add(obj);
+}
+
+void Game::Server::destroy(UInt32 id){
+    if(world.exists(id)){
+
+    }
+}
+
+void Game::Server::destroy(Shared<Game::NetObject> obj){
+
+}
+
+Shared<Game::NetObject> Game::Server::createPlayer(Game::SvClient &cl, UInt32 lv){
+
+}
+
+Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
+
+}
+
+void Game::Server::killPlayer(UInt64 uid){
+
+}
+
+void Game::Server::killPlayer(Game::SvClient &cl){
+
 }

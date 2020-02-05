@@ -39,8 +39,8 @@ void flushFont();
 
 static void readConfigFile(){
 	nite::print("reading data/config.json file");
-  Jzon::Parser parser;
-  Jzon::Node node = parser.parseFile("data/config.json");
+	Jzon::Parser parser;
+	Jzon::Node node = parser.parseFile("data/config.json");
 	size = Vec2(node.get("width").toInt(), node.get("height").toInt());
 	bitsPerPixel	= node.get("bpp").toInt();
 	autoResolution = node.get("autoresolution").toBool();
@@ -621,7 +621,7 @@ void nite::Batch::unload(){
 	if (batches[objectId].owners.size() == 0){
 		batches[objectId].clear();
 	}
-  objectId = -1;	
+  	objectId = -1;	
 }
 
 nite::Batch& nite::Batch::operator= (const Batch &other){
@@ -942,8 +942,8 @@ void nite::dropFrame(){
 	nite::print("Drop frame request: "+nite::toStr(total)+" objects");
 }
 
-void nite::graphicsUpdate(){
-  currentDelta = nite::getTicks() - initDelta;
+void nite::graphicsRender(){
+  	currentDelta = nite::getTicks() - initDelta;
 	initDelta = nite::getTicks();
 
 	glClear(GL_COLOR_BUFFER_BIT);

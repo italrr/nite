@@ -6,44 +6,44 @@
 	#define GAME_MAX_ATK_RATE GAME_MAX_STAT * (3.85f + GAME_MAX_LEVEL * 0.15f) + GAME_MAX_STAT * (1.1f + GAME_MAX_LEVEL * 0.1f)
 
   	#include "Engine/Tools/Tools.hpp"
-  	#include "Engine/Object.hpp"
+  	#include "Network/Object.hpp"
   	#include "Engine/Texture.hpp"
   	#include "Engine/Animation.hpp"  
   	#include "Inventory.hpp"
-  
+
 	namespace Game {
 
 		namespace EntityStance {
-			static const unsigned Undefined = 999;
-			static const unsigned Neutral = 1;
-			static const unsigned Melee = 2;
-			static const unsigned KnockedBack = 3;
-			static const unsigned Gun = 4;
-			static const unsigned Cast = 5;
-			static const unsigned Bow = 6;
+			static const UInt8 Undefined = 255;
+			static const UInt8 Neutral = 1;
+			static const UInt8 Melee = 2;
+			static const UInt8 KnockedBack = 3;
+			static const UInt8 Gun = 4;
+			static const UInt8 Cast = 5;
+			static const UInt8 Bow = 6;
 		}
 
 		struct HealthStat {
-			int health;
-			int maxHealth;
-			int mana;
-			int maxMana;
-			int stamina;
-			int maxStamina;
-			int exp;
-			int currentExp;
-			int nextExp;
-			int lv;
+			UInt32 health; 
+			UInt32 maxHealth;
+			UInt32 mana;
+			UInt32 maxMana;
+			UInt32 stamina;
+			UInt32 maxStamina;
+			UInt32 exp;
+			UInt32 currentExp;
+			UInt32 nextExp;
+			UInt32 lv;
 		};
 
 		namespace BaseStatType {
-			static const unsigned Strength = 0;
-			static const unsigned Agility = 1;
-			static const unsigned Dexterity = 2;
-			static const unsigned Endurance = 3;
-			static const unsigned Luck = 4;
-			static const unsigned Intelligence = 5;
-			static const unsigned Charisma = 6;
+			static const UInt8 Strength = 0;
+			static const UInt8 Agility = 1;
+			static const UInt8 Dexterity = 2;
+			static const UInt8 Endurance = 3;
+			static const UInt8 Luck = 4;
+			static const UInt8 Intelligence = 5;
+			static const UInt8 Charisma = 6;
 			static String name(int id){
 				switch(id){
 					case Strength: 
@@ -65,24 +65,24 @@
 		}
 
 		struct BaseStat {
-			int strStat;
-			int agiStat;
-			int dexStat;
-			int enduStat;
-			int lukStat;
-			int intStat;
-			int charismaStat;
-			int statPoints;
+			UInt32 strStat;
+			UInt32 agiStat;
+			UInt32 dexStat;
+			UInt32 enduStat;
+			UInt32 lukStat;
+			UInt32 intStat;
+			UInt32 charismaStat;
+			UInt32 statPoints;
 			BaseStat();
 		};
 
 		struct ComplexStat { 
-			int carry;
-			int maxCarry;
-			int atk;
-			int magicAtk;
-			int def;
-			int magicDef;
+			UInt32 carry;
+			UInt32 maxCarry;
+			UInt32 atk;
+			UInt32 magicAtk;
+			UInt32 def;
+			UInt32 magicDef;
 			float critRate;
 			float atkRate;
 			float walkRate; // 'steps' per second
@@ -93,13 +93,13 @@
 		};
 
 		namespace EntityFacing {
-			static const unsigned Right = 0;
-			static const unsigned Left = 1;
+			static const UInt8 Right = 0;
+			static const UInt8 Left = 1;
 		};
 
 		struct FrameData {
 			nite::Vec2 index;
-			int n;
+			UInt32 n;
 			bool reversed;
 			bool vertical;
 			float speed;
@@ -160,24 +160,24 @@
 		
 		struct DamageInfo;
 		struct MeleeHitInformation;
-		struct Entity : nite::PhysicsObject, HealthStat, BaseStat, ComplexStat, Inventory {
+		struct Entity : Game::NetObject, HealthStat, BaseStat, ComplexStat, Inventory {
 			// Animations
-			unsigned animTopIdle;
-			unsigned animTopWalking;
-			unsigned animTopGunShoot;
-			unsigned animTopGunOnHand;
-			unsigned animTopCast;
-			unsigned animTopSwordSwinging;
-			unsigned animTopSwordOnHand;
-			unsigned animTopKnockback;
-			unsigned animBottomKnockback;
-			unsigned animBottomIdle;
-			unsigned animBottomWalking;
-			unsigned animCurrentTop;
-			unsigned animCurrentBottom;
+			UInt16 animTopIdle;
+			UInt16 animTopWalking;
+			UInt16 animTopGunShoot;
+			UInt16 animTopGunOnHand;
+			UInt16 animTopCast;
+			UInt16 animTopSwordSwinging;
+			UInt16 animTopSwordOnHand;
+			UInt16 animTopKnockback;
+			UInt16 animBottomKnockback;
+			UInt16 animBottomIdle;
+			UInt16 animBottomWalking;
+			UInt16 animCurrentTop;
+			UInt16 animCurrentBottom;
 			
 			// Walking Mechanic
-			int walkingLastStep;
+			UInt16 walkingLastStep;
 			UInt64 walkingTimeout;
 			UInt64 walkingStepTimeout;
 			bool isWalking;
@@ -187,17 +187,17 @@
 			bool isKnockedback;
 
 			// Sword Swing Mechanic
-			int swordSwingLastStep;
+			UInt16 swordSwingLastStep;
 			UInt64 swordSwingTimeout;
 			bool isSwordSwinging;
 
 			// Gun Shooting Mechanic
-			int gunShootLastStep;
+			UInt16 gunShootLastStep;
 			UInt64 gunShootTimeout;
 			bool isShootingGun;	
 
 			// Cast Mechanic	
-			int castLastStep;
+			UInt16 castLastStep;
 			UInt64 castTimeout;
 			bool isCasting;					
 			
@@ -207,35 +207,35 @@
 			nite::Animation entityAnim;
 			nite::Texture gunShootBang;
 			nite::Batch batch;
-			int faceDirection;
+			UInt8 faceDirection;
 			float baseScaleEntity;
 			bool dead;
 			float entityAlpha;
 			float walkPushRate;
 			String name;
-			int currentStance;
-			int lastStance;
-			void switchStance(int stance);
+			UInt8 currentStance;
+			UInt8 lastStance;
+			void switchStance(UInt8 stance);
 			void reverseStance();
 			void entityReloadAnimation();
 			void entityInit();
 			void entityStep();
-			void entityUseActiveSlot(int slotId);
+			void entityUseActiveSlot(UInt16 slotId);
 			void onActiveItemSwitch(Shared<Game::BaseItem> &item);
 			void recalculateHealthStats();
 			void recalculateComplexStats();
 			void printEntity();
 			void recalculateStats();
-			void resetStat(int type);
+			void resetStat(UInt8 type);
 			void knockback(float angle, float intensity);
-			int addBaseStat(int type, int amnt);
+			Int32 addBaseStat(UInt8 type, UInt32 amnt);
 			nite::Hitbox getMeleeHitbox();
 			void dealDamage(const Game::DamageInfo &dmg);
 			void throwMelee(Game::BaseEquip *_weap);
 			void shootBullet(Game::BaseEquip *_weap);
 			Game::MeleeHitInformation receiveMelee(nite::Hitbox &input);
 			void kill();
-			void setupEntity(int lv, float baseScale);
+			void setupEntity(UInt32 lv, float baseScale);
 			void fullHeal();
 			bool lvUp();
 			void onCreate();
@@ -259,10 +259,10 @@
 		};
 
 		struct DamageInfo {
-			Entity *subject;
-			Entity *owner;
-			int amount;
-			int element;
+			Game::Entity *subject;
+			Game::Entity *owner;
+			Int32 amount;
+			UInt8 element;
 			bool knockback;
 		};
 

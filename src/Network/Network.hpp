@@ -28,14 +28,20 @@
             an ACK [ORDER] is received, after that packet is dropped.
         */
 
+       /* 
+            the uniqueId (uid) or called as 'netId' is basically:
+            ip + port + sock
+            this is decided by the server
+       */
+
 
         struct PersisentDelivey {
             UInt64 retryInterval;
-            UInt64 timeout;
             int retries;
             int retry;
             nite::Packet packet;
             UInt32 order;
+            UInt64 netId;
             nite::IP_Port cl;
             UInt64 lastRetry;
             UInt64 created;
@@ -50,12 +56,16 @@
             Net();
             void setState(unsigned state);
             void persSend(nite::IP_Port &client, nite::Packet &packet);
-            void persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 timeout, int retries);  
+            void persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries);  
+            void dropPersFor(UInt64 netId);
             void updateDeliveries();       
             void ack(nite::Packet &packet);
-            void sendAck(nite::IP_Port &client, UInt32 order);
+            void sendAck(nite::IP_Port &client, UInt32 ackId, UInt32 order);
             virtual void step();
         };
+
+
+
 
         /*
             default packet types
@@ -98,9 +108,47 @@
             static const UInt16 SV_REMOTE_CMD_EXEC      = 8;  // ACK
             /*
                 STRING CMD
-            */            
-                                         
-
+            */
+            static const UInt16 SV_CREATE_OBJECT        = 9;  // ACK
+            /*
+                UINT32 ID
+                UINT8 TYPE
+                FLOAT x
+                FLOAT y
+            */               
+            static const UInt16 SV_DESTROY_OBJECT       = 10;  // ACK
+            /*
+                UINT32 ID
+            */           
+            static const UInt16 SV_CLIENT_LIST          = 11;  // ACK (including yourself)
+            /*
+                UINT16 NUMBER
+                0: {
+                    UINT64 UID(NETID)
+                    UINT64 PING
+                    STRING NICKNAME
+                }
+                ...
+                n: {
+                    UINT64 UID(NETID)
+                    UINT64 PING
+                    STRING NICKNAME
+                }
+            */                                                
+            static const UInt16 SV_NOTI_CLIENT_DROP      = 12;  // ACK
+            /*
+                UINT64 UID
+                STRING REASON
+            */           
+            static const UInt16 SV_BROADCAST_MESSAGE     = 13;  // ACK
+            /*
+                STRING MESSAGE
+            */ 
+            static const UInt16 SV_CLIENT_JOIN           = 14;  // ACK
+            /*
+                UINT64 UID(NETID)
+                STRING NICKNAME
+            */                    
         }
 
 

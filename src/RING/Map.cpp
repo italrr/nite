@@ -814,7 +814,7 @@ void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::
 
     allWalls.clear();
     mirror.clear();
-    nite::print("built RING map. time: "+nite::toStr(nite::getTicks() - initTime)+" msecs");
+    nite::print("built RING map | size "+nite::toStr(width)+"x"+nite::toStr(height)+"("+nite::toStr(this->size)+") | time: "+nite::toStr(nite::getTicks() - initTime)+" msecs");
 }
 
 void Game::RING::Map::draw(){

@@ -4,6 +4,7 @@
 #include "../../Game.hpp"
 
 static Vector<std::shared_ptr<nite::BaseUIComponent>> components;
+static Vector<nite::BaseUIComponent*> removeQueue;
 
 /////////////
 // COMMAND: ui_build

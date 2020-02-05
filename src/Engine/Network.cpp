@@ -77,6 +77,10 @@ nite::UDPSocket::~UDPSocket(){
 	}
 }
 
+Int32 nite::UDPSocket::getSock(){
+	return sock;
+}
+
 bool nite::UDPSocket::open(UInt16 port){
 	this->port = port;
 	if((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == INVALID_SOCKET){
@@ -145,7 +149,7 @@ bool nite::UDPSocket::send(const IP_Port &dest, char *data, size_t size){
 }
 
 bool nite::UDPSocket::send(const IP_Port &dest, nite::Packet &packet){
-	return send(dest, packet.data, packet.index);
+	return send(dest, packet.data, packet.maxSize);
 }
 
 bool nite::UDPSocket::recv(IP_Port &sender, char *buffer){

@@ -135,7 +135,7 @@
 		void graphicsInit();
 		void graphicsEnd();
 		bool isGraphicsInit();
-		void graphicsUpdate();
+		void graphicsRender();
 		float getGeneralScale();
 		void setColor(const nite::Color &color);
 		void setColor(float R, float G, float B, float A);

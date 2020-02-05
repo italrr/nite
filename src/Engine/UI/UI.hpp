@@ -10,12 +10,10 @@
     #include <memory>
 
     namespace nite {
-
         namespace UI {
             void add(std::shared_ptr<nite::BaseUIComponent> comp);
             void update();
             void render();
-            Vector<nite::BaseUIComponent*> removeQueue;
             void remove(nite::BaseUIComponent *comp);
 
             // builds a UI -anything- from a JSON file      

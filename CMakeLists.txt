@@ -180,7 +180,7 @@ set (nite_src
 		src/Engine/JSON/Jzon.cpp
 		src/Engine/Tools/Files.cpp
 		src/Engine/Tools/Hash.cpp
-		src/Engine/Tools/AsyncTask.cpp
+		src/Engine/Tools/StepTimer.cpp
 		src/Engine/Tools/Log.cpp
 		src/Engine/Tools/Math.cpp
 		src/Engine/Tools/AsyncTask.cpp
@@ -224,9 +224,10 @@ set(src_files
 	src/Network/Server.cpp
 	src/Network/Client.cpp
 	src/Network/Network.cpp
+	src/Network/Object.cpp
+	src/Network/World.cpp
 	# GENERAL #
 	src/Camera.cpp
-	src/Orchestrator.cpp
 	src/Entity.cpp
 	src/Player.cpp
 	src/Inventory.cpp

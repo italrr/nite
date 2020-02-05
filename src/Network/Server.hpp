@@ -2,7 +2,10 @@
     #define GAME_SERVER_HPP
 
     #include "Network.hpp"
-
+    #include "Object.hpp"
+    #include "World.hpp"
+    #include "../RING/Map.hpp"
+    
     namespace Game {
 
         namespace SvClientRole {
@@ -19,17 +22,29 @@
             unsigned role;
             nite::Packet lastPacket;
             UInt32 svOrder;    // id for packets that require an ACK from client
-            UInt32 lastOrder;  // packets with order less than this are dropped
+            UInt32 lastRecvOrder; 
+            UInt32 lastSentOrder;  
             UInt64 lastPing;    
             UInt64 lastPacketTimeout;
             SvClient(){
+                lastRecvOrder = 0;
+                lastSentOrder = 1;
                 svOrder = 0;
             }
         };
 
+        struct SvTilesetSource {
+            String path;
+            String hash;
+            size_t size;
+        };
+
         struct Server : Game::Net {
+            Dict<String, Game::SvTilesetSource> tilesets;
+            Game::NetWorld world;
             Dict<UInt64, Game::SvClient> clients;
             UInt8 maxClients;
+            UInt64 lastPlayerInfoSent;
             Server();
             ~Server();
             void removeClient(UInt64 uid);
@@ -37,9 +52,26 @@
             void dropClient(UInt64 uid, String reason);
             Game::SvClient *getClient(const String &nickname);
             Game::SvClient *getClient(UInt64 uid);
+            void persSendAll(nite::Packet packet, UInt64 timeout, int retries);
+            void sendAll(nite::Packet packet);
+            void preinit();
             void listen(UInt8 maxClients, UInt16 port);
-            void step();
+            void update();
             void close();
+            void clear();
+            void game();
+            // game
+            void sendInfoPlayerList(UInt64 uid);
+            Vector<UInt64> players;
+            Vector<Shared<Game::RING::Map>> maps;
+            void setupGame(int maxClients, int maps);
+            void spawn(Shared<Game::NetObject> obj);
+            void destroy(UInt32 id);
+            void destroy(Shared<Game::NetObject> obj);
+            Shared<Game::NetObject> createPlayer(Game::SvClient &cl, UInt32 lv);
+            Shared<Game::NetObject> createPlayer(UInt64 uid, UInt32 lv);
+            void killPlayer(UInt64 uid);
+            void killPlayer(Game::SvClient &cl);
         };
 
     }

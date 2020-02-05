@@ -50,13 +50,22 @@ void nite::AsyncTask::Context::step(){
 }
 
 Shared<nite::AsyncTask::Context> nite::AsyncTask::spawn(nite::AsyncTask::ALambda lambda){
-	return spawn(lambda, 0);
+	return spawn(lambda, 0, NULL);
+}
+
+Shared<nite::AsyncTask::Context> nite::AsyncTask::spawn(nite::AsyncTask::ALambda lambda, void *payload){
+	return spawn(lambda, 0, payload);
 }
 
 Shared<nite::AsyncTask::Context> nite::AsyncTask::spawn(nite::AsyncTask::ALambda lambda, UInt64 delayTime){
+	return spawn(lambda, delayTime, NULL);
+}
+
+Shared<nite::AsyncTask::Context> nite::AsyncTask::spawn(nite::AsyncTask::ALambda lambda, UInt64 delayTime, void *payload){
 	auto task = Shared<nite::AsyncTask::Context>(new nite::AsyncTask::Context());
 	task->lambda = lambda;
 	task->delayTime = delayTime;
+	task->payload = payload;
 	task->start();
 	pool.push_back(task);
 	return task;
