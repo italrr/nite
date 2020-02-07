@@ -1,5 +1,5 @@
-#ifndef GAME_SKILLS_HPP
-    #define GAME_SKILLS_HPP
+#ifndef GAME_SKILL_HPP
+    #define GAME_SKILL_HPP
 
     #include "Engine/Tools/Tools.hpp"
     #include "Entity.hpp"
@@ -75,7 +75,7 @@
             BA_BASH,            // stronger 'attack', only close range
             BA_DASH,
             BA_PARRY,
-            BA_FIRST_AID,       // theorically heals 25% of a lv 1 entity
+            BA_FIRST_AID,       // theorically heals 20% of a lv 1 entity *with less than 50% hp*, over 30 seconds
 
             // KNIGHT [KN] 
             KN_MASTERY_KNIGHT,
@@ -85,18 +85,29 @@
             // CLERIC [CL] 
             CL_MASTERY_CLERIC,
             CL_HEAL,
+            CL_ENCHANT_VISION,
             
             // RANGER [RE] 
             RE_MASTERY_RANGER,
+            RE_BOW_MASTERY,
+            RE_DIRECT_BLOW,
+            RE_VISION_TORCH,
             
             // BARD [BD] 
             BD_MASTERY_BARD,
+            BD_ENCORE,
+            BD_SING,
             
             // NECROMANCER [NE] 
             NE_MASTERY_NECROMANCER,
+            NE_SUMMON,
             
             // SORCERER [SO]
-            SO_MASTERY_SORCERER
+            SO_MASTERY_SORCERER,
+            SO_FIREBALL,
+            SO_PORTAL,
+            SO_TELEPORT,
+            SO_THUNDER_STRIKE
         };
 
         Game::Skill getSkill(UInt16 id, UInt8 lv);

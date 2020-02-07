@@ -23,6 +23,7 @@
             nite::IP_Port sv;
             UInt64 clientId;
             UInt64 serverId;
+            String serverName;
             String nickname;
             UInt64 ping;
             nite::Packet lastPacket;

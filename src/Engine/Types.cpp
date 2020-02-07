@@ -458,8 +458,15 @@ bool nite::Vec2::lerpDiscrete(const Vec2 &v, float step){
 	return false;
 }
 
+bool nite::Vec2::lerpAbsolute(const Vec2 &v, float step){
+	if (x == v.x && y == v.y) return true;
+	nite::lerpAbsolute(x, v.x, step);
+	nite::lerpAbsolute(y, v.y, step);
+	return false;
+}
+
 float nite::Vec2::avg(){
-	return (x * y) * 0.5f;
+	return (x + y) * 0.5f;
 }
 
 nite::Vec2::operator String(){

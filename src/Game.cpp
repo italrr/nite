@@ -54,7 +54,7 @@ int main(int argc, char* argv[]){
 	Game::Server sv;
 	
 	sv.preinit();
-	sv.setupGame(4, 1);
+	sv.setupGame("Pacifier's corner", 4, 1);
 
 	Game::Client cl;
 	cl.setup("pepper");

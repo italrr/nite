@@ -40,6 +40,7 @@
         };
 
         struct Server : Game::Net {
+            String name;
             Dict<String, Game::SvTilesetSource> tilesets;
             Game::NetWorld world;
             Dict<UInt64, Game::SvClient> clients;
@@ -56,7 +57,7 @@
             void sendAll(nite::Packet packet);
             void broadcast(const String &message);
             void preinit();
-            void listen(UInt8 maxClients, UInt16 port);
+            void listen(const String &name, UInt8 maxClients, UInt16 port);
             void update();
             void close();
             void clear();
@@ -65,7 +66,7 @@
             void sendInfoPlayerList(UInt64 uid);
             Vector<UInt64> players;
             Vector<Shared<Game::RING::Map>> maps;
-            void setupGame(int maxClients, int maps);
+            void setupGame(const String &name, int maxClients, int maps);
             void spawn(Shared<Game::NetObject> obj);
             void destroy(UInt32 id);
             void destroy(Shared<Game::NetObject> obj);

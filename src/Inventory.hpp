@@ -10,13 +10,15 @@
   namespace Game {
 
 	namespace Element {
-		static const unsigned Undefined = 999;
-		static const unsigned Neutral = 0;
-		static const unsigned Fire = 1;
-		static const unsigned Electric = 2;
-		static const unsigned Umbra = 3;
-		static const unsigned Steel = 4;
-		static const unsigned Emerium = 5;
+		enum Element : UInt8 {
+			Undefined = 0,
+			Neutral,
+			Fire,
+			Electric,
+			Umbra,
+			Steel,
+			Emerium,
+		};
 		static String name(int id){
 			switch(id){
 				case Neutral:
@@ -38,23 +40,39 @@
 	}
 
 	namespace ItemType {
-		static const unsigned Undefined = 999;
-		static const unsigned Equip = 0;
+		enum ItemType : UInt8 {
+			Undefined = 0,
+			Equip		
+		};
 	}
+
 	namespace EquipType {
-		static const unsigned Undefined = 999;
-		static const unsigned Sword = 0;
-		static const unsigned Gun = 1;
+		enum EquipType : UInt8 {
+			Undefined = 0,
+			Sword,
+			Gun
+		};
 	}	
+
 	namespace ItemEffectType {
-		static const unsigned Undefined = 999;
-		
-			
+		enum ItemEffectType : UInt8 {
+			Undefined = 0
+		};
 	}
+
+	namespace InventoryActiveSlot {
+		enum InventoryActiveSlot : UInt8 {
+			Undefined = 0,
+			Main,
+			Secondary
+		};
+	}	
+
 	struct ItemEffect {
 		int bias;
 		float amount;
 	};
+	
 	struct Inventory;
 	struct BaseItem {
 		int inCarryId;
@@ -98,6 +116,7 @@
 
 		}
 	};
+
 	struct BaseEquip : public Game::BaseItem {
 		nite::Animation equipAnim;
 		nite::Texture equipTexture;
@@ -119,12 +138,6 @@
 		}
 
 	};
-
-	namespace InventoryActiveSlot {
-		const static unsigned Undefined = 999;
-		const static unsigned Main = 0;
-		const static unsigned Secondary = 1;
-	}
 
 	struct Inventory {
 		int carrySeedIndex;

@@ -165,6 +165,7 @@ void Game::Client::update(){
                     this->serverId = netId;
                     this->connected = true;
                     handler.read(&clientId, sizeof(UInt64));
+                    handler.read(serverName);
                     Game::ClClient yourself;
                     yourself.uid = clientId;
                     yourself.nickname = nickname;

@@ -25,17 +25,18 @@ void Game::Server::preinit(){
     nite::print("found "+nite::toStr(tilesets.size())+" tileset source(s)");
 }
 
-void Game::Server::listen(UInt8 maxClients, UInt16 port){
+void Game::Server::listen(const String &name, UInt8 maxClients, UInt16 port){
     if(maxClients == 0){
         maxClients = 4;
     }
+    this->name = name;
     this->maxClients = maxClients;
     if(!sock.open(nite::NetworkDefaultPort)){
         nite::print("[server] failed to start server");
         return;
     }
     sock.setNonBlocking(true);
-    nite::print("[server] started server | max clients "+nite::toStr(this->maxClients)+" | listening at "+nite::toStr(port));
+    nite::print("[server] started server '"+name+"' | max clients "+nite::toStr(this->maxClients)+" | listening at "+nite::toStr(port));
     nite::print("[server] waiting for clients...");
     this->init = true;
 }
@@ -230,6 +231,7 @@ void Game::Server::update(){
                     nite::Packet accepted(++clients[netId].svOrder);
                     accepted.setHeader(Game::PacketType::SV_CONNECT_ACCEPT);
                     accepted.write(&netId, sizeof(UInt64));
+                    accepted.write(this->name);
                     persSend(clients[netId].cl, accepted);
                     nite::print("[server] accepted clientId "+nite::toStr(netId)+" | nickname '"+nick+"'");
                     // notify clients someone joined
@@ -341,7 +343,7 @@ void Game::Server::game(){
 
 }
 
-void Game::Server::setupGame(int maxClients, int maps){
+void Game::Server::setupGame(const String &name, int maxClients, int maps){
     if(maps <= 0){
         maps = 1;
     }
@@ -358,7 +360,7 @@ void Game::Server::setupGame(int maxClients, int maps){
         map->build(bp, src, 3);
         this->maps.push_back(map);
     }
-    listen(maxClients,nite::NetworkDefaultPort);
+    listen(name, maxClients,nite::NetworkDefaultPort);
 }
 
 void Game::Server::spawn(Shared<Game::NetObject> obj){

@@ -127,6 +127,7 @@
 			void set(float X, float Y);
 			bool lerp(const Vec2 &v, float step);
 			bool lerpDiscrete(const Vec2 &v, float step);
+			bool lerpAbsolute(const Vec2 &v, float step);
 			String str();
 			operator String();
 		};

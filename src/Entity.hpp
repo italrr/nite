@@ -14,44 +14,53 @@
 	namespace Game {
 
 		namespace EntityStance {
-			static const UInt8 Undefined = 255;
-			static const UInt8 Neutral = 1;
-			static const UInt8 Melee = 2;
-			static const UInt8 KnockedBack = 3;
-			static const UInt8 Gun = 4;
-			static const UInt8 Cast = 5;
-			static const UInt8 Bow = 6;
+			enum EntityStance : UInt8 {
+				Undefined = 0,
+				Neutral,
+				Melee,
+				KnockedBack,
+				Gun,
+				Cast,
+				Bow
+			};
 		}
 
-		enum EntityType : UInt8 {
-			Undefined = 0,
-			Humanoid,
-			Spectro,
-			Demon,
-			Undead
-		};
-
-		struct HealthStat {
-			UInt32 health; 
-			UInt32 maxHealth;
-			UInt32 mana;
-			UInt32 maxMana;
-			UInt32 stamina;
-			UInt32 maxStamina;
-			UInt32 exp;
-			UInt32 currentExp;
-			UInt32 nextExp;
-			UInt16 lv;
-		};
+		namespace EntityType {
+			enum EntityType : UInt8 {
+				Undefined = 0,
+				Humanoid,
+				Spectro,
+				Demon,
+				Angel,
+				Plant,
+				Insect,
+				Fish,
+				Mamal,
+				Undead
+			};
+		}
+		
+		namespace EntityClass {
+			enum EntityClass : UInt8 {
+				Undefined = 0,
+				Player,
+				Mob,
+				NPC,
+				Boss,
+				MiniBoss
+			};
+		}
 
 		namespace BaseStatType {
-			static const UInt8 Strength = 0;
-			static const UInt8 Agility = 1;
-			static const UInt8 Dexterity = 2;
-			static const UInt8 Endurance = 3;
-			static const UInt8 Luck = 4;
-			static const UInt8 Intelligence = 5;
-			static const UInt8 Charisma = 6;
+			enum BaseStatType : UInt8 {
+				Strength = 0,
+				Agility = 1,
+				Dexterity = 2,
+				Endurance = 3,
+				Luck = 4,
+				Intelligence = 5,
+				Charisma = 6
+			};
 			static String name(int id){
 				switch(id){
 					case Strength: 
@@ -70,7 +79,20 @@
 						return "Charisma";																						
 				}
 			}
-		}
+		}		
+
+		struct HealthStat {
+			UInt32 health; 
+			UInt32 maxHealth;
+			UInt32 mana;
+			UInt32 maxMana;
+			UInt32 stamina;
+			UInt32 maxStamina;
+			UInt32 exp;
+			UInt32 currentExp;
+			UInt32 nextExp;
+			UInt16 lv;
+		};
 
 		struct BaseStat {
 			UInt32 strStat;

@@ -92,6 +92,7 @@
             SV_CONNECT_ACCEPT,  // ACK
             /*
                 UINT64 CLIENTID 
+                STRING SVNAME
             */  
             SV_CONNECT_REJECT,  
             /*
