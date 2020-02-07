@@ -23,6 +23,14 @@
 			static const UInt8 Bow = 6;
 		}
 
+		enum EntityType : UInt8 {
+			Undefined = 0,
+			Humanoid,
+			Spectro,
+			Demon,
+			Undead
+		};
+
 		struct HealthStat {
 			UInt32 health; 
 			UInt32 maxHealth;
@@ -33,7 +41,7 @@
 			UInt32 exp;
 			UInt32 currentExp;
 			UInt32 nextExp;
-			UInt32 lv;
+			UInt16 lv;
 		};
 
 		namespace BaseStatType {
@@ -210,6 +218,7 @@
 			UInt8 faceDirection;
 			float baseScaleEntity;
 			bool dead;
+			UInt8 type;
 			float entityAlpha;
 			float walkPushRate;
 			String name;
@@ -235,7 +244,7 @@
 			void shootBullet(Game::BaseEquip *_weap);
 			Game::MeleeHitInformation receiveMelee(nite::Hitbox &input);
 			void kill();
-			void setupEntity(UInt32 lv, float baseScale);
+			void setupEntity(UInt16 lv, UInt8 type, float baseScale);
 			void fullHeal();
 			bool lvUp();
 			void onCreate();

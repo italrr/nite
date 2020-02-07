@@ -180,7 +180,7 @@ void Game::RING::Blueprint::generateMinimap(){
         nite::Vec2 p(offset + nite::Vec2(cell.x, cell.y) * scale);
         tex.draw(p.x, p.y, scale, scale, 0.0f, 0.0f, 0.0f);
     }
-    minimap.begin();
+    minimap.end();
     minimap.flush();
 }
 

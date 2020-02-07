@@ -196,48 +196,27 @@
 	}
 	/*
 	================
-	Async
+	Async (NOT THREADED)
+	TODO: make it threaded
 	================
 	*/	
 	namespace nite {
-
-		// class AsyncTask;
-		// typedef Lambda<void(nite::AsyncTask &context)> AsyncLambda;    
 		
-		// class AsyncTask {
-		// 	private:
-		// 		int id;
-		// 		nite::AsyncLambda lambda;
-		// 		int status;
-		// 		UInt64 startTime;
-		// 		UInt64 delayTime;
-		// 	public:
-		// 		AsyncTask();							
-		// 		int getStatus();
-		// 		void pause();
-		// 		void resume();
-		// 		void start();
-		// 		void stop();
-		// 		void step();
-		// 		Shared<nite::AsyncTask> spawn(nite::AsyncLambda lambda);
-		// 		Shared<nite::AsyncTask> spawn(nite::AsyncLambda lambda, UInt64 delayTime);
-		// };
-
 		namespace AsyncTask {
 
-			namespace State {
-				const static unsigned Idle = 0;
-				const static unsigned Running = 1;
-				const static unsigned Paused = 2;
-				const static unsigned Killed = 3;
-			}
+			enum State : UInt8 {
+				Idle = 0,
+				Running,
+				Paused,
+				Killed
+			};
 					
 			class Context;
 			typedef Lambda<void(nite::AsyncTask::Context &context)> ALambda;  
 			struct Context {
 					int id;
 					nite::AsyncTask::ALambda lambda;
-					int state;
+					UInt8 state;
 					UInt64 startTime;
 					UInt64 delayTime;
 					void *payload; // hacky, but practical. TODO: nicer way to do this?

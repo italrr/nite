@@ -75,6 +75,17 @@ void Game::Client::disconnect(const String &reason){
     clear();
 }
 
+void Game::Client::sendChatMsg(const String &msg){
+    if(!init || state != Game::NetState::Connected){
+        return;
+    }
+    nite::Packet pack(++svOrder);
+    pack.setHeader(Game::PacketType::SV_CHAT_MESSAGE);
+    pack.write(&clientId, sizeof(UInt64));
+    pack.write(msg);
+    persSend(sv, pack, 1500, 4);
+}
+
 void Game::Client::update(){
     // exit if no connection
     if(state == Game::NetState::Disconnected || !init){
@@ -193,7 +204,6 @@ void Game::Client::update(){
                 sendAck(sender, handler.getOrder(), ++sentOrder);
             } break;            
             /*
-
                 SV_CLIENT_LIST
             */
            case Game::PacketType::SV_CLIENT_LIST: {
@@ -209,6 +219,30 @@ void Game::Client::update(){
                }
                sendAck(this->sv, handler.getOrder(), ++sentOrder);
            } break;
+            /*
+                SV_BROADCAST_MESSAGE
+            */
+           case Game::PacketType::SV_BROADCAST_MESSAGE: {
+               String msg;
+               handler.read(msg);
+               nite::print(msg);
+               // TODO: add in-game notification for this message (and chat)
+               sendAck(this->sv, handler.getOrder(), ++sentOrder);
+           } break;   
+            /*
+                SV_CHAT_MESSAGE
+            */
+           case Game::PacketType::SV_CHAT_MESSAGE: {
+                UInt64 uid;
+                String msg;
+                handler.read(&uid, sizeof(UInt64));
+                handler.read(msg);
+                auto it = clients.find(uid);
+                String who = it != clients.end() ? it->second.nickname : "???";
+                nite::print(this->nickname+" ["+who+"] "+msg);
+                // TODO: add  in-game chat
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+           } break;                    
         }
     }
     // timeout

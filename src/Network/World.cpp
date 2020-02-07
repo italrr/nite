@@ -11,6 +11,7 @@ static int generateId(){
 Game::NetWorld::NetWorld(){
 	timescale = 1.0f;
 	debugPhysics = false;
+	objects.reserve(1000);
 }
 
 bool Game::NetWorld::exists(UInt32 id){

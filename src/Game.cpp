@@ -10,6 +10,7 @@ static Game::GameCore *instance = NULL;
 void Game::GameCore::start(){
 	instance = this;
 	nite::graphicsInit();
+	nite::inputInit();
 	isRunning = true;
 	stepGeneralTimer.name = "STEP GENERAL";
 	drawGeneralTimer.name = "DRAW GENERAL";
@@ -57,26 +58,37 @@ int main(int argc, char* argv[]){
 
 	Game::Client cl;
 	cl.setup("pepper");
+
+	// nite::UI::build("./ui.json");
 	nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
 		cl.connect("127.0.0.1", nite::NetworkDefaultPort);
 		ct.stop();
 	}), 1000);
 
+	// nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
+	// 	sv.close();
+	// 	ct.stop();
+	// }), 10000);	
 
-	Game::Client cl2;
-	cl2.setup("churro");
-	nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
-		cl2.connect("127.0.0.1", nite::NetworkDefaultPort);
-		ct.stop();
-	}), 3000);	
+	// Game::Client cl2;
+	// cl2.setup("churro");
+	// nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
+	// 	cl2.connect("127.0.0.1", nite::NetworkDefaultPort);
+	// 	ct.stop();
+	// }), 2000);
 
-	UInt64 t = nite::getTicks();
+	// nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
+	// 	cl.sendChatMsg("hello, friends");
+	// 	ct.stop();
+	// }), 10000);			
 
-	while(game.isRunning){
+	// UInt64 t = nite::getTicks();
+
+	static nite::Texture tex("./data/sprite/empty.png");
+	while(game.isRunning){			
 		sv.update();
 		cl.update();
-		if(nite::getTicks()-t < 10000)
-		cl2.update();
+		// cl2.update();
 		game.update();
 		game.render();
 	}

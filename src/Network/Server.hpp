@@ -8,18 +8,18 @@
     
     namespace Game {
 
-        namespace SvClientRole {
-            static const unsigned Player = 0;
-            static const unsigned Mod = 1;
-            static const unsigned Admin = 2;
-        }
+        enum SvClientRole : UInt8 {
+            Player = 0,
+            Mod,
+            Admin
+        };
 
         struct SvClient {
             nite::IP_Port cl;
             String nickname;
             UInt64 clientId;
             UInt64 ping;
-            unsigned role;
+            UInt8 role;
             nite::Packet lastPacket;
             UInt32 svOrder;    // id for packets that require an ACK from client
             UInt32 lastRecvOrder; 
@@ -54,6 +54,7 @@
             Game::SvClient *getClient(UInt64 uid);
             void persSendAll(nite::Packet packet, UInt64 timeout, int retries);
             void sendAll(nite::Packet packet);
+            void broadcast(const String &message);
             void preinit();
             void listen(UInt8 maxClients, UInt16 port);
             void update();

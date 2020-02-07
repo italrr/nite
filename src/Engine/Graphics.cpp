@@ -559,8 +559,8 @@ static void drawBatch(nite::Renderable *object){
 
 void nite::addRenderList(Renderable *object){
 	if(currentBatch != NULL){
-	object->target = nite::RenderTargetDummy;
-	currentBatch->add(object);
+		object->target = nite::RenderTargetDummy;
+		currentBatch->add(object);
 		return;
 	}
 	object->target = target;
@@ -943,11 +943,12 @@ void nite::dropFrame(){
 }
 
 void nite::graphicsRender(){
+
   	currentDelta = nite::getTicks() - initDelta;
 	initDelta = nite::getTicks();
 
 	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(0, 0, 0, 1);
+	glClearColor(1, 1, 1, 1);
 	for(int c = 0; c < RenderTargetNumber; ++c){
 		if(targets[c].objects.size() == 0) continue;
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targets[c].objectId);
@@ -975,8 +976,9 @@ void nite::graphicsRender(){
 	flushTexture();
 	flushFont();
 	SDL_GL_SwapWindow(Window);
+
 	nite::Console::render();
-	nite::UI::render();
+	nite::UI::render();	
 }
 
 static void gameExit(){
@@ -1000,6 +1002,7 @@ static auto cfQuitIns = nite::Console::CreateFunction("quit", &cfExit);
 static Vector<String> parameters;
 #include <iostream>
 #include <string.h>
+  // TODO: fix this
 static void cfRestart(Vector<String> params){
 	nite::print("restarting...");
    gameExit();
@@ -1122,7 +1125,7 @@ void nite::graphicsInit(){
   }
 
 	nite::print("nite engine | OS "+niteCurrentPlatform);
-	nite::print("graphics init "+size.str()+" ("+(enableFullscreen ? String("Fullscreen") : String("Windowed"))+")");
+	nite::print("graphics init "+size.str()+" ("+(enableFullscreen ? String("fullscreen") : String("windowed"))+")");
 
 }
 

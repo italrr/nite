@@ -5,11 +5,11 @@
 
     namespace Game {
         
-        namespace NetState {
-            static const unsigned Disconnected = 0;
-            static const unsigned Connecting = 1;
-            static const unsigned Connected = 2;
-        }        
+        enum NetState: UInt32 {
+            Disconnected = 0,
+            Connecting,
+            Connected
+        };      
 
         static const UInt32 RetryTimeOutInterval = 60; 
         static const UInt64 ClientTimeout = 1000 * 10;
@@ -73,54 +73,54 @@
             ACK comment declares packets that need an ACK from the receiver.
             Every other packet flows using lastOrder.
         */
-        namespace PacketType {
-            static const UInt16 SV_ACK                  = 0;
+        enum PacketType : UInt16 {
+           SV_ACK = 0,
             /*
                 UINT32 ORDER
             */
-            static const UInt16 SV_PING                 = 1;
+            SV_PING,
             /*
             */
-            static const UInt16 SV_PONG                 = 2;
+            SV_PONG,
             /*
             */                         
-            static const UInt16 SV_CONNECT_REQUEST      = 3;
+            SV_CONNECT_REQUEST,
             /*
                 UINT32  CLIENTVERSION
                 STRING  NICKNAME
             */
-            static const UInt16 SV_CONNECT_ACCEPT       = 4;  // ACK
+            SV_CONNECT_ACCEPT,  // ACK
             /*
                 UINT64 CLIENTID 
             */  
-            static const UInt16 SV_CONNECT_REJECT       = 5;  
+            SV_CONNECT_REJECT,  
             /*
                 STRING REASON
             */  
-            static const UInt16 SV_CLIENT_DROP          = 6;  
+            SV_CLIENT_DROP,  
             /*
                 STRING REASON (OPTIONAL)
             */    
-            static const UInt16 SV_CLIENT_DISCONNECT    = 7; 
+            SV_CLIENT_DISCONNECT, 
             /*
                 STRING REASON (OPTIONAL)
             */     
-            static const UInt16 SV_REMOTE_CMD_EXEC      = 8;  // ACK
+            SV_REMOTE_CMD_EXEC,  // ACK
             /*
                 STRING CMD
             */
-            static const UInt16 SV_CREATE_OBJECT        = 9;  // ACK
+            SV_CREATE_OBJECT,  // ACK
             /*
                 UINT32 ID
                 UINT8 TYPE
                 FLOAT x
                 FLOAT y
             */               
-            static const UInt16 SV_DESTROY_OBJECT       = 10;  // ACK
+            SV_DESTROY_OBJECT,  // ACK
             /*
                 UINT32 ID
             */           
-            static const UInt16 SV_CLIENT_LIST          = 11;  // ACK (including yourself)
+            SV_CLIENT_LIST,  // ACK (including yourself)
             /*
                 UINT16 NUMBER
                 0: {
@@ -135,21 +135,26 @@
                     STRING NICKNAME
                 }
             */                                                
-            static const UInt16 SV_NOTI_CLIENT_DROP      = 12;  // ACK
+            SV_NOTI_CLIENT_DROP,  // ACK
             /*
                 UINT64 UID
                 STRING REASON
             */           
-            static const UInt16 SV_BROADCAST_MESSAGE     = 13;  // ACK
+            SV_BROADCAST_MESSAGE,  // ACK
             /*
                 STRING MESSAGE
             */ 
-            static const UInt16 SV_CLIENT_JOIN           = 14;  // ACK
+            SV_CLIENT_JOIN,  // ACK
             /*
                 UINT64 UID(NETID)
                 STRING NICKNAME
-            */                    
-        }
+            */
+            SV_CHAT_MESSAGE  // ACK
+            /*
+                UINT64 UID
+                STRING MESSAGE
+            */                                       
+        };
 
 
     }

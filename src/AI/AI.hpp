@@ -8,14 +8,14 @@
 
     namespace AI {
 
-      namespace Type {
-        static const unsigned Idle = 0;
-        static const unsigned Offensive = 1;
-        static const unsigned Defensive = 2;
-        static const unsigned Sentinel = 3;
-        static const unsigned Gather = 4;
-			  static const unsigned Undefined = 999;        
-      }
+      enum Type : UInt8 {
+        Idle = 0,
+        Offensive,
+        Defensive,
+        Sentinel,
+        Gather,
+			  Undefined    
+      };
 
       struct BaseBehavior {
         UInt64 behaviorTimeout;

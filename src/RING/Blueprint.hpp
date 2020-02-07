@@ -8,15 +8,15 @@
 
         namespace RING {
 
-            namespace RoomType {
-                static const int Normal = 0;
+            enum RoomType : UInt8 {
+                Normal = 0
 
-            }
+            };
 
-            namespace CellType {
-                static const int Wall = 0;
-                static const int Path = 1;
-            }
+            enum CellType : UInt8 {
+                Wall = 0,
+                Path
+            };
 
             struct Room {
                 int x;

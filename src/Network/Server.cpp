@@ -111,6 +111,7 @@ void Game::Server::close(){
     if(!init){
         return;
     }
+    broadcast("server is closing down");
     nite::print("[server] closing server down...");
     nite::print("[server] dropping clients...");
     Vector<UInt32> ids;
@@ -121,7 +122,7 @@ void Game::Server::close(){
         dropClient(ids[i], "server closing down");
     }
     clear();
-    nite::print("[server] closed server down");
+    broadcast("[server] closed server down");
 }
 
 void Game::Server::clear(){
@@ -179,7 +180,13 @@ void Game::Server::update(){
                     reason = "no reason";
                 }
                 nite::print("[server] disconnected clientId "+nite::toStr(netId)+": "+reason);
-                removeClient(netId);             
+                removeClient(netId);   
+                // notify client dropped to others
+                nite::Packet noti;
+                noti.setHeader(Game::PacketType::SV_NOTI_CLIENT_DROP);
+                noti.write(&netId, sizeof(UInt64));
+                noti.write(reason);
+                persSendAll(noti, 750, -1);                                      
             } break;                  
             /*
                 SV_PING
@@ -239,7 +246,22 @@ void Game::Server::update(){
                         ct.stop();                   
                     }), 100, new UInt64(netId));
                 }
-            } break;           
+            } break; 
+            /*
+                SV_CHAT_MESSAGE
+            */             
+            case Game::PacketType::SV_CHAT_MESSAGE: {
+                if(!client){
+                    break;
+                }
+                sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
+                UInt64 uid;
+                String msg;
+                handler.read(&uid, sizeof(UInt64));
+                handler.read(msg);
+                nite::print("SERVER ["+client->nickname+"] "+msg);
+                persSendAll(handler, 1500, 4);
+            } break;                               
         }
     }
 
@@ -273,12 +295,15 @@ void Game::Server::update(){
             sock.send(client.cl, ping);
         }
     }
-    
+
     game();
     updateDeliveries();
 }
 
 void Game::Server::sendAll(nite::Packet packet){
+    if(!init){
+        return;
+    }    
     for(auto cl : clients){
         nite::Packet cpy = packet;
         cpy.setOrder(++cl.second.lastSentOrder);
@@ -287,11 +312,29 @@ void Game::Server::sendAll(nite::Packet packet){
 }
 
 void Game::Server::persSendAll(nite::Packet packet, UInt64 timeout, int retries){
+    if(!init){
+        return;
+    }    
     for(auto cl : clients){
         nite::Packet cpy = packet;
         cpy.setOrder(++cl.second.svOrder); // pers expect ack
         persSend(cl.second.cl, cpy, timeout, retries);
     }
+}
+
+void Game::Server::broadcast(const String &message){
+    if(message.length() == 0){
+        nite::print("[server] cannot broadcast an empty message");
+        return;
+    }
+    if(!init){
+        return;
+    }
+    nite::Packet msg;
+    msg.setHeader(Game::PacketType::SV_BROADCAST_MESSAGE);
+    msg.write(message);
+    nite::print("[BROADCAST] "+message);
+    persSendAll(msg, 750, 4);
 }
 
 void Game::Server::game(){
@@ -305,7 +348,7 @@ void Game::Server::setupGame(int maxClients, int maps){
     if(maxClients <= 0){
         maxClients = 4;
     }
-    nite::print("setting up game for "+nite::toStr(maxClients)+" players | "+nite::toStr(maps)+" maps");
+    nite::print("[server] setting up game for "+nite::toStr(maxClients)+" players | "+nite::toStr(maps)+" maps");
     Game::RING::TileSource src("data/tileset/dungeon.json");
     // build maps
     for(int i = 0; i < maps; ++i){

@@ -133,7 +133,7 @@ bool nite::UDPSocket::setNonBlocking(bool m){
 	return false;
 }
 
-bool nite::UDPSocket::send(const IP_Port &dest, char *data, size_t size){
+size_t nite::UDPSocket::send(const IP_Port &dest, char *data, size_t size){
 	if (!opened){
 		return false;
 	}
@@ -145,14 +145,14 @@ bool nite::UDPSocket::send(const IP_Port &dest, char *data, size_t size){
 	if(s > 0){
 		Sx += s;
 	}
-	return s == size;
+	return s;
 }
 
-bool nite::UDPSocket::send(const IP_Port &dest, nite::Packet &packet){
+size_t nite::UDPSocket::send(const IP_Port &dest, nite::Packet &packet){
 	return send(dest, packet.data, packet.maxSize);
 }
 
-bool nite::UDPSocket::recv(IP_Port &sender, char *buffer){
+size_t nite::UDPSocket::recv(IP_Port &sender, char *buffer){
 	sockaddr_in from;
 	socklen_t as = sizeof(sockaddr);
 	ssize_t s = recvfrom(sock, buffer, NetworkMaxPacketSize, 0, (sockaddr*)&from, &as); // TODO: add proper error handling
@@ -162,10 +162,12 @@ bool nite::UDPSocket::recv(IP_Port &sender, char *buffer){
 	if(s > 0){
 		Sx += s;
 	}
-	return s >= 0;
+	return s;
 }
 
-bool nite::UDPSocket::recv(IP_Port &sender, nite::Packet &buffer){
+size_t nite::UDPSocket::recv(IP_Port &sender, nite::Packet &buffer){
 	buffer.reset();
-	return recv(sender, buffer.data);
+	size_t s = recv(sender, buffer.data);
+	buffer.maxSize = s;
+	return s;
 }

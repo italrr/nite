@@ -35,10 +35,10 @@
 				void close();
 				bool isOpen();
 				bool setNonBlocking(bool m);
-				bool send(const IP_Port &dest, char *data, size_t size);
-				bool send(const IP_Port &dest, nite::Packet &packet);
-				bool recv(IP_Port &sender, char *buffer);
-				bool recv(IP_Port &sender, nite::Packet &buffer);
+				size_t send(const IP_Port &dest, char *data, size_t size);
+				size_t send(const IP_Port &dest, nite::Packet &packet);
+				size_t recv(IP_Port &sender, char *buffer);
+				size_t recv(IP_Port &sender, nite::Packet &buffer);
 		};
 
 	}

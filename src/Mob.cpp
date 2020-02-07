@@ -10,7 +10,7 @@ void Game::BasicMob::onCreate(){
   dead = false;
   walkPushRate = 5.0f;
   name = "Mob Type";
-  setupEntity(50, 1.0f);
+  setupEntity(50, Game::EntityType::Humanoid, 1.0f);
   entityInit();
   addBaseStat(BaseStatType::Strength, 0);
   addBaseStat(BaseStatType::Agility, 100);

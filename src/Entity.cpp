@@ -644,11 +644,12 @@ void Game::Entity::reverseStance(){
 	lastStance = w;
 }
 
-void Game::Entity::setupEntity(UInt32 lv, float baseScale){
+void Game::Entity::setupEntity(UInt16 lv, UInt8 type, float baseScale){
   this->lv = 0;
   this->baseScaleEntity = baseScale;
   this->exp = 0;
   this->dead = false;
+  this->type = type;
   this->statPoints = 12;
   while(this->lv < lv && lvUp());
   fullHeal();

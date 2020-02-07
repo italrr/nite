@@ -41,6 +41,7 @@
             void setup(const String &nickname);
             void update();
             void clear();
+            void sendChatMsg(const String &msg);
         };
 
 

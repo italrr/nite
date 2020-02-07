@@ -227,6 +227,7 @@ set(src_files
 	src/Network/Object.cpp
 	src/Network/World.cpp
 	# GENERAL #
+	src/Skills.cpp
 	src/Camera.cpp
 	src/Entity.cpp
 	src/Player.cpp
