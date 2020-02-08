@@ -2,6 +2,7 @@
     #define GAME_CLIENT_HPP
     
     #include "Network.hpp"   
+    #include "Object.hpp"
 
     namespace Game {
 
@@ -20,6 +21,7 @@
 
         struct Client : Game::Net {
             Dict<UInt64, Game::ClClient> clients;
+            Dict<UInt32, Shared<Game::NetObject>> world;
             nite::IP_Port sv;
             UInt64 clientId;
             UInt64 serverId;
@@ -41,6 +43,8 @@
             void connect();
             void setup(const String &nickname);
             void update();
+            void game();
+            void render();
             void clear();
             void sendChatMsg(const String &msg);
         };

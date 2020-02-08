@@ -16,6 +16,7 @@
 			Fire,
 			Electric,
 			Umbra,
+			Light,
 			Steel,
 			Emerium,
 		};
@@ -28,7 +29,9 @@
 				case Electric:
 					return "Electric";
 				case Umbra:
-					return "Umbra";		
+					return "Umbra";	
+				case Light:
+					return "Light";							
 				case Steel:
 					return "Steel";			
 				case Emerium:
@@ -72,7 +75,7 @@
 		int bias;
 		float amount;
 	};
-	
+
 	struct Inventory;
 	struct BaseItem {
 		int inCarryId;

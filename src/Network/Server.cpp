@@ -1,5 +1,7 @@
 #include "Server.hpp"
 #include "../Engine/Tools/Tools.hpp"
+#include "../Entity.hpp"
+#include "../Player.hpp"
 
 Game::Server::Server(){
     this->init = false;
@@ -363,13 +365,34 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
     listen(name, maxClients,nite::NetworkDefaultPort);
 }
 
-void Game::Server::spawn(Shared<Game::NetObject> obj){
-    this->world.add(obj);
+            //SV_CREATE_OBJECT,  // ACK
+            /*
+                UINT16 ID
+                UINT16 SIGID
+                FLOAT x
+                FLOAT y
+            */    
+
+UInt16 Game::Server::spawn(Shared<Game::NetObject> obj){
+    auto id = this->world.add(obj);
+    nite::Packet crt;
+    crt.setHeader(Game::PacketType::SV_CREATE_OBJECT);
+    crt.write(&id, sizeof(UInt16));
+    crt.write(&obj->sigId, sizeof(UInt16));
+    crt.write(&obj->position.x, sizeof(float));
+    crt.write(&obj->position.y, sizeof(float));
+    persSendAll(crt, 1000, -1);
+    return id;
 }
 
 void Game::Server::destroy(UInt32 id){
     if(world.exists(id)){
-
+        auto &obj = world.objects[id];
+        nite::Packet des;
+        des.setHeader(Game::PacketType::SV_DESTROY_OBJECT);
+        des.write(&id, sizeof(UInt32));
+        obj->destroy();
+        persSendAll(des, 1000, -1);
     }
 }
 
@@ -378,10 +401,19 @@ void Game::Server::destroy(Shared<Game::NetObject> obj){
 }
 
 Shared<Game::NetObject> Game::Server::createPlayer(Game::SvClient &cl, UInt32 lv){
+    // auto player = Shared<Game::NetObject>(new Player());
 
 }
 
 Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
+
+}
+
+void Game::Server::removePlayer(UInt64 uid){
+
+}
+
+void Game::Server::removePlayer(Game::SvClient &cl){
 
 }
 

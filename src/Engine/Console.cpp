@@ -168,7 +168,7 @@ void nite::Console::render(){
     static const auto lh = font.getHeight() + 2;
     static const float cheight = lh * (showLineNumber + 1);
     static const nite::Vec2 offPosition(0.0f, -cheight);
-    position.lerpAbsolute(opened ? nite::Vec2(0.0f) : offPosition, 0.18f);
+    position.lerpAbsolute(opened ? nite::Vec2(0.0f) : offPosition, 0.42f);
     if(position.y == offPosition.y){
         return;
     }

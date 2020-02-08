@@ -1,4 +1,5 @@
 #include "../Engine/Tools/Tools.hpp"
+#include "../Engine/Graphics.hpp"
 #include "Client.hpp"
 
 Game::Client::Client() : Game::Net(){
@@ -18,6 +19,7 @@ void Game::Client::clear(){
     connected = false;
     sock.close();
     clients.clear();
+    world.clear();
     deliveries.clear();
     setState(Game::NetState::Disconnected); 
 }
@@ -113,18 +115,14 @@ void Game::Client::update(){
                 SV_PONG
             */      
             case Game::PacketType::SV_PONG: {
-                if(!isSv){
-                    break;
-                }
+                if(!isSv){ break; }  
                 this->ping = nite::getTicks() - this->lastPing;           
             } break;             
             /*
                 SV_PING
             */             
             case Game::PacketType::SV_PING: {
-                if(!isSv){
-                    break;
-                }
+                if(!isSv){ break; }     
                 nite::Packet pong(++sentOrder);
                 pong.setHeader(Game::PacketType::SV_PONG);
                 sock.send(this->sv, pong);                
@@ -133,9 +131,7 @@ void Game::Client::update(){
                 SV_CLIENT_DROP
             */             
             case Game::PacketType::SV_CLIENT_DROP: {
-                if(!isSv){
-                    break;
-                }
+                if(!isSv){ break; }  
                 String reason;
                 handler.read(reason);
                 if(reason.length() == 0){
@@ -179,6 +175,7 @@ void Game::Client::update(){
                 SV_CLIENT_JOIN
             */
             case Game::PacketType::SV_CLIENT_JOIN: {
+                if(!isSv){ break; }             
                 UInt64 uid;
                 String nick;
                 handler.read(&uid, sizeof(UInt64));
@@ -192,6 +189,7 @@ void Game::Client::update(){
                 SV_NOTI_CLIENT_DROP
             */
             case Game::PacketType::SV_NOTI_CLIENT_DROP: {
+                if(!isSv){ break; }               
                 UInt64 uid;
                 String reason;
                 handler.read(&uid, sizeof(UInt64));
@@ -207,33 +205,36 @@ void Game::Client::update(){
             /*
                 SV_CLIENT_LIST
             */
-           case Game::PacketType::SV_CLIENT_LIST: {
-               clients.clear();
-               UInt16 n;
-               handler.read(&n, sizeof(UInt16));
-               for(int i = 0; i < n; ++i){
+            case Game::PacketType::SV_CLIENT_LIST: {
+                if(!isSv){ break; }                
+                clients.clear();
+                UInt16 n;
+                handler.read(&n, sizeof(UInt16));
+                for(int i = 0; i < n; ++i){
                     Game::ClClient player;           
                     handler.read(&player.uid, sizeof(UInt64));
                     handler.read(&player.ping, sizeof(UInt64));
                     handler.read(player.nickname);  
                     clients[player.uid] = player;
-               }
-               sendAck(this->sv, handler.getOrder(), ++sentOrder);
-           } break;
+                }
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+            } break;
             /*
                 SV_BROADCAST_MESSAGE
             */
-           case Game::PacketType::SV_BROADCAST_MESSAGE: {
-               String msg;
-               handler.read(msg);
-               nite::print(msg);
-               // TODO: add in-game notification for this message (and chat)
-               sendAck(this->sv, handler.getOrder(), ++sentOrder);
-           } break;   
+            case Game::PacketType::SV_BROADCAST_MESSAGE: {
+                if(!isSv){ break; }              
+                String msg;
+                handler.read(msg);
+                nite::print(msg);
+                // TODO: add in-game notification for this message (and chat)
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+            } break;   
             /*
                 SV_CHAT_MESSAGE
             */
            case Game::PacketType::SV_CHAT_MESSAGE: {
+                if(!isSv){ break; }               
                 UInt64 uid;
                 String msg;
                 handler.read(&uid, sizeof(UInt64));
@@ -241,9 +242,62 @@ void Game::Client::update(){
                 auto it = clients.find(uid);
                 String who = it != clients.end() ? it->second.nickname : "???";
                 nite::print(this->nickname+" ["+who+"] "+msg);
-                // TODO: add  in-game chat
+                // TODO: add in-game chat
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
-           } break;                    
+           } break; 
+
+            /*
+                SV_CREATE_OBJECT
+            */
+            case Game::PacketType::SV_CREATE_OBJECT: {
+                if(!isSv){ break; }      
+                UInt16 id;
+                UInt16 sigId;
+                float x, y;
+                handler.read(&id, sizeof(UInt16));
+                handler.read(&sigId, sizeof(Int16));
+                handler.read(&x, sizeof(float));
+                handler.read(&y, sizeof(float));
+                auto obj = createNetObject(id, sigId, x, y);
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                if(obj.get() == NULL){
+                    nite::print("server requested creation of undefined obj sig "+nite::toStr(sigId)+" on the client");
+                    break;
+                }
+                if(world.find(id) != world.end()){
+                    nite::print("server requested creation of obj with a duplicated id '"+nite::toStr(sigId)+"'");
+                    // TODO: come up with a way to properly handle duplicated ids?
+                    break;
+                }
+                obj->onCreate();
+                world[id] = obj;
+                nite::print("spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+nite::toStr(sigId)+" at "+nite::Vec2(x, y).str());
+            } break;
+            /*
+                SV_DESTROY_OBJECT
+            */
+            case Game::PacketType::SV_DESTROY_OBJECT: {
+                if(!isSv){ break; }  
+                UInt16 id;
+                handler.read(&id, sizeof(UInt16));
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                auto obj = world.find(id);
+                if(obj == world.end()){
+                    nite::print("server requested destruction of unexisting entity id: "+nite::toStr(id));
+                    break;
+                }
+                world.erase(obj);
+            } break;
+            /* 
+                UNKNOWN
+            */
+           default: {
+                if(!isSv){ break; }  
+               nite::print("unknown packet type '"+nite::toStr(handler.getHeader())+"'");
+           } break;
+        
+
+
         }
     }
     // timeout
@@ -266,4 +320,20 @@ void Game::Client::update(){
         return;
     }
     updateDeliveries();
+    game();
 }
+
+void Game::Client::game(){
+    // TODO: catch input
+    // TODO: update objs anim
+}
+
+void Game::Client::render(){
+    nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+    nite::setRenderTarget(nite::RenderTargetGame);
+    nite::setDepth(nite::DepthMiddle);
+    for(auto &obj : world){
+        obj.second->draw();
+    }
+}
+

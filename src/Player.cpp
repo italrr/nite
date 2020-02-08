@@ -121,6 +121,8 @@ void Game::Player::onCreate(){
   dead = false;
   walkPushRate = 5.0f;
   name = "Player Type";
+  objType = Game::ObjectType::Entity;
+  sigId = Game::ObjectSig::Player;
   setupEntity(50, Game::EntityType::Humanoid, 1.0f);
   entityInit();
   addBaseStat(BaseStatType::Strength, 25);

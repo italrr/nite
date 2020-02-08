@@ -7,21 +7,49 @@
     namespace Game {
 
         namespace ObjectType {
-            static const UInt8 Base     = 0;
-            static const UInt8 Entity   = 1;
-            static const UInt8 Mob      = 2; // It's same as mob, but slightly modified
-            static const UInt8 Prop     = 3;
+            enum ObjectType : UInt8 {
+                Base,
+                Entity,
+                Prop
+            };
+            static String name(UInt16 type){
+                switch(type){
+                    case Base:
+                        return "Base";
+                    case Entity:
+                        return "Entity";
+                    case Prop:
+                        return "Prop";
+                    default:
+                        return "Undefined";
+                }
+            }            
+        }
+
+        namespace ObjectSig {
+            enum ObjectSig :  UInt16 {
+                Player = 0
+            };
+            static String name(UInt16 sig){
+                switch(sig){
+                    case Player:
+                        return "Player";
+                    default:
+                        return "Undefined";
+                }
+            }
         }
 
         struct NetWorld;
         struct NetObject : nite::PhysicsObject {
-            UInt32 id;
-            UInt8 type;
+            UInt16 id;
+            UInt8 objType;
+            UInt16 sigId;
             Game::NetWorld *container;
             nite::Packet nextPacket;  
         };
 
-        Shared<Game::NetObject> createNetObject(UInt8 type);
+        Shared<Game::NetObject> createNetObject(UInt16 id, UInt16 sig, float x, float y);
 
     }
 

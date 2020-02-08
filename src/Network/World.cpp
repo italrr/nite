@@ -24,6 +24,7 @@ UInt32 Game::NetWorld::add(Shared<Game::NetObject> obj){
 	obj->id = id;
 	obj->container = this;
 	obj->onCreate();
+	return id;
 }
 
 void Game::NetWorld::clear(){

@@ -74,56 +74,54 @@
             Every other packet flows using lastOrder.
         */
         enum PacketType : UInt16 {
-           SV_ACK = 0,
+            SV_ACK = 0,
             /*
                 UINT32 ORDER
             */
+            
             SV_PING,
             /*
             */
+            
             SV_PONG,
             /*
             */                         
+            
             SV_CONNECT_REQUEST,
             /*
                 UINT32  CLIENTVERSION
                 STRING  NICKNAME
             */
+            
             SV_CONNECT_ACCEPT,  // ACK
             /*
                 UINT64 CLIENTID 
                 STRING SVNAME
             */  
+            
             SV_CONNECT_REJECT,  
             /*
                 STRING REASON
             */  
+            
             SV_CLIENT_DROP,  
             /*
                 STRING REASON (OPTIONAL)
             */    
+            
             SV_CLIENT_DISCONNECT, 
             /*
                 STRING REASON (OPTIONAL)
             */     
+            
             SV_REMOTE_CMD_EXEC,  // ACK
             /*
                 STRING CMD
-            */
-            SV_CREATE_OBJECT,  // ACK
-            /*
-                UINT32 ID
-                UINT8 TYPE
-                FLOAT x
-                FLOAT y
-            */               
-            SV_DESTROY_OBJECT,  // ACK
-            /*
-                UINT32 ID
-            */           
+            */        
+            
             SV_CLIENT_LIST,  // ACK (including yourself)
             /*
-                UINT16 NUMBER
+                UINT16 AMOUNT
                 0: {
                     UINT64 UID(NETID)
                     UINT64 PING
@@ -136,25 +134,75 @@
                     STRING NICKNAME
                 }
             */                                                
+            
             SV_NOTI_CLIENT_DROP,  // ACK
             /*
                 UINT64 UID
                 STRING REASON
             */           
+            
             SV_BROADCAST_MESSAGE,  // ACK
             /*
                 STRING MESSAGE
             */ 
+            
             SV_CLIENT_JOIN,  // ACK
             /*
                 UINT64 UID(NETID)
                 STRING NICKNAME
             */
-            SV_CHAT_MESSAGE  // ACK
+            
+            SV_CHAT_MESSAGE,  // ACK
             /*
                 UINT64 UID
                 STRING MESSAGE
-            */                                       
+            */  
+            
+            SV_ENTITY_COUNT,  // ACK
+            /*
+                UINT16 AMOUNT
+            */
+
+            SV_CREATE_OBJECT,  // ACK
+            /*
+                UINT16 ID
+                UINT16 SIGID
+                FLOAT x
+                FLOAT y
+            */               
+
+            SV_DESTROY_OBJECT,  // ACK
+            /*
+                UINT16 ID
+            */
+            
+            SV_CREATE_BATCH_OBJECT, // ACK
+            /*
+                UINT16 AMOUNT
+                0: {
+                    UINT16 ID
+                    UINT16 SIGID
+                    FLOAT x
+                    FLOAT y
+                }
+                ...
+                n: {
+                    UINT16 ID
+                    UINT16 SIGID
+                    FLOAT x
+                    FLOAT y
+                }                
+            */    
+
+            SV_DESTROY_BATCH_OBJECT, // ACK
+            /*
+                UINT16 AMOUNT
+                0: UINT16 ID[0]
+                ...
+                n: UINT16 ID[n]             
+            */ 
+
+
         };
 
 

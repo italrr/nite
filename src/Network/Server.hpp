@@ -67,11 +67,13 @@
             Vector<UInt64> players;
             Vector<Shared<Game::RING::Map>> maps;
             void setupGame(const String &name, int maxClients, int maps);
-            void spawn(Shared<Game::NetObject> obj);
+            UInt16 spawn(Shared<Game::NetObject> obj);
             void destroy(UInt32 id);
             void destroy(Shared<Game::NetObject> obj);
             Shared<Game::NetObject> createPlayer(Game::SvClient &cl, UInt32 lv);
             Shared<Game::NetObject> createPlayer(UInt64 uid, UInt32 lv);
+            void removePlayer(UInt64 uid);
+            void removePlayer(Game::SvClient &cl);
             void killPlayer(UInt64 uid);
             void killPlayer(Game::SvClient &cl);
         };

@@ -296,27 +296,27 @@ static void cfEntityStatReset(Vector<String> params){
 static auto cfEntityStatResetIns = nite::Console::CreateFunction("ent_statreset", &cfEntityStatReset); 
 
 Game::ComplexStat::ComplexStat() {
-  maxCarry = 25;
-  walkRate = 0.25f;
-  atk = 0;
-  magicAtk = 0;
-  def = 0;
-  magicDef = 0; 
-  critRate = 0;
-  atkRate = 0;
-  precsRate = 0;
-  persuasionRate = 0;
-  charmRate = 0;
+	maxCarry = 25;
+	walkRate = 0.25f;
+	atk = 0;
+	magicAtk = 0;
+	def = 0;
+	magicDef = 0; 
+	critRate = 0;
+	atkRate = 0;
+	precsRate = 0;
+	persuasionRate = 0;
+	charmRate = 0;
 }
 
 Game::BaseStat::BaseStat(){
-  strStat = 0;
-  agiStat = 0;
-  dexStat = 0;
-  enduStat = 0;
-  lukStat = 0;
-  intStat = 0;
-  charismaStat = 0;
+	strStat = 0;
+	agiStat = 0;
+	dexStat = 0;
+	enduStat = 0;
+	lukStat = 0;
+	intStat = 0;
+	charismaStat = 0;
 }
 
 void Game::Entity::onActiveItemSwitch(Shared<Game::BaseItem> &item){
@@ -389,53 +389,52 @@ void Game::Entity::entityUseActiveSlot(UInt16 slotId){
 }
 
 void Game::Entity::entityStep(){
-  nite::lerp(entityAlpha, dead ? 0.0f : 100.0f, 0.25f);
-  dims.update();
-  
+	nite::lerp(entityAlpha, dead ? 0.0f : 100.0f, 0.25f);
+	dims.update();
+
 	// TODO: Proper death sequence
-  if(dead){
+	if(dead){
 		destroy();
 		return;
 	}
-  
-  // Alive tasks
-  if(health <= 0){
-    kill();
-  }		
 
-  auto fixStance = [&](){
-	if(currentStance == Game::EntityStance::Neutral){
+	// Alive tasks
+	if(health <= 0){
+		kill();
+	}		
+
+	auto fixStance = [&](){
+		if(currentStance == Game::EntityStance::Neutral){
 			animCurrentTop = animTopIdle;
 			animCurrentBottom = animBottomIdle;
-	  }
-	  if(currentStance == Game::EntityStance::Melee){
+		}
+		if(currentStance == Game::EntityStance::Melee){
 			animCurrentTop = animTopSwordSwinging;
 			animCurrentBottom = animBottomIdle;
-	  }
-	  if(currentStance == Game::EntityStance::Gun){
+		}
+		if(currentStance == Game::EntityStance::Gun){
 			animCurrentTop = animTopGunOnHand;
 			animCurrentBottom = animBottomIdle;
-	  }	  
-	  if(currentStance == Game::EntityStance::KnockedBack){
+		}	  
+		if(currentStance == Game::EntityStance::KnockedBack){
 			animCurrentTop = animTopKnockback;
 			animCurrentBottom = animBottomKnockback;
-			
-	  }	  
-  };
-	
-  fixStance();
-  int acvslot = Game::InventoryActiveSlot::Main;
-  // Knockback
-  if(isKnockedback && currentStance == Game::EntityStance::KnockedBack){
-	  animCurrentTop = animTopKnockback;
-	  animCurrentBottom = animBottomKnockback;	  
-	  if(nite::getTicks() - knockbackTimeout > 200){
-		  isKnockedback = false;
-		  reverseStance();
-	  }
-  }else
-  // Sword Swinging & Hand hold state
-  if(isSwordSwinging && currentStance == Game::EntityStance::Melee){
+		}	  
+	};
+
+	fixStance();
+	int acvslot = Game::InventoryActiveSlot::Main;
+	// Knockback
+	if(isKnockedback && currentStance == Game::EntityStance::KnockedBack){
+		animCurrentTop = animTopKnockback;
+		animCurrentBottom = animBottomKnockback;	  
+		if(nite::getTicks() - knockbackTimeout > 200){
+			isKnockedback = false;
+			reverseStance();
+		}
+	}else
+	// Sword Swinging & Hand hold state
+	if(isSwordSwinging && currentStance == Game::EntityStance::Melee){
 		animCurrentTop = animTopSwordSwinging;
 		int _rate = atkRate / 35.0f;
 		UInt64 nextStepTimeout = dims.faSwordForward.frames[swordSwingLastStep % dims.faSwordForward.frames.size()].time;
@@ -458,12 +457,12 @@ void Game::Entity::entityStep(){
 		}
 		entityAnim.setManualClicking(animTopSwordSwinging, true);
 		entityAnim.setFrame(animTopSwordSwinging, swordSwingLastStep % entityAnim.animations[animTopSwordSwinging].index.size());
-  }else
-  if(!isSwordSwinging && currentStance == Game::EntityStance::Melee){
+	}else
+	if(!isSwordSwinging && currentStance == Game::EntityStance::Melee){
 		animCurrentTop = animTopSwordOnHand;
-  }else
-  // Shoot shooting & Hand hold state
-  if(isShootingGun && currentStance == Game::EntityStance::Gun){
+	}else
+	// Shoot shooting & Hand hold state
+	if(isShootingGun && currentStance == Game::EntityStance::Gun){
 		animCurrentTop = animTopGunShoot;
 		int _rate = atkRate / 35.0f; // shoot speed, might consider another stat for this
 		auto &frame = dims.faGunShoot.frames[gunShootLastStep % dims.faGunShoot.frames.size()];
@@ -484,68 +483,68 @@ void Game::Entity::entityStep(){
 		}
 		entityAnim.setManualClicking(animTopGunShoot, true);
 		entityAnim.setFrame(animTopGunShoot, gunShootLastStep % entityAnim.animations[animTopGunShoot].index.size());
-  }else
-  if(!isShootingGun && currentStance == Game::EntityStance::Gun){
+	}else
+	if(!isShootingGun && currentStance == Game::EntityStance::Gun){
 		animCurrentTop = animTopGunOnHand;
-  }
+	}
 
-  // Walking State
-  if(!isKnockedback && isWalking){
-    animCurrentBottom = animBottomWalking;
-    if(nite::getTicks()-walkingStepTimeout > nite::timescaled(128 - walkRate * 2.0)){
-      walkingStepTimeout = nite::getTicks();
-      ++walkingLastStep;
-    }
-    if(nite::getTicks()-walkingTimeout > nite::timescaled(64)){
-      isWalking = false;
-    }
-    entityAnim.setManualClicking(animBottomWalking, true);
-    entityAnim.setFrame(animBottomWalking, walkingLastStep % entityAnim.animations[animBottomWalking].index.size());	
-  }
+	// Walking State
+	if(!isKnockedback && isWalking){
+		animCurrentBottom = animBottomWalking;
+		if(nite::getTicks()-walkingStepTimeout > nite::timescaled(128 - walkRate * 2.0)){
+			walkingStepTimeout = nite::getTicks();
+			++walkingLastStep;
+		}
+		if(nite::getTicks()-walkingTimeout > nite::timescaled(64)){
+			isWalking = false;
+		}
+		entityAnim.setManualClicking(animBottomWalking, true);
+		entityAnim.setFrame(animBottomWalking, walkingLastStep % entityAnim.animations[animBottomWalking].index.size());	
+	}
 }
 
 void Game::Entity::recalculateHealthStats(){
-  this->maxHealth = nite::ceil((12.5f + enduStat * 1.5f)  * baseScaleEntity * lv);
-  this->maxMana = nite::ceil((4.5f + intStat * 0.5f) * baseScaleEntity * lv);
-  this->maxStamina = nite::ceil((1.9f + dexStat * 0.35f + enduStat * 0.15f) * baseScaleEntity * lv);
+	this->maxHealth = nite::ceil((12.5f + enduStat * 1.5f)  * baseScaleEntity * lv);
+	this->maxMana = nite::ceil((4.5f + intStat * 0.5f) * baseScaleEntity * lv);
+	this->maxStamina = nite::ceil((1.9f + dexStat * 0.35f + enduStat * 0.15f) * baseScaleEntity * lv);
 }
 
 void Game::Entity::recalculateComplexStats(){
-  this->maxCarry = 25 + nite::ceil(strStat * baseScaleEntity * 4.0f + enduStat * baseScaleEntity * 2.0f);
-  this->atk = nite::ceil(strStat * 8.5f + enduStat * 1.2f);
-  this->magicAtk = nite::ceil(intStat * 8.5f);
-  this->def = nite::ceil(enduStat * 5.8f + lv * 0.7f);
-  this->magicDef = nite::ceil(intStat * 4.5f + enduStat * 1.2f);		
-  this->walkRate = nite::ceil(0.18f * agiStat); 
-  this->critRate = (float)lukStat / (float)GAME_MAX_STAT;
-  this->precsRate = dexStat * 1.25f;
-  this->atkRate = agiStat * (3.85f + lv * 0.15f) + dexStat * (1.1f + lv * 0.1f);
-  this->persuasionRate = nite::ceil(0.45f * lv + charismaStat * 5.96f + intStat * 2.25f);
-  this->charmRate = nite::ceil(0.5f * lv + charismaStat * 5.96f);
+	this->maxCarry = 25 + nite::ceil(strStat * baseScaleEntity * 4.0f + enduStat * baseScaleEntity * 2.0f);
+	this->atk = nite::ceil(strStat * 8.5f + enduStat * 1.2f);
+	this->magicAtk = nite::ceil(intStat * 8.5f);
+	this->def = nite::ceil(enduStat * 5.8f + lv * 0.7f);
+	this->magicDef = nite::ceil(intStat * 4.5f + enduStat * 1.2f);		
+	this->walkRate = nite::ceil(0.18f * agiStat); 
+	this->critRate = (float)lukStat / (float)GAME_MAX_STAT;
+	this->precsRate = dexStat * 1.25f;
+	this->atkRate = agiStat * (3.85f + lv * 0.15f) + dexStat * (1.1f + lv * 0.1f);
+	this->persuasionRate = nite::ceil(0.45f * lv + charismaStat * 5.96f + intStat * 2.25f);
+	this->charmRate = nite::ceil(0.5f * lv + charismaStat * 5.96f);
 }
 
 void Game::Entity::printEntity(){
-  #define str nite::toStr
+	#define str nite::toStr
 	String ms = str(GAME_MAX_STAT);
-  nite::print("ID "+str(id)+" | Name: "+name+" | LV "+str(lv)+" | Carry "+str(this->maxCarry));
-  nite::print("HP "+str(maxHealth)+" | Mana "+str(maxMana)+" | Stamina "+str(maxStamina)+" | StatPoints "+str(statPoints));
-  nite::print("Str "+str(strStat)+"/"+ms+" | Agi "+str(agiStat)+"/"+ms+
+	nite::print("ID "+str(id)+" | Name: "+name+" | LV "+str(lv)+" | Carry "+str(this->maxCarry));
+	nite::print("HP "+str(maxHealth)+" | Mana "+str(maxMana)+" | Stamina "+str(maxStamina)+" | StatPoints "+str(statPoints));
+	nite::print("Str "+str(strStat)+"/"+ms+" | Agi "+str(agiStat)+"/"+ms+
 	" | Dex "+str(dexStat)+"/"+ms+" | Endurance "+str(enduStat)+"/"+ms+
 	"| Luk "+str(lukStat)+"/"+ms+" | Int "+str(intStat)+"/"+ms+
 	" | Char "+str(charismaStat)+"/"+ms);
-  nite::print("Atk "+str(this->atk)+" "+"MAtk "+str(this->magicAtk)+" "+"Def "+str(this->def)+" "+"MDef "+str(this->magicDef));
-  nite::print("WalkRate "+str(this->walkRate));
-  nite::print("CritRate "+str(this->critRate));
-  nite::print("PrecsRate "+str(this->precsRate));
-  nite::print("AtkRate "+str(this->atkRate));
-  nite::print("CharmRate "+str(this->charmRate));
-  nite::print("PersuasionRate "+str(this->persuasionRate));    
-  #undef str
+	nite::print("Atk "+str(this->atk)+" "+"MAtk "+str(this->magicAtk)+" "+"Def "+str(this->def)+" "+"MDef "+str(this->magicDef));
+	nite::print("WalkRate "+str(this->walkRate));
+	nite::print("CritRate "+str(this->critRate));
+	nite::print("PrecsRate "+str(this->precsRate));
+	nite::print("AtkRate "+str(this->atkRate));
+	nite::print("CharmRate "+str(this->charmRate));
+	nite::print("PersuasionRate "+str(this->persuasionRate));    
+	#undef str
 }
 
 void Game::Entity::recalculateStats(){
-  recalculateHealthStats();
-  recalculateComplexStats();
+	recalculateHealthStats();
+	recalculateComplexStats();
 }
 
 void Game::Entity::resetStat(UInt8 type){
@@ -577,50 +576,50 @@ void Game::Entity::resetStat(UInt8 type){
 }
 
 Int32 Game::Entity::addBaseStat(UInt8 type, UInt32 amnt){
-  Int32 toAdd = 0;
-  auto inc = [&](UInt32 &target){
-	int toRest = statPoints;
-	// handle remaining points
-	if(amnt <= toRest){
-	  toAdd +=  amnt;
-	  toRest -= amnt;
-	}else{
-	  toAdd = toRest;
-	  toRest = 0;
+	Int32 toAdd = 0;
+	auto inc = [&](UInt32 &target){
+		int toRest = statPoints;
+		// handle remaining points
+		if(amnt <= toRest){
+			toAdd +=  amnt;
+			toRest -= amnt;
+		}else{
+			toAdd = toRest;
+			toRest = 0;
+		}
+		// handle excess points
+		if(toAdd + target > GAME_MAX_STAT){
+			toAdd = GAME_MAX_STAT - target;
+			toRest = statPoints - toAdd;
+		}
+		statPoints = toRest;
+		target += toAdd;
+	};
+	switch(type){
+		case BaseStatType::Strength:{
+			inc(strStat);
+		} break;
+		case BaseStatType::Agility:{
+			inc(agiStat);
+		} break;
+		case BaseStatType::Dexterity:{
+			inc(dexStat);
+		} break;
+		case BaseStatType::Endurance:{
+			inc(enduStat);
+		} break;
+		case BaseStatType::Luck:{
+			inc(lukStat);
+		} break;
+		case BaseStatType::Intelligence:{
+			inc(intStat);
+		} break;
+		case BaseStatType::Charisma:{
+			inc(charismaStat);
+		} break;
 	}
-	// handle excess points
-	if(toAdd + target > GAME_MAX_STAT){
-		toAdd = GAME_MAX_STAT - target;
-		toRest = statPoints - toAdd;
-	}
-	statPoints = toRest;
-	target += toAdd;
-  };
-  switch(type){
-    case BaseStatType::Strength:{
-		inc(strStat);
-    } break;
-    case BaseStatType::Agility:{
-		inc(agiStat);
-    } break;
-    case BaseStatType::Dexterity:{
-	  	inc(dexStat);
-    } break;
-    case BaseStatType::Endurance:{
-	  	inc(enduStat);
-    } break;
-    case BaseStatType::Luck:{
-	  	inc(lukStat);
-    } break;
-    case BaseStatType::Intelligence:{
-	  	inc(intStat);
-	} break;
-	case BaseStatType::Charisma:{
-		inc(charismaStat);
-	} break;
-  }
-  recalculateStats();
-  return toAdd;
+	recalculateStats();
+	return toAdd;
 }
 
 void Game::Entity::kill(){
@@ -645,40 +644,40 @@ void Game::Entity::reverseStance(){
 }
 
 void Game::Entity::setupEntity(UInt16 lv, UInt8 type, float baseScale){
-  this->lv = 0;
-  this->baseScaleEntity = baseScale;
-  this->exp = 0;
-  this->dead = false;
-  this->type = type;
-  this->statPoints = 12;
-  while(this->lv < lv && lvUp());
-  fullHeal();
-  entityAlpha = 0.0f;
+	this->lv = 0;
+	this->baseScaleEntity = baseScale;
+	this->exp = 0;
+	this->dead = false;
+	this->type = type;
+	this->statPoints = 12;
+	while(this->lv < lv && lvUp());
+	fullHeal();
+	entityAlpha = 0.0f;
 }
 
 void Game::Entity::fullHeal(){
-  health = maxHealth;
-  mana = maxMana;
-  stamina = maxStamina;
+	health = maxHealth;
+	mana = maxMana;
+	stamina = maxStamina;
 }
 
 bool Game::Entity::lvUp(){
-  if(lv >= GAME_MAX_LEVEL){
-    return false;
-  }
-  ++lv;
-  this->statPoints += 6;
-  this->exp = 0;
-  this->nextExp = nite::ceil((lv + 1) * baseScaleEntity * 250);
-  return true;
+	if(lv >= GAME_MAX_LEVEL){
+		return false;
+	}
+	++lv;
+	this->statPoints += 6;
+	this->exp = 0;
+	this->nextExp = nite::ceil((lv + 1) * baseScaleEntity * 250);
+	return true;
 }
 
 void Game::FrameData::parse(const Jzon::Node &node){
-  index.set(node.get("index").get("x").toFloat(), node.get("index").get("y").toFloat());
-  n = node.get("n").toInt();
-  reversed = node.get("reversed").toBool();
-  vertical = node.get("vertical").toBool();
-  speed = node.get("speed").toFloat();
+	index.set(node.get("index").get("x").toFloat(), node.get("index").get("y").toFloat());
+	n = node.get("n").toInt();
+	reversed = node.get("reversed").toBool();
+	vertical = node.get("vertical").toBool();
+	speed = node.get("speed").toFloat();
 }
 
 bool Game::AnimationData::load(const String &path){
