@@ -5,13 +5,13 @@ using namespace nite;
 
 static int generateId(){
 	static UInt32 seed = nite::randomInt(25, 50);
-	return ++seed;
+	return ++seed; // networld ids are never to be 0. so a response with 0 means error
 }
 
 Game::NetWorld::NetWorld(){
 	timescale = 1.0f;
 	debugPhysics = false;
-	objects.reserve(1000);
+	objects.reserve(5000);
 }
 
 bool Game::NetWorld::exists(UInt32 id){

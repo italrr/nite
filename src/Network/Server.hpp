@@ -5,19 +5,24 @@
     #include "Object.hpp"
     #include "World.hpp"
     #include "../RING/Map.hpp"
+    #include "Input.hpp"
     
     namespace Game {
 
-        enum SvClientRole : UInt8 {
-            Player = 0,
-            Mod,
-            Admin
-        };
+        namespace SvClientRole {
+            enum SvClientRole : UInt8 {
+                Player = 0,
+                Mod,
+                Admin
+            };
+        }
 
         struct SvClient {
             nite::IP_Port cl;
+            Game::InputSimulator input;
             String nickname;
             UInt64 clientId;
+            UInt32 entityId;
             UInt64 ping;
             UInt8 role;
             nite::Packet lastPacket;
@@ -30,6 +35,7 @@
                 lastRecvOrder = 0;
                 lastSentOrder = 1;
                 svOrder = 0;
+                entityId = 0;
             }
         };
 
@@ -64,18 +70,14 @@
             void game();
             // game
             void sendInfoPlayerList(UInt64 uid);
-            Vector<UInt64> players;
+            Dict<UInt64, UInt16> players;
             Vector<Shared<Game::RING::Map>> maps;
             void setupGame(const String &name, int maxClients, int maps);
-            UInt16 spawn(Shared<Game::NetObject> obj);
-            void destroy(UInt32 id);
-            void destroy(Shared<Game::NetObject> obj);
-            Shared<Game::NetObject> createPlayer(Game::SvClient &cl, UInt32 lv);
+            Shared<Game::NetObject> spawn(Shared<Game::NetObject> obj);
+            bool destroy(UInt32 id);
             Shared<Game::NetObject> createPlayer(UInt64 uid, UInt32 lv);
-            void removePlayer(UInt64 uid);
-            void removePlayer(Game::SvClient &cl);
-            void killPlayer(UInt64 uid);
-            void killPlayer(Game::SvClient &cl);
+            bool removePlayer(UInt64 uid);
+            bool killPlayer(UInt64 uid);
         };
 
     }

@@ -164,7 +164,7 @@ size_t nite::UDPSocket::recv(IP_Port &sender, char *buffer){
 	}
 	return s;
 }
-
+	
 size_t nite::UDPSocket::recv(IP_Port &sender, nite::Packet &buffer){
 	buffer.reset();
 	size_t s = recv(sender, buffer.data);

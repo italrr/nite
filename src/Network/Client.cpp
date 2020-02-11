@@ -261,17 +261,17 @@ void Game::Client::update(){
                 auto obj = createNetObject(id, sigId, x, y);
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 if(obj.get() == NULL){
-                    nite::print("server requested creation of undefined obj sig "+nite::toStr(sigId)+" on the client");
+                    nite::print("[client] server requested creation of undefined obj sig "+nite::toStr(sigId)+" on the client");
                     break;
                 }
                 if(world.find(id) != world.end()){
-                    nite::print("server requested creation of obj with a duplicated id '"+nite::toStr(sigId)+"'");
+                    nite::print("[client] server requested creation of obj with a duplicated id '"+nite::toStr(sigId)+"'");
                     // TODO: come up with a way to properly handle duplicated ids?
                     break;
                 }
                 obj->onCreate();
                 world[id] = obj;
-                nite::print("spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+nite::toStr(sigId)+" at "+nite::Vec2(x, y).str());
+                nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+nite::toStr(sigId)+" at "+nite::Vec2(x, y).str());
             } break;
             /*
                 SV_DESTROY_OBJECT
@@ -283,7 +283,7 @@ void Game::Client::update(){
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 auto obj = world.find(id);
                 if(obj == world.end()){
-                    nite::print("server requested destruction of unexisting entity id: "+nite::toStr(id));
+                    nite::print("[client] server requested destruction of unexisting entity id: "+nite::toStr(id));
                     break;
                 }
                 world.erase(obj);
@@ -293,7 +293,7 @@ void Game::Client::update(){
             */
            default: {
                 if(!isSv){ break; }  
-               nite::print("unknown packet type '"+nite::toStr(handler.getHeader())+"'");
+               nite::print("[client] unknown packet type '"+nite::toStr(handler.getHeader())+"'");
            } break;
         
 
@@ -307,7 +307,7 @@ void Game::Client::update(){
         return;
     }
     // // ping
-    if(nite::getTicks()-lastPing > 250){
+    if(nite::getTicks()-lastPing > 500){
         lastPing = nite::getTicks();
         nite::Packet ping(++sentOrder);
         ping.setHeader(Game::PacketType::SV_PING);
@@ -324,7 +324,21 @@ void Game::Client::update(){
 }
 
 void Game::Client::game(){
-    // TODO: catch input
+    input.update();
+    auto buffer = input.getBuffer();
+    if(buffer.size() > 0){
+        nite::Packet input(++sentOrder);
+        input.setHeader(Game::PacketType::SV_CLIENT_INPUT);        
+        UInt8 amnt = buffer.size();
+        input.write(&amnt, sizeof(UInt8));
+        for(int i = 0; i < buffer.size(); ++i){
+            input.write(&buffer[i].key, sizeof(UInt8));
+            input.write(&buffer[i].type, sizeof(UInt8));
+            input.write(&buffer[i].lastStroke, sizeof(UInt8));
+        }
+        sock.send(this->sv, input);
+    }
+
     // TODO: update objs anim
 }
 

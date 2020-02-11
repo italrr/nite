@@ -89,6 +89,7 @@ int main(int argc, char* argv[]){
 		sv.update();
 		cl.update();
 		// cl2.update();
+		cl.render();
 		game.update();
 		game.render();
 	}

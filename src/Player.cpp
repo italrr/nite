@@ -123,15 +123,8 @@ void Game::Player::onCreate(){
   name = "Player Type";
   objType = Game::ObjectType::Entity;
   sigId = Game::ObjectSig::Player;
-  setupEntity(50, Game::EntityType::Humanoid, 1.0f);
+  setupEntity(startLv, Game::EntityType::Humanoid, 1.0f);
   entityInit();
-  addBaseStat(BaseStatType::Strength, 25);
-  addBaseStat(BaseStatType::Agility, 25);
-  addBaseStat(BaseStatType::Dexterity, 25);
-  addBaseStat(BaseStatType::Intelligence, 25);
-  addBaseStat(BaseStatType::Endurance, 25);
-  addBaseStat(BaseStatType::Luck, 25);
-  addBaseStat(BaseStatType::Charisma, 25);
 }
 
 void Game::Player::step(){

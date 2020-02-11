@@ -1,5 +1,8 @@
 #include "Server.hpp"
 #include "../Engine/Tools/Tools.hpp"
+
+#include "Input.hpp"
+#include "Object.hpp"
 #include "../Entity.hpp"
 #include "../Player.hpp"
 
@@ -265,7 +268,26 @@ void Game::Server::update(){
                 handler.read(msg);
                 nite::print("SERVER ["+client->nickname+"] "+msg);
                 persSendAll(handler, 1500, 4);
-            } break;                               
+            } break; 
+            /*
+                SV_CLIENT_INPUT
+            */
+            case Game::PacketType::SV_CLIENT_INPUT: {
+                if(!client){
+                    break;
+                }
+                UInt8 amount;
+                Vector<Game::InputFrameBuffer> buffer;
+                handler.read(&amount, sizeof(UInt8));
+                for(int i = 0; i < amount; ++i){
+                    UInt8 key, type, lastStroke;
+                    handler.read(&key, sizeof(UInt8));
+                    handler.read(&type, sizeof(UInt8));
+                    handler.read(&lastStroke, sizeof(UInt8));
+                    buffer.push_back(InputFrameBuffer(key, type, lastStroke));
+                    client->input.update(buffer);
+                }
+            } break;                           
         }
     }
 
@@ -292,7 +314,7 @@ void Game::Server::update(){
     // ping
     for(auto cl : clients){
         auto &client = clients[cl.first];
-        if(nite::getTicks()-client.lastPing > 250){
+        if(nite::getTicks()-client.lastPing > 500){
             client.lastPing = nite::getTicks();
             nite::Packet ping(++client.lastSentOrder);
             ping.setHeader(Game::PacketType::SV_PING);
@@ -327,11 +349,11 @@ void Game::Server::persSendAll(nite::Packet packet, UInt64 timeout, int retries)
 }
 
 void Game::Server::broadcast(const String &message){
+    if(!init){
+        return;
+    }    
     if(message.length() == 0){
         nite::print("[server] cannot broadcast an empty message");
-        return;
-    }
-    if(!init){
         return;
     }
     nite::Packet msg;
@@ -342,7 +364,7 @@ void Game::Server::broadcast(const String &message){
 }
 
 void Game::Server::game(){
-
+    
 }
 
 void Game::Server::setupGame(const String &name, int maxClients, int maps){
@@ -362,18 +384,27 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
         map->build(bp, src, 3);
         this->maps.push_back(map);
     }
-    listen(name, maxClients,nite::NetworkDefaultPort);
+    listen(name, maxClients, nite::NetworkDefaultPort);
+    // TODO: send map to the players
+    
+    // wait some time before starting the game here
+    nite::print("starting game in 5 secs...");
+    nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
+        for(auto cl : clients){
+            createPlayer(cl.second.clientId, 1);
+        }
+        ct.stop();
+    }), 5000);
 }
 
-            //SV_CREATE_OBJECT,  // ACK
-            /*
-                UINT16 ID
-                UINT16 SIGID
-                FLOAT x
-                FLOAT y
-            */    
-
-UInt16 Game::Server::spawn(Shared<Game::NetObject> obj){
+Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
+    if(!init){
+        return Shared<Game::NetObject>(NULL);
+    }
+    if(obj.get() == NULL){
+        nite::print("cannot spawn undefined object");
+        return Shared<Game::NetObject>(NULL);
+    }    
     auto id = this->world.add(obj);
     nite::Packet crt;
     crt.setHeader(Game::PacketType::SV_CREATE_OBJECT);
@@ -382,45 +413,60 @@ UInt16 Game::Server::spawn(Shared<Game::NetObject> obj){
     crt.write(&obj->position.x, sizeof(float));
     crt.write(&obj->position.y, sizeof(float));
     persSendAll(crt, 1000, -1);
-    return id;
+    return obj;
 }
 
-void Game::Server::destroy(UInt32 id){
-    if(world.exists(id)){
-        auto &obj = world.objects[id];
-        nite::Packet des;
-        des.setHeader(Game::PacketType::SV_DESTROY_OBJECT);
-        des.write(&id, sizeof(UInt32));
-        obj->destroy();
-        persSendAll(des, 1000, -1);
+bool Game::Server::destroy(UInt32 id){
+    if(!world.exists(id)){
+        nite::print("failed to destroy object id '"+nite::toStr(id)+"': it doesn't exist");
+        return false;
     }
-}
-
-void Game::Server::destroy(Shared<Game::NetObject> obj){
-
-}
-
-Shared<Game::NetObject> Game::Server::createPlayer(Game::SvClient &cl, UInt32 lv){
-    // auto player = Shared<Game::NetObject>(new Player());
-
+    auto &obj = world.objects[id];
+    nite::Packet des;
+    des.setHeader(Game::PacketType::SV_DESTROY_OBJECT);
+    des.write(&id, sizeof(UInt32));
+    obj->destroy();
+    persSendAll(des, 1000, -1);    
+    return true;
 }
 
 Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
-
+    auto client = clients.find(uid);
+    if(client == clients.end()){
+        nite::print("[server] failed to create player for unexisting client id '"+nite::toStr(uid)+"'");
+        return Shared<Game::NetObject>(NULL);
+    }
+    auto ent = Shared<Game::NetObject>(new Game::Player());
+    auto player = static_cast<Player*>(ent.get());
+    player->startLv = lv;
+    player->position.x = nite::randomInt(0, 100);
+    player->position.y = nite::randomInt(0, 100);
+    client->second.entityId = ent->id;
+    players[uid] = ent->id;
+    spawn(ent);
+    nite::print("[server] created player entity with id "+nite::toStr(ent->id)+" | for client id "+nite::toStr(uid)+"("+client->second.nickname+")");
+    return ent;
 }
 
-void Game::Server::removePlayer(UInt64 uid){
-
+bool Game::Server::removePlayer(UInt64 uid){
+    auto client = clients.find(uid);
+    if(client == clients.end()){
+        nite::print("failed to remove player for unexisting client id '"+nite::toStr(uid)+"'");
+        return false;
+    }
+    auto entId = client->second.entityId;
+    auto player = players.find(uid);
+    if(!world.exists(entId) || entId == 0){
+        nite::print("failed to remove player with id "+nite::toStr(uid)+": it doesn't exist");
+        return false;
+    }
+    if(player != players.end()){
+        players.erase(player);
+    }
+    destroy(entId);
+    return true;
 }
 
-void Game::Server::removePlayer(Game::SvClient &cl){
-
-}
-
-void Game::Server::killPlayer(UInt64 uid){
-
-}
-
-void Game::Server::killPlayer(Game::SvClient &cl){
-
+bool Game::Server::killPlayer(UInt64 uid){
+    return false;
 }

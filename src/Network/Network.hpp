@@ -202,6 +202,21 @@
                 n: UINT16 ID[n]             
             */ 
 
+           SV_CLIENT_INPUT,
+            /*
+                UINT8 AMOUNT
+                0: {
+                    UINT8 KEY
+                    UINT8 TYPE
+                    UINT8 NEXT_KEY_STROKE
+                }
+                ...
+                n: {
+                    UINT8 KEY
+                    UINT8 TYPE
+                    UINT8 NEXT_KEY_STROKE
+                }
+            */            
 
         };
 

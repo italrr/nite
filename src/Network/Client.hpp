@@ -3,6 +3,7 @@
     
     #include "Network.hpp"   
     #include "Object.hpp"
+    #include "Input.hpp"
 
     namespace Game {
 
@@ -20,6 +21,7 @@
         };
 
         struct Client : Game::Net {
+            Game::Input input;
             Dict<UInt64, Game::ClClient> clients;
             Dict<UInt32, Shared<Game::NetObject>> world;
             nite::IP_Port sv;

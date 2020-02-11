@@ -226,6 +226,7 @@ set(src_files
 	src/Network/Network.cpp
 	src/Network/Object.cpp
 	src/Network/World.cpp
+	src/Network/Input.cpp
 	# GENERAL #
 	src/Skill.cpp
 	src/Camera.cpp
