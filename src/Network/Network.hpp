@@ -11,9 +11,10 @@
             Connected
         };      
 
-        static const UInt32 RetryTimeOutInterval = 60; 
-        static const UInt64 ClientTimeout = 1000 * 10;
-        static const UInt64 ConnectingTimeout = 3000;
+        static const UInt32 RetryTimeOutInterval = 60;  
+        static const UInt64 ClientTimeout = 1000 * 10; // TODO: inc this for release
+        static const UInt64 ConnectingTimeout = 1000 * 3;
+        static const UInt64 UpdatePhysicsTimeout = 32; // every 32 msecs a snapshot is sent
         static const UInt32 CLIENT_VERSION = 0x0; // TODO: This is temporary
 
        /*
@@ -202,7 +203,7 @@
                 n: UINT16 ID[n]             
             */ 
 
-           SV_CLIENT_INPUT,
+            SV_CLIENT_INPUT,
             /*
                 UINT8 AMOUNT
                 0: {
@@ -216,7 +217,23 @@
                     UINT8 TYPE
                     UINT8 NEXT_KEY_STROKE
                 }
-            */            
+            */     
+
+            SV_UPDATE_PHYSICS_OBJECT,
+            /*
+                UINT16 AMOUNT
+                0: {
+                    UINT16 ID
+                    FLOAT x
+                    FLOAT y
+                }
+                ...
+                n: {
+                    UINT16 ID
+                    FLOAT x
+                    FLOAT y
+                }                
+            */                  
 
         };
 

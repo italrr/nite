@@ -19,7 +19,7 @@ static bool showNvMap = false;
 static nite::Console::CreateProxy cpRenAutoReso("map_shownvmap", nite::Console::ProxyType::Bool, sizeof(bool), &showNvMap);
 
 
-Game::NavMap::NavMap(Vector<nite::PhysicsObject*> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock){
+Game::NavMap::NavMap(Vector<Shared<nite::PhysicsObject>> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock){
 	build(locals, nvmBs, mBs, mapSizeInBlock);
 }
 
@@ -27,7 +27,7 @@ Game::NavMap::NavMap(){
 
 }
 
-void Game::NavMap::build(Vector<nite::PhysicsObject*> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock){
+void Game::NavMap::build(Vector<Shared<nite::PhysicsObject>> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock){
 	this->mapBlockSize = mBs;
 	this->nvBlockSize = nvmBs;
 	this->mapSize = mapSizeInBlock * mBs;
@@ -110,7 +110,7 @@ void Game::Map::load(const String &path, const nite::Color &transparency){
 				mask->solid = true;
 				mask->unmovable = true;
 				mask->size.set(size);
-				locals.push_back(mask.get());
+				locals.push_back(mask);
 				// game->world.add(mask);
 				mask->position.set(position + size * 0.5f);
 			}    

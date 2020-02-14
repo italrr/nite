@@ -1,8 +1,8 @@
 #ifndef GAME_SKILL_HPP
     #define GAME_SKILL_HPP
 
-    #include "Engine/Tools/Tools.hpp"
-    #include "Entity.hpp"
+    #include "../Engine/Tools/Tools.hpp"
+    #include "Base.hpp"
 
     namespace Game {
 
@@ -35,9 +35,9 @@
         }
 
         enum SkillType : UInt8 {
-            ACTIVE = 0,
-            PASSIVE,
-            AOE // area of effect
+            Active = 0,
+            Passive,
+            AoE // area of effect
         };
 
         struct Skill {
@@ -58,11 +58,11 @@
             UInt16 minUseLv;
             UInt16 skPointsPerLv; // how many skill points cost one level
             Skill();
-            virtual void beforeUse(Shared<Game::Entity> who);
-            virtual void afterUse(Shared<Game::Entity> who);
-            void use(Shared<Game::Entity> who);
-            void use(Shared<Game::Entity> who, Shared<Game::Entity> to); // to is allowed to be null
-            virtual void use(Shared<Game::Entity> who, Shared<Game::Entity> to, const nite::Vec2 &at);
+            virtual void beforeUse(Shared<Game::EntityBase> who);
+            virtual void afterUse(Shared<Game::EntityBase> who);
+            void use(Shared<Game::EntityBase> who);
+            void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to); // to is allowed to be null
+            virtual void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
         };
 
         enum SkillList : UInt16 {

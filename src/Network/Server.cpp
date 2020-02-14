@@ -1,10 +1,9 @@
+#include <algorithm>
 #include "Server.hpp"
 #include "../Engine/Tools/Tools.hpp"
-
 #include "Input.hpp"
 #include "Object.hpp"
-#include "../Entity.hpp"
-#include "../Player.hpp"
+#include "../Entity/Base.hpp"
 
 Game::Server::Server(){
     this->init = false;
@@ -47,10 +46,7 @@ void Game::Server::listen(const String &name, UInt8 maxClients, UInt16 port){
 }
 
 Game::SvClient *Game::Server::getClient(UInt64 uid){
-    if(clients.count(uid) > 0){
-        return &clients[uid];
-    }
-    return NULL;
+    return clients.count(uid) > 0 ? &clients[uid] : NULL;
 }
 
 Game::SvClient *Game::Server::getClient(const String &nick){
@@ -133,6 +129,7 @@ void Game::Server::close(){
 
 void Game::Server::clear(){
     this->init = false;
+    physicsUpdate = nite::getTicks();
     sock.close();
     deliveries.clear();
     clients.clear();
@@ -277,15 +274,13 @@ void Game::Server::update(){
                     break;
                 }
                 UInt8 amount;
-                Vector<Game::InputFrameBuffer> buffer;
                 handler.read(&amount, sizeof(UInt8));
                 for(int i = 0; i < amount; ++i){
                     UInt8 key, type, lastStroke;
                     handler.read(&key, sizeof(UInt8));
                     handler.read(&type, sizeof(UInt8));
                     handler.read(&lastStroke, sizeof(UInt8));
-                    buffer.push_back(InputFrameBuffer(key, type, lastStroke));
-                    client->input.update(buffer);
+                    client->input.queue.push_back(InputFrameBuffer(key, type, lastStroke));
                 }
             } break;                           
         }
@@ -321,6 +316,31 @@ void Game::Server::update(){
             sock.send(client.cl, ping);
         }
     }
+
+    // update physics
+    if(nite::getTicks()-physicsUpdate > UpdatePhysicsTimeout){
+        auto &queue = world.updateQueue;
+        if(queue.size() > 0){
+            std::sort(queue.begin(), queue.end());
+            queue.erase(std::unique(queue.begin(), queue.end()), queue.end());            
+            UInt16 amnt = queue.size();
+            nite::Packet phys;
+            phys.setHeader(Game::PacketType::SV_UPDATE_PHYSICS_OBJECT);
+            phys.write(&amnt, sizeof(UInt16));
+            // TODO: scope it for visible areas only            
+            for(int i = 0; i < queue.size(); ++i){
+                auto &obj  = world.objects[queue[i]];
+                phys.write(&obj->id, sizeof(UInt16));
+                phys.write(&obj->position.x, sizeof(float));
+                phys.write(&obj->position.y, sizeof(float));
+            }
+            sendAll(phys);
+            queue.clear();
+        }
+        physicsUpdate = nite::getTicks();
+    }
+
+    //TODO: update animations
 
     game();
     updateDeliveries();
@@ -364,7 +384,46 @@ void Game::Server::broadcast(const String &message){
 }
 
 void Game::Server::game(){
-    
+    for(auto cl : clients){
+        cl.second.input.update();
+        auto it = players.find(cl.second.clientId);
+        if(it == players.end()){
+            continue;
+        }
+        auto entId = it->second;
+        if(!world.exists(entId)){
+            continue;
+        }
+        // TODO: this doesn't actually go here
+        auto &ent = *static_cast<Game::EntityBase*>(world.objects[entId].get());
+        auto &in = cl.second.input;
+        bool isSpace = in.isKeyPress(Game::Key::SPACE);
+        if(in.isKeyPress(Game::Key::UP) && in.isKeyPress(Game::Key::RIGHT)){
+            ent.entityMove(-0.7854f, ent.walkPushRate, isSpace);
+        }else
+        if(in.isKeyPress(Game::Key::DOWN) && in.isKeyPress(Game::Key::RIGHT)){
+            ent.entityMove(-5.498f, ent.walkPushRate, isSpace);
+        }else
+        if(in.isKeyPress(Game::Key::UP) && in.isKeyPress(Game::Key::LEFT)){
+            ent.entityMove(-2.356f, ent.walkPushRate, isSpace);
+        }else		
+        if(in.isKeyPress(Game::Key::DOWN) && in.isKeyPress(Game::Key::LEFT)){
+            ent.entityMove(-3.927f, ent.walkPushRate, isSpace);
+        }else				
+        if(in.isKeyPress(Game::Key::UP)){
+            ent.entityMove(-1.571f, ent.walkPushRate, isSpace);
+        }else
+        if(in.isKeyPress(Game::Key::RIGHT)){
+            ent.entityMove(0.0f, ent.walkPushRate, isSpace);
+        }else
+        if(in.isKeyPress(Game::Key::DOWN)){
+            ent.entityMove(-4.712f, ent.walkPushRate, isSpace);
+        }else
+        if(in.isKeyPress(Game::Key::LEFT)){
+            ent.entityMove(3.142f, ent.walkPushRate, isSpace);
+        }		        
+    }
+    world.update();
 }
 
 void Game::Server::setupGame(const String &name, int maxClients, int maps){
@@ -436,14 +495,14 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
         nite::print("[server] failed to create player for unexisting client id '"+nite::toStr(uid)+"'");
         return Shared<Game::NetObject>(NULL);
     }
-    auto ent = Shared<Game::NetObject>(new Game::Player());
-    auto player = static_cast<Player*>(ent.get());
-    player->startLv = lv;
+    auto ent = Shared<Game::NetObject>(new Game::EntityBase());
+    auto player = static_cast<EntityBase*>(ent.get());
+    player->setupStat(lv);
     player->position.x = nite::randomInt(0, 100);
     player->position.y = nite::randomInt(0, 100);
+    spawn(ent);
     client->second.entityId = ent->id;
     players[uid] = ent->id;
-    spawn(ent);
     nite::print("[server] created player entity with id "+nite::toStr(ent->id)+" | for client id "+nite::toStr(uid)+"("+client->second.nickname+")");
     return ent;
 }

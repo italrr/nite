@@ -678,10 +678,12 @@ bool Game::RING::TileSource::isIgnoredForFLoors(const String &key){
 }
 
 Game::RING::Layer::Layer(int width, int height, int depth){
+    this->grid = NULL;
     set(width, height, depth, false);
 }
 
 Game::RING::Layer::Layer(int width, int height, int depth, bool dynamicY){
+    this->grid = NULL;
     set(width, height, depth, dynamicY);
 }
 
@@ -732,6 +734,7 @@ void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::
     this->width = bp->width * scale;
     this->height = bp->height * scale;
     this->size = this->width * this->height;
+    nite::print("RING map: size "+nite::Vec2(this->width, this->height).str()+" | total "+nite::toStr(this->size)+" cells");
     stored = new MappingCriteria[this->size]; // TODO: Remove
 
     // create layers
@@ -760,6 +763,7 @@ void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::
         int pind = (i % this->width) / scale + ((i / this->width) / scale) * bp->width; // index using projected x,y
         mirror.grid[i] = bp->grid[pind].type;
     }
+
     // put walls using template
     for(int i = 0; i < this->size; ++i){
         auto crit = MappingCriteria(i, mirror.grid, this->width, this->height);
@@ -778,19 +782,13 @@ void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::
             floor->grid[i] = this->temp.mapping[this->temp.getFloorVariant(*bp)];
         }        
     }
+
     // set start
     this->startCell = (bp->start % bp->width) * scale + (bp->start / bp->width) * scale;
     this->startPosition.x = (bp->start % bp->width) * scale * temp.tileSize.x + temp.tileSize.x * scale * 0.5f;
     this->startPosition.y = (bp->start / bp->width) * scale * temp.tileSize.y + temp.tileSize.y * scale * 0.5f;
     
     //static auto ins = Game::getGameCoreInstance();
-
-    // add physics walls
-    /* TODO: move this out of here, since this is "start game" code
-        build only generates theorical data, it *must* not spawn anything to the world.
-        there will be an entity in charge of turning this object into the real game.
-    */
-    // TODO: create proper entity to store this kind of data (walls, npcs, events)
     for(int i = 0; i < this->size; ++i){
         if(mirror.grid[i] != Game::RING::CellType::Wall){
             continue;
@@ -811,7 +809,6 @@ void Game::RING::Map::build(Shared<Game::RING::Blueprint> bp, const Game::RING::
         mask.position.set(p.x, p.y);
         wallMasks.push_back(mask);
     }
-
     allWalls.clear();
     mirror.clear();
     nite::print("built RING map | size "+nite::toStr(width)+"x"+nite::toStr(height)+"("+nite::toStr(this->size)+") | time: "+nite::toStr(nite::getTicks() - initTime)+" msecs");

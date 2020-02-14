@@ -52,7 +52,7 @@
                 int end;
                 String name;
                 nite::Batch minimap;
-                Game::RING::Cell *grid;
+                Game::RING::Cell *grid; // TODO: maybe use a map?
 
                 void generate(int w, int h);
                 void generate();

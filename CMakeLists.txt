@@ -227,17 +227,15 @@ set(src_files
 	src/Network/Object.cpp
 	src/Network/World.cpp
 	src/Network/Input.cpp
+	# Entity #
+	src/Entity/Base.cpp
+	src/Entity/Battle.cpp
+	src/Entity/Stat.cpp
+	src/Entity/Skill.cpp
 	# GENERAL #
-	src/Skill.cpp
 	src/Camera.cpp
-	src/Entity.cpp
-	src/Player.cpp
 	src/Inventory.cpp
-	src/Mob.cpp
 	src/Map.cpp
-	src/Sword.cpp
-	src/Gun.cpp
-	src/Bullet.cpp
 	src/AI/AI.cpp
 )
 add_library(src ${src_files})

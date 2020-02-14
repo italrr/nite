@@ -71,10 +71,11 @@
         };
 
         struct InputSimulator {
+            Vector<InputFrameBuffer> queue;
             UInt64 nextKey;
             Dict<UInt8, UInt8> keys;
             bool isKeyPress(UInt8 key);
-            void update(Vector<InputFrameBuffer> keys);
+            void update();
             InputSimulator(){
                 this->keys = {
                     {Key::UP, PressType::Released },    {Key::DOWN, PressType::Released },  {Key::RIGHT, PressType::Released },

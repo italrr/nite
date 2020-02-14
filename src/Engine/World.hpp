@@ -14,6 +14,7 @@
 			void clear();
 			bool exists(int id);
 			int add(Shared<nite::PhysicsObject> obj);
+			void updateObjectPhysics(Shared<nite::PhysicsObject> obj, float x, float y);
 			void remove(int objectId);
 			void remove(Shared<nite::PhysicsObject> obj);
 			void update();

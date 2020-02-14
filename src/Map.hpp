@@ -28,8 +28,8 @@
       nite::Vec2 mapSize;
       size_t blockNumber;
       Shared<Game::NavMapBlock> grid; 
-      void build(Vector<nite::PhysicsObject*> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock);
-      NavMap(Vector<nite::PhysicsObject*> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock);
+      void build(Vector<Shared<nite::PhysicsObject>> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock);
+      NavMap(Vector<Shared<nite::PhysicsObject>> &locals, nite::Vec2 nvmBs, nite::Vec2 mBs, nite::Vec2 mapSizeInBlock);
       NavMap();
       void draw(float x, float y);
     };
@@ -39,7 +39,7 @@
 	    String path;
       Game::NavMap navMap;
 	    nite::Color transparency;
-	    Vector<nite::PhysicsObject*> locals;
+	    Vector<Shared<nite::PhysicsObject>> locals;
       nite::Vec2 mapSize;
       nite::Vec2 tileSize;
 	    nite::Vec2 playerSpawn;

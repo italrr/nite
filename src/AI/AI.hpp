@@ -4,7 +4,6 @@
   #include "../Engine/Tools/Tools.hpp"
 
   namespace Game {
-    struct Entity;
 
     namespace AI {
 
@@ -48,7 +47,7 @@
         virtual void init(){
 
         }
-        virtual void think(Entity &subject){
+        virtual void think(UInt16 subject){
 
         }
       };
@@ -58,12 +57,12 @@
 
       struct StareBehavior : public BaseBehavior {
         void init();
-        void think(Entity &subject);
+        void think(UInt16 subject);
       };
 
       struct DumbFollowBehavior : public BaseBehavior {
         void init();
-        void think(Entity &subject);
+        void think(UInt16 subject);
       };
 
 

@@ -41,6 +41,7 @@ Game::GameCore *Game::getGameCoreInstance(){
 #include "Network/Client.hpp"
 
 int main(int argc, char* argv[]){
+	Game::Server sv;
 
 	Vector<String> params;
 	for(int i = 0; i < argc; ++i){
@@ -51,44 +52,21 @@ int main(int argc, char* argv[]){
 	Game::GameCore game;
 	game.start();
 
-	Game::Server sv;
-	
 	sv.preinit();
 	sv.setupGame("Pacifier's corner", 4, 1);
 
 	Game::Client cl;
-	cl.setup("pepper");
+	cl.setup("pepper"+nite::toStr(nite::randomInt(25, 50)));
 
-	// nite::UI::build("./ui.json");
 	nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
 		cl.connect("127.0.0.1", nite::NetworkDefaultPort);
 		ct.stop();
 	}), 1000);
 
-	// nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
-	// 	sv.close();
-	// 	ct.stop();
-	// }), 10000);	
-
-	// Game::Client cl2;
-	// cl2.setup("churro");
-	// nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
-	// 	cl2.connect("127.0.0.1", nite::NetworkDefaultPort);
-	// 	ct.stop();
-	// }), 2000);
-
-	// nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
-	// 	cl.sendChatMsg("hello, friends");
-	// 	ct.stop();
-	// }), 10000);			
-
-	// UInt64 t = nite::getTicks();
-
 	static nite::Texture tex("./data/sprite/empty.png");
 	while(game.isRunning){			
 		sv.update();
 		cl.update();
-		// cl2.update();
 		cl.render();
 		game.update();
 		game.render();

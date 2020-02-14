@@ -1,9 +1,8 @@
 #include "AI.hpp"
-#include "../Entity.hpp"
+#include "../Entity/Base.hpp"
 #include "../Engine/Object.hpp"
 #include "../Engine/World.hpp"
 #include "../Game.hpp"
-#include "../Player.hpp"
 
 void Game::AI::StareBehavior::init(){
   behaviorTimeout = 100;
@@ -12,8 +11,8 @@ void Game::AI::StareBehavior::init(){
   name = "Stare";
 }
 
-void Game::AI::StareBehavior::think(Entity &subject){
-  auto &world = *subject.container;
+void Game::AI::StareBehavior::think(UInt16 subject){
+  // auto &world = *subject.container;
   // for (auto& it : world.objects){
   //   auto &target = *it.second.get();
   //   if(&target == &subject) continue;
@@ -33,8 +32,8 @@ void Game::AI::DumbFollowBehavior::init(){
   name = "DumbFollow";
 }
 
-void Game::AI::DumbFollowBehavior::think(Entity &subject){
-	static auto game = Game::getGameCoreInstance();
+void Game::AI::DumbFollowBehavior::think(UInt16 subject){
+	// static auto game = Game::getGameCoreInstance();
 
   // find player
   // auto &player = *static_cast<Game::Player*>(game->player);

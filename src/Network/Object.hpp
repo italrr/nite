@@ -46,7 +46,16 @@
             UInt8 objType;
             UInt16 sigId;
             Game::NetWorld *container;
-            nite::Packet nextPacket;  
+            // the idea behind these is that we'll be updating
+            // specific things from entities/objects but they'll read and prove it themselves
+            // we should every entity with the changeForSync flag to be true
+            bool changeForSync;
+            virtual void readChangeForSync(nite::Packet &packet){
+                
+            }
+            virtual nite::Packet onChangeForSync(){
+
+            } 
         };
 
         Shared<Game::NetObject> createNetObject(UInt16 id, UInt16 sig, float x, float y);

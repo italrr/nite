@@ -98,7 +98,7 @@ void Game::Client::update(){
     if(sock.recv(sender, handler)){
         UInt64 netId = sender.address + sender.port + sock.getSock();
         bool isSv = netId == this->serverId && state != Game::NetState::Disconnected;
-        bool isLast = isLast && handler.getOrder() > rcvOrder;
+        bool isLast = isSv && handler.getOrder() > rcvOrder;
         if(isSv && isLast){
             lastPacket = handler;
             lastPacketTimeout = nite::getTicks();
@@ -288,6 +288,25 @@ void Game::Client::update(){
                 }
                 world.erase(obj);
             } break;
+            /*
+                SV_UPDATE_PHYSICS_OBJECT
+            */
+            case Game::PacketType::SV_UPDATE_PHYSICS_OBJECT: {
+                if(!isSv){ break; }  
+                UInt16 amnt;
+                handler.read(&amnt, sizeof(UInt16));
+                for(int i = 0; i < amnt; ++i){
+                    UInt16 id;
+                    float x, y;
+                    handler.read(&id, sizeof(UInt16));
+                    handler.read(&x, sizeof(float));
+                    handler.read(&y, sizeof(float));
+                    auto it = world.find(id);
+                    if(it != world.end()){
+                        it->second->position.set(x, y);
+                    }
+                }
+            } break;            
             /* 
                 UNKNOWN
             */
@@ -327,16 +346,16 @@ void Game::Client::game(){
     input.update();
     auto buffer = input.getBuffer();
     if(buffer.size() > 0){
-        nite::Packet input(++sentOrder);
-        input.setHeader(Game::PacketType::SV_CLIENT_INPUT);        
+        nite::Packet pack(++sentOrder);
+        pack.setHeader(Game::PacketType::SV_CLIENT_INPUT);        
         UInt8 amnt = buffer.size();
-        input.write(&amnt, sizeof(UInt8));
+        pack.write(&amnt, sizeof(UInt8));
         for(int i = 0; i < buffer.size(); ++i){
-            input.write(&buffer[i].key, sizeof(UInt8));
-            input.write(&buffer[i].type, sizeof(UInt8));
-            input.write(&buffer[i].lastStroke, sizeof(UInt8));
+            pack.write(&buffer[i].key, sizeof(UInt8));
+            pack.write(&buffer[i].type, sizeof(UInt8));
+            pack.write(&buffer[i].lastStroke, sizeof(UInt8));
         }
-        sock.send(this->sv, input);
+        sock.send(this->sv, pack);
     }
 
     // TODO: update objs anim

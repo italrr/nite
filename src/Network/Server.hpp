@@ -51,6 +51,7 @@
             Game::NetWorld world;
             Dict<UInt64, Game::SvClient> clients;
             UInt8 maxClients;
+            UInt64 physicsUpdate;
             UInt64 lastPlayerInfoSent;
             Server();
             ~Server();

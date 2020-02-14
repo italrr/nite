@@ -2,7 +2,6 @@
 #include "World.hpp"
 #include "Types.hpp"
 #include "Graphics.hpp"
-#include "Shapes.hpp"
 #include "Tools/Tools.hpp"
 
 using namespace nite;
@@ -38,6 +37,7 @@ nite::PhysicsObject::PhysicsObject(){
 	relativeTimescale = 1.0f;
 	friction = 0.10f;
 	mass = 1.0f;
+	container = NULL;
 	position.set(0.0f);
 }
 
@@ -58,14 +58,14 @@ void nite::PhysicsObject::push(float angle, float force){
 	speed.y += y;
 }
 
-bool nite::PhysicsObject::isCollidingWith(PhysicsObject *other){
+bool nite::PhysicsObject::isCollidingWith(Shared<nite::PhysicsObject> other){
 	return ((position.x + size.x * 0.5 > other->position.x-other->size.x * 0.5 &&
 	position.x - size.x * 0.5 < other->position.x+other->size.x * 0.5) &&
 	(position.y + size.y * 0.5 > other->position.y-other->size.y * 0.5 &&
 	position.y - size.y * 0.5 < other->position.y+other->size.y * 0.5));
 }
 
-float nite::PhysicsObject::getDistance(PhysicsObject *other){
+float nite::PhysicsObject::getDistance(Shared<nite::PhysicsObject> other){
 	//return (other->position.x - position.x) * (other->position.x - position.x) + (other->position.y - position.y) * (other->position.y - position.y);
 	return nite::sqrt((other->position.x - position.x) * (other->position.x - position.x) + (other->position.y - position.y) * (other->position.y - position.y));
 }
@@ -75,11 +75,11 @@ static inline float veryFastDistance(float x, float y){
 }
 
 bool nite::PhysicsObject::isCollidingWithSomething(){
-	isCollidingWithExcept(Vector<nite::PhysicsObject*>());
+	return isCollidingWithExcept(Vector<Shared<nite::PhysicsObject>>());
 }
 
-bool nite::PhysicsObject::isCollidingWithExcept(const Vector<nite::PhysicsObject*> &ignores){
-	auto isInIgnores = [&](nite::PhysicsObject *ref){
+bool nite::PhysicsObject::isCollidingWithExcept(const Vector<Shared<nite::PhysicsObject>> &ignores){
+	auto isInIgnores = [&](Shared<nite::PhysicsObject> ref){
 		for(int i = 0; i < ignores.size(); ++i){
 			if(ignores[i] == ref){
 				return true;
@@ -92,73 +92,11 @@ bool nite::PhysicsObject::isCollidingWithExcept(const Vector<nite::PhysicsObject
 		auto obj = it.second;
 		if(obj->id == this->id) continue;
 		if(!obj->solid) continue;
-		if(isInIgnores(obj.get())) continue;
-		if(isCollidingWith(obj.get())){
+		if(isInIgnores(obj)) continue;
+		if(isCollidingWith(obj)){
 			return true;
 		}
 	}
 	collided = true;
 	return false;
-}
-
-void nite::PhysicsObject::physicsObjectUpdate(float x, float y){
-	if(unmovable) return;
-	if(x != 0){
-		position.x += x * container->timescale * relativeTimescale * nite::getDelta() * nite::getTimescale() * 0.067f;
-		if(solid){
-			for (auto& it : container->objects){
-				auto obj = it.second;
-				if(obj->id == this->id) continue;				
-				if(!obj->solid) continue;
-				if(isCollidingWith(obj.get())){
-					onCollision(obj.get());
-					collided = true;
-					if(x > 0){
-						position.x = obj->position.x - obj->size.x * 0.5 - size.x * 0.5 - 1;
-					}
-					if(x < 0){
-						position.x = obj->position.x + obj->size.x * 0.5 + size.x * 0.5 + 1;
-					}
-					x = 0;
-					break;
-				}
-			}
-		}
-	}
-	if(y != 0){
-		position.y += y * container->timescale * relativeTimescale * nite::getDelta() * nite::getTimescale() * 0.067f;
-		if(solid){
-			for (auto& it : container->objects){	
-				auto obj = it.second;		
-				if(obj->id == this->id) continue;
-				if(!obj->solid) continue;
-				if(isCollidingWith(obj.get())){
-					onCollision(obj.get());
-					collided = true;
-					if(y > 0){
-						position.y = obj->position.y - obj->size.y/2.0 - size.y/2.0 - 1;
-					}
-					if(y < 0){
-						position.y = obj->position.y + obj->size.y/2.0 + size.y/2.0 + 1;
-					}
-					y = 0;
-					break;
-				}
-			}
-		}
-	}
-}
-
-void nite::PhysicsObject::updatePhysics(){
-	if(container != NULL && container->debugPhysics){
-		nite::setDepth(nite::DepthTop);
-        nite::setRenderTarget(nite::RenderTargetGame);
-		nite::setColor(collided ? nite::Color(1.0f, 0, 0) : nite::Color(0, 1.0f, 0));
-		Draw::Rectangle(position, size, false, Vec2(0.5, 0.5), 0);
-		setDepth(0);
-		resetColor();
-	}
-	collided = false;
-	physicsObjectUpdate(speed.x, speed.y);
-	speed.lerp(Vec2(0.0f), nite::getDelta() * 0.067f * friction * relativeTimescale * container->timescale);
 }

@@ -40,7 +40,7 @@ void Game::RING::Blueprint::generate(int w, int h){
 
 void Game::RING::Blueprint::generate(){
     UInt64 init = nite::getTicks();
-    nite::print("generating RING blueprint, size "+nite::toStr(width)+"x"+nite::toStr(height)+" total: "+nite::toStr(total)+" blocks ...");
+    nite::print("about to generate RING blueprint: size "+nite::Vec2(width, height).str()+" total: "+nite::toStr(total)+" cells ...");
     this->grid = new Game::RING::Cell[total];
     for(int i = 0; i < this->total; ++i){
         Game::RING::Cell cell;

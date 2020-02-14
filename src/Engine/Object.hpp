@@ -26,8 +26,12 @@
 
 			}
 
-			virtual void entityStep(){
-				
+			virtual void onStep(){
+
+			}
+
+			virtual void onDraw(){
+
 			}
 
 			virtual void update(){
@@ -38,25 +42,17 @@
 
 			}
 
-			virtual void entityDraw(){
-
-			}
-
 			virtual void draw(){
-
-			}
-			virtual void updatePhysics(){
 
 			}
 		};
 
-		struct PhysicsObject : public BaseObject {
+		struct PhysicsObject : public nite::BaseObject {
 			int id;
 			World *container;						
 			nite::Vec2 position;
 			nite::Vec2 speed;
 			nite::Vec2 size;
-			
 			float friction;
 			float mass;
 			void destroy();
@@ -67,13 +63,13 @@
 			PhysicsObject();
 			void push(float angle, float force);
 			void move(float angle, float mod);
-			bool isCollidingWith(PhysicsObject *other);
+			bool isCollidingWith(Shared<nite::PhysicsObject> other);
 			bool isCollidingWithSomething();
-			bool isCollidingWithExcept(const Vector<nite::PhysicsObject*> &ignores);
-			float getDistance(PhysicsObject *other);
-			void physicsObjectUpdate(float x, float y);
-			void updatePhysics();
-			virtual void onCollision(PhysicsObject *obj){}
+			bool isCollidingWithExcept(const Vector<Shared<nite::PhysicsObject>> &ignores);
+			float getDistance(Shared<nite::PhysicsObject> other);
+			virtual void onCollision(Shared<nite::PhysicsObject> obj){
+
+			}
 		};
 	}
 

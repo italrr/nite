@@ -6,15 +6,17 @@
 
 	namespace Game {
 		struct NetWorld {
-			std::unordered_map<UInt32, Shared<Game::NetObject>> objects;			
-			Vector<UInt32> removeQueue;
+			std::unordered_map<UInt16, Shared<Game::NetObject>> objects;	
+			Vector<UInt16> updateQueue;	
+			Vector<UInt16> removeQueue;
 			NetWorld();
 			float timescale;
 			bool debugPhysics;
 			void clear();
-			bool exists(UInt32 id);
-			UInt32 add(Shared<Game::NetObject> obj);
-			void remove(UInt32 objectId);
+			bool exists(UInt16 id);
+			void updateObjectPhysics(Shared<nite::PhysicsObject> obj, float x, float y);
+			UInt16 add(Shared<Game::NetObject> obj);
+			void remove(UInt16 objectId);
 			void remove(Shared<Game::NetObject> obj);
 			void update();
 			void step();

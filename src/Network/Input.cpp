@@ -58,15 +58,18 @@ bool Game::InputSimulator::isKeyPress(UInt8 key){
     return keys[key] == Game::PressType::Pressed;
 }
 
-void Game::InputSimulator::update(Vector<InputFrameBuffer> keys){
-    for(int i = 0; i < keys.size(); ++i){
-        auto &key = keys[i];
+void Game::InputSimulator::update(){
+    for(int i = 0; i < this->queue.size(); ++i){
+        auto &key = this->queue[i];
         if(nite::getTicks()-this->nextKey > key.lastStroke){
             auto it = this->keys.find(key.key);
             if(it != this->keys.end()){
-                this->keys[it->first] = key.type;
+                this->keys[key.key] = key.type;
+                this->queue.erase(this->queue.begin() + i);
+                --i;
+                continue;
             }
+            this->nextKey = nite::getTicks();
         }
-        this->nextKey = nite::getTicks();
     }
 }

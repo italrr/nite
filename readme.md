@@ -27,7 +27,7 @@ This game is inspired by another older project of the original author: [https://
 - Render buffers
 - Util types (nite::Color, nite::Vec2, nite::Rect, nite::Polygon)
 - Basic primitive shape rendering
-- Integrated console
+- Integrated in-game console
 - Multi-layered and complex tileset system
 - Input support (Keyboard and mouse for now)
 - Object / world simulation (Networked simulation in progress!)
