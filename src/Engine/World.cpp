@@ -104,7 +104,6 @@ void nite::World::updateObjectPhysics(Shared<nite::PhysicsObject> obj, float x, 
 void nite::World::update(){
   	for (auto& it : objects){
 		auto current = it.second;
-		current->update();
 		if(this->debugPhysics){
 			nite::setDepth(nite::DepthTop);
 			nite::setRenderTarget(nite::RenderTargetGame);

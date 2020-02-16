@@ -2,7 +2,7 @@
 #include "../Entity/Base.hpp"
 #include "../Engine/Object.hpp"
 #include "../Engine/World.hpp"
-#include "../Game.hpp"
+// #include "../Game.hpp"
 
 void Game::AI::StareBehavior::init(){
   behaviorTimeout = 100;

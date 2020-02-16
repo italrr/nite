@@ -6,14 +6,13 @@
 /////////////
 // COMMAND: map_reload
 ////////////
-static void cfMapReload(Vector<String> params){
+static nite::Console::Result cfMapReload(Vector<String> params){
 	static auto game = Game::getGameCoreInstance();
 	// auto &map = game->map;
 	// map.reload();
-	
+	return nite::Console::Result();
 }
 static auto cfMapReloadIns = nite::Console::CreateFunction("map_reload", &cfMapReload); 
-
 
 static bool showNvMap = false;
 static nite::Console::CreateProxy cpRenAutoReso("map_shownvmap", nite::Console::ProxyType::Bool, sizeof(bool), &showNvMap);

@@ -108,7 +108,6 @@ void Game::NetWorld::updateObjectPhysics(Shared<nite::PhysicsObject> obj, float 
 void Game::NetWorld::update(){
   	for (auto it : objects){
 		auto current = it.second;
-		current->update();
 		nite::Vec2 p = current->position;
 		if(this->debugPhysics){
 			nite::setDepth(nite::DepthTop);

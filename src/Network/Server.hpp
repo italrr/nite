@@ -32,6 +32,7 @@
             UInt64 lastPing;    
             UInt64 lastPacketTimeout;
             SvClient(){
+                role = Game::SvClientRole::Player;
                 lastRecvOrder = 0;
                 lastSentOrder = 1;
                 svOrder = 0;
@@ -63,6 +64,7 @@
             void persSendAll(nite::Packet packet, UInt64 timeout, int retries);
             void sendAll(nite::Packet packet);
             void broadcast(const String &message);
+            void sendRemoteCmdMsg(UInt64 uid, const String &msg, const nite::Color &color);
             void preinit();
             void listen(const String &name, UInt8 maxClients, UInt16 port);
             void update();

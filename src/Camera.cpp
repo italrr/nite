@@ -9,16 +9,14 @@ static nite::Console::CreateProxy cpAnDatTo("cl_camera_freeroam", nite::Console:
 /////////////
 // COMMAND: cl_camera_follow
 ////////////
-static void cfCameraFollow(Vector<String> params){
+static nite::Console::Result cfCameraFollow(Vector<String> params){
 	// static auto game = Game::getGameCoreInstance();
 	if(params.size() < 1){
-		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
+		return nite::Console::Result("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}
 	auto &_id = params[0];
 	if(!nite::isNumber(_id)){
-		nite::Console::add("'"+_id+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
+		return nite::Console::Result("'"+_id+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}
 	auto id = nite::toInt(_id);
 	// if(!game->world.exists(id)){
@@ -33,27 +31,24 @@ static auto cfCameraFollowIns = nite::Console::CreateFunction("cl_camera_follow"
 /////////////
 // COMMAND: cl_camera_snap
 ////////////
-static void cfCameraSnap(Vector<String> params){
+static nite::Console::Result cfCameraSnap(Vector<String> params){
 	// static auto game = Game::getGameCoreInstance();
 	if(params.size() < 1){
-		nite::Console::add("Not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
+		return nite::Console::Result("Not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}
 	auto &_x = params[0];
 	auto &_y = params[1];
 	if(!nite::isNumber(_x)){
-		nite::Console::add("'"+_x+"' is not a valid parameter. It must be a number", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
+		return nite::Console::Result("'"+_x+"' is not a valid parameter. It must be a number", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}
 	if(!nite::isNumber(_y)){
-		nite::Console::add("'"+_y+"' is not a valid parameter. It must be a number", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
+		return nite::Console::Result("'"+_y+"' is not a valid parameter. It must be a number", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}	
 	auto x = nite::toInt(_x);
 	auto y = nite::toInt(_y);
 	cameraFreeroam = false;
 	nite::setViewPosition(nite::Vec2(x, y), nite::RenderTargetGame);
-	nite::print("camera snapped to "+nite::Vec2(x, y).str());
+	return nite::Console::Result("camera snapped to "+nite::Vec2(x, y).str(), nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 static auto cfCameraSnapIns = nite::Console::CreateFunction("cl_camera_snap", &cfCameraSnap); 
 

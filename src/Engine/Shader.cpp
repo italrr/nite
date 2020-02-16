@@ -51,7 +51,7 @@ struct ShaderT {
 
 static Vector <ShaderT> Shaders;
 
-static void cfReloadShaders(Vector<String> params){
+static nite::Console::Result cfReloadShaders(Vector<String> params){
 	Vector<nite::Shader*> shaders;
 	for(int i = 0; i < Shaders.size(); ++i){
 		for(int c = 0; c < Shaders[i].owners.size(); ++c){
@@ -64,6 +64,7 @@ static void cfReloadShaders(Vector<String> params){
 		nite::Shader &shader = (*((nite::Shader*)shaders[i]));
 		shader.load(shader.getFragFilename(), shader.getVertFilename());
 	}
+	return nite::Console::Result();
 }
 
 static auto cfReloadShadersIns = nite::Console::CreateFunction("shader_reload", &cfReloadShaders);

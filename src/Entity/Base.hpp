@@ -5,7 +5,7 @@
     #include "Stat.hpp"
 
     namespace Game {
-        struct EntityBase : Game::NetObject, Game::StatProperty {
+        struct EntityBase : Game::NetObject, Game::Stat {
             UInt8 faceDirection;
             String name;
             float walkPushRate;

@@ -1,6 +1,79 @@
 #include "../Engine/Tools/Tools.hpp"
 #include "../Engine/Graphics.hpp"
+#include "../Engine/Console.hpp"
 #include "Client.hpp"
+#include "../Game.hpp"
+
+static void pipeServerSideCmds(const String &input){
+    auto core = Game::getGameCoreInstance();
+    if(core == NULL){
+        return;
+    }
+    auto &cl = core->client;
+    nite::Packet cmd(++cl.svOrder);
+    cmd.setHeader(Game::PacketType::SV_REMOTE_CMD_EXEC);
+    cmd.write(input);
+    cl.persSend(cl.sv, cmd, 1000, -1);
+}
+
+/*
+    RCON PWD
+*/
+static nite::Console::Result cfRcon(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    if(core == NULL){
+        return nite::Console::Result("fatal error: core was not init", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    auto &cl = core->client;    
+    if(params.size() == 0){
+        return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    auto pwd = params[0];
+    String hash = nite::hashString(pwd);
+    nite::Packet rcon(++cl.svOrder);
+    rcon.setHeader(Game::PacketType::SV_RCON);
+    rcon.write(hash);
+    cl.persSend(cl.sv, rcon, 1000, -1);
+    return nite::Console::Result();
+}
+static auto cfRconIns = nite::Console::CreateFunction("rcon", &cfRcon);
+
+/*
+    CONNECT IP PORT(OPT)
+*/
+static nite::Console::Result cfConnect(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    if(core == NULL){
+        return nite::Console::Result("fatal error: core was not init", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    auto &cl = core->client;    
+    if(params.size() < 1){
+        return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    auto ip = params[0];
+    auto port = params.size() >= 2 && nite::isNumber(params[1]) ? nite::toInt(params[1]) : nite::NetworkDefaultPort;
+    cl.connect(ip, port);
+    return nite::Console::Result();
+}
+static auto cfConnectIns = nite::Console::CreateFunction("connect", &cfConnect);
+
+/*
+    DISCONNECT
+*/
+static nite::Console::Result cfDisconnect(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    if(core == NULL){
+        return nite::Console::Result("fatal error: core was not init", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    String reason = params.size() > 0 ? params[0] : "disconnected by user";
+    auto &cl = core->client;    
+    if(cl.state != Game::NetState::Connected){
+        return nite::Console::Result("must be connected to a server before disconnecting", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    cl.disconnect(reason);
+    return nite::Console::Result();
+}
+static auto cfDisconnectIns = nite::Console::CreateFunction("disconnect", &cfDisconnect);
 
 Game::Client::Client() : Game::Net(){
     init = false;
@@ -39,6 +112,7 @@ void Game::Client::connect(const String &ip, UInt16 port){
         nite::print("[client] failed to open UDP Socket. cannot connect to "+this->sv.str());
         return;
     }
+    nite::Console::pipeServerSideExecs(&pipeServerSideCmds);
     lastPacketTimeout = nite::getTicks();
     sock.setNonBlocking(true);
     nite::Packet connect;
@@ -264,13 +338,13 @@ void Game::Client::update(){
                     nite::print("[client] server requested creation of undefined obj sig "+nite::toStr(sigId)+" on the client");
                     break;
                 }
-                if(world.find(id) != world.end()){
+                if(world.objects.find(id) != world.objects.end()){
                     nite::print("[client] server requested creation of obj with a duplicated id '"+nite::toStr(sigId)+"'");
                     // TODO: come up with a way to properly handle duplicated ids?
                     break;
                 }
                 obj->onCreate();
-                world[id] = obj;
+                world.objects[id] = obj;
                 nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+nite::toStr(sigId)+" at "+nite::Vec2(x, y).str());
             } break;
             /*
@@ -281,12 +355,12 @@ void Game::Client::update(){
                 UInt16 id;
                 handler.read(&id, sizeof(UInt16));
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
-                auto obj = world.find(id);
-                if(obj == world.end()){
+                auto obj = world.objects.find(id);
+                if(obj == world.objects.end()){
                     nite::print("[client] server requested destruction of unexisting entity id: "+nite::toStr(id));
                     break;
                 }
-                world.erase(obj);
+                world.objects.erase(obj);
             } break;
             /*
                 SV_UPDATE_PHYSICS_OBJECT
@@ -297,16 +371,56 @@ void Game::Client::update(){
                 handler.read(&amnt, sizeof(UInt16));
                 for(int i = 0; i < amnt; ++i){
                     UInt16 id;
-                    float x, y;
+                    float x, y, sx, sy;
                     handler.read(&id, sizeof(UInt16));
                     handler.read(&x, sizeof(float));
                     handler.read(&y, sizeof(float));
-                    auto it = world.find(id);
-                    if(it != world.end()){
+                    handler.read(&sx, sizeof(float));
+                    handler.read(&sy, sizeof(float));                    
+                    auto it = world.objects.find(id);
+                    if(it != world.objects.end()){
                         it->second->position.set(x, y);
+                        it->second->speed.set(sx, sy);
                     }
                 }
-            } break;            
+            } break;  
+            /*
+                SV_UPDATE_WORLD_SIMULATION_PROPS
+            */
+            case Game::PacketType::SV_UPDATE_WORLD_SIMULATION_PROPS: {
+                if(!isSv){ break; }  
+                handler.read(&world.timescale, sizeof(float));
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+            } break;              
+            /*
+                SV_UPDATE_OBJECT_RELATIVE_TIMESCALE
+            */
+            case Game::PacketType::SV_UPDATE_OBJECT_RELATIVE_TIMESCALE: {
+                if(!isSv){ break; }  
+                UInt16 id;
+                float timescale;
+                handler.read(&id, sizeof(UInt16));
+                handler.read(&timescale, sizeof(float));
+                auto it = world.objects.find(id);
+                if(it != world.objects.end()){
+                    it->second->relativeTimescale = timescale;
+                }
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+            } break;  
+            /*
+                SV_REMOTE_CMD_MSG
+            */                          
+            case Game::PacketType::SV_REMOTE_CMD_MSG: {
+                if(!isSv){ break; }  
+                String msg;
+                nite::Color color;
+                handler.read(msg);
+                handler.read(&color.r, sizeof(float));
+                handler.read(&color.g, sizeof(float));
+                handler.read(&color.b, sizeof(float));
+                nite::Console::add(msg, color);
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+            } break;                
             /* 
                 UNKNOWN
             */
@@ -357,15 +471,15 @@ void Game::Client::game(){
         }
         sock.send(this->sv, pack);
     }
-
     // TODO: update objs anim
+    world.update();
 }
 
 void Game::Client::render(){
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     nite::setRenderTarget(nite::RenderTargetGame);
     nite::setDepth(nite::DepthMiddle);
-    for(auto &obj : world){
+    for(auto &obj : world.objects){
         obj.second->draw();
     }
 }

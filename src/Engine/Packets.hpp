@@ -23,7 +23,7 @@
 				void reset();
 				void clear();
 				void setIndex(size_t index);
-				bool write(void *data, size_t Si);
+				bool write(const void *data, size_t Si);
 				bool read(String &str);
 				bool read(void *data, size_t Si);
 				bool write(const String str);

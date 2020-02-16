@@ -27,9 +27,12 @@ void Game::GameCore::update(){
 	nite::setZoom(nite::RenderTargetGame, 0.75f);
 	nite::viewUpdate();
 	nite::inputUpdate();
+	this->client.update();
+	this->localSv.update();
 }
 
 void Game::GameCore::render(){	
+	this->client.render();
 	nite::graphicsRender();
 }
 
@@ -41,33 +44,27 @@ Game::GameCore *Game::getGameCoreInstance(){
 #include "Network/Client.hpp"
 
 int main(int argc, char* argv[]){
-	Game::Server sv;
-
 	Vector<String> params;
 	for(int i = 0; i < argc; ++i){
 		params.push_back(String(argv[i]));
 	}
 	nite::setParameters(params);
-
+	
 	Game::GameCore game;
 	game.start();
 
-	sv.preinit();
-	sv.setupGame("Pacifier's corner", 4, 1);
+	game.localSv.preinit();
+	game.localSv.setupGame("Pacifier's corner", 4, 1);
 
-	Game::Client cl;
-	cl.setup("pepper"+nite::toStr(nite::randomInt(25, 50)));
+	game.client.setup("pepper"+nite::toStr(nite::randomInt(25, 50)));
 
 	nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
-		cl.connect("127.0.0.1", nite::NetworkDefaultPort);
+		game.client.connect("127.0.0.1", nite::NetworkDefaultPort);
 		ct.stop();
 	}), 1000);
 
 	static nite::Texture tex("./data/sprite/empty.png");
 	while(game.isRunning){			
-		sv.update();
-		cl.update();
-		cl.render();
 		game.update();
 		game.render();
 	}

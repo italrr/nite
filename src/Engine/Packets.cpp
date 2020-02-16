@@ -96,7 +96,7 @@ bool nite::Packet::read(String &str){
 	return false;
 }
 
-bool nite::Packet::write(void *data, size_t size){
+bool nite::Packet::write(const void *data, size_t size){
 	if((index >= nite::NetworkMaxPacketSize) || (index + size > nite::NetworkMaxPacketSize)){
 		nite::print("failed to write to packet: too big");
 		return false;

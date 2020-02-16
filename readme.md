@@ -1,22 +1,19 @@
 nite Engine
 ----------
 
-nite Engine is a 2D game engine in C++. This has been an on-going project which the author started some years ago, slowly adding new features and
-mechanics. Originally as a toy & learning project. One key feature of nite is making most of the engine completely customizable through JSON files and using its own scripting system (nite Script).
+`nite` Engine is a 2D game engine in C++. This has been an on-going project which the author started some years ago, slowly adding new features and mechanics.
 
 About the Game
 --------------
-The game being developed with this engine is an RPG heavily oriented to the [RPG Attribute System](https://en.wikipedia.org/wiki/Attribute_(role-playing_games)) for gameplay. The core feature will be the use of RNG for generating the campaigns from the very beginning to the end. The end goal is to be able to create engaging RPG campaigns with high complexity and unpredictability, but fairness above both. We'll be experimenting with different maze generation algorithms to make this possible. Might consider using Neural Networks.
+The game being developed with this engine is an precedurally generated co-op RPG. The end goal is to be able to create engaging RPG campaigns with high complexity and unpredictability, but fairness above both. We'll be experimenting with different maze generation algorithms to make this possible.
 
-Another very important aspect of the game, and a big goal for nite, is the to be able to create challenging enemy AI. As of right now, AI is bare bones at best. But it's
-something we'll be heavily focused on, too.
+Another very important aspect of the game, and a big goal for `nite`, is the to be able to create challenging enemy AI. As of right now, AI is bare bones at best. But it's
+something we'll be heavily focused on.
 
 This game is inspired by another older project of the original author: [https://play.google.com/store/apps/details?id=com.nite.rushindungeons](https://play.google.com/store/apps/details?id=com.nite.rushindungeons)
 
 
-**Attention: Documentation is work in progress.**
-
-### Features
+### Features in `nite`
 - Texture Rendering (Image loading using SOIL)
 - Basic Batch Animation
 - AAxBB physics simulation
@@ -25,7 +22,7 @@ This game is inspired by another older project of the original author: [https://
 - Font rendering (Embedded FreeType2) 
 - Depth/Layered Rendering (Simulated Z-index)
 - Render buffers
-- Util types (nite::Color, nite::Vec2, nite::Rect, nite::Polygon)
+- Util types (`nite::Color`, `nite::Vec2`, `nite::Rect`, `nite::Polygon`)
 - Basic primitive shape rendering
 - Integrated in-game console
 - Multi-layered and complex tileset system
@@ -39,29 +36,32 @@ This game is inspired by another older project of the original author: [https://
 - Entity system (Networked in progress!)
 - Basic AI for entities
 - UI System based on flex-boxes and sourcing from JSONs
-- Basic scripting language (nite Script)
+- Basic scripting language (`nite Script`)
 
 ### In Progress
 - RING (A combination of maze generation algorithms and other technologies to create a highly complex and engaging campaign)
-- Networked world simulation, and client & server interfaces
+- Networked world simulation
 - Grooming and more minor bugs fixing
+- Client interpolattion for animations and physics
 
 ### Coming Soon
-- Better AI templates for enemies ('Hunting', 'Gather', and 'Wandering' personalities will be the first ones)
+- Better AI templates for enemies
 - More features for the UI System (Text boxes, Scrolling, Focus)
 - Proper Audio Support
 
 ### Maybe?
-- canvas (nScript)
-
+- in-game scripting language (`nScript`)
 
 How to build?
 ------------
 
+Most dependencies are already included inside of the engine. This might change in the future.
+
 ### Requirements 
 - CMake 2.8 or later
 - SDL2 (2.0.1 or later)
-- pthread
+- pthreads
+- OpenGL 3.0 or later
 
 ### Building
 

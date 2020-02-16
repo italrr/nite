@@ -34,10 +34,6 @@
 
 			}
 
-			virtual void update(){
-				
-			}
-
 			virtual void step(){
 
 			}

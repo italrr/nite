@@ -18,8 +18,16 @@ struct ProxyObject {
     int type;
     size_t size;
     void *ref;
+    bool serverSide;
+    bool adminType;
     nite::Console::Function after;
     void set(const String &name, int type, size_t s, void *ref);
+};
+
+struct FunctionObject {
+    nite::Console::Function function;
+    bool adminType;
+    bool serverSide;
 };
 
 struct BufferLine {
@@ -40,11 +48,11 @@ struct Bind {
     }
 };
 
-//typedef void (*Function)(Vector<String> parameters);
+
 static Vector<BufferLine> buffer;
 static String userInput = "";
 static Dict<String, ProxyObject> *proxies;
-static Dict<String, nite::Console::Function> *functions;
+static Dict<String, FunctionObject> *functions;
 static bool opened = false;
 static bool showTime = false;
 static int showLineNumber = 11;
@@ -55,13 +63,14 @@ static int currentHistorySelect;
 static Vector<String> predictions;
 static Dict<unsigned, Bind> binds;
 static nite::Vec2 position;
+static nite::Console::PipeFunction pipeServerSide = NULL;
 
 static bool _init = false;
 static void _preinit(){
     if(_init) return;
     // Zeroing maps 'proxies' and 'functions'
     proxies = new Dict<String, ProxyObject>();
-    functions = new Dict<String, nite::Console::Function>();
+    functions = new Dict<String, FunctionObject>();
     proxies->clear();
     functions->clear();
     binds.clear();
@@ -71,10 +80,9 @@ static void _preinit(){
 /////////////
 // COMMAND: bind
 ////////////
-static void cfBind(Vector<String> params){
+static nite::Console::Result cfBind(Vector<String> params){
     if(params.size() < 2){
-        nite::Console::add("Not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-        return;
+        return nite::Console::Result("Not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
     }
     String &_key = params[0];
     String command = params[1]; 
@@ -87,12 +95,11 @@ static void cfBind(Vector<String> params){
     }  
     int key = nite::translateKey(_key);
     if(key == -1){
-        nite::Console::add("bind failed: '"+_key+"' is an unknown key", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-        return;
+        return nite::Console::Result("bind failed: '"+_key+"' is an unknown key", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
     }
     Bind bind;
     binds[key] = Bind(key, command); 
-    nite::Console::add("bound '"+command+"' to keystroke '"+_key+"'");
+    return nite::Console::Result("bound '"+command+"' to keystroke '"+_key+"'", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 static auto cfBindIns = nite::Console::CreateFunction("bind", &cfBind);  
 
@@ -108,16 +115,57 @@ void nite::Console::end(){
     delete functions;  
 }
 
-bool nite::Console::createProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function){
+bool nite::Console::createProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function, bool serverSide, bool adminType){
     ProxyObject proxy;
     proxy.name = name;
     proxy.type = type;
     proxy.size = s;
+    proxy.adminType = adminType;
     proxy.ref = ref;
+    proxy.serverSide = serverSide;
     proxy.after = function;
     _preinit();
     (*proxies)[name] = proxy;
     return true;
+}
+
+bool nite::Console::createFunction(const String &name, nite::Console::Function function, bool serverSide, bool adminType){
+    _preinit();
+    auto func = FunctionObject();
+    func.function = function;
+    func.serverSide = serverSide;
+    func.adminType = adminType;
+    (*functions)[name] = func;
+    return true;
+}
+
+nite::Console::CreateProxy::CreateProxy(const String &name, int type, size_t s, void *ref){
+    createProxy(name, type, s, ref, NULL, false, false);
+}
+
+nite::Console::CreateProxy::CreateProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function){
+    createProxy(name, type, s, ref, function, false, false);
+}
+
+nite::Console::CreateFunction::CreateFunction(const String &name, nite::Console::Function function){
+    createFunction(name, function, false, false);
+}
+
+nite::Console::CreateProxy::CreateProxy(const String &name, int type, size_t s, void *ref, bool serverSide, bool adminType){
+    createProxy(name, type, s, ref, NULL, serverSide, adminType);
+}
+
+nite::Console::CreateProxy::CreateProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function, bool serverSide, bool adminType){
+    createProxy(name, type, s, ref, function, serverSide, adminType);
+}
+
+nite::Console::CreateFunction::CreateFunction(const String &name, nite::Console::Function function, bool serverSide, bool adminType){
+    createFunction(name, function, serverSide, adminType);
+}
+
+void nite::Console::pipeServerSideExecs(nite::Console::PipeFunction function){
+    pipeServerSide = function;
+    nite::print("set piping for server side execs on console");
 }
 
 void *nite::Console::getProxyReference(const String &name){
@@ -125,25 +173,10 @@ void *nite::Console::getProxyReference(const String &name){
     return (*proxies)[name].ref;
 }
 
-nite::Console::CreateProxy::CreateProxy(const String &name, int type, size_t s, void *ref){
-    createProxy(name, type, s, ref, NULL);
-}
-
-nite::Console::CreateProxy::CreateProxy(const String &name, int type, size_t s, void *ref, nite::Console::Function function){
-    createProxy(name, type, s, ref, function);
-}
-
-bool nite::Console::createFunction(const String &name, nite::Console::Function function){
-    _preinit();
-
-    (*functions)[name] = function;
-    return true;
-}
-nite::Console::CreateFunction::CreateFunction(const String &name, nite::Console::Function function){
-    createFunction(name, function);
-}
-
 void nite::Console::add(const String &input, const nite::Color &color, bool print){
+    if(input.length() == 0){
+        return;
+    }
     BufferLine line;
     line.line = input;
     line.time = nite::getTicks();
@@ -155,6 +188,10 @@ void nite::Console::add(const String &input, const nite::Color &color, bool prin
         std::cout << "[" << ts << "] " << input << std::endl;
         pthread_mutex_unlock(&count_mutex);    
     }
+}
+
+void nite::Console::add(const nite::Console::Result &result, bool print){
+    add(result.msg, result.color, print);
 }
 
 void nite::Console::add(const String &input, bool print){
@@ -341,32 +378,36 @@ static Vector<String> splitTokens(String input, char sep){
     return tokens;
 }
 
-void nite::Console::interpret(const String &command, bool remoteExec){
+nite::Console::Result nite::Console::interpret(const String &command, bool remoteExec, bool svExec, bool asAdmin){
     if(inputHistory.size() == 0 || inputHistory[inputHistory.size()-1] != command){
         inputHistory.push_back(command);
         currentHistorySelect = -1;
     }
-
+    
     predictions.clear();
     static Vector<String> inputHistory;
     static int currentHistorySelect;
-
+    
     auto tokens = splitTokens(command, ' ');
     if(tokens.size() == 0){
-        nite::Console::add("Empty expression", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-        return;
+        auto r = nite::Console::Result("empty expression", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+        nite::Console::add(r);
+        return r;
     }
+    
     String imperative = tokens[0];
     // Modify variable
     if(isProxy(imperative)){
         ProxyObject &op = (*proxies)[imperative];
         if(tokens.size() == 1){
             nite::Console::add((remoteExec ? "> " : "")+command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
-            nite::Console::add(queryLiteral(op), nite::Color(0.15f, 0.80f, 0.22f, 1.0f));
-            return;
+            nite::Console::Result r(queryLiteral(op), nite::Color(0.15f, 0.80f, 0.22f, 1.0f));
+            nite::Console::add(r);
+            return r;
         }else{
             String assignment = tokens[1];
             ModifyObjectState result;
+
             if(nite::isNumber(assignment)){
                 if(op.type == nite::Console::ProxyType::Int){
                     result = modifyObject(op, (int)nite::toInt(assignment));
@@ -377,32 +418,57 @@ void nite::Console::interpret(const String &command, bool remoteExec){
             if(isBoolean(assignment)){
                 result = modifyObject(op, assignment == "true");
             }else{
-                nite::Console::add("'"+assignment+"' is an undefined symbol.", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-                return;
+                nite::Console::Result r("'"+assignment+"' is an undefined symbol.", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+                nite::Console::add(r);
+                return r;
             }
+
             if(result.success){
-                nite::Console::add((remoteExec ? "> " : "")+op.name+" = "+result.value, nite::Color(0.0f, 0.9f, 0.0f, 1.0f));
-            if(op.after != NULL)
-                op.after(Vector<String>());
+                nite::Console::Result r((remoteExec ? "> " : "")+op.name+" = "+result.value, nite::Color(0.0f, 0.9f, 0.0f, 1.0f));
+                nite::Console::add(r);
+                if(op.after != NULL)
+                    op.after(Vector<String>());                
+                return r;
             }else{
-                nite::Console::add(result.message, nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+                nite::Console::Result r(result.message, nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+                nite::Console::add(r);
+                return r;
             }
         }
     }else
     // Function
     if(isFunction(imperative)){
-        nite::Console::add((remoteExec ? "> " : "")+command, nite::Color(0.55f, 0.40f, 0.40f, 1.0f));
         Vector<String> params;
         for(int i = 1; i < tokens.size(); ++i){
             params.push_back(tokens[i]);
         }
-        nite::Console::Function function = (*functions)[imperative];
-        function(params);
-    // I don't know
-    }else{
-        nite::Console::add((remoteExec ? "> " : "")+command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
-        nite::Console::add("Unknown expression or undefined symbol", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+        auto &func = (*functions)[imperative];
+        nite::Console::Result r;
+        if(func.serverSide && !svExec){
+            if(pipeServerSide){
+                pipeServerSide(command);
+                return nite::Console::Result("noop", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+            }else{
+                r = nite::Console::Result("you must be connected a server", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+                nite::Console::add(r);
+                return r;
+            }
+        }else{
+            nite::Console::Function function = func.function;
+            if(func.adminType && !asAdmin){
+                r = nite::Console::Result("you must be an admin to run this command", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+                nite::Console::add(r);
+                return r;                
+            }
+            r = function(params);   
+            nite::Console::add(r);     
+            return r;    
+        }
     }
+    nite::Console::add((remoteExec ? "> " : "")+command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
+    nite::Console::Result r("Unknown expression or undefined symbol", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    nite::Console::add(r);
+    return r;    
 }
 
 static void buildPredections(){
@@ -487,8 +553,9 @@ void nite::Console::close(){
     opened = false;
 }
 
-static void cfClose(Vector<String> params){
+static nite::Console::Result cfClose(Vector<String> params){
     nite::Console::close();
+    return nite::Console::Result();
 }
 
 static auto cfCloseIns = nite::Console::CreateFunction("close", &cfClose);

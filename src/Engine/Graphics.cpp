@@ -51,7 +51,7 @@ static void readConfigFile(){
 	targetExcess = node.get("targetexcess").toFloat();
 }
 
-static void writeConfigFile(){
+static nite::Console::Result writeConfigFile(){
 	Jzon::Node node = Jzon::object();
 	node.add("width", (int)size.x);
 	node.add("height", (int)size.y);
@@ -65,11 +65,11 @@ static void writeConfigFile(){
 	Jzon::Writer writer;
 	std::ofstream file("data/config.json", std::ios_base::out);
 	writer.writeStream(node, file);
-	nite::print("wrote data/config.json");
+	return nite::Console::Result("wrote data/config.json", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-static void cfWriteconfig(Vector<String> params){
-  writeConfigFile();
+static nite::Console::Result cfWriteconfig(Vector<String> params){
+	return writeConfigFile();
 }
 static auto cfWriteConfigIns = nite::Console::CreateFunction("write_config", &cfWriteconfig);
 
@@ -992,8 +992,9 @@ void ctrlC(int s){
 	 gameExit();
 }
 
-static void cfExit(Vector<String> params){
+static nite::Console::Result cfExit(Vector<String> params){
    gameExit();
+   return nite::Console::Result();
 }
 
 static auto cfExitIns = nite::Console::CreateFunction("exit", &cfExit);
@@ -1003,20 +1004,21 @@ static Vector<String> parameters;
 #include <iostream>
 #include <string.h>
   // TODO: fix this
-static void cfRestart(Vector<String> params){
+static nite::Console::Result cfRestart(Vector<String> params){
 	nite::print("restarting...");
-   gameExit();
-  // restart
-  char *newargv[parameters.size()];
-  for(int i = 0; i < parameters.size(); ++i){
+	gameExit();
+	// restart
+	char *newargv[parameters.size()];
+	for(int i = 0; i < parameters.size(); ++i){
 		auto &str = parameters[i];
 		newargv[i] = new char[str.length()+1];
 		strcpy(newargv[i], str.c_str());
-  }
-  execve((char*)parameters[0].c_str(), newargv, NULL);
+	}
+		execve((char*)parameters[0].c_str(), newargv, NULL);
 	for(int i = 0; i < parameters.size(); ++i){
 		delete newargv[i];
 	}
+	return nite::Console::Result();
 }
 
 static auto cfRestartIns = nite::Console::CreateFunction("restart", &cfRestart);

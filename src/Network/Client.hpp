@@ -4,6 +4,7 @@
     #include "Network.hpp"   
     #include "Object.hpp"
     #include "Input.hpp"
+    #include "World.hpp"
 
     namespace Game {
 
@@ -23,7 +24,7 @@
         struct Client : Game::Net {
             Game::Input input;
             Dict<UInt64, Game::ClClient> clients;
-            Dict<UInt32, Shared<Game::NetObject>> world;
+            Game::NetWorld world;
             nite::IP_Port sv;
             UInt64 clientId;
             UInt64 serverId;

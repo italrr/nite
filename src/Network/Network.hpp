@@ -115,6 +115,14 @@
                 STRING REASON (OPTIONAL)
             */     
             
+            SV_REMOTE_CMD_MSG, // ACK
+            /*
+                STRING MSG
+                FLOAT R
+                FLOAT G
+                FLOAT B
+            */    
+
             SV_REMOTE_CMD_EXEC,  // ACK
             /*
                 STRING CMD
@@ -224,16 +232,35 @@
                 UINT16 AMOUNT
                 0: {
                     UINT16 ID
-                    FLOAT x
-                    FLOAT y
+                    FLOAT X
+                    FLOAT Y
+                    FLOAT SX // SPEED
+                    FLOAT SY
                 }
                 ...
                 n: {
                     UINT16 ID
-                    FLOAT x
-                    FLOAT y
+                    FLOAT X
+                    FLOAT Y
+                    FLOAT SX
+                    FLOAT SY                    
                 }                
-            */                  
+            */ 
+
+            SV_UPDATE_WORLD_SIMULATION_PROPS, // ACK
+            /*
+                FLOAT TIMESCALE
+            */  
+
+            SV_UPDATE_OBJECT_RELATIVE_TIMESCALE, // ACK
+            /*
+                UINT16 ID
+                FLOAT TIMESCALE
+            */    
+            SV_RCON, // ACK
+            /*
+                STRING PASSWORD(hash)
+            */                                   
 
         };
 

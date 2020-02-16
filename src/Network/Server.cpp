@@ -1,9 +1,42 @@
 #include <algorithm>
-#include "Server.hpp"
 #include "../Engine/Tools/Tools.hpp"
+#include "../Engine/Console.hpp"
+#include "../Game.hpp"
+#include "Server.hpp"
 #include "Input.hpp"
 #include "Object.hpp"
 #include "../Entity/Base.hpp"
+
+static nite::Console::Result cfCloseServer(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    auto &sv = core->localSv;    
+    sv.broadcast("server close down requested remotely...");
+    sv.close();
+    return nite::Console::Result();
+}
+
+static auto cfSvCloseIns = nite::Console::CreateFunction("sv_close", &cfCloseServer, true, true);
+static auto cfSvStopIns = nite::Console::CreateFunction("sv_stop", &cfCloseServer, true, true);
+
+static nite::Console::Result cfKick(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    auto &sv = core->localSv;    
+    if(params.size() == 0){
+        return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }    
+    // by nickname
+    String nick = params[0];
+    String reason = params.size() > 1 ? params[1] : "no reason";
+    auto *client = sv.getClient(nick);
+    if(client == NULL){
+        return nite::Console::Result("cannot kick '"+nick+"': doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    sv.dropClient(client->clientId, reason);
+    return nite::Console::Result();
+}
+
+static auto cfKickIns = nite::Console::CreateFunction("kick", &cfKick, true, true);
+
 
 Game::Server::Server(){
     this->init = false;
@@ -93,6 +126,21 @@ void Game::Server::dropClient(UInt64 uid, String reason){
     noti.write(&uid, sizeof(UInt64));
     noti.write(reason);
     persSendAll(noti, 750, -1);
+}
+
+void Game::Server::sendRemoteCmdMsg(UInt64 uid, const String &msg, const nite::Color &color){
+    auto cl = this->getClient(uid);
+    if(cl == NULL){
+        nite::print("[server] cannot send remote cmd msg to client "+nite::toStr(uid)+": it's not connected");
+        return;
+    }
+    nite::Packet msgPacket(++cl->svOrder);
+    msgPacket.setHeader(Game::PacketType::SV_REMOTE_CMD_MSG);
+    msgPacket.write(msg);
+    msgPacket.write(&color.r, sizeof(float));
+    msgPacket.write(&color.g, sizeof(float));
+    msgPacket.write(&color.b, sizeof(float));
+    persSend(cl->cl, msgPacket, 500, -1);    
 }
 
 void Game::Server::dropClient(UInt64 uid){
@@ -282,7 +330,41 @@ void Game::Server::update(){
                     handler.read(&lastStroke, sizeof(UInt8));
                     client->input.queue.push_back(InputFrameBuffer(key, type, lastStroke));
                 }
-            } break;                           
+            } break;       
+            /*
+                SV_RCON
+            */
+            case Game::PacketType::SV_RCON: {
+                if(!client){
+                    break;
+                }
+                sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
+                String pwd;
+                handler.read(pwd);
+                static const String hash = nite::hashString("pwd");
+                if(pwd == hash){ // TODO: temporary
+                    client->role = Game::SvClientRole::Admin;
+                    nite::print("rcond client id "+nite::toStr(client->clientId)+" as admin");
+                    sendRemoteCmdMsg(client->clientId, "you're now rcond as admin", nite::Color(0.16f, 0.85f, 0.12f, 1.0f));
+                }else{
+                    client->role = Game::SvClientRole::Admin;
+                    nite::print("client id "+nite::toStr(client->clientId)+" failed to rcon");
+                    sendRemoteCmdMsg(client->clientId, "wrong password", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+                }
+            } break;               
+            /*
+                SV_REMOTE_CMD_EXEC
+            */
+            case Game::PacketType::SV_REMOTE_CMD_EXEC: {
+                if(!client){
+                    break;
+                }
+                sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
+                String cmd;
+                handler.read(cmd);
+                auto result = nite::Console::interpret(cmd, false, true, client->role == Game::SvClientRole::Admin);
+                sendRemoteCmdMsg(client->clientId, result.msg, result.color);
+            } break;              
         }
     }
 
@@ -333,6 +415,8 @@ void Game::Server::update(){
                 phys.write(&obj->id, sizeof(UInt16));
                 phys.write(&obj->position.x, sizeof(float));
                 phys.write(&obj->position.y, sizeof(float));
+                phys.write(&obj->speed.x, sizeof(float));
+                phys.write(&obj->speed.y, sizeof(float));                
             }
             sendAll(phys);
             queue.clear();
@@ -527,5 +611,23 @@ bool Game::Server::removePlayer(UInt64 uid){
 }
 
 bool Game::Server::killPlayer(UInt64 uid){
-    return false;
+    auto client = getClient(uid);
+    if(client != NULL){
+        nite::print("failed to kill player whose id is "+nite::toStr(uid)+": it doesn't exist");
+        return false;
+    }
+    String generic = "player id "+nite::toStr(client->entityId)+"("+client->nickname+")";
+    auto it = world.objects.find(client->entityId);
+    if(it == world.objects.end()){
+        nite::print("failed to kill "+generic+": it doesn't exist");
+        return false;
+    }
+    auto entity = static_cast<Game::EntityBase*>(it->second.get());
+    if(entity->dead){
+        nite::print(generic+" is already dead");
+        return false;
+    }
+    entity->kill();
+    nite::print(generic+" was killed");
+    return true;    
 }

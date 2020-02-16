@@ -26,13 +26,13 @@ Game::BaseStat::BaseStat(){
 	charismaStat = 0;
 }
 
-void Game::StatProperty::recalculateHealthStats(){
+void Game::Stat::recalculateHealthStats(){
 	this->maxHealth = nite::ceil((12.5f + enduStat * 1.5f)  * GAME_STAT_BASE_SCALE * lv);
 	this->maxMana = nite::ceil((4.5f + intStat * 0.5f) * GAME_STAT_BASE_SCALE * lv);
 	this->maxStamina = nite::ceil((1.9f + dexStat * 0.35f + enduStat * 0.15f) * GAME_STAT_BASE_SCALE * lv);
 }
 
-void Game::StatProperty::recalculateComplexStats(){
+void Game::Stat::recalculateComplexStats(){
 	this->maxCarry = 25 + nite::ceil(strStat * GAME_STAT_BASE_SCALE * 4.0f + enduStat * GAME_STAT_BASE_SCALE * 2.0f);
 	this->atk = nite::ceil(strStat * 8.5f + enduStat * 1.2f);
 	this->magicAtk = nite::ceil(intStat * 8.5f);
@@ -46,7 +46,7 @@ void Game::StatProperty::recalculateComplexStats(){
 	this->charmRate = nite::ceil(0.5f * lv + charismaStat * 5.96f);
 }
 
-void Game::StatProperty::printInfo(){
+void Game::Stat::printInfo(){
 	// #define str nite::toStr
 	// String ms = str(GAME_MAX_STAT);
 	// nite::print("ID "+str(id)+" | Name: "+name+" | LV "+str(lv)+" | Carry "+str(this->maxCarry));
@@ -65,7 +65,7 @@ void Game::StatProperty::printInfo(){
 	// #undef str    
 }
 
-Int32 Game::StatProperty::addBaseStat(UInt8 type, UInt32 amnt){
+Int32 Game::Stat::addBaseStat(UInt8 type, UInt32 amnt){
 	Int32 toAdd = 0;
 	auto inc = [&](UInt32 &target){
 		int toRest = statPoints;
@@ -113,12 +113,12 @@ Int32 Game::StatProperty::addBaseStat(UInt8 type, UInt32 amnt){
 }
 
 
-void Game::StatProperty::recalculateStats(){
+void Game::Stat::recalculateStats(){
 	recalculateHealthStats();
 	recalculateComplexStats();
 }
 
-void Game::StatProperty::resetStat(UInt8 type){
+void Game::Stat::resetBaseStat(UInt8 type){
 	statPoints += agiStat;
 	switch(type){
 		case BaseStatType::Strength:{
@@ -146,13 +146,13 @@ void Game::StatProperty::resetStat(UInt8 type){
 	recalculateStats();	
 }
 
-void Game::StatProperty::fullHeal(){
+void Game::Stat::fullHeal(){
 	health = maxHealth;
 	mana = maxMana;
 	stamina = maxStamina;
 }
 
-bool Game::StatProperty::lvUp(){
+bool Game::Stat::lvUp(){
 	if(lv >= GAME_MAX_LEVEL){
 		return false;
 	}
@@ -163,7 +163,7 @@ bool Game::StatProperty::lvUp(){
 	return true;
 }
 
-void Game::StatProperty::setupStat(UInt16 lv){
+void Game::Stat::setupStat(UInt16 lv){
 	this->lv = 0;
 	this->exp = 0;
 	this->dead = false;

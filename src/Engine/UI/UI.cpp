@@ -9,20 +9,18 @@ static Vector<nite::BaseUIComponent*> removeQueue;
 /////////////
 // COMMAND: ui_build
 ////////////
-static void cfBuildUI(Vector<String> params){
-	static auto game = Game::getGameCoreInstance();
-	if(params.size() < 1){
-		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto &path = params[0];
-	if(!nite::fileExists(path)){
-		nite::Console::add("'"+path+"' files does not exist.", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
-	}
-	auto win = static_cast<nite::WindowUI*>(nite::UI::build(path).get());
-	nite::print("Built '"+win->getTitle()+"' from '"+path+"' Id: "+nite::toStr(win->id));
-	
+static nite::Console::Result cfBuildUI(Vector<String> params){
+    static auto game = Game::getGameCoreInstance();
+    if(params.size() < 1){
+        return nite::Console::Result("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    auto &path = params[0];
+    if(!nite::fileExists(path)){
+        return nite::Console::Result("'"+path+"' files does not exist.", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    auto win = static_cast<nite::WindowUI*>(nite::UI::build(path).get());
+    return nite::Console::Result("Built '"+win->getTitle()+"' from '"+path+"' Id: "+nite::toStr(win->id), nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+
 }
 static auto cfBuildUIIns = nite::Console::CreateFunction("ui_build", &cfBuildUI); 
 
@@ -30,7 +28,7 @@ static auto cfBuildUIIns = nite::Console::CreateFunction("ui_build", &cfBuildUI)
 /////////////
 // COMMAND: ui_show
 ////////////
-static void cfUInstances(Vector<String> params){
+static nite::Console::Result cfUInstances(Vector<String> params){
 	static auto game = Game::getGameCoreInstance();
 	String output;
 	auto &comps = components;
@@ -43,24 +41,22 @@ static void cfUInstances(Vector<String> params){
 	if(comps.size() == 0){
 		output = "None.";
 	}
-	nite::print("Active windows: "+output);
+	return nite::Console::Result("Active windows: "+output, nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 static auto cfUInstancesIns = nite::Console::CreateFunction("ui_show", &cfUInstances); 
 
 /////////////
 // COMMAND: ui_kill
 ////////////
-static void cfUIKill(Vector<String> params){
+static nite::Console::Result cfUIKill(Vector<String> params){
 	static auto game = Game::getGameCoreInstance();
 
 	if(params.size() < 1){
-		nite::Console::add("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
+		return nite::Console::Result("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}
 	auto &_id = params[0];
 	if(!nite::isNumber(_id)){
-		nite::Console::add("'"+_id+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-		return;
+		return nite::Console::Result("'"+_id+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}	
 	auto id = nite::toInt(_id);
 	auto &comps = components;

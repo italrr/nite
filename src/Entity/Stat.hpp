@@ -127,13 +127,13 @@
             };
 		}
 
-        struct StatProperty : HealthStat, BaseStat, ComplexStat {
+        struct Stat : HealthStat, BaseStat, ComplexStat {
 			void recalculateHealthStats();
 			void recalculateComplexStats();
             Int32 addBaseStat(UInt8 type, UInt32 amnt);
             void printInfo();
             void recalculateStats();
-			void resetStat(UInt8 type);
+			void resetBaseStat(UInt8 type);
 			void fullHeal();
 			bool lvUp();       
             void setupStat(UInt16 lv);

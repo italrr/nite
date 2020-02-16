@@ -2,10 +2,13 @@
 	#define GAME_HPP
 
 	#include "Engine/Tools/Tools.hpp"
-
+	#include "Network/Server.hpp"
+	#include "Network/Client.hpp"
 	namespace Game {
 
 		struct GameCore {
+			Game::Client client;
+			Game::Server localSv;
 			bool isRunning;
 			void start();
 			void update();
