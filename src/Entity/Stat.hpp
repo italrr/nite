@@ -1,7 +1,8 @@
 #ifndef GAME_ENTITY_STAT_HPP
-    #define GAME_STAT_HPP
+    #define GAME_ENTITY_STAT_HPP
 
     #include "../Engine/Tools/Tools.hpp"
+	#include "Effect.hpp"
 
 	#define GAME_MAX_LEVEL 48
 	#define GAME_MAX_STAT 100
@@ -127,7 +128,7 @@
             };
 		}
 
-        struct Stat : HealthStat, BaseStat, ComplexStat {
+        struct Stat : HealthStat, BaseStat, ComplexStat, EffectStat {
 			void recalculateHealthStats();
 			void recalculateComplexStats();
             Int32 addBaseStat(UInt8 type, UInt32 amnt);
@@ -135,9 +136,12 @@
             void recalculateStats();
 			void resetBaseStat(UInt8 type);
 			void fullHeal();
+			void heal(UInt32 hp, UInt32 mana, UInt32 stamina);
 			bool lvUp();       
             void setupStat(UInt16 lv);
         };
+
+
     }
 
 #endif

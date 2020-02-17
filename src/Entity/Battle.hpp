@@ -15,8 +15,8 @@
 		};
 
 		struct DamageInfo {
-			Int16 *owner;
-			Int16 *target;
+			Int16 owner;
+			Int16 target;
 			Int32 amount;
 			UInt8 element;
 			bool knockback;

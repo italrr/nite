@@ -232,6 +232,7 @@ set(src_files
 	src/Entity/Battle.cpp
 	src/Entity/Stat.cpp
 	src/Entity/Skill.cpp
+	src/Entity/Effect.cpp
 	# GENERAL #
 	src/Camera.cpp
 	src/Inventory.cpp

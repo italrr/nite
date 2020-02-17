@@ -5,7 +5,7 @@ nite Engine
 
 About the Game
 --------------
-The game being developed with this engine is an precedurally generated co-op RPG. The end goal is to be able to create engaging RPG campaigns with high complexity and unpredictability, but fairness above both. We'll be experimenting with different maze generation algorithms to make this possible.
+The game being developed with this engine is a precedurally generated co-op RPG. The end goal is to be able to create engaging RPG campaigns with high complexity and unpredictability, but fairness above both. We'll be experimenting with different maze generation algorithms to make this possible.
 
 Another very important aspect of the game, and a big goal for `nite`, is the to be able to create challenging enemy AI. As of right now, AI is bare bones at best. But it's
 something we'll be heavily focused on.
@@ -42,7 +42,7 @@ This game is inspired by another older project of the original author: [https://
 - RING (A combination of maze generation algorithms and other technologies to create a highly complex and engaging campaign)
 - Networked world simulation
 - Grooming and more minor bugs fixing
-- Client interpolattion for animations and physics
+- Client interpolation for animations and physics
 
 ### Coming Soon
 - Better AI templates for enemies

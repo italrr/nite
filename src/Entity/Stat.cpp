@@ -169,5 +169,23 @@ void Game::Stat::setupStat(UInt16 lv){
 	this->dead = false;
 	this->statPoints = 12;
 	while(this->lv < lv && lvUp());
+	removeAllEffects();
 	fullHeal();
+}
+
+void Game::Stat::heal(UInt32 hp, UInt32 mana, UInt32 stamina){
+	this->health += hp;
+	if(this->health > maxHealth){
+		this->health = maxHealth;
+	}
+
+	this->mana += mana;
+	if(this->mana > maxMana){
+		this->mana = maxMana;
+	}
+
+	this->stamina += stamina;
+	if(this->stamina > maxStamina){
+		this->stamina = maxStamina;
+	}		
 }
