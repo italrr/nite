@@ -5,6 +5,7 @@
     #include "Object.hpp"
     #include "Input.hpp"
     #include "World.hpp"
+    #include "../HUD/HUD.hpp"
 
     namespace Game {
 
@@ -23,11 +24,13 @@
 
         struct Client : Game::Net {
             Game::Input input;
+            Game::HUD hud;
             Dict<UInt64, Game::ClClient> clients;
             Game::NetWorld world;
             nite::IP_Port sv;
             UInt64 clientId;
             UInt64 serverId;
+            UInt16 entityId;
             String serverName;
             String nickname;
             UInt64 ping;
@@ -45,6 +48,7 @@
             void connect(const String &ip, UInt16 port);
             void connect();
             void setup(const String &nickname);
+            void onStart();
             void update();
             void game();
             void render();

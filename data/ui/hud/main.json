@@ -1,0 +1,57 @@
+{
+	"type": "window",
+	"title": "hud",
+	"notitle": true,
+	"width": "!! #gwidth + 0",
+	"height": "!! #gheight + 0",
+	"layout": "vbox",
+	"unmovable": true,
+	"resizeable": false,
+    "borderThickness": 1.8,
+	"backgroundColor": {"r": 1.0, "g": 0.0, "b": 0.0, "a": 0.0},
+	"borderColor": {"r": 0.0, "g": 1.0, "b": 0.0, "a": 0.0 },
+	"styles": {
+		"stats_text": {
+			"shadowColor": {"r": 0.0, "g": 0.0, "b": 0.0, "a": 1.0 },
+			"shadowOffset": {"vert": 2, "hor": 2},
+			"margin": {"vert": 0, "hor": 32}
+		}
+	},
+	"children": [
+		{
+			"type": "panel",
+			"layout": "hbox",
+			"flex": 1,
+			"children": [
+				{
+					"id": "hud_hp_text",
+					"type":"text",
+					"text": "HP 0/0",
+					"style": "stats_text"
+				},
+				{
+					"id": "hud_sp_text",
+					"type":"text",
+					"text": "SP 0/0",
+					"style": "stats_text"
+				},
+				{
+					"id": "hud_sta_text",
+					"type":"text",
+					"text": "STA 0/0",
+					"style": "stats_text"
+				}									
+			]
+		},
+		{
+			"type": "panel",
+			"flex": 1
+		},
+		{
+			"type": "text",
+			"fontSize": 20,
+			"text": "PLAYER NAME",
+			"style": "stats_text"
+		}
+	]
+}

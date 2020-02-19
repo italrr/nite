@@ -233,6 +233,8 @@ set(src_files
 	src/Entity/Stat.cpp
 	src/Entity/Skill.cpp
 	src/Entity/Effect.cpp
+	# HUD #
+	src/HUD/HUD.cpp
 	# GENERAL #
 	src/Camera.cpp
 	src/Inventory.cpp

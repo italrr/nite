@@ -22,7 +22,7 @@
             Game::InputSimulator input;
             String nickname;
             UInt64 clientId;
-            UInt32 entityId;
+            UInt16 entityId;
             UInt64 ping;
             UInt8 role;
             nite::Packet lastPacket;

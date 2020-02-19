@@ -260,7 +260,14 @@
             SV_RCON, // ACK
             /*
                 STRING PASSWORD(hash)
-            */                                   
+            */   
+            SV_SET_GAME_START, // ACK
+            /*
+            */  
+            SV_NOTI_ENTITY_OWNER, // ACK
+            /*
+                UINT16 ENTID
+            */                                                      
 
         };
 

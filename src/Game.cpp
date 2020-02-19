@@ -53,17 +53,17 @@ int main(int argc, char* argv[]){
 	Game::GameCore game;
 	game.start();
 
-	game.localSv.preinit();
-	game.localSv.setupGame("Pacifier's corner", 4, 1);
+	// game.localSv.preinit();
+	// game.localSv.setupGame("Pacifier's corner", 4, 1);
 
-	game.client.setup("pepper"+nite::toStr(nite::randomInt(25, 50)));
+	// game.client.setup("pepper"+nite::toStr(nite::randomInt(25, 50)));
 
-	nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
-		game.client.connect("127.0.0.1", nite::NetworkDefaultPort);
-		ct.stop();
-	}), 1000);
+	// nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
+	// 	game.client.connect("127.0.0.1", nite::NetworkDefaultPort);
+	// 	ct.stop();
+	// }), 1000);
 
-	static nite::Texture tex("./data/sprite/empty.png");
+	nite::UI::build("data/ui/hud/main.json");
 	while(game.isRunning){			
 		game.update();
 		game.render();

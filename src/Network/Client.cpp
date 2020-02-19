@@ -89,11 +89,13 @@ void Game::Client::clear(){
     sentOrder = 1;
     rcvOrder = 0;
     serverId = 0;
+    entityId = 0;
     connected = false;
     sock.close();
     clients.clear();
     world.clear();
     deliveries.clear();
+    hud.stop();
     setState(Game::NetState::Disconnected); 
 }
 
@@ -328,24 +330,24 @@ void Game::Client::update(){
                 UInt16 id;
                 UInt16 sigId;
                 float x, y;
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 handler.read(&id, sizeof(UInt16));
                 handler.read(&sigId, sizeof(Int16));
                 handler.read(&x, sizeof(float));
                 handler.read(&y, sizeof(float));
                 auto obj = createNetObject(id, sigId, x, y);
-                sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 if(obj.get() == NULL){
-                    nite::print("[client] server requested creation of undefined obj sig "+nite::toStr(sigId)+" on the client");
+                    nite::print("[client] server requested creation of undefined obj sig "+Game::ObjectSig::name(sigId)+" on the client");
                     break;
                 }
                 if(world.objects.find(id) != world.objects.end()){
-                    nite::print("[client] server requested creation of obj with a duplicated id '"+nite::toStr(sigId)+"'");
+                    nite::print("[client] server requested creation of obj with a duplicated id '"+Game::ObjectSig::name(sigId)+"'");
                     // TODO: come up with a way to properly handle duplicated ids?
                     break;
                 }
                 obj->onCreate();
                 world.objects[id] = obj;
-                nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+nite::toStr(sigId)+" at "+nite::Vec2(x, y).str());
+                nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+Game::ObjectSig::name(sigId)+" at "+nite::Vec2(x, y).str());
             } break;
             /*
                 SV_DESTROY_OBJECT
@@ -420,14 +422,33 @@ void Game::Client::update(){
                 handler.read(&color.b, sizeof(float));
                 nite::Console::add(msg, color);
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
-            } break;                
+            } break;      
+            /*
+                SV_SET_GAME_START
+            */          
+            case Game::PacketType::SV_SET_GAME_START: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                this->onStart();
+            } break;       
+            /*
+                SV_NOTI_ENTITY_OWNER
+            */          
+            case Game::PacketType::SV_NOTI_ENTITY_OWNER: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                handler.read(&this->entityId, sizeof(UInt16));
+                this->hud.setFollow(this->entityId);
+            } break;       
+                        
+              
             /* 
                 UNKNOWN
             */
-           default: {
+            default: {
                 if(!isSv){ break; }  
-               nite::print("[client] unknown packet type '"+nite::toStr(handler.getHeader())+"'");
-           } break;
+                nite::print("[client] unknown packet type '"+nite::toStr(handler.getHeader())+"'");
+            } break;
         
 
 
@@ -454,6 +475,10 @@ void Game::Client::update(){
     }
     updateDeliveries();
     game();
+}
+
+void Game::Client::onStart(){
+    hud.start(&world);
 }
 
 void Game::Client::game(){

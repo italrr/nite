@@ -529,13 +529,26 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
     }
     listen(name, maxClients, nite::NetworkDefaultPort);
     // TODO: send map to the players
-    
     // wait some time before starting the game here
-    nite::print("starting game in 5 secs...");
     nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
+        nite::print("starting game in 5 secs...");    
+        nite::Packet startPacket;
+        startPacket.setHeader(Game::PacketType::SV_SET_GAME_START);
+        persSendAll(startPacket, 1000, -1);             
         for(auto cl : clients){
             createPlayer(cl.second.clientId, 1);
         }
+
+        nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
+            for(auto cl : clients){
+                nite::Packet noti(++cl.second.svOrder);
+                noti.setHeader(Game::PacketType::SV_NOTI_ENTITY_OWNER);
+                noti.write(&cl.second.entityId, sizeof(UInt16));
+                persSend(cl.second.cl, noti);
+            }            
+            ct.stop();
+        }), 500);
+        
         ct.stop();
     }), 5000);
 }
