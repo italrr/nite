@@ -12,69 +12,79 @@
 
     struct LayoutSystemUI {
       
-      nite::Vec2 size;
-      virtual void recalculate(BaseUIComponent &head){
+        nite::Vec2 size;
+        virtual void recalculate(BaseUIComponent &head){
 
-      }
+        }
     };
 
     namespace Layout {
-      struct VBox : public nite::LayoutSystemUI {
-        void recalculate(BaseUIComponent &head);
-      };
-      struct HBox : public nite::LayoutSystemUI {
-        void recalculate(BaseUIComponent &head);
-      };       
-      struct Inline : public nite::LayoutSystemUI {
-        void recalculate(BaseUIComponent &head);
-      };         
+        struct VBox : public nite::LayoutSystemUI {
+            void recalculate(BaseUIComponent &head);
+        };
+        struct HBox : public nite::LayoutSystemUI {
+            void recalculate(BaseUIComponent &head);
+        };       
+        struct Inline : public nite::LayoutSystemUI {
+            void recalculate(BaseUIComponent &head);
+        };         
     }
 
-    static const String defaultFontUI = "data/font/Saniretro.ttf";
+    static const String defaultFontUI = "data/font/SpaceMono-Regular.ttf";
     static const float defaultFontRatio = 1.5f;
     static const float componentTranslationSpeed = 0.25f;
 
     struct BaseUIComponent {
-      nite::Vec2 position;
-      nite::Vec2 realPosition;
-      nite::Vec2 size;
-      nite::Vec2 margin;
-      nite::Vec2 padding;
-      nite::Vec2 relativePosition;
-      nite::Color baseColor;
-      nite::UIMaster *currentMaster;
-      int zdepth;
-      bool fillUpType;
-      unsigned renderOnTarget;
-      std::shared_ptr<nite::LayoutSystemUI> layout;
-      Vector<std::shared_ptr<nite::BaseUIComponent>> children;
-      BaseUIComponent *headComponent;
-      float flex;
-      bool solid;
-			int id;
-      UInt64 uiCreatedTimeout;
-      String componentName;
-      bool uninteract;
+        nite::Vec2 position;
+        nite::Vec2 realPosition;
+        nite::Vec2 size;
+        nite::Vec2 margin;
+        nite::Vec2 padding;
+        nite::Vec2 relativePosition;
+        nite::Color baseColor;
+        nite::UIMaster *currentMaster;
+        int zdepth;
+        String literalId;
+        bool fillUpType;
+        unsigned renderOnTarget;
+        std::shared_ptr<nite::LayoutSystemUI> layout;
+        Vector<std::shared_ptr<nite::BaseUIComponent>> children;
+        BaseUIComponent *headComponent;
+        float flex;
+        bool solid;
+        int id;
+        UInt64 uiCreatedTimeout;
+        String componentName;
+        bool uninteract;
+        Dict<String, Shared<nite::BaseUIComponent>> idsLookUp;
+        Dict<String, Jzon::Node> styles;
 
+        Shared<nite::BaseUIComponent> getComponentById(const String &id){
+            auto it = idsLookUp.find(id);
+            if(it == idsLookUp.end()){
+                return Shared<nite::BaseUIComponent>(NULL);
+            }
+            return it->second;
+        }
 
-      BaseUIComponent *getTopHeadComponent(){
-        return headComponent == NULL ? this : headComponent->getTopHeadComponent();
-      }
+        BaseUIComponent *getTopHeadComponent(){
+            return headComponent == NULL ? this : headComponent->getTopHeadComponent();
+        }
 
-      BaseUIComponent *getHeadComponent(){
-        return headComponent == NULL ? this : headComponent;
-      }
+        BaseUIComponent *getHeadComponent(){
+            return headComponent == NULL ? this : headComponent;
+        }
 
-      void setLayout(std::shared_ptr<nite::LayoutSystemUI> layout){
-        this->layout = layout;
-        recalculate();
-      }
+        void setLayout(std::shared_ptr<nite::LayoutSystemUI> layout){
+            this->layout = layout;
+            recalculate();
+        }
 
-      void updateRelativePosition(const nite::Vec2 &pos){
-        this->relativePosition.set(pos);
-      }
+        void updateRelativePosition(const nite::Vec2 &pos){
+            this->relativePosition.set(pos);
+        }
 
-      /*
+        /*
         Layouts will call this on the Component when they're being
         arranged, but only if 'fillUpType' is true.
 
@@ -83,141 +93,136 @@
         within the w & h provided by the Layout.
 
         accommodate must also resolve overflowing.
-      */
-      virtual void accommodate(float w, float h){
-        size.set(w - padding.x - margin.x, h - padding.y - margin.y);
-      }
+        */
+        virtual void accommodate(float w, float h){
+            size.set(w - padding.x - margin.x, h - padding.y - margin.y);
+        }
 
-      BaseUIComponent(){
-        padding.set(0.0f);
-        margin.set(0.0f);
-        size.set(16.0f);
-        position.set(0.0f);
-        baseColor.set(0.0f, 0.0f, 0.0f, 1.0f);
-        zdepth = 0;
-        flex = 0.0f;
-        solid = false;
-        fillUpType = false;
-        layout = std::shared_ptr<nite::LayoutSystemUI>(new nite::Layout::Inline());
-        headComponent = NULL;
-        renderOnTarget = nite::RenderTargetUI;
-        isHovered = false;
-        uninteract = false;
-      }
+        BaseUIComponent();
 
-      void setFlex(float flex){
-        this->flex = flex;
-        recalculate();
-      }
+        void setFlex(float flex){
+            this->flex = flex;
+            recalculate();
+        }
 
-      void setInteractive(bool v){
-        uninteract = !v;
-        for(int i = 0; i < children.size(); ++i){
-          children[i]->setInteractive(v);
-        } 
-      }
+        void setId(const String &id){
+            this->literalId = id;
+        }
 
-      virtual void defaultInit(){
+        String getId(){
+            return literalId;
+        }
 
-      }
-      
-      virtual void renderDebugFrame(){
-        
-      }
+        void setInteractive(bool v){
+            uninteract = !v;
+            for(int i = 0; i < children.size(); ++i){
+                children[i]->setInteractive(v);
+            } 
+        }
 
-      virtual void rerender(){
+        virtual void defaultInit(){
 
-      }
+        }
 
-      virtual void calculateSize(){
+        virtual void renderDebugFrame(){
 
-      }
+        }
 
-      virtual void recalculate(){
-        auto *head = getHeadComponent();
-        computeSize();
-        if(head == this) return;
-        head->recalculate();
-      }
+        virtual void rerender(){
 
-      void add(std::shared_ptr<nite::BaseUIComponent> component);
+        }
 
-      void destroy();    
+        virtual void calculateSize(){
 
-      void clear(){
-        for(int i = 0; i < children.size(); ++i){
-          auto child = children[i];
-          child->onDestroy();
-          child->headComponent = NULL;
-        }        
-        children.clear();
-        recalculate();
-      }
+        }
 
-      virtual nite::Vec2 computeSize(){
-        return size + margin + padding;
-      }
+        virtual void recalculate(){
+            auto *head = getHeadComponent();
+            computeSize();
+            if(head == this) return;
+            head->recalculate();
+        }
 
-      void preinit(){
-        uiCreatedTimeout = nite::getTicks();
-      }
-      
-      void setMargin(const nite::Vec2 &size){
-        this->margin.set(size);
-        recalculate();
-      }
+        void add(std::shared_ptr<nite::BaseUIComponent> component);
 
-      void setPadding(const nite::Vec2 &size){
-        this->padding.set(size);
-        recalculate();
-      }
+        void destroy();    
 
-      bool isHovered;
+        void clear(){
+            for(int i = 0; i < children.size(); ++i){
+                auto child = children[i];
+                child->onDestroy();
+                child->headComponent = NULL;
+            }        
+            idsLookUp.clear();
+            children.clear();
+            styles.clear();
+            recalculate();
+        }
 
-      virtual void updateListeners();
+        virtual nite::Vec2 computeSize(){
+            return size + margin + padding;
+        }
 
-      // Listeners
-      virtual void onClick(){
+        void preinit(){
+            uiCreatedTimeout = nite::getTicks();
+        }
 
-      }
+        void setMargin(const nite::Vec2 &size){
+            this->margin.set(size);
+            recalculate();
+        }
 
-      virtual void onUnhover(){
+        void setPadding(const nite::Vec2 &size){
+            this->padding.set(size);
+            recalculate();
+        }
 
-      }
+        bool isHovered;
 
-      virtual void onHover(){
+        virtual void updateListeners();
 
-      }
+        // Listeners
+        virtual void onClick(){
 
-      virtual void onDestroy(){
+        }
 
-      }
+        virtual void onUnhover(){
 
-      virtual void onCreate(){
+        }
 
-      }
+        virtual void onHover(){
 
-      // Update
-      virtual void beforeUpdate(){
+        }
 
-      }
-      virtual void update(){
+        virtual void onDestroy(){
 
-      }
-      virtual void afterUpdate(){
+        }
 
-      }
+        virtual void onCreate(){
 
-      // Render
-      virtual void beforeRender(){
+        }
 
-      }
-      virtual void render(){
+        // Update
+        virtual void beforeUpdate(){
 
-      }
-      virtual void afterRender(){
+        }
+        virtual void update(){
 
-      }
+        }
+        virtual void afterUpdate(){
+
+        }
+
+        // Render
+        virtual void beforeRender(){
+
+        }
+        virtual void render(){
+
+        }
+        virtual void afterRender(){
+
+        }
     };
 
     struct ListenerInfo {

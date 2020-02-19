@@ -9,6 +9,28 @@
 bool __nite_showUISpacingFrames = false;
 // static nite::Console::CreateProxy showUIFrames("cl_uiframes", nite::Console::ProxyType::Bool, sizeof(bool), &__nite_showUISpacingFrames);
 
+static String getUniqueId(){
+    static UInt64 id = nite::randomInt(1500, 8500);
+    return nite::hashString(nite::toStr(nite::getTicks() + ++id));
+}
+
+nite::BaseUIComponent::BaseUIComponent(){
+    padding.set(0.0f);
+    margin.set(0.0f);
+    size.set(16.0f);
+    position.set(0.0f);
+    baseColor.set(0.0f, 0.0f, 0.0f, 1.0f);
+    zdepth = 0;
+    flex = 0.0f;
+    solid = false;
+    fillUpType = false;
+    layout = std::shared_ptr<nite::LayoutSystemUI>(new nite::Layout::Inline());
+    headComponent = NULL;
+    renderOnTarget = nite::RenderTargetUI;
+    isHovered = false;
+    uninteract = false;
+    literalId = getUniqueId();
+}
 
 void nite::BaseUIComponent::updateListeners(){
   if(uninteract) return;

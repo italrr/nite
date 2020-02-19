@@ -133,8 +133,10 @@ void nite::WindowUI::rerenderDecoration(){
 			base->repeat = true;
 		}
 	}else{
+		// TODO: check this later. Border and background should be rendered separate 
 		auto *base = uiBasicTexture.draw(0, 0, size.x, size.y, 0.0f, 0.0f, 0.0f);
 		if(base != NULL){
+			base->color = leftBorderColor;
 			nite::Uniform uni;
 			uni.add("p_size", size);
 			uni.add("p_bcolor", baseColor);
