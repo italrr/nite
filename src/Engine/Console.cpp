@@ -10,7 +10,6 @@
 #include "Graphics.hpp"
 #include "Input.hpp"
 
-
 static pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 struct ProxyObject {
@@ -277,12 +276,18 @@ static bool queryBool(ProxyObject &obj){
     return *((bool*)obj.ref);
 }
 
+static String queryString(ProxyObject &obj){
+    return String((char*)obj.ref, obj.size);
+}
+
 static String queryLiteral(ProxyObject &obj){
     switch(obj.type){
         case nite::Console::ProxyType::Int:
             return nite::toStr(queryInteger(obj));
         case nite::Console::ProxyType::Float:
             return nite::toStr(queryFloat(obj));
+        case nite::Console::ProxyType::Literal:
+            return queryString(obj);            
         case nite::Console::ProxyType::Bool:
             return queryBool(obj) ? "true" : "false";
         default:
@@ -310,6 +315,12 @@ static void modifyFloat(ProxyObject &obj, float val){
 static void modifyBool(ProxyObject &obj, bool val){
     memcpy(obj.ref, &val, sizeof(bool));
 }
+
+static void modifyString(ProxyObject &obj, String val){
+    obj.size = val.size();
+    memcpy(obj.ref, val.c_str(), val.size());
+}
+
 
 static ModifyObjectState modifyObject(ProxyObject &obj, int val){
     if(obj.type != nite::Console::ProxyType::Int){
@@ -353,8 +364,39 @@ static ModifyObjectState modifyObject(ProxyObject &obj, bool val){
     return state;
 }
 
+static ModifyObjectState modifyObject(ProxyObject &obj, String val){
+    if(obj.type != nite::Console::ProxyType::Literal){
+        ModifyObjectState state;
+        state.message = "Attempting to assign Literal to a non-literal object";
+        state.success = false;
+        return state;
+    }
+    modifyString(obj, val);
+    ModifyObjectState state;
+    state.success = true;
+    state.value = val;
+    return state;
+}
+
 static bool isBoolean(const String &val){
     return nite::toLower(val) == "true" || nite::toLower(val) == "false";
+}
+
+static bool isLiteral(const String &val){
+    return val[0] == '"' && val[val.length()-1] == '"';
+}
+
+static UInt8 getOperandType(const String &operand){
+    if(isBoolean(operand)){
+        return nite::Console::ProxyType::Bool;
+    }else
+    if(nite::isNumber(operand)){
+        return nite::Console::ProxyType::Float;
+    }else
+    if(isLiteral(operand)){
+        return nite::Console::ProxyType::Literal;
+    }
+    return nite::Console::ProxyType::Unknown;
 }
 
 // TODO: This needs some improvement
@@ -408,12 +450,19 @@ nite::Console::Result nite::Console::interpret(const String &command, bool remot
             String assignment = tokens[1];
             ModifyObjectState result;
 
+            if(isLiteral(assignment)){
+                assignment.erase(assignment.begin() + 0);
+                assignment.erase(assignment.begin() + assignment.length()-1);
+                result = modifyObject(op, assignment);
+            }else
             if(nite::isNumber(assignment)){
+                
                 if(op.type == nite::Console::ProxyType::Int){
                     result = modifyObject(op, (int)nite::toInt(assignment));
                 }else{
                     result = modifyObject(op, (float)nite::toFloat(assignment));
                 }
+
             }else
             if(isBoolean(assignment)){
                 result = modifyObject(op, assignment == "true");

@@ -10,7 +10,9 @@
                 enum ProxyType : UInt8 {
                     Int = 0,
                     Float,
-                    Bool
+                    Bool,
+                    Literal, // String
+                    Unknown
                 };
             }
 
