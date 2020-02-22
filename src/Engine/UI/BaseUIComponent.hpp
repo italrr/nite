@@ -52,6 +52,7 @@
         BaseUIComponent *headComponent;
         float flex;
         bool solid;
+        bool visible;
         int id;
         UInt64 uiCreatedTimeout;
         String componentName;
@@ -78,6 +79,15 @@
         void setLayout(std::shared_ptr<nite::LayoutSystemUI> layout){
             this->layout = layout;
             recalculate();
+        }
+
+        void setVisible(bool v){
+            this->visible = v;
+            recalculate();
+        }
+
+        bool isVisible(){
+            return this->visible;
         }
 
         void updateRelativePosition(const nite::Vec2 &pos){

@@ -1,15 +1,9 @@
-//#include "../nite.h"
-#include "Tools/Tools.hpp"
-#include "Input.hpp"
-#include "Shader.hpp"
-#include "Graphics.hpp"
-#include "View.hpp"
-#include "Console.hpp"
-#include "../Game.hpp"
 #define NO_SDL_GLEXT
 #include <fstream>
 #include <signal.h>
 #include <unistd.h>
+#include <iostream>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "GLEW/GL/glew.h"
@@ -17,6 +11,13 @@
 #include <SDL2/SDL_opengl.h>
 #include "Network.hpp"
 #include "UI/UI.hpp"
+#include "Tools/Tools.hpp"
+#include "Input.hpp"
+#include "Shader.hpp"
+#include "Graphics.hpp"
+#include "View.hpp"
+#include "Console.hpp"
+#include "../Game.hpp"
 
 using namespace nite;
 
@@ -31,8 +32,8 @@ static bool	enableVSync	= true;
 static bool	enableBorderless	= false;
 static bool	enableResizable	= false;
 static bool graphicsInitd = false;
-static SDL_Window	*Window;
-static SDL_GLContext	Context;
+static SDL_Window *Window;
+static SDL_GLContext Context;
 static float targetExcess = 1.0f;
 void flushTexture();
 void flushFont();
@@ -939,7 +940,7 @@ void nite::dropFrame(){
 		total += targets[c].objects.size();
     targets[c].clear();
   }
-	nite::print("Drop frame request: "+nite::toStr(total)+" objects");
+	nite::print("drop frame request: "+nite::toStr(total)+" objects");
 }
 
 void nite::graphicsRender(){
@@ -948,7 +949,7 @@ void nite::graphicsRender(){
 	initDelta = nite::getTicks();
 
 	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(1, 1, 1, 1);
+	glClearColor(0, 0, 0, 1);
 	for(int c = 0; c < RenderTargetNumber; ++c){
 		if(targets[c].objects.size() == 0) continue;
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targets[c].objectId);
@@ -986,6 +987,7 @@ static void gameExit(){
 	nite::AsyncTask::update();
 	nite::AsyncTask::end();	
 	ins->end();	
+	ins->onEnd();	
 }
 
 void ctrlC(int s){
@@ -1001,9 +1003,7 @@ static auto cfExitIns = nite::Console::CreateFunction("exit", &cfExit);
 static auto cfQuitIns = nite::Console::CreateFunction("quit", &cfExit);
 
 static Vector<String> parameters;
-#include <iostream>
-#include <string.h>
-  // TODO: fix this
+
 static nite::Console::Result cfRestart(Vector<String> params){
 	nite::print("restarting...");
 	gameExit();
@@ -1014,7 +1014,7 @@ static nite::Console::Result cfRestart(Vector<String> params){
 		newargv[i] = new char[str.length()+1];
 		strcpy(newargv[i], str.c_str());
 	}
-		execve((char*)parameters[0].c_str(), newargv, NULL);
+	execve((char*)parameters[0].c_str(), newargv, NULL); // TODO: fix this
 	for(int i = 0; i < parameters.size(); ++i){
 		delete newargv[i];
 	}
@@ -1049,8 +1049,8 @@ bool nite::isGraphicsInit(){
 void nite::graphicsInit(){
 	initDelta = nite::getTicks();
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0){
-		String Error = SDL_GetError();
-		nite::print("Error: SDL was unable to start. "+Error);
+		String err = SDL_GetError();
+		nite::print("fatal error: SDL was unable to start: "+err);
 		 gameExit();
 	}
 	nite::socketInit();

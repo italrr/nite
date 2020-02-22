@@ -214,14 +214,14 @@ nite::Font::Font(){
 	objectId = -1;
 	scale = nite::Vec2(1, 1);
 	smooth = false;
-	shadow = false;
+	shadow = true;
 }
 
 nite::Font::Font(const String &path, unsigned size){
 	objectId = -1;
 	scale = nite::Vec2(1, 1);
 	shadow = false;
-	smooth = false;
+	smooth = true;
 	load(path, size);
 }
 

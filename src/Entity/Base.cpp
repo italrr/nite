@@ -12,15 +12,15 @@ void Game::EntityBase::entityMove(float angle, float mod, bool holdStance){
 	}
 	// isWalking = true;
 	// walkingTimeout = nite::getTicks();
-	move(angle, mod + 0.25f * walkRate);
+	move(angle, mod + 0.25f * complexStat.walkRate);
 }
 
 void Game::EntityBase::kill(){
 	nite::print("Killed entity id "+nite::toStr(id)+" '"+name+"'");
-	if(dead){
+	if(healthStat.dead){
 		return;
 	}
-	dead = true;
+	healthStat.dead = true;
 	onDeath();
 }
 
@@ -29,7 +29,7 @@ void Game::EntityBase::onCreate(){
     solid = true;
     friction = 0.25f; 
     mass = 2.8f;
-    dead = false;
+    healthStat.dead = false;
     size.set(128, 184);
     walkPushRate = 5.0f;
     name = "Base Entity Type";    
@@ -38,7 +38,19 @@ void Game::EntityBase::onCreate(){
 void Game::EntityBase::draw(){
     static nite::Texture blank("data/sprite/empty.png");
     nite::setRenderTarget(nite::RenderTargetGame);
-	nite::setColor(0.0f, 0.0f, 0.0f, 1.0f);
+	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	nite::setDepth(nite::DepthMiddle);
     blank.draw(position.x, position.y, size.x, size.y, 0.5f, 0.5f, 0.0f);
+}
+
+void Game::EntityBase::writeInitialStateForSync(nite::Packet &packet){
+	packet.write(&healthStat, sizeof(healthStat));
+	packet.write(&baseStat, sizeof(baseStat));
+	packet.write(&complexStat, sizeof(complexStat));
+}
+
+void Game::EntityBase::readInitialStateForSync(nite::Packet &packet){
+	packet.read(&healthStat, sizeof(healthStat));
+	packet.read(&baseStat, sizeof(baseStat));
+	packet.read(&complexStat, sizeof(complexStat));	
 }

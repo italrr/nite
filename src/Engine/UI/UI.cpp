@@ -12,14 +12,14 @@ static Vector<nite::BaseUIComponent*> removeQueue;
 static nite::Console::Result cfBuildUI(Vector<String> params){
     static auto game = Game::getGameCoreInstance();
     if(params.size() < 1){
-        return nite::Console::Result("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+        return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
     }
     auto &path = params[0];
     if(!nite::fileExists(path)){
         return nite::Console::Result("'"+path+"' files does not exist.", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
     }
     auto win = static_cast<nite::WindowUI*>(nite::UI::build(path).get());
-    return nite::Console::Result("Built '"+win->getTitle()+"' from '"+path+"' Id: "+nite::toStr(win->id), nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+    return nite::Console::Result("built '"+win->getTitle()+"' from '"+path+"' Id: "+nite::toStr(win->id), nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
 
 }
 static auto cfBuildUIIns = nite::Console::CreateFunction("ui_build", &cfBuildUI); 
@@ -39,9 +39,9 @@ static nite::Console::Result cfUInstances(Vector<String> params){
         output += i < comps.size()-1 ? ", " : ".";
     }
     if(comps.size() == 0){
-        output = "None.";
+        output = "none";
     }
-    return nite::Console::Result("Active windows: "+output, nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+    return nite::Console::Result("active windows: "+output, nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 static auto cfUInstancesIns = nite::Console::CreateFunction("ui_show", &cfUInstances); 
 
@@ -52,7 +52,7 @@ static nite::Console::Result cfUIKill(Vector<String> params){
 	static auto game = Game::getGameCoreInstance();
 
 	if(params.size() < 1){
-		return nite::Console::Result("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}
 	auto &_id = params[0];
 	if(!nite::isNumber(_id)){
@@ -62,11 +62,10 @@ static nite::Console::Result cfUIKill(Vector<String> params){
 	auto &comps = components;
 	for(int i = 0; i < comps.size(); ++i){
 		if(comps[i]->id == id){
-			// it assumes all of the hosts are windows
+			//it assumes all of the hosts are windows (they must be)
 			auto win = static_cast<nite::WindowUI*>(comps[i].get());			
-			nite::print("Killed '"+win->getTitle()+"' Id was: "+nite::toStr(win->id));
 			win->close();
-			break;
+			return nite::Console::Result("killed '"+win->getTitle()+"' id was: "+nite::toStr(win->id), nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 	}
 
@@ -77,13 +76,14 @@ static auto cfUICloseIns = nite::Console::CreateFunction("ui_close", &cfUIKill);
 /////////////
 // COMMAND: ui_rerender
 ////////////
-// static nite::Console::Result cfUIRerender(Vector<String> params){
-// 	auto &comps = components;
-// 	for(int i = 0; i < comps.size(); ++i){
-//         comps[i]->recalculate();
-// 	}
-// }
-// static auto cfUIRerenderIns = nite::Console::CreateFunction("ui_rerender", &cfUIRerender); 
+static nite::Console::Result cfUIRerender(Vector<String> params){
+	auto &comps = components;
+	for(int i = 0; i < comps.size(); ++i){
+        comps[i]->rerender();
+	}
+    return nite::Console::Result("requested ui recalc", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+}
+static auto cfUIRerenderIns = nite::Console::CreateFunction("ui_rerender", &cfUIRerender); 
 
 void nite::UI::add(std::shared_ptr<BaseUIComponent> comp){
     if(comp == NULL){
@@ -546,9 +546,11 @@ static void _build(Shared<nite::BaseUIComponent> &ui, const String &path, JsonSo
     auto _c = node.get("children");
     for(int i = 0; i < _c.getCount(); ++i){
         auto child = _c.get(i);
-        asWindow->add(_buildComponent(child, source, asWindow->idsLookUp, asWindow->styles));
+        auto built = _buildComponent(child, source, asWindow->idsLookUp, asWindow->styles);
+        asWindow->idsLookUp[built->literalId] = built; 
+        asWindow->add(built);
     }
-    nite::print("built ui '"+path+"' | "+nite::toStr(source.listeners.size())+" listener(s) | "+nite::toStr(asWindow->styles.size())+" style(s)");
+    nite::print("built ui '"+path+"' id "+nite::toStr(asWindow->id)+" | "+nite::toStr(source.listeners.size())+" listener(s) | "+nite::toStr(asWindow->styles.size())+" style(s)");
 }
 
 

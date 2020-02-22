@@ -568,6 +568,7 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
     crt.write(&obj->sigId, sizeof(UInt16));
     crt.write(&obj->position.x, sizeof(float));
     crt.write(&obj->position.y, sizeof(float));
+    obj->writeInitialStateForSync(crt);
     persSendAll(crt, 1000, -1);
     return obj;
 }
@@ -636,7 +637,7 @@ bool Game::Server::killPlayer(UInt64 uid){
         return false;
     }
     auto entity = static_cast<Game::EntityBase*>(it->second.get());
-    if(entity->dead){
+    if(entity->healthStat.dead){
         nite::print(generic+" is already dead");
         return false;
     }

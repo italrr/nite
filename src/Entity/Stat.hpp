@@ -8,6 +8,7 @@
 	#define GAME_MAX_STAT 100
 	#define GAME_MAX_ATK_RATE GAME_MAX_STAT * (3.85f + GAME_MAX_LEVEL * 0.15f) + GAME_MAX_STAT * (1.1f + GAME_MAX_LEVEL * 0.1f)
     #define GAME_STAT_BASE_SCALE 1.0f
+	#define GAME_STAT_POINTS_PER_LV 6
 
     namespace Game {
 
@@ -128,7 +129,11 @@
             };
 		}
 
-        struct Stat : HealthStat, BaseStat, ComplexStat, EffectStat {
+        struct Stat {
+			Game::HealthStat healthStat;
+			Game::BaseStat baseStat;
+			Game::ComplexStat complexStat;
+			Game::EffectStat effectStat;
 			void recalculateHealthStats();
 			void recalculateComplexStats();
             Int32 addBaseStat(UInt8 type, UInt32 amnt);

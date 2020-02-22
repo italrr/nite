@@ -2,6 +2,7 @@
 #include "../Engine/Graphics.hpp"
 #include "../Engine/Console.hpp"
 #include "Client.hpp"
+#include "../Entity/Base.hpp"
 #include "../Game.hpp"
 
 static void pipeServerSideCmds(const String &input){
@@ -346,6 +347,7 @@ void Game::Client::update(){
                     break;
                 }
                 obj->onCreate();
+                obj->readInitialStateForSync(handler);
                 world.objects[id] = obj;
                 nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+Game::ObjectSig::name(sigId)+" at "+nite::Vec2(x, y).str());
             } break;
@@ -478,11 +480,56 @@ void Game::Client::update(){
 }
 
 void Game::Client::onStart(){
-    hud.start(&world);
+    hud.start(this);
 }
 
 void Game::Client::game(){
     input.update();
+    hud.update();
+
+    // local input
+    for(auto key : this->input.mapping){
+        auto gk = key.second;
+        auto nk = key.first;
+        bool pressed = nite::keyboardPressed(nk);
+        if(!pressed || entityId == 0) continue;
+        auto it = world.objects.find(entityId);
+        if(it == world.objects.end()) continue;
+        auto ent = static_cast<Game::EntityBase*>(it->second.get());
+        Game::Actionable *act = NULL;
+        switch(gk){
+            case Game::Key::Z: {
+                act = &ent->actionables[0];
+            }
+            case Game::Key::X: {
+                act = &ent->actionables[1];
+            }
+            case Game::Key::C: {
+                act = &ent->actionables[2];
+            }
+            case Game::Key::A: {
+                act = &ent->actionables[3];
+            }   
+            case Game::Key::S: {
+                act = &ent->actionables[4];
+            }                           
+        }
+        if(act == NULL){
+            break;
+        }
+        switch(act->type){
+            case ActionableType::None: {
+                nite::print("Used none");
+            } break;
+            case ActionableType::Item: {
+
+            } break;
+            case ActionableType::Skill: {
+
+            } break;            
+        }
+    } 
+
     auto buffer = input.getBuffer();
     if(buffer.size() > 0){
         nite::Packet pack(++sentOrder);
@@ -495,7 +542,7 @@ void Game::Client::game(){
             pack.write(&buffer[i].lastStroke, sizeof(UInt8));
         }
         sock.send(this->sv, pack);
-    }
+    } 
     // TODO: update objs anim
     world.update();
 }

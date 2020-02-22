@@ -12,9 +12,10 @@
 	"borderColor": {"r": 0.0, "g": 1.0, "b": 0.0, "a": 0.0 },
 	"styles": {
 		"stats_text": {
-			"shadowColor": {"r": 0.0, "g": 0.0, "b": 0.0, "a": 1.0 },
-			"shadowOffset": {"vert": 2, "hor": 2},
-			"margin": {"vert": 0, "hor": 32}
+			"shadowColor": {"r": 0.15, "g": 0.15, "b": 0.15, "a": 1.0 },
+			"shadowOffset": {"vert": -2, "hor": -2},
+			"margin": {"vert": 0, "hor": 32},
+			"fontSize": 14
 		}
 	},
 	"children": [
@@ -26,19 +27,19 @@
 				{
 					"id": "hud_hp_text",
 					"type":"text",
-					"text": "HP 0/0",
+					"text": "HP 0 / 0",
 					"style": "stats_text"
 				},
 				{
 					"id": "hud_sp_text",
 					"type":"text",
-					"text": "SP 0/0",
+					"text": "SP 0 / 0",
 					"style": "stats_text"
 				},
 				{
 					"id": "hud_sta_text",
 					"type":"text",
-					"text": "STA 0/0",
+					"text": "STA 0 / 0",
 					"style": "stats_text"
 				}									
 			]
@@ -48,6 +49,7 @@
 			"flex": 1
 		},
 		{
+			"id": "hud_nickname_text",
 			"type": "text",
 			"fontSize": 20,
 			"text": "PLAYER NAME",

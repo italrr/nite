@@ -6,12 +6,15 @@
 
     namespace Game {
 
+        struct Client;
         struct HUD {
+            HUD();
             Shared<nite::BaseUIComponent> main;
             UInt16 followId;
-            Game::NetWorld *container;
-            void start(Game::NetWorld *container);
+            Game::Client *client;
+            void start(Game::Client *client);
             void setFollow(UInt16 followId);
+            void resetValues();
             void stop();
             void update();
 

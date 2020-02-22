@@ -31,6 +31,7 @@
         void onCreate();
         void setFont(const nite::Font &font);
         void setText(const String &text);
+        String getText();
         void setFontSize(int size);
         void accommodate(float w, float h);
         void setShadowColor(const nite::Color &color);

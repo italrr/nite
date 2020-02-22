@@ -123,6 +123,11 @@ void nite::TextUI::setText(const String &text){
   recalculate();
 }
 
+String nite::TextUI::getText(){
+  return this->text;
+}
+
+
 void nite::TextUI::setOnClick(nite::ListenerLambda onClick){
   this->onClickMethod = onClick;
 }

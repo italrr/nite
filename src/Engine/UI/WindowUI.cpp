@@ -18,6 +18,10 @@ nite::Vec2 nite::WindowUI::computeSize(){
 	return size;
 }
 
+void nite::WindowUI::setOnRerenderListener(nite::ListenerLambda listener){
+	this->onRerender = listener;
+}
+
 void nite::WindowUI::updateListeners(){
 	if(uninteract) return;  
 	nite::Vec2 rp(position);
@@ -57,6 +61,9 @@ void nite::WindowUI::defaultInit(){
 	titleColor.set(1.0f, 1.0f, 1.0f, 1.0f);
 	toDestroy = false;
 	generalAlpha = 100.0;
+	this->onRerender = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &component){
+		return;
+	};	
 }
 
 void nite::WindowUI::setBackgroundImage(const nite::Texture &bgi){
@@ -192,13 +199,15 @@ void nite::WindowUI::rerender(){
 	rerenderDecoration();
 	batch.begin();  
 	// Render Children
-	for(int i = 0; i < children.size(); ++i){
-		if(children[i]->position.x < 0 || children[i]->position.y < 0){
-			continue;
-		}
-		children[i]->beforeRender();
-		children[i]->render();
-		children[i]->afterRender();
+	if(this->visible){
+		for(int i = 0; i < children.size(); ++i){
+			if(children[i]->position.x < 0 || children[i]->position.y < 0 || !children[i]->visible){
+				continue;
+			}
+			children[i]->beforeRender();
+			children[i]->render();
+			children[i]->afterRender();
+		}		
 	}
 	// auto offset = padding * nite::Vec2(0.5f);
 	// static nite::Texture tex("data/sprite/empty.png");
@@ -209,6 +218,7 @@ void nite::WindowUI::rerender(){
 	batch.end();
 	batch.flush();
 	toRerender = false;
+	this->onRerender(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
 }
 
 void nite::WindowUI::recalculate(){

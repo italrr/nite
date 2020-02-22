@@ -40,6 +40,7 @@
         nite::Vec2 beforeGrabSize;
         int resizeOrientation;
         float headerHeight;
+        nite::ListenerLambda onRerender;
         void rerender();
         void recalculate();
         void defaultInit();
@@ -50,6 +51,7 @@
         float generalAlpha;
         void rerenderDecoration();
         public:
+        void setOnRerenderListener(nite::ListenerLambda listener);
         void setBackgroundImage(const nite::Texture &bgi);
         void setCornerPattern(const nite::Texture &tex);
         void updateListeners();

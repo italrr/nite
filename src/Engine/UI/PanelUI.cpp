@@ -26,7 +26,7 @@ void nite::PanelUI::rerender(){
 
   // Render Children
   for(int i = 0; i < children.size(); ++i){
-    if(children[i]->position.x < 0 || children[i]->position.y < 0){
+    if(children[i]->position.x < 0 || children[i]->position.y < 0 || !children[i]->visible){
       continue;
     }
     children[i]->beforeRender();

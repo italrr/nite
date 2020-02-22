@@ -22,6 +22,7 @@ nite::BaseUIComponent::BaseUIComponent(){
     baseColor.set(0.0f, 0.0f, 0.0f, 1.0f);
     zdepth = 0;
     flex = 0.0f;
+    visible = true;
     solid = false;
     fillUpType = false;
     layout = std::shared_ptr<nite::LayoutSystemUI>(new nite::Layout::Inline());

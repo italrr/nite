@@ -27,23 +27,23 @@ Game::BaseStat::BaseStat(){
 }
 
 void Game::Stat::recalculateHealthStats(){
-	this->maxHealth = nite::ceil((12.5f + enduStat * 1.5f)  * GAME_STAT_BASE_SCALE * lv);
-	this->maxMana = nite::ceil((4.5f + intStat * 0.5f) * GAME_STAT_BASE_SCALE * lv);
-	this->maxStamina = nite::ceil((1.9f + dexStat * 0.35f + enduStat * 0.15f) * GAME_STAT_BASE_SCALE * lv);
+	healthStat.maxHealth = nite::ceil((12.5f + baseStat.enduStat * 1.5f)  * GAME_STAT_BASE_SCALE * healthStat.lv);
+	healthStat.maxMana = nite::ceil((4.5f + baseStat.intStat * 0.5f) * GAME_STAT_BASE_SCALE * healthStat.lv);
+	healthStat.maxStamina = nite::ceil((1.9f + baseStat.dexStat * 0.35f + baseStat.enduStat * 0.15f) * GAME_STAT_BASE_SCALE * healthStat.lv);
 }
 
 void Game::Stat::recalculateComplexStats(){
-	this->maxCarry = 25 + nite::ceil(strStat * GAME_STAT_BASE_SCALE * 4.0f + enduStat * GAME_STAT_BASE_SCALE * 2.0f);
-	this->atk = nite::ceil(strStat * 8.5f + enduStat * 1.2f);
-	this->magicAtk = nite::ceil(intStat * 8.5f);
-	this->def = nite::ceil(enduStat * 5.8f + lv * 0.7f);
-	this->magicDef = nite::ceil(intStat * 4.5f + enduStat * 1.2f);		
-	this->walkRate = nite::ceil(0.18f * agiStat); 
-	this->critRate = (float)lukStat / (float)GAME_MAX_STAT;
-	this->precsRate = dexStat * 1.25f;
-	this->atkRate = agiStat * (3.85f + lv * 0.15f) + dexStat * (1.1f + lv * 0.1f);
-	this->persuasionRate = nite::ceil(0.45f * lv + charismaStat * 5.96f + intStat * 2.25f);
-	this->charmRate = nite::ceil(0.5f * lv + charismaStat * 5.96f);
+	complexStat.maxCarry = 25 + nite::ceil(baseStat.strStat * GAME_STAT_BASE_SCALE * 4.0f + baseStat.enduStat * GAME_STAT_BASE_SCALE * 2.0f);
+	complexStat.atk = nite::ceil(baseStat.strStat * 8.5f + baseStat.enduStat * 1.2f);
+	complexStat.magicAtk = nite::ceil(baseStat.intStat * 8.5f);
+	complexStat.def = nite::ceil(baseStat.enduStat * 5.8f + healthStat.lv * 0.7f);
+	complexStat.magicDef = nite::ceil(baseStat.intStat * 4.5f + baseStat.enduStat * 1.2f);		
+	complexStat.walkRate = nite::ceil(0.18f * baseStat.agiStat); 
+	complexStat.critRate = (float)baseStat.lukStat / (float)GAME_MAX_STAT;
+	complexStat.precsRate = baseStat.dexStat * 1.25f;
+	complexStat.atkRate = baseStat.agiStat * (3.85f + healthStat.lv * 0.15f) + baseStat.dexStat * (1.1f + healthStat.lv * 0.1f);
+	complexStat.persuasionRate = nite::ceil(0.45f * healthStat.lv + baseStat.charismaStat * 5.96f + baseStat.intStat * 2.25f);
+	complexStat.charmRate = nite::ceil(0.5f * healthStat.lv + baseStat.charismaStat * 5.96f);
 }
 
 void Game::Stat::printInfo(){
@@ -68,7 +68,7 @@ void Game::Stat::printInfo(){
 Int32 Game::Stat::addBaseStat(UInt8 type, UInt32 amnt){
 	Int32 toAdd = 0;
 	auto inc = [&](UInt32 &target){
-		int toRest = statPoints;
+		int toRest = baseStat.statPoints;
 		// handle remaining points
 		if(amnt <= toRest){
 			toAdd +=  amnt;
@@ -80,32 +80,32 @@ Int32 Game::Stat::addBaseStat(UInt8 type, UInt32 amnt){
 		// handle excess points
 		if(toAdd + target > GAME_MAX_STAT){
 			toAdd = GAME_MAX_STAT - target;
-			toRest = statPoints - toAdd;
+			toRest = baseStat.statPoints - toAdd;
 		}
-		statPoints = toRest;
+		baseStat.statPoints = toRest;
 		target += toAdd;
 	};
 	switch(type){
 		case BaseStatType::Strength:{
-			inc(strStat);
+			inc(baseStat.strStat);
 		} break;
 		case BaseStatType::Agility:{
-			inc(agiStat);
+			inc(baseStat.agiStat);
 		} break;
 		case BaseStatType::Dexterity:{
-			inc(dexStat);
+			inc(baseStat.dexStat);
 		} break;
 		case BaseStatType::Endurance:{
-			inc(enduStat);
+			inc(baseStat.enduStat);
 		} break;
 		case BaseStatType::Luck:{
-			inc(lukStat);
+			inc(baseStat.lukStat);
 		} break;
 		case BaseStatType::Intelligence:{
-			inc(intStat);
+			inc(baseStat.intStat);
 		} break;
 		case BaseStatType::Charisma:{
-			inc(charismaStat);
+			inc(baseStat.charismaStat);
 		} break;
 	}
 	recalculateStats();
@@ -119,73 +119,74 @@ void Game::Stat::recalculateStats(){
 }
 
 void Game::Stat::resetBaseStat(UInt8 type){
-	statPoints += agiStat;
+	baseStat.statPoints = GAME_STAT_POINTS_PER_LV * this->healthStat.lv;
 	switch(type){
 		case BaseStatType::Strength:{
-			strStat = 0;
+			baseStat.strStat = 0;
 		} break;
 		case BaseStatType::Agility:{
-			agiStat = 0;
+			baseStat.agiStat = 0;
 		} break;
 		case BaseStatType::Dexterity:{
-			dexStat = 0;
+			baseStat.dexStat = 0;
 		} break;
 		case BaseStatType::Endurance:{
-			enduStat = 0;
+			baseStat.enduStat = 0;
 		} break;
 		case BaseStatType::Luck:{
-			lukStat = 0;
+			baseStat.lukStat = 0;
 		} break;
 		case BaseStatType::Intelligence:{
-			intStat = 0;
+			baseStat.intStat = 0;
 		} break;
 		case BaseStatType::Charisma:{
-			charismaStat = 0;
+			baseStat.charismaStat = 0;
 		} break;
 	}
 	recalculateStats();	
 }
 
 void Game::Stat::fullHeal(){
-	health = maxHealth;
-	mana = maxMana;
-	stamina = maxStamina;
+	healthStat.health = healthStat.maxHealth;
+	healthStat.mana = healthStat.maxMana;
+	healthStat.stamina = healthStat.maxStamina;
 }
 
 bool Game::Stat::lvUp(){
-	if(lv >= GAME_MAX_LEVEL){
+	if(healthStat.lv >= GAME_MAX_LEVEL){
 		return false;
 	}
-	++lv;
-	this->statPoints += 6;
-	this->exp = 0;
-	this->nextExp = nite::ceil((lv + 1) * GAME_STAT_BASE_SCALE * 250);
+	++healthStat.lv;
+	baseStat.statPoints += GAME_STAT_POINTS_PER_LV;
+	healthStat.exp = 0;
+	healthStat.nextExp = nite::ceil((healthStat.lv + 1) * GAME_STAT_BASE_SCALE * 250);
+	recalculateStats();
 	return true;
 }
 
 void Game::Stat::setupStat(UInt16 lv){
-	this->lv = 0;
-	this->exp = 0;
-	this->dead = false;
-	this->statPoints = 12;
-	while(this->lv < lv && lvUp());
-	removeAllEffects();
+	healthStat.lv = 0;
+	healthStat.exp = 0;
+	healthStat.dead = false;
+	baseStat.statPoints = 12;
+	while(healthStat.lv < lv && lvUp());
+	effectStat.removeAllEffects();
 	fullHeal();
 }
 
 void Game::Stat::heal(UInt32 hp, UInt32 mana, UInt32 stamina){
-	this->health += hp;
-	if(this->health > maxHealth){
-		this->health = maxHealth;
+	healthStat.health += hp;
+	if(healthStat.health > healthStat.maxHealth){
+		healthStat.health = healthStat.maxHealth;
 	}
 
-	this->mana += mana;
-	if(this->mana > maxMana){
-		this->mana = maxMana;
+	healthStat.mana += mana;
+	if(healthStat.mana > healthStat.maxMana){
+		healthStat.mana = healthStat.maxMana;
 	}
 
-	this->stamina += stamina;
-	if(this->stamina > maxStamina){
-		this->stamina = maxStamina;
+	healthStat.stamina += stamina;
+	if(healthStat.stamina > healthStat.maxStamina){
+		healthStat.stamina = healthStat.maxStamina;
 	}		
 }

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 project(MMORPG CXX C)
 
 set(CMAKE_C_FLAGS "-DGLEW_STATIC -g")
-set(CMAKE_CXX_FLAGS "-DGLEW_STATIC -std=c++11 -g")
+set(CMAKE_CXX_FLAGS "-DGLEW_STATIC -std=c++11 -g -m64")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/builds/cmake)
 
 # Build FreeType2 #
