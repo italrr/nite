@@ -187,6 +187,7 @@ set (nite_src
 		src/Engine/Tools/String.cpp
 		src/Engine/Tools/System.cpp
 		src/Engine/Tools/Time.cpp
+		src/Engine/Tools/SmallPacket.cpp
 		src/Engine/Shader.cpp
 		src/Engine/Tileset.cpp
 		src/Engine/Packets.cpp
@@ -235,6 +236,7 @@ set(src_files
 	src/Entity/Effect.cpp
 	# HUD #
 	src/HUD/HUD.cpp
+	src/HUD/Icon.cpp
 	# GENERAL #
 	src/Camera.cpp
 	src/Inventory.cpp

@@ -2,6 +2,7 @@
     #define GAME_NETWORK_HPP
     
     #include "../Engine/Network.hpp" 
+    #include "../Engine/Tools/Tools.hpp"
 
     namespace Game {
         
@@ -46,6 +47,14 @@
             nite::IP_Port cl;
             UInt64 lastRetry;
             UInt64 created;
+            // call back mechanic for messages that depend on the delivery of others. chained-deliveries in other words
+            std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> onAck;
+            nite::SmallPacket onAckPayload;
+            PersisentDelivey(){
+                this->onAck = [](nite::SmallPacket &payload, nite::IP_Port &cl){
+                    
+                };
+            }
         };
 
         struct Net {
@@ -56,12 +65,14 @@
             nite::UDPSocket sock;
             Net();
             void setState(unsigned state);
-            void persSend(nite::IP_Port &client, nite::Packet &packet);
-            void persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries);  
+            Game::PersisentDelivey& persSend(nite::IP_Port &client, nite::Packet &packet);
+            Game::PersisentDelivey& persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries);  
             void dropPersFor(UInt64 netId);
             void updateDeliveries();       
             void ack(nite::Packet &packet);
             void sendAck(nite::IP_Port &client, UInt32 ackId, UInt32 order);
+            void bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda, nite::SmallPacket packet);
+            void bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda);
             virtual void step();
         };
 
@@ -211,7 +222,7 @@
                 n: UINT16 ID[n]             
             */ 
 
-            SV_CLIENT_INPUT,
+             SV_CLIENT_INPUT,
             /*
                 UINT8 AMOUNT
                 0: {
@@ -225,7 +236,7 @@
                     UINT8 TYPE
                     UINT8 NEXT_KEY_STROKE
                 }
-            */     
+            */    
 
             SV_UPDATE_PHYSICS_OBJECT,
             /*
@@ -268,6 +279,34 @@
             /*
                 UINT16 ENTID
             */                                                      
+            SV_SET_ENTITY_SKILLS, // ACK
+            /*
+                UINT16 ENTID
+                UINT8 AMOUNT
+                0: {
+                    UINT16 SKILLID[0]
+                    UINT8 LV[0]
+                }
+                ...
+                n: {
+                    UINT16 SKILLID[n]
+                    UINT8 LV[n]
+                }                
+
+            */  
+            SV_REMOVE_ENTITY_SKILLS, // ACK
+            /*
+                UINT16 ENTID
+                UINT8 AMOUNT
+                0: {
+                    UINT16 SKILLID[0]
+                }
+                ...
+                n: {
+                    UINT16 SKILLID[n]
+                }                
+
+            */                       
 
         };
 

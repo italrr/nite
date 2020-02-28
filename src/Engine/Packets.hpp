@@ -30,5 +30,9 @@
 				nite::Packet& operator= (const nite::Packet &other);
 
 		};
+
+		// struct SmallPacket : Packet {
+		// 	char data[64];
+		// };
 	}
 #endif

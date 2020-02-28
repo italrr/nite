@@ -11,13 +11,13 @@ void Game::Net::setState(unsigned state){
     this->state = state;
 }
 
-void Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet){
-    persSend(client, packet, 250, 3);
+Game::PersisentDelivey& Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet){
+    return persSend(client, packet, 250, 3);
 }
 
-void Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries){
+Game::PersisentDelivey& Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries){
     if(!init){
-        return;
+        nite::print("persend when net is not init");
     }    
     Game::PersisentDelivey pd;
     pd.retryInterval = retryInterval;
@@ -31,6 +31,7 @@ void Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 ret
     pd.created = nite::getTicks();
     sock.send(client, packet);
     deliveries.push_back(pd);
+    return deliveries[deliveries.size() - 1];
 }
 
 void Game::Net::updateDeliveries(){
@@ -75,8 +76,29 @@ void Game::Net::ack(nite::Packet &packet){
     packet.read(&order, nite::NetworkOrderSize);
     for(int i = 0; i < deliveries.size(); ++i){
         if(deliveries[i].order == order){
+            deliveries[i].onAck(deliveries[i].onAckPayload, deliveries[i].cl);
             deliveries.erase(deliveries.begin() + i);
             --i;
+        }
+    }
+}
+
+void Game::Net::bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda, nite::SmallPacket packet){
+    for(int i = 0; i < deliveries.size(); ++i){
+        auto &pck = deliveries[i];
+        if(pck.packet.getHeader() == header){
+            pck.onAckPayload = packet;
+            pck.onAck = lambda;
+        }
+    }
+}
+
+// this one is avoid copying nite::SmallPacket if it is not needed
+void Game::Net::bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda){
+    for(int i = 0; i < deliveries.size(); ++i){
+        auto &pck = deliveries[i];
+        if(pck.packet.getHeader() == header){
+            pck.onAck = lambda;
         }
     }
 }

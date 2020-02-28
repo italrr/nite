@@ -136,6 +136,7 @@ void Game::Client::connect(){
 void Game::Client::setup(const String &nickname){
     this->nickname = nickname;
     this->init = true;
+    this->icons.load(nite::Texture("data/ui/icons/test_icons.png"), nite::Vec2(32.0f));
 }
 
 void Game::Client::disconnect(){
@@ -338,11 +339,11 @@ void Game::Client::update(){
                 handler.read(&y, sizeof(float));
                 auto obj = createNetObject(id, sigId, x, y);
                 if(obj.get() == NULL){
-                    nite::print("[client] server requested creation of undefined obj sig "+Game::ObjectSig::name(sigId)+" on the client");
+                    nite::print("[client] fail SV_CREATE_OBJECT: undefined obj sig '"+Game::ObjectSig::name(sigId)+"' on the client");
                     break;
                 }
                 if(world.objects.find(id) != world.objects.end()){
-                    nite::print("[client] server requested creation of obj with a duplicated id '"+Game::ObjectSig::name(sigId)+"'");
+                    nite::print("[client] fail SV_CREATE_OBJECT: duplicated id "+nite::toStr(id)+"");
                     // TODO: come up with a way to properly handle duplicated ids?
                     break;
                 }
@@ -361,7 +362,7 @@ void Game::Client::update(){
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 auto obj = world.objects.find(id);
                 if(obj == world.objects.end()){
-                    nite::print("[client] server requested destruction of unexisting entity id: "+nite::toStr(id));
+                    nite::print("[client] fail SV_DESTROY_OBJECT: object id "+nite::toStr(id)+" doesn't exist");
                     break;
                 }
                 world.objects.erase(obj);
@@ -401,6 +402,7 @@ void Game::Client::update(){
             */
             case Game::PacketType::SV_UPDATE_OBJECT_RELATIVE_TIMESCALE: {
                 if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 UInt16 id;
                 float timescale;
                 handler.read(&id, sizeof(UInt16));
@@ -409,13 +411,13 @@ void Game::Client::update(){
                 if(it != world.objects.end()){
                     it->second->relativeTimescale = timescale;
                 }
-                sendAck(this->sv, handler.getOrder(), ++sentOrder);
             } break;  
             /*
                 SV_REMOTE_CMD_MSG
             */                          
             case Game::PacketType::SV_REMOTE_CMD_MSG: {
                 if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 String msg;
                 nite::Color color;
                 handler.read(msg);
@@ -423,7 +425,6 @@ void Game::Client::update(){
                 handler.read(&color.g, sizeof(float));
                 handler.read(&color.b, sizeof(float));
                 nite::Console::add(msg, color);
-                sendAck(this->sv, handler.getOrder(), ++sentOrder);
             } break;      
             /*
                 SV_SET_GAME_START
@@ -443,7 +444,60 @@ void Game::Client::update(){
                 this->hud.setFollow(this->entityId);
             } break;       
                         
-              
+            /*
+                SV_SET_ENTITY_SKILLS
+            */          
+            case Game::PacketType::SV_SET_ENTITY_SKILLS: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId;
+                UInt8 amnt;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&amnt, sizeof(UInt8));
+                auto it = world.objects.find(entityId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_SET_ENTITY_SKILLS: entity id doesn't exist");
+                    break;
+                }
+                for(int i = 0; i < amnt; ++i){
+                    UInt16 skId;
+                    UInt8 lv;
+                    handler.read(&skId, sizeof(UInt16));
+                    handler.read(&lv, sizeof(UInt8));
+                    if(getSkill(skId, lv).get() == NULL){
+                        nite::print("[client] warn SV_SET_ENTITY_SKILLS: skill id "+nite::toStr(skId)+" doesn't exist");
+                        continue;
+                    }
+                    auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                    ent->skillStat.addSkill(skId, lv);
+                }
+            } break;  
+            /*
+                SV_SET_ENTITY_SKILLS
+            */          
+            case Game::PacketType::SV_REMOVE_ENTITY_SKILLS: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId;
+                UInt8 amnt;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&amnt, sizeof(UInt8));
+                auto it = world.objects.find(entityId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_REMOVE_ENTITY_SKILLS: entity id doesn't exist");
+                    break;
+                }
+                for(int i = 0; i < amnt; ++i){
+                    UInt16 skId;
+                    handler.read(&skId, sizeof(UInt16));
+                    if(getSkill(skId, 0).get() == NULL){
+                        nite::print("[client] warn SV_REMOVE_ENTITY_SKILLS: skill id "+nite::toStr(skId)+" doesn't exist");
+                        continue;
+                    }
+                    auto ent = static_cast<Game::EntityBase*>(it->second.get()); // ok i know, i repeated it enough (if you don't know what, keep reading the project...)
+                    ent->skillStat.removeSkill(skId);
+                }
+            } break;                          
             /* 
                 UNKNOWN
             */

@@ -129,7 +129,7 @@ struct JsonSource {
 
 static Vector<JsonSource> sources;
 
-// example: "!! #gwidth + 0" expression always expects an expression, not single dynamic vars
+// example: "!! #gwidth + 0" "expression" always expects an expression, not single dynamic vars
 static float expression(const String &input, Shared<nite::BaseUIComponent> &component){
     if(!(input.length() > 3 && input[0] == '!' && input[1] == '!' && input[2] == ' ')) return 0.0f;
     auto element = nite::split(input, ' ');
@@ -463,9 +463,11 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
+        auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         ref->setId(id);    
         ref->setMargin(margin);
         ref->setPadding(padding);        
+        ref->setBackgroundImage(backgroundImage);
         ref->setOnUnhover(onUnhoverMethod);        
         if(node.has("flex") && flex > 0.0f){
             ref->setFlex(flex);

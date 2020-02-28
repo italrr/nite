@@ -3,6 +3,7 @@
 
     #include "../Engine/Tools/Tools.hpp"
 	#include "Effect.hpp"
+	#include "Skill.hpp"
 
 	#define GAME_MAX_LEVEL 48
 	#define GAME_MAX_STAT 100
@@ -134,6 +135,7 @@
 			Game::BaseStat baseStat;
 			Game::ComplexStat complexStat;
 			Game::EffectStat effectStat;
+			Game::SkillStat skillStat;
 			void recalculateHealthStats();
 			void recalculateComplexStats();
             Int32 addBaseStat(UInt8 type, UInt32 amnt);

@@ -19,6 +19,8 @@
 			String str();
 			void set(const String &ip, UInt16 port);
 			operator std::string() const;
+			bool operator== (IP_Port &other);
+			bool isSame(IP_Port &other);
 		};
 
 		struct UDPSocket	{

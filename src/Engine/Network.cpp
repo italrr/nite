@@ -52,6 +52,14 @@ nite::IP_Port::IP_Port(){
 	set("127.0.0.1", NetworkDefaultPort);
 }
 
+bool nite::IP_Port::operator== (IP_Port &other){
+	return isSame(other);
+}
+
+bool nite::IP_Port::isSame(IP_Port &other){
+	return this->address == other.address && this->port == other.port;
+}
+
 void nite::IP_Port::set(const String &ip, UInt16 port){
 	this->port = port;
 	this->ip = ip;

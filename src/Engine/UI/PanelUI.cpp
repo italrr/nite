@@ -22,7 +22,15 @@ void nite::PanelUI::rerender(){
   batch.begin();
 
   nite::setColor(baseColor);
-  uiBasicTexture.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);
+
+	if(uiBackgroundImage.isLoaded()){
+		auto *base = uiBackgroundImage.draw(0, 0, size.x, size.y, 0.0f, 0.0f, 0.0f);
+		if(base != NULL){
+			base->repeat = true;
+		}
+	}else{  
+    uiBasicTexture.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);
+  }
 
   // Render Children
   for(int i = 0; i < children.size(); ++i){
@@ -100,8 +108,16 @@ void nite::PanelUI::accommodate(float w, float h){
   }
 }
 
+void nite::PanelUI::setBackgroundImage(const nite::Texture &bgi){
+	uiBackgroundImage = bgi;
+}
+
+nite::Texture nite::PanelUI::getBackgroundImage(){
+	return uiBackgroundImage;	
+}
+
 void nite::PanelUI::render(){
-  
+
   auto cps = computeSize();
   nite::Vec2 rp = realPosition - cps * 0.5f + margin * 0.5f;
   // Render batch

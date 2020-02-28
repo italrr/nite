@@ -91,6 +91,15 @@ Game::SvClient *Game::Server::getClient(const String &nick){
     return NULL;
 }
 
+Game::SvClient *Game::Server::getClientByIp(nite::IP_Port &ip){
+    for(auto _cl : clients){
+        if(_cl.second.cl.isSame(ip)){
+            return &clients[_cl.first];
+        }
+    }
+    return NULL;
+}
+
 void Game::Server::sendInfoPlayerList(UInt64 uid){
     auto cl = getClient(uid);
     if(cl == NULL){
@@ -258,8 +267,9 @@ void Game::Server::update(){
                 if(clients.size() == maxClients){
                     nite::Packet reject((UInt32)0);
                     reject.setHeader(Game::PacketType::SV_CONNECT_REJECT);
-                    reject.write("server is full");
-                    nite::print("[server] rejected client "+nite::toStr(netId)+" : server full");
+                    String msg = "server is full";
+                    reject.write(msg);
+                    nite::print("[server] rejected client "+nite::toStr(netId)+": "+msg);
                     sock.send(sender, reject); 
                     break;
                 }
@@ -283,20 +293,22 @@ void Game::Server::update(){
                     accepted.write(&netId, sizeof(UInt64));
                     accepted.write(this->name);
                     persSend(clients[netId].cl, accepted);
+                    nite::SmallPacket netIdPack;
+                    netIdPack.write(&netId, sizeof(UInt64));
                     nite::print("[server] accepted clientId "+nite::toStr(netId)+" | nickname '"+nick+"'");
                     // notify clients someone joined
                     nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
                         nite::Packet notify;
-                        UInt64 *uid = static_cast<UInt64*>(ct.payload);
-                        auto &cl = clients[*uid];
+                        UInt64 uid;
+                        ct.payload.read(&uid, sizeof(UInt64));
+                        auto &cl = clients[uid];
                         notify.setHeader(Game::PacketType::SV_CLIENT_JOIN);
                         notify.write(&cl.clientId, sizeof(UInt64));
                         notify.write(cl.nickname);
                         persSendAll(notify, 750, -1);     
-                        sendInfoPlayerList(*uid);
-                        delete uid;
+                        sendInfoPlayerList(uid);
                         ct.stop();                   
-                    }), 100, new UInt64(netId));
+                    }), 100, netIdPack);
                 }
             } break; 
             /*
@@ -538,16 +550,30 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
         for(auto cl : clients){
             createPlayer(cl.second.clientId, 1);
         }
+        // now some chained-deliveries
+        // notify clients of their respective owners
+        bindOnAckFor(Game::PacketType::SV_CREATE_OBJECT, [&](nite::SmallPacket &pck, nite::IP_Port &ip){   
+            auto cl = this->getClientByIp(ip);
+            if(cl == NULL){
+                nite::print("[server] failed to notify clients their respective entity. ip was not found in the list");
+                return;
+            }
+            nite::Packet noti(++cl->svOrder);
+            noti.setHeader(Game::PacketType::SV_NOTI_ENTITY_OWNER);
+            noti.write(&cl->entityId, sizeof(UInt16));
+            persSend(cl->cl, noti);
+            // send respective clients their default skill list
+            bindOnAckFor(Game::PacketType::SV_NOTI_ENTITY_OWNER, [&](nite::SmallPacket &pck, nite::IP_Port &ip){   
+                auto cl = this->getClientByIp(ip);
+                if(cl == NULL){
+                    nite::print("[server] failed to send skill list. ip was not found in the list");
+                    return;
+                }
+                sendEntitySkillList(cl->clientId, cl->entityId);
 
-        nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
-            for(auto cl : clients){
-                nite::Packet noti(++cl.second.svOrder);
-                noti.setHeader(Game::PacketType::SV_NOTI_ENTITY_OWNER);
-                noti.write(&cl.second.entityId, sizeof(UInt16));
-                persSend(cl.second.cl, noti);
-            }            
-            ct.stop();
-        }), 500);
+            }, nite::SmallPacket());            
+
+        }, nite::SmallPacket());
         
         ct.stop();
     }), 5000);
@@ -585,6 +611,31 @@ bool Game::Server::destroy(UInt32 id){
     obj->destroy();
     persSendAll(des, 1000, -1);    
     return true;
+}
+
+void Game::Server::sendEntitySkillList(UInt64 uid, UInt16 entityId){
+    auto itent = this->world.objects.find(entityId);
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        nite::print("[server] failed to skill list for entity: client id "+nite::toStr(uid)+" doesn't exist");
+        return;
+    }
+    if(itent == this->world.objects.end()){
+        nite::print("[server] failed to skill list for entity: ent id "+nite::toStr(entityId)+" doesn't exist");
+        return;
+    }
+    auto ent = static_cast<Game::EntityBase*>(itent->second.get()); // we're gonna assume this is indeed an entity
+    auto &sklst = ent->skillStat.skills;
+    UInt8 skamnt = sklst.size();
+    nite::Packet pck(++cl->svOrder);
+    pck.setHeader(Game::PacketType::SV_SET_ENTITY_SKILLS);
+    pck.write(&ent->id, sizeof(UInt16));
+    pck.write(&skamnt, sizeof(UInt8));
+    for(auto sk : ent->skillStat.skills){
+        pck.write(&sk.first, sizeof(UInt16));
+        pck.write(&sk.second, sizeof(UInt8));
+    }
+    persSend(cl->cl, pck, 750, -1);
 }
 
 Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){

@@ -49,11 +49,65 @@
 			"flex": 1
 		},
 		{
-			"id": "hud_nickname_text",
-			"type": "text",
-			"fontSize": 20,
-			"text": "PLAYER NAME",
-			"style": "stats_text"
+			"type": "panel",
+			"layout": "hbox",
+			"width": "!! #gwidth + 0.0",
+			"height": "!! #gheight * 0.08",
+			"children": [
+				{
+					"type": "panel",
+					"layout": "hbox",
+					"flex": 1,
+					"backgroundColor": { "a": 0.0 },
+					"children": [
+						{
+							"id": "actionable_z",
+							"type":"panel",
+							"layout": "hbox",
+							"width": 64,
+							"height": 64,
+							"margin": {"hor": 16},
+							"backgroundColor": {"r": 0.9, "g": 0.15, "b": 0.15, "a": 1.0 }
+						},
+						{
+							"id": "actionable_x",
+							"type":"panel",
+							"layout": "hbox",
+							"width": 64,
+							"height": 64,
+							"margin": {"hor": 16},
+							"backgroundColor": {"r": 0.15, "g": 0.9, "b": 0.15, "a": 1.0 }
+						},
+						{
+							"id": "actionable_c",
+							"type":"panel",
+							"layout": "hbox",
+							"width": 64,
+							"height": 64,
+							"margin": {"hor": 16},
+							"backgroundColor": {"r": 0.15, "g": 0.15, "b": 0.9, "a": 1.0 }
+						},
+						{
+							"id": "actionable_a",
+							"type":"panel",
+							"layout": "hbox",
+							"width": 64,
+							"height": 64,
+							"margin": {"hor": 16},
+							"backgroundColor": {"r": 0.9, "g": 0.85, "b": 0.15, "a": 1.0 }
+						},
+						{
+							"id": "actionable_s",
+							"type":"panel",
+							"layout": "hbox",
+							"width": 64,
+							"height": 64,
+							"margin": {"hor": 16 },
+							"backgroundColor": {"r": 0.15, "g": 0.85, "b": 0.9, "a": 1.0 }
+						}							
+					]
+				}
+			]
 		}
 	]
 }

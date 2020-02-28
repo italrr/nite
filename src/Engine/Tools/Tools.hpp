@@ -196,6 +196,30 @@
 	}
 	/*
 	================
+	SmallPacket
+	TODO: add some threading-safety?
+	================
+	*/	
+	#define NITE_SMALLPACKET_SIZE 24
+	namespace nite {
+		struct SmallPacket {
+			size_t index;
+			char data[NITE_SMALLPACKET_SIZE];
+			SmallPacket();
+			~SmallPacket();				
+			void copy(const nite::SmallPacket &other);
+			void reset();
+			void clear();
+			void setIndex(size_t index);
+			bool write(const void *data, size_t Si);
+			bool read(String &str);
+			bool read(void *data, size_t Si);
+			bool write(const String str);
+			nite::SmallPacket& operator= (const nite::SmallPacket &other);		
+		};
+	}
+	/*
+	================
 	Async (NOT THREADED)
 	TODO: make it threaded
 	================
@@ -219,7 +243,7 @@
 					UInt8 state;
 					UInt64 startTime;
 					UInt64 delayTime;
-					void *payload; // hacky, but practical. TODO: nicer way to do this?
+					nite::SmallPacket payload; // hacky, but practical. TODO: nicer way to do this?
 					Context();
 					void start();
 					void step();
@@ -228,8 +252,8 @@
 					void resume();
 			};
 
-			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda, void *payload);
-			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda, UInt64 delayTime, void *payload);
+			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda, nite::SmallPacket &payload);
+			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda, UInt64 delayTime, nite::SmallPacket &payload);
 			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda, UInt64 delayTime);
 			Shared<nite::AsyncTask::Context> spawn(nite::AsyncTask::ALambda lambda);
 					

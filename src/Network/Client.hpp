@@ -6,6 +6,7 @@
     #include "Input.hpp"
     #include "World.hpp"
     #include "../HUD/HUD.hpp"
+    #include "../HUD/Icon.hpp"
 
     namespace Game {
 
@@ -23,6 +24,7 @@
         };
 
         struct Client : Game::Net {
+            Game::IconManager icons;
             Game::Input input;
             Game::HUD hud;
             Dict<UInt64, Game::ClClient> clients;

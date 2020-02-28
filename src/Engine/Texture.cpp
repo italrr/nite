@@ -150,13 +150,19 @@ bool nite::Texture::load(const String &path, const nite::Color &transparency){
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Pixels);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDisable(GL_TEXTURE_2D);
-	textureList[objectId].Width		= Width;
-	textureList[objectId].Height		= Height;
-	textureList[objectId].Channels	= Channels;
+	textureList[objectId].Width	= Width;
+	textureList[objectId].Height = Height;
+	textureList[objectId].Channels = Channels;
+	this->filename = path;
 	region.set(0, 0, Width, Height);
 	nite::print("loaded texture '"+path+"'.");
 	SOIL_free_image_data(Pixels);
 	return true;
+}
+
+
+String nite::Texture::getFilename(){
+	return filename;
 }
 
 nite::Texture::Texture(){
@@ -185,6 +191,7 @@ nite::Texture::Texture(const nite::Texture &other){
 	region = other.region;
 	smooth = other.smooth;
 	objectId = other.objectId;
+	filename = other.filename;
 	textureList[objectId].owners.push_back(this);
 }
 
@@ -429,6 +436,7 @@ nite::Texture& nite::Texture::operator= (const nite::Texture &other){
 	region = other.region;
 	smooth = other.smooth;
 	objectId = other.objectId;
+	filename = other.filename;
 	textureList[objectId].owners.push_back(this);
 	return *this;
 }

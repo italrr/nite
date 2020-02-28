@@ -2,7 +2,7 @@
     #define GAME_SKILL_HPP
 
     #include "../Engine/Tools/Tools.hpp"
-    #include "Base.hpp"
+    #include "../HUD/Icon.hpp"
 
     namespace Game {
 
@@ -40,6 +40,7 @@
             AoE // area of effect
         };
 
+        struct EntityBase;
         struct Skill {
             String name;
             String desc;
@@ -54,26 +55,26 @@
             UInt16 range; // 1 unit is "32 radial pixels"
             UInt64 delay; // cast delay (milliseconds)
             UInt64 lastUse;
+            UInt64 afterLastUse;
             UInt64 adelay; // after cast delay
             UInt16 minUseLv;
             UInt16 skPointsPerLv; // how many skill points cost one level
+            int iconId;
             Skill();
             virtual void beforeUse(Shared<Game::EntityBase> who);
             virtual void afterUse(Shared<Game::EntityBase> who);
-            void use(Shared<Game::EntityBase> who);
-            void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to); // to is allowed to be null
-            virtual void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
+            virtual void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at); // to is allowed to be null
         };
 
         enum SkillList : UInt16 {
-            NONE = 0,
+            NONE = 1,
             
             // SPECIALS [SP] 
             
             // BASE [BA] 
             BA_ATTACK,                  // basic attack (arrow shoot, sword swing, bare hands punch)
             BA_BASH,                    // stronger 'attack', only close range
-            BA_DASH,                    // dodge
+            BA_DODGE,                   // dash movement to `dodge` attacks
             BA_PARRY,                   // block % of next physical attack received
             BA_FIRST_AID,               // heals 20% of a lv 1 entity *with less than 50% hp* over 30 seconds
 
@@ -122,13 +123,44 @@
             SO_LIGHTNING                // creates a lighting attack from the 
         };
 
-        Game::Skill getSkill(UInt16 id, UInt8 lv);
+        Shared<Game::Skill> getSkill(UInt16 id, UInt8 lv);
+
+        struct SkillStat {
+            Dict<UInt16, UInt8> skills;
+            bool addSkill(UInt16 id, UInt8 lv);
+            bool removeSkill(UInt16 id);
+            bool hasSkill(UInt16 id);
+            bool lvUpSkill(UInt16 id);
+        };
 
         /* SKILLS */
         namespace Skills {
             // SPECIALS [SP] 
-            
+
             // BASE [BA] 
+            struct BA_Attack : Skill {
+                UInt16 baseDmg;
+                BA_Attack();
+                void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
+            };
+            struct BA_Bash : Skill {
+                UInt16 baseDmg;
+                BA_Bash();
+                void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
+            };
+            struct BA_Dodge : Skill {
+                BA_Dodge();
+                void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
+            };             
+            struct BA_Parry : Skill {
+                BA_Parry();
+                void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
+            };         
+            struct BA_FIRST_AID : Skill {
+                BA_FIRST_AID();
+                void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
+            };               
+
 
             // KNIGHT [KN] 
 

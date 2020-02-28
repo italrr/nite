@@ -79,6 +79,19 @@ void Game::HUD::update(){
         }
     }       
 
+    // actionable_z
+    auto actZPanel = this->main->getComponentById("actionable_z");
+    if(actZPanel.get() != NULL){
+        if(auto panel = dynamic_cast<nite::PanelUI*>(actZPanel.get())){
+            // panel->setBac
+        }
+    }     
+
+
+    // auto actXPanel = this->main->getComponentById("actionable_x");
+    // auto actCPanel = this->main->getComponentById("actionable_c");
+    // auto actAPanel = this->main->getComponentById("actionable_a");
+    // auto actSPanel = this->main->getComponentById("actionable_s");
 }
 
 void Game::HUD::stop(){

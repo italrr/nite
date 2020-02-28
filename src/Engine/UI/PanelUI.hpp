@@ -12,6 +12,7 @@
     class PanelUI : public nite::BaseUIComponent {
       private:
         nite::Texture uiBasicTexture;
+        nite::Texture uiBackgroundImage;
         nite::Batch batch;
         void rerender();
         void recalculate();
@@ -25,6 +26,8 @@
         nite::ListenerLambda onUnhoverMethod;                                              
         void recalculateFromHead();
       public: 
+        void setBackgroundImage(const nite::Texture &bgi);
+        nite::Texture getBackgroundImage();      
         void setOnUnhover(nite::ListenerLambda onUnhover);                  
         void setOnClick(nite::ListenerLambda onClick);
         void setOnHover(nite::ListenerLambda onHover);

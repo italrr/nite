@@ -53,6 +53,7 @@
         public:
         void setOnRerenderListener(nite::ListenerLambda listener);
         void setBackgroundImage(const nite::Texture &bgi);
+        nite::Texture getBackgroundImage();
         void setCornerPattern(const nite::Texture &tex);
         void updateListeners();
         void setTitleColor(const nite::Color &color);

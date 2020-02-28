@@ -70,6 +70,10 @@ void nite::WindowUI::setBackgroundImage(const nite::Texture &bgi){
 	uiBackgroundImage = bgi;
 }
 
+nite::Texture nite::WindowUI::getBackgroundImage(){
+	return uiBackgroundImage;	
+}
+
 void nite::WindowUI::setPosition(const nite::Vec2 &pos){
 	position.set(pos);
 	origPosition.set(position + nite::Vec2(0.0f, 32.0f));
@@ -220,6 +224,7 @@ void nite::WindowUI::rerender(){
 	toRerender = false;
 	this->onRerender(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
 }
+
 
 void nite::WindowUI::recalculate(){
 	batch.init(size.x, size.y);

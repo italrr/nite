@@ -61,10 +61,12 @@
             void dropClient(UInt64 uid, String reason);
             Game::SvClient *getClient(const String &nickname);
             Game::SvClient *getClient(UInt64 uid);
+            Game::SvClient *getClientByIp(nite::IP_Port &ip);
             void persSendAll(nite::Packet packet, UInt64 timeout, int retries);
             void sendAll(nite::Packet packet);
             void broadcast(const String &message);
             void sendRemoteCmdMsg(UInt64 uid, const String &msg, const nite::Color &color);
+            void sendEntitySkillList(UInt64 uid, UInt16 entityId);
             void preinit();
             void listen(const String &name, UInt8 maxClients, UInt16 port);
             void update();

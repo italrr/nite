@@ -62,6 +62,7 @@
 				void setSmooth(bool S);
 				void setStick(bool v);
 				Vec2 getSize();
+				String getFilename();
 				float getWidth();
 				float getHeight();
 				Texture& operator= (const Texture &other);
@@ -70,6 +71,7 @@
 				int getTextureId();
 				void unload();
 			private:
+				String filename;
 				nite::Vec2 scale;
 				bool smooth;
 				nite::Rect region;

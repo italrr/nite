@@ -43,6 +43,7 @@ This game is inspired by another older project of the original author: [https://
 - Networked world simulation
 - Grooming and more minor bugs fixing
 - Client interpolation for animations and physics
+- Improving UI system (Working on sizes using relative percentages)
 
 ### Coming Soon
 - Better AI templates for enemies
