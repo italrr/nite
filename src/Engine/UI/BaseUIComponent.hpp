@@ -34,6 +34,21 @@
     static const float defaultFontRatio = 1.5f;
     static const float componentTranslationSpeed = 0.25f;
 
+    struct PoliVec2 {
+        bool useAbs;
+        nite::Vec2 abs;
+        nite::Vec2 rel;
+        PoliVec2();
+        PoliVec2(float x, float y);
+        PoliVec2(const String &w, const String &h);
+        PoliVec2(const nite::Vec2 &size);
+        void set(const String &w, const String &h);
+        void set(const nite::Vec2 &size);
+        void set(float x, float y);
+        float x(float rw); // rw = region width
+        float y(float rh);
+    };
+
     struct BaseUIComponent {
         nite::Vec2 position;
         nite::Vec2 realPosition;

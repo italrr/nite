@@ -14,6 +14,55 @@ static String getUniqueId(){
     return nite::hashString(nite::toStr(nite::getTicks() + ++id));
 }
 
+
+nite::PoliVec2::PoliVec2(){
+    useAbs = true;
+    abs.set(32.0f);
+}
+
+nite::PoliVec2::PoliVec2(const String &w, const String &h){
+    set(w, h);
+}
+
+nite::PoliVec2::PoliVec2(const nite::Vec2 &size){
+    set(size);
+}
+
+void nite::PoliVec2::set(float x, float y){
+    this->useAbs = true;
+    this->abs.set(x, y);
+}
+
+nite::PoliVec2::PoliVec2(float x, float y){
+    set(x, y);
+}
+
+void nite::PoliVec2::set(const String &w, const String &h){
+    this->useAbs = false;
+    String wi = nite::strRemoveSpaces(w);
+    String hi = nite::strRemoveSpaces(h);
+    if(wi[wi.length()-1] == '%'){
+        wi.erase(wi.length()-1);
+    }
+    if(hi[hi.length()-1] == '%'){
+        hi.erase(hi.length()-1);
+    }    
+    this->rel.x = nite::toFloat(wi) / 100.0f;
+    this->rel.y = nite::toFloat(hi) / 100.0f;
+}
+
+void nite::PoliVec2::set(const nite::Vec2 &size){
+    set(size.x, size.y);
+}
+
+float nite::PoliVec2::x(float rw){
+    return useAbs ? abs.x : rel.x * rw;
+}
+
+float nite::PoliVec2::y(float rh){
+    return useAbs ? abs.y : rel.y * rh;
+}
+
 nite::BaseUIComponent::BaseUIComponent(){
     padding.set(0.0f);
     margin.set(0.0f);
@@ -34,58 +83,57 @@ nite::BaseUIComponent::BaseUIComponent(){
 }
 
 void nite::BaseUIComponent::updateListeners(){
-  if(uninteract) return;
-  nite::Vec2 rp(position + relativePosition);
-  auto mp = nite::mousePosition();
-  auto cps = computeSize();
-  nite::Vec2 p = rp - cps * 0.5f + margin * 0.5f;
-  // HOVER
-  if(nite::isPointInRegion(mp, p, p + cps - margin)){
-    isHovered = true;
-    onHover();
-  }else
-  if(isHovered){
-    isHovered = false;
-    onUnhover();
-  }
-  // CLICK
-  if(nite::isPointInRegion(mp, p, p + cps - margin) && nite::mousePressed(nite::butLEFT)){
-    onClick();
-  }
-
-  if(__nite_showUISpacingFrames){
-    nite::setRenderTarget(nite::RenderTargetUI);
+    if(uninteract) return;
+    nite::Vec2 rp(position + relativePosition);
+    auto mp = nite::mousePosition();
+    auto cps = computeSize();
+    nite::Vec2 p = rp - cps * 0.5f + margin * 0.5f;
+    // HOVER
+    if(nite::isPointInRegion(mp, p, p + cps - margin)){
+        isHovered = true;
+        onHover();
+    }else
     if(isHovered){
-      nite::setColor(1.0f, 0.0f, 1.0f, 0.4f);
-      nite::Draw::Rectangle(p.x, p.y, cps.x - margin.x, cps.y - margin.y, true);      
+        isHovered = false;
+        onUnhover();
     }
-    nite::setColor(1.0f, 0.0f, 1.0f, 1.0f);
-    nite::Draw::Rectangle(p.x, p.y, cps.x - margin.x, cps.y - margin.y, false);
-  }
+    // CLICK
+    if(nite::isPointInRegion(mp, p, p + cps - margin) && nite::mousePressed(nite::butLEFT)){
+        onClick();
+    }
+    if(__nite_showUISpacingFrames){
+        nite::setRenderTarget(nite::RenderTargetUI);
+        if(isHovered){
+            nite::setColor(1.0f, 0.0f, 1.0f, 0.4f);
+            nite::Draw::Rectangle(p.x, p.y, cps.x - margin.x, cps.y - margin.y, true);      
+        }
+        nite::setColor(1.0f, 0.0f, 1.0f, 1.0f);
+        nite::Draw::Rectangle(p.x, p.y, cps.x - margin.x, cps.y - margin.y, false);
+    }
   // if(auto *comp = dynamic_cast<nite::PanelUI*>(this)){
   // }
 }
 
 void nite::BaseUIComponent::add(std::shared_ptr<nite::BaseUIComponent> component){
-  if(component.get() == NULL){
-    nite::print("Attempt to add NULL nite::BaseUIComponent in a Component.");
-    return;
-  }
-  for(int i = 0; i < children.size(); ++i){
-    if(children[i].get() == component.get()){
-      nite::print("Attempt to add a nite::BaseUIComponent twice in a Component.");
-      return;
+    if(component.get() == NULL){
+        nite::print("attempt to add NULL nite::BaseUIComponent in a Component.");
+        return;
     }
-  }
-  children.push_back(component);
-  component->onCreate();
-  component->preinit();
-  component->headComponent = this;
-  recalculate();
+    for(int i = 0; i < children.size(); ++i){
+        if(children[i].get() == component.get()){
+            nite::print("attempt to add a nite::BaseUIComponent twice in a Component.");
+            return;
+        }
+    }
+    children.push_back(component);
+    component->onCreate();
+    component->preinit();
+    component->headComponent = this;
+    recalculate();
 }
 
 void nite::BaseUIComponent::destroy(){
-  nite::UI::remove(this);
+nite::UI::remove(this); 
 }  
 
 void nite::Layout::VBox::recalculate(BaseUIComponent &head){

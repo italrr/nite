@@ -1,3 +1,4 @@
+#include <string.h>
 #include "UI.hpp"
 #include "../Tools/Tools.hpp"
 #include "../Console.hpp"
@@ -5,6 +6,89 @@
 
 static Vector<std::shared_ptr<nite::BaseUIComponent>> components;
 static Vector<nite::BaseUIComponent*> removeQueue;
+
+void nite::UI::ValueChangeListener::update(){
+    if(target == NULL || type == ValueChangeListenerType::None){
+        return;
+    }
+    changed = false;
+    switch(type){
+        case ValueChangeListenerType::Intenger: {
+            Int32 &a = *static_cast<Int32*>(target);
+            Int32 &b = *static_cast<Int32*>((void*)lastVal);
+            if(a != b){
+                onChange(target);
+                memset(lastVal, '0', NITE_VALUE_CHANGE_LISTENER_LASTVAL_SIZE);
+                memcpy(lastVal, target, sizeof(Int32));                   
+            }
+        } break;
+        case ValueChangeListenerType::UInteger: {
+            UInt32 &a = *static_cast<UInt32*>(target);
+            UInt32 &b = *static_cast<UInt32*>((void*)lastVal);
+            if(a != b){
+                onChange(target);
+                memset(lastVal, '0', NITE_VALUE_CHANGE_LISTENER_LASTVAL_SIZE);
+                memcpy(lastVal, target, sizeof(UInt32));                 
+            }            
+        } break;            
+        case ValueChangeListenerType::Float: {
+            float &a = *static_cast<float*>(target);
+            float &b = *static_cast<float*>((void*)lastVal);
+            if(a != b){
+                onChange(target);
+                memset(lastVal, '0', NITE_VALUE_CHANGE_LISTENER_LASTVAL_SIZE);
+                memcpy(lastVal, target, sizeof(float));                
+            }            
+        } break;        
+        case ValueChangeListenerType::Literal: {
+            String &a = *static_cast<String*>(target);
+            String b(static_cast<char*>((void*)lastVal));
+            if(a != b){
+                onChange(target);
+                memset(lastVal, '0', NITE_VALUE_CHANGE_LISTENER_LASTVAL_SIZE);
+                memcpy(lastVal, a.c_str(), a.size() + 1);
+            }              
+        } break;        
+    }
+}
+
+nite::UI::ValueChangeListener::ValueChangeListener(){
+    clear();
+}
+
+void nite::UI::ValueChangeListener::clear(){
+    type = ValueChangeListenerType::None;
+    target = NULL;
+    onChange = [](void *nv){
+
+    };
+    changed = false;
+    memset(lastVal, '0', NITE_VALUE_CHANGE_LISTENER_LASTVAL_SIZE);
+}
+
+void nite::UI::ValueChangeListener::listen(Int32 *v){
+    type = ValueChangeListenerType::Intenger;
+    target = v;
+    memcpy(lastVal, v, sizeof(Int32));
+}
+
+void nite::UI::ValueChangeListener::listen(UInt32 *v){
+    type = ValueChangeListenerType::UInteger;
+    target = v;
+    memcpy(lastVal, v, sizeof(UInt32));
+}
+
+void nite::UI::ValueChangeListener::listen(String *v){
+    type = ValueChangeListenerType::Literal;
+    target = v;
+    memcpy(lastVal, v->c_str(), v->size() + 1); // include nulltermination
+}
+
+void nite::UI::ValueChangeListener::listen(float *v){
+    type = ValueChangeListenerType::Float;
+    target = v;
+    memcpy(lastVal, v, sizeof(float));
+}
 
 /////////////
 // COMMAND: ui_build
@@ -450,6 +534,43 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
             ref->setBackgroundImage(nite::Texture(backgroundImage));
         }        
     }else
+    if(type == "icon"){
+        base = Shared<nite::BaseUIComponent>(new nite::IconUI());
+        auto *ref = static_cast<nite::IconUI*>(base.get());
+        auto layout = _parseLayout(node, style, base);
+        auto onClickMethod = source.getListener(node.get("onClick").toString());
+        auto onHoverMethod = source.getListener(node.get("onHover").toString());    
+        auto backgroundColor = _parseColor("backgroundColor", node, style, nite::Color(1.0f, 1.0f, 1.0f, 1.0f), base);     
+        auto size = _parseSize(node, style, nite::Vec2(16.0f), base); 
+        auto flex = _parseFloat("flex", node, style, ref->flex, base);
+        auto onUnhoverMethod = source.getListener(node.get("onUnhover").toString());
+        auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
+        auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
+        auto iconSize = _parseDimensions("iconSize", node, style, ref->getIconSize(), base);
+        auto id = _parseString("id", node, style, base->literalId, base);
+        auto source = _parseString("source", node, style, "", base);
+        auto index = _parseInt("index", node, style, ref->getIndex(), base);
+        ref->setId(id);    
+        ref->setMargin(margin);
+        ref->setPadding(padding);        
+        ref->setOnUnhover(onUnhoverMethod);      
+        ref->setIndex(index);
+        ref->setIconSize(iconSize);
+        if(node.has("flex") && flex > 0.0f){
+            ref->setFlex(flex);
+        }else{
+            ref->setFlex(0.0f);   
+            ref->fillUpType = false;   
+            ref->setSize(size);
+        }
+        ref->setBackgroundColor(backgroundColor);
+        ref->setOnClick(onClickMethod);
+        ref->setOnHover(onHoverMethod);
+        ref->setLayout(layout);
+        if(source != "" && nite::fileExists(source)){
+            ref->setSource(nite::Texture(source));
+        }         
+    }else    
     if(type == "panel"){
         base = Shared<nite::BaseUIComponent>(new nite::PanelUI());
         auto *ref = static_cast<nite::PanelUI*>(base.get());
@@ -467,7 +588,6 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         ref->setId(id);    
         ref->setMargin(margin);
         ref->setPadding(padding);        
-        ref->setBackgroundImage(backgroundImage);
         ref->setOnUnhover(onUnhoverMethod);        
         if(node.has("flex") && flex > 0.0f){
             ref->setFlex(flex);
@@ -475,11 +595,14 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
             ref->setFlex(0.0f);   
             ref->fillUpType = false;   
             ref->setSize(size);
-        }
+        }        
         ref->setBackgroundColor(backgroundColor);
         ref->setOnClick(onClickMethod);
         ref->setOnHover(onHoverMethod);
         ref->setLayout(layout);
+        if(backgroundImage != "" && nite::fileExists(backgroundImage)){
+            ref->setBackgroundImage(nite::Texture(backgroundImage));
+        }         
     }else{
         nite::print("parsing component without/undefined type from a UI JSON");    
     }
