@@ -17,6 +17,7 @@
             void resetValues();
             void stop();
             void update();
+            void updateValues();
 
         };
 

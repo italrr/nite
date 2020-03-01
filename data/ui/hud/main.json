@@ -16,6 +16,12 @@
 			"shadowOffset": {"vert": -2, "hor": -2},
 			"margin": {"vert": 0, "hor": 32},
 			"fontSize": 14
+		},
+		"actionable_bar": {
+			"iconSize": {"hor": 32, "vert": 32},
+			"source": "data/ui/icons/test_icons.png",
+			"width": 64,
+			"height": 64
 		}
 	},
 	"children": [
@@ -67,7 +73,13 @@
 							"width": 64,
 							"height": 64,
 							"margin": {"hor": 16},
-							"backgroundColor": {"r": 0.9, "g": 0.15, "b": 0.15, "a": 1.0 }
+							"backgroundColor": {"r": 0.9, "g": 0.15, "b": 0.15, "a": 1.0 },
+							"children": [
+								{
+									"type": "icon",
+									"style": "actionable_bar"
+								}
+							]
 						},
 						{
 							"id": "actionable_x",
@@ -76,7 +88,13 @@
 							"width": 64,
 							"height": 64,
 							"margin": {"hor": 16},
-							"backgroundColor": {"r": 0.15, "g": 0.9, "b": 0.15, "a": 1.0 }
+							"backgroundColor": {"r": 0.15, "g": 0.9, "b": 0.15, "a": 1.0 },
+							"children": [
+								{
+									"type": "icon",
+									"style": "actionable_bar"
+								}
+							]
 						},
 						{
 							"id": "actionable_c",
@@ -85,7 +103,13 @@
 							"width": 64,
 							"height": 64,
 							"margin": {"hor": 16},
-							"backgroundColor": {"r": 0.15, "g": 0.15, "b": 0.9, "a": 1.0 }
+							"backgroundColor": {"r": 0.15, "g": 0.15, "b": 0.9, "a": 1.0 },
+							"children": [
+								{
+									"type": "icon",
+									"style": "actionable_bar"
+								}
+							]
 						},
 						{
 							"id": "actionable_a",
@@ -94,7 +118,13 @@
 							"width": 64,
 							"height": 64,
 							"margin": {"hor": 16},
-							"backgroundColor": {"r": 0.9, "g": 0.85, "b": 0.15, "a": 1.0 }
+							"backgroundColor": {"r": 0.9, "g": 0.85, "b": 0.15, "a": 1.0 },
+							"children": [
+								{
+									"type": "icon",
+									"style": "actionable_bar"
+								}
+							]
 						},
 						{
 							"id": "actionable_s",
@@ -103,7 +133,13 @@
 							"width": 64,
 							"height": 64,
 							"margin": {"hor": 16 },
-							"backgroundColor": {"r": 0.15, "g": 0.85, "b": 0.9, "a": 1.0 }
+							"backgroundColor": {"r": 0.15, "g": 0.85, "b": 0.9, "a": 1.0 },
+							"children": [
+								{
+									"type": "icon",
+									"style": "actionable_bar"
+								}
+							]
 						}							
 					]
 				}

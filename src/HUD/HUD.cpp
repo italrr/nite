@@ -47,6 +47,10 @@ void Game::HUD::setFollow(UInt16 followId){
 }
 
 void Game::HUD::update(){
+    updateValues();
+}
+
+void Game::HUD::updateValues(){
     if(this->followId == 0){ // an entity id can never be 0
         return;
     }
@@ -79,19 +83,34 @@ void Game::HUD::update(){
         }
     }       
 
+    auto updateActionable = [&](Shared<nite::BaseUIComponent> cmp, int indx){
+        if(cmp.get() != NULL && ent->actionables[0].type != Game::ActionableType::None){
+            if(auto icon = dynamic_cast<nite::IconUI*>(cmp->children[0].get())){
+                auto act = ent->actionables[indx];
+                switch(act.type){
+                    case Game::ActionableType::Skill: {
+                        auto sk = getSkill(ent->actionables[indx].id, 0);
+                        icon->setIndex(sk->iconId);
+                    } break ;
+                    case Game::ActionableType::Item: {
+                        // TODO
+                    } break ;          
+                }
+            }
+        }  
+    };
+
     // actionable_z
     auto actZPanel = this->main->getComponentById("actionable_z");
-    if(actZPanel.get() != NULL){
-        if(auto panel = dynamic_cast<nite::PanelUI*>(actZPanel.get())){
-            // panel->setBac
-        }
-    }     
-
-
-    // auto actXPanel = this->main->getComponentById("actionable_x");
-    // auto actCPanel = this->main->getComponentById("actionable_c");
-    // auto actAPanel = this->main->getComponentById("actionable_a");
-    // auto actSPanel = this->main->getComponentById("actionable_s");
+    updateActionable(actZPanel, 0);
+    auto actXPanel = this->main->getComponentById("actionable_x");
+    updateActionable(actXPanel, 1);
+    auto actCPanel = this->main->getComponentById("actionable_c");
+    updateActionable(actCPanel, 2);
+    auto actAPanel = this->main->getComponentById("actionable_a");
+    updateActionable(actAPanel, 3);
+    auto actSPanel = this->main->getComponentById("actionable_s");
+    updateActionable(actSPanel, 4);
 }
 
 void Game::HUD::stop(){

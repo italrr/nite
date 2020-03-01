@@ -80,7 +80,7 @@ static int getEmptySlot(){
 	return n;
 }
 
-int findByHash(const String &Hash){
+static int findByHash(const String &Hash){
 	for(int i = 0; i < Shaders.size(); ++i){
 		if(Shaders[i].empty) continue;
 		if(Shaders[i].Hash == Hash) return i;

@@ -208,6 +208,7 @@ set (nite_src
 		src/Engine/UI/WindowUI.cpp
 		src/Engine/UI/PanelUI.cpp
 		src/Engine/UI/TextUI.cpp
+		src/Engine/UI/IconUI.cpp
 		src/Engine/UI/ButtonUI.cpp
 		src/Engine/UI/CheckboxUI.cpp	
 		src/Engine/UI/BaseUIComponent.cpp		

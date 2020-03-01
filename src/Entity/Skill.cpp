@@ -106,7 +106,7 @@ Game::Skills::BA_Attack::BA_Attack(){
     this->type = Game::SkillType::Active;
     this->family = 0; // no family tree
     this->delay = 100;
-    this->iconId = 15 + 16 * 5;
+    this->iconId = 16 * 6 + 15;
     this->adelay = 50;
     this->minUseLv = 1;
     this->maxLv = 1;
@@ -128,7 +128,7 @@ Game::Skills::BA_Bash::BA_Bash(){
     this->type = Game::SkillType::Active;
     this->family = 0; // no family tree
     this->delay = 2500;
-    this->iconId = 12 + 16 * 3;
+    this->iconId = 16 * 4 + 11;
     this->adelay = 400;
     this->minUseLv = 1;
     this->maxLv = 1;
@@ -150,7 +150,7 @@ Game::Skills::BA_Dodge::BA_Dodge(){
     this->type = Game::SkillType::Active;
     this->family = 0; // no family tree
     this->delay = 8000;
-    this->iconId = 12 + 16 * 3;
+    this->iconId = 16 * 5 + 8;
     this->adelay = 400;
     this->minUseLv = 1;
     this->maxLv = 1;
@@ -173,7 +173,7 @@ Game::Skills::BA_Parry::BA_Parry(){
     this->type = Game::SkillType::Active;
     this->family = 0; // no family tree
     this->delay = 3000;
-    this->iconId = 2 + 16 * 3;
+    this->iconId = 16 * 4 + 2;
     this->adelay = 190;
     this->minUseLv = 1;
     this->maxLv = 1;
@@ -195,7 +195,7 @@ Game::Skills::BA_FIRST_AID::BA_FIRST_AID(){
     this->type = Game::SkillType::Active;
     this->family = 0; // no family tree
     this->delay = 60 * 1000;
-    this->iconId = 5 + 16 * 3;
+    this->iconId = 16 * 4 + 6;
     this->adelay = 250;
     this->minUseLv = 1;
     this->maxLv = 1;
