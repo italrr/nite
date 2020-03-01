@@ -551,7 +551,7 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
             createPlayer(cl.second.clientId, 1);
         }
         // now some chained-deliveries
-        // notify clients of their respective owners
+        // [1] notify clients of their respective owners
         bindOnAckFor(Game::PacketType::SV_CREATE_OBJECT, [&](nite::SmallPacket &pck, nite::IP_Port &ip){   
             auto cl = this->getClientByIp(ip);
             if(cl == NULL){
@@ -561,8 +561,8 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
             nite::Packet noti(++cl->svOrder);
             noti.setHeader(Game::PacketType::SV_NOTI_ENTITY_OWNER);
             noti.write(&cl->entityId, sizeof(UInt16));
-            persSend(cl->cl, noti);
-            // send respective clients their default skill list
+            persSend(cl->cl, noti);         
+            // [2] send respective clients their default skill list
             bindOnAckFor(Game::PacketType::SV_NOTI_ENTITY_OWNER, [&](nite::SmallPacket &pck, nite::IP_Port &ip){   
                 auto cl = this->getClientByIp(ip);
                 if(cl == NULL){
@@ -570,11 +570,39 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
                     return;
                 }
                 sendEntitySkillList(cl->clientId, cl->entityId);
-
-            }, nite::SmallPacket());            
-
-        }, nite::SmallPacket());
-        
+                // [3] send respective clients their default keybinds
+                bindOnAckFor(Game::PacketType::SV_SET_ENTITY_SKILLS, [&](nite::SmallPacket &pck, nite::IP_Port &ip){  
+                    auto cl = this->getClientByIp(ip);
+                    if(cl == NULL){
+                        nite::print("[server] failed to send default keybinds: ip was not found in the list");
+                        return;
+                    }
+                    auto itent = this->world.objects.find(cl->entityId);
+                    if(itent == this->world.objects.end()){
+                        nite::print("[server] failed to send default keybinds: ent id "+nite::toStr(cl->entityId)+" doesn't exist");
+                        return;
+                    }
+                    auto ent = static_cast<Game::EntityBase*>(itent->second.get()); // we're gonna assume this is indeed an entity
+                    auto &sklst = ent->skillStat.skills;
+                    UInt8 skamnt = 5;
+                    nite::Packet packet(++cl->svOrder);
+                    packet.setHeader(Game::PacketType::SV_SET_ENTITY_ACTIONABLES);
+                    packet.write(&ent->id, sizeof(UInt16));
+                    packet.write(&skamnt, sizeof(UInt8));
+                    auto writeSkill = [&](UInt16 skilId){
+                        static const UInt8 sktype = Game::ActionableType::Skill;
+                        packet.write(&sktype, sizeof(UInt8));
+                        packet.write(&skilId, sizeof(UInt16));
+                    };
+                    writeSkill(Game::SkillList::BA_ATTACK);
+                    writeSkill(Game::SkillList::BA_BASH);
+                    writeSkill(Game::SkillList::BA_DODGE);
+                    writeSkill(Game::SkillList::BA_PARRY);
+                    writeSkill(Game::SkillList::BA_FIRST_AID);
+                    persSend(cl->cl, packet, 750, -1);
+                });                    
+            });             
+        });               
         ct.stop();
     }), 5000);
 }

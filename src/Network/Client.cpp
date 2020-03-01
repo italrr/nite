@@ -473,7 +473,7 @@ void Game::Client::update(){
                 }
             } break;  
             /*
-                SV_SET_ENTITY_SKILLS
+                SV_REMOVE_ENTITY_SKILLS
             */          
             case Game::PacketType::SV_REMOVE_ENTITY_SKILLS: {
                 if(!isSv){ break; }  
@@ -497,7 +497,28 @@ void Game::Client::update(){
                     auto ent = static_cast<Game::EntityBase*>(it->second.get()); // ok i know, i repeated it enough (if you don't know what, keep reading the project...)
                     ent->skillStat.removeSkill(skId);
                 }
-            } break;                          
+            } break; 
+            /*
+                SV_SET_ENTITY_ACTIONABLES
+            */          
+            case Game::PacketType::SV_SET_ENTITY_ACTIONABLES: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId;
+                UInt8 amnt;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&amnt, sizeof(UInt8));
+                auto it = world.objects.find(entityId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_SET_ENTITY_ACTIONABLES: entity id doesn't exist");
+                    break;
+                }
+                for(int i = 0; i < amnt; ++i){
+                    auto ent = static_cast<Game::EntityBase*>(it->second.get()); // yeap
+                    handler.read(&ent->actionables[i].type, sizeof(UInt8));
+                    handler.read(&ent->actionables[i].id, sizeof(UInt16));
+                }
+            } break;                                     
             /* 
                 UNKNOWN
             */

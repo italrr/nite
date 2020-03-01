@@ -306,7 +306,22 @@
                     UINT16 SKILLID[n]
                 }                
 
-            */                       
+            */   
+            SV_SET_ENTITY_ACTIONABLES, // ACK
+            /*
+                UINT16 ENTID
+                UINT8 AMNT
+                0: {
+                    UINT8 TYPE[0]
+                    UINT16 ID[0]
+                }
+                ...
+                n: {
+                    UINT8 TYPE[n]
+                    UINT16 ID[n]
+                }                
+
+            */  
 
         };
 

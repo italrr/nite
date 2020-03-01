@@ -93,11 +93,11 @@ void Game::Net::bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket
     }
 }
 
-// this one is avoid copying nite::SmallPacket if it is not needed
+// this one is to avoid copying nite::SmallPacket if it is not needed
 void Game::Net::bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda){
     for(int i = 0; i < deliveries.size(); ++i){
         auto &pck = deliveries[i];
-        if(pck.packet.getHeader() == header){
+        if(pck.packet.getHeader() == header){         
             pck.onAck = lambda;
         }
     }
