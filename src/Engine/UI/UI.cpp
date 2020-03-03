@@ -448,6 +448,7 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         auto fontColor = _parseColor("fontColor", node, style, ref->getFontColor(), base);
         auto selectorColor = _parseColor("selectorColor", node, style, ref->getSelectorColor(), base);
         auto boxColor = _parseColor("boxColor", node, style, ref->getBoxColor(), base);        
+        auto font = _parseString("font", node, style, "", base); 
         auto size = _parseSize(node, style, nite::Vec2(-1.0f), base);  
         auto fontSize = _parseInt("fontSize", node, style, ref->getFontSize(), base);
         auto flex = _parseFloat("flex", node, style, 0.0f, base);
@@ -455,6 +456,9 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
+        if(font != "" && nite::fileExists(font)){
+            ref->setFont(nite::Font(font,  fontSize));
+        }          
         ref->setId(id);
         ref->setMargin(margin);
         ref->setPadding(padding);    
@@ -485,6 +489,10 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         auto shadowOffset = _parseDimensions("shadowOffset", node, style, ref->getShadowOffset(), base); 
         auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base);  
         auto id = _parseString("id", node, style, base->literalId, base);
+        auto font = _parseString("font", node, style, "", base); 
+        if(font != "" && nite::fileExists(font)){
+            ref->setFont(nite::Font(font,  fontSize));
+        }               
         ref->setId(id);       
         ref->setShadowColor(shadowColor);
         ref->setShadowOffset(shadowOffset);    
@@ -516,6 +524,10 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(8.0f), base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto id = _parseString("id", node, style, base->literalId, base);
+        auto font = _parseString("font", node, style, "", base); 
+        if(font != "" && nite::fileExists(font)){
+            ref->setFont(nite::Font(font,  fontSize));
+        }           
         ref->setId(id);    
         ref->setMargin(margin);
         ref->setPadding(padding);        
@@ -525,8 +537,7 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         ref->setOnHover(onHoverMethod);
         ref->setBaseColor(baseColor);
         ref->setFontColor(fontColor);
-        ref->setSecondColor(secondColor);
-        ref->setFontSize(fontSize);       
+        ref->setSecondColor(secondColor);    
         ref->setOnClick(onClickMethod);
         ref->setSize(size);
         ref->setText(text);
@@ -550,6 +561,22 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         auto id = _parseString("id", node, style, base->literalId, base);
         auto source = _parseString("source", node, style, "", base);
         auto index = _parseInt("index", node, style, ref->getIndex(), base);
+        auto textPosition = _parseDimensions("textPosition", node, style, ref->getTextPosition(), base);
+        auto text = _parseString("text", node, style, ref->getText(), base);
+        auto fontColor = _parseColor("fontColor", node, style, ref->getTextColor(), base); 
+        auto fontSize = _parseInt("fontSize", node, style, ref->getFontSize(), base);
+        auto font = _parseString("font", node, style, "", base); 
+        auto shadowOffset = _parseDimensions("shadowOffset", node, style, ref->getShadowOffset(), base); 
+        auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base);         
+        if(font != "" && nite::fileExists(font)){
+            ref->setFont(nite::Font(font,  fontSize));
+        }           
+        ref->setShadowColor(shadowColor);
+        ref->setShadowOffset(shadowOffset);           
+        ref->setFontSize(fontSize);    
+        ref->setText(text);
+        ref->setTextColor(fontColor);
+        ref->setTextPosition(textPosition);
         ref->setId(id);    
         ref->setMargin(margin);
         ref->setPadding(padding);        

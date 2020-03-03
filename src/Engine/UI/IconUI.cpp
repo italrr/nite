@@ -4,10 +4,15 @@ void nite::IconUI::defaultInit(){
     size.set(32.0f);
     fillUpType = true;  
     componentName = "Icon";    
+    fontSize = 14;
     flex = 1.0f;
     index = -1;
+    textPosition.set(0.5f);
+    textColor.set(0.0f, 0.0f, 0.0f, 1.0f);
     iconSize.set(32.0f);
     baseColor.set(1.0f, 1.0f, 1.0f, 0.0f);
+    shadowOffset.set(1.0f);
+    shadowColor.set(0.0f, 0.0f, 0.0f, 0.0f);    
     onClickMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &panel){
         return;
     };
@@ -21,21 +26,41 @@ void nite::IconUI::defaultInit(){
 
 void nite::IconUI::rerender(){
     // if(!toRerender) return;  
-    // batch.begin();
+    batch.begin();
 
+    nite::setColor(baseColor.r, baseColor.g, baseColor.b, 1.0f);
+    if(source.isLoaded() && index > -1){
+        int tx = source.getWidth() / iconSize.x;
+        int ty = source.getHeight() / iconSize.y;
+        int x = index % tx;
+        int y = index / ty;
+        this->iconPosition.set(x, y);
+        source.setRegion(x * iconSize.x, y * iconSize.y, iconSize.x, iconSize.y);
+        source.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);         
+    }else{
+        empty.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);
+    }
 
+    if(text.length() > 0){
+        nite::setColor(textColor);
+        nite::Vec2 p = textPosition * size; // position it's actually a percentange
+        auto ref = font.draw(text, 0.0f + p.x, 0.0f + p.y, 0.5f, 0.5f, 0.0f);
+        if(ref != NULL && shadowColor.a > 0.0f){
+            ref->setShadow(shadowColor, shadowOffset);
+        }          
+    }
 
     // Render Children
-    // for(int i = 0; i < children.size(); ++i){
-    //     if(children[i]->position.x < 0 || children[i]->position.y < 0 || !children[i]->visible){
-    //         continue;
-    //     }
-    //     children[i]->beforeRender();
-    //     children[i]->render();
-    //     children[i]->afterRender();
-    // }
-    // batch.end();
-    // batch.flush();
+    for(int i = 0; i < children.size(); ++i){
+        if(children[i]->position.x < 0 || children[i]->position.y < 0 || !children[i]->visible){
+            continue;
+        }
+        children[i]->beforeRender();
+        children[i]->render();
+        children[i]->afterRender();
+    }
+    batch.end();
+    batch.flush();
     // toRerender = false;
 }
 
@@ -65,8 +90,84 @@ nite::IconUI::IconUI(){
     defaultInit();
 }
 
+void nite::IconUI::setShadowColor(const nite::Color &color){
+    this->shadowColor.set(color);
+    calculateSize();  
+    recalculate();     
+}
+
+nite::Color nite::IconUI::getShadowColor(){
+    return this->shadowColor;
+}
+
+void nite::IconUI::setShadowOffset(const nite::Vec2 &offset){
+    this->shadowOffset.set(offset);
+    calculateSize();  
+    recalculate();   
+}
+
+nite::Vec2 nite::IconUI::getShadowOffset(){
+    return shadowOffset;
+}
+
+void nite::IconUI::setFontSize(int s){
+    if(s <= 0) return;
+    this->fontSize = s;
+    auto fn = font.getFilename();
+    if(fn.length() > 0){
+        font.load(fn, s);
+    }
+    calculateSize();  
+    recalculate();
+}
+
+int nite::IconUI::getFontSize(){
+    return fontSize;
+}
+
+void nite::IconUI::setFont(const nite::Font &font){
+    this->font = font;
+    calculateSize();  
+    recalculate();
+}
+
+nite::Font nite::IconUI::getFont(){
+    return font;
+}
+
+nite::Color nite::IconUI::getTextColor(){
+    return textColor;
+}
+
+void nite::IconUI::setTextColor(const nite::Color &c){
+    this->textColor.set(c);
+    calculateSize();  
+    recalculate();
+}
+
+void nite::IconUI::setText(const String &text){
+    this->text = text;
+    calculateSize();  
+    recalculate();
+}
+
+String nite::IconUI::getText(){
+    return text;
+}
+
+void nite::IconUI::setTextPosition(const nite::Vec2 &p){
+    this->textPosition.set(p);
+    calculateSize();  
+    recalculate();
+}
+
+nite::Vec2 nite::IconUI::getTextPosition(){
+    return textPosition;
+}
+
 void nite::IconUI::setSize(const nite::Vec2 &size){
     this->size.set(size);
+    calculateSize();  
     recalculate();
 }
 
@@ -75,7 +176,9 @@ nite::Vec2 nite::IconUI::computeSize(){
 }
 
 void nite::IconUI::onCreate(){
+    font.load(defaultFontUI, fontSize * defaultFontRatio);  
     empty.load("data/sprite/empty.png");
+    calculateSize();  
     recalculate();
 }
 
@@ -139,18 +242,8 @@ void nite::IconUI::render(){
     nite::setRenderTarget(renderOnTarget);
     nite::setDepth(nite::DepthMiddle);
 
-    nite::setColor(baseColor);
-    if(source.isLoaded() && index > -1){
-        int tx = source.getWidth() / iconSize.x;
-        int ty = source.getHeight() / iconSize.y;
-        int x = index % tx;
-        int y = index / ty;
-        this->iconPosition.set(x, y);
-        source.setRegion(x * iconSize.x, y * iconSize.y, iconSize.x, iconSize.y);
-        source.draw(rp.x, rp.y, size.x, size.y, 0.0f, 0.0f, 0.0f);         
-    }else{
-        empty.draw(rp.x, rp.y, size.x, size.y, 0.0f, 0.0f, 0.0f);
-    }
+    nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+    batch.draw(rp.x, rp.y, size.x, size.y, 0.0f, 0.0f, 0.0f);
 }
 
 void nite::IconUI::setBackgroundColor(const nite::Color &color){

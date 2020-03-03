@@ -21,7 +21,12 @@
 			"iconSize": {"hor": 32, "vert": 32},
 			"source": "data/ui/icons/test_icons.png",
 			"width": 64,
-			"height": 64
+			"height": 64,
+			"fontSize": 15,
+			"textPosition": {"hor": 0.5, "vert": 0.5},
+			"fontColor": {"r": 0.88, "g": 0.88, "b": 0.88, "a": 1.0 },
+			"shadowColor": {"r": 0.08, "g": 0.08, "b": 0.08, "a": 1.0 },
+			"shadowOffset": {"vert": 1, "hor": 1}
 		}
 	},
 	"children": [
@@ -77,6 +82,7 @@
 							"children": [
 								{
 									"type": "icon",
+									"text": "Z",
 									"style": "actionable_bar"
 								}
 							]
@@ -92,6 +98,7 @@
 							"children": [
 								{
 									"type": "icon",
+									"text": "X",
 									"style": "actionable_bar"
 								}
 							]
@@ -107,6 +114,7 @@
 							"children": [
 								{
 									"type": "icon",
+									"text": "C",
 									"style": "actionable_bar"
 								}
 							]
@@ -122,6 +130,7 @@
 							"children": [
 								{
 									"type": "icon",
+									"text": "A",
 									"style": "actionable_bar"
 								}
 							]
@@ -133,10 +142,11 @@
 							"width": 64,
 							"height": 64,
 							"margin": {"hor": 16 },
-							"backgroundColor": {"r": 0.15, "g": 0.85, "b": 0.9, "a": 1.0 },
+							"backgroundColor": {"r": 0.92, "g": 0.15, "b": 0.99, "a": 1.0 },
 							"children": [
 								{
 									"type": "icon",
+									"text": "S",
 									"style": "actionable_bar"
 								}
 							]
