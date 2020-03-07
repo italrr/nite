@@ -38,38 +38,38 @@ This game is inspired by another older project of the original author: [https://
 - UI System based on flex-boxes and sourcing from JSONs
 - Basic scripting language (`nite Script`)
 
-### In Progress
+### In Progress (Y -> Done | P -> Progress | S -> Stalled)
 
 - UI
-    - [!] Relative sizes (i.e. `"width": "100%"`)
-    - [ ] Focus
-    - [ ] Scrolling
-    - [ ] Textboxes
-    - [ ] Flow control (freeze windows to wait for other to finish)
+    - [Y] Relative sizes (i.e. `"width": "100%"`)
+    - [S] Focus
+    - [S] Scrolling
+    - [S] Textboxes
+    - [S] Flow control (freeze windows to wait for other to finish)
 - Client/Server
-    - [ ] World synchronization
-        - [ ] Animations
-        - [ ] Physics
-    - [ ] Control packets (add, remove, update skills, effects, inventory)
-    - [ ] Data transfer (send maps, and other dynamic content)
+    - [P] World synchronization
+        - [P] Animations
+        - [P] Physics
+    - [P] Control packets (add, remove, update skills, effects, inventory)
+    - [S] Data transfer (send maps, and other dynamic content)
 - Stats/Entity
-    - [ ] Inventory system
-    - [ ] Skills
-    - [ ] Effects
-    - [ ] Add new class (Stalker/Assassin type)
+    - [P] Inventory system
+    - [P] Skills
+    - [P] Effects
+    - [S] Add new class (Stalker/Assassin type)
 - RING
-    - [ ] Search algorithms
-    - [ ] Implement new maze generation algorithms
-    - [ ] Implement rooms
+    - [S] Search algorithms
+    - [S] Implement new maze generation algorithms
+    - [S] Implement rooms
 - AI
-    - [ ] Implement search algorithms
-    - [ ] Add optimizations for such algorithms
+    - [S] Implement search algorithms
+    - [S] Add optimizations for such algorithms
 - nite Script (canvas)
-    - [ ] TODO
+    - [S] TODO
 - Misc
-    - [ ] Visility shadow
-    - [ ] Grooming, minor bugs fixing, API redesign
-    - [ ] Improve audio to be OS agnostic (Most likely will be using another library)
+    - [S] Visility shadow
+    - [P] Grooming, minor bugs fixing, API redesign
+    - [S] Improve audio to be OS agnostic (Most likely will be using another library)
 
 How to build?
 ------------
