@@ -59,6 +59,7 @@ void Game::HUD::updateValues(){
         return;
     }
     Game::EntityBase *ent = static_cast<Game::EntityBase*>(it->second.get()); 
+    
     // HP
     auto hpText = this->main->getComponentById("hud_hp_text");
     if(hpText.get() != NULL){
@@ -100,7 +101,7 @@ void Game::HUD::updateValues(){
         }  
     };
 
-    // actionable_z
+ 
     auto actZPanel = this->main->getComponentById("actionable_z");
     updateActionable(actZPanel, 0);
     auto actXPanel = this->main->getComponentById("actionable_x");
@@ -111,6 +112,13 @@ void Game::HUD::updateValues(){
     updateActionable(actAPanel, 3);
     auto actSPanel = this->main->getComponentById("actionable_s");
     updateActionable(actSPanel, 4);
+
+    // stats
+    auto &effs = ent->effectStat.effects;
+    for(int i = 0; i < effs.size(); ++i){
+        auto &ef = effs[i];
+        
+    }
 }
 
 void Game::HUD::stop(){

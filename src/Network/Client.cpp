@@ -471,7 +471,30 @@ void Game::Client::update(){
                     auto ent = static_cast<Game::EntityBase*>(it->second.get());
                     ent->skillStat.addSkill(skId, lv);
                 }
-            } break;  
+            } break; 
+            /*
+                SV_ADD_ENTITY_SKILL
+            */ 
+            case Game::PacketType::SV_ADD_ENTITY_SKILL: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId, skId;
+                UInt8 lv;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&skId, sizeof(UInt16));
+                handler.read(&lv, sizeof(UInt8));
+                auto it = world.objects.find(entityId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_ADD_ENTITY_SKILL: entity id doesn't exist");
+                    break;
+                }      
+                if(getSkill(skId, 0).get() == NULL){
+                    nite::print("[client] warn SV_ADD_ENTITY_SKILL: skill id "+nite::toStr(skId)+" doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->skillStat.addSkill(skId, lv);                          
+            } break;            
             /*
                 SV_REMOVE_ENTITY_SKILLS
             */          
@@ -491,13 +514,34 @@ void Game::Client::update(){
                     UInt16 skId;
                     handler.read(&skId, sizeof(UInt16));
                     if(getSkill(skId, 0).get() == NULL){
-                        nite::print("[client] warn SV_REMOVE_ENTITY_SKILLS: skill id "+nite::toStr(skId)+" doesn't exist");
+                        nite::print("[client] fail SV_REMOVE_ENTITY_SKILLS: skill id "+nite::toStr(skId)+" doesn't exist");
                         continue;
                     }
                     auto ent = static_cast<Game::EntityBase*>(it->second.get()); // ok i know, i repeated it enough (if you don't know what, keep reading the project...)
                     ent->skillStat.removeSkill(skId);
                 }
             } break; 
+            /*
+                SV_REMOVE_ENTITY_SKILL
+            */ 
+            case Game::PacketType::SV_REMOVE_ENTITY_SKILL: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId, skId;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&skId, sizeof(UInt16));
+                auto it = world.objects.find(entityId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_REMOVE_ENTITY_SKILL: entity id doesn't exist");
+                    break;
+                }      
+                if(getSkill(skId, 0).get() == NULL){
+                    nite::print("[client] fail SV_REMOVE_ENTITY_SKILL: skill id "+nite::toStr(skId)+" doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->skillStat.removeSkill(skId);                          
+            } break;            
             /*
                 SV_SET_ENTITY_ACTIONABLES
             */          

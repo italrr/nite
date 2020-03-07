@@ -293,7 +293,14 @@
                     UINT8 LV[n]
                 }                
 
-            */  
+            */ 
+            SV_ADD_ENTITY_SKILL, // ACK
+            /*
+                UINT16 ENTID
+                UINT16 SKILLID
+                UINT8 LV           
+
+            */             
             SV_REMOVE_ENTITY_SKILLS, // ACK
             /*
                 UINT16 ENTID
@@ -306,7 +313,13 @@
                     UINT16 SKILLID[n]
                 }                
 
-            */   
+            */  
+            SV_REMOVE_ENTITY_SKILL, // ACK
+            /*
+                UINT16 ENTID
+                UINT16 SKILLID     
+
+            */               
             SV_SET_ENTITY_ACTIONABLES, // ACK
             /*
                 UINT16 ENTID
