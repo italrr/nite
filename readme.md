@@ -38,38 +38,38 @@ This game is inspired by another older project of the original author: [https://
 - UI System based on flex-boxes and sourcing from JSONs
 - Basic scripting language (`nite Script`)
 
-### In Progress (Done -> ✔ | In Progress -> ~ | Stalled -> X)
+### In Progress
 
 - UI
-    - [✔] Relative sizes (i.e. `"width": "100%"`)
-    - [X] Focus
-    - [X] Scrolling
-    - [X] Textboxes
-    - [X] Flow control (freeze windows to wait for other to finish)
+    - [!] Relative sizes (i.e. `"width": "100%"`)
+    - [ ] Focus
+    - [ ] Scrolling
+    - [ ] Textboxes
+    - [ ] Flow control (freeze windows to wait for other to finish)
 - Client/Server
-    - [~] World synchronization
-        - [~] Animations
-        - [~] Physics
-    - [~] Control packets (add, remove, update skills, effects, inventory)
-    - [X] Data transfer (send maps, and other dynamic content)
+    - [ ] World synchronization
+        - [ ] Animations
+        - [ ] Physics
+    - [ ] Control packets (add, remove, update skills, effects, inventory)
+    - [ ] Data transfer (send maps, and other dynamic content)
 - Stats/Entity
-    - [~] Inventory system
-    - [~] Skills
-    - [~] Effects
-    - [X] Add new class (Stalker/Assassin type)
+    - [ ] Inventory system
+    - [ ] Skills
+    - [ ] Effects
+    - [ ] Add new class (Stalker/Assassin type)
 - RING
-    - [X] Search algorithms
-    - [X] Implement new maze generation algorithms
-    - [X] Implement rooms
+    - [ ] Search algorithms
+    - [ ] Implement new maze generation algorithms
+    - [ ] Implement rooms
 - AI
-    - [X] Implement search algorithms
-    - [X] Add optimizations for such algorithms
+    - [ ] Implement search algorithms
+    - [ ] Add optimizations for such algorithms
 - nite Script (canvas)
-    - [X] TODO
+    - [ ] TODO
 - Misc
-    - [X] Visility shadow
-    - [~] Grooming, minor bugs fixing, API redesign
-    - [X] Improve audio to be OS agnostic (Most likely will be using another library)
+    - [ ] Visility shadow
+    - [ ] Grooming, minor bugs fixing, API redesign
+    - [ ] Improve audio to be OS agnostic (Most likely will be using another library)
 
 How to build?
 ------------
