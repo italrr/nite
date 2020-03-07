@@ -5,7 +5,7 @@ void nite::IconUI::defaultInit(){
     fillUpType = true;  
     componentName = "Icon";    
     fontSize = 14;
-    flex = 1.0f;
+    flex = 0.0f;
     index = -1;
     textPosition.set(0.5f);
     textColor.set(0.0f, 0.0f, 0.0f, 1.0f);

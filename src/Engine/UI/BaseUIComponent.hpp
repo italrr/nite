@@ -27,14 +27,14 @@
         };       
         struct Inline : public nite::LayoutSystemUI {
             void recalculate(BaseUIComponent &head);
-        };         
+        };
     }
 
-    static const String defaultFontUI = "data/font/SpaceMono-Regular.ttf";
+    static const String defaultFontUI = "data/font/monaco.ttf";
     static const float defaultFontRatio = 1.5f;
     static const float componentTranslationSpeed = 0.25f;
 
-    struct PoliVec2 {
+    struct PoliVec2 : nite::Vec2 {
         bool useAbs;
         nite::Vec2 abs;
         nite::Vec2 rel;
@@ -53,6 +53,9 @@
         nite::Vec2 position;
         nite::Vec2 realPosition;
         nite::Vec2 size;
+        nite::Vec2 relSize;
+        bool useRelSizeX;
+        bool useRelSizeY;
         nite::Vec2 margin;
         nite::Vec2 padding;
         nite::Vec2 relativePosition;

@@ -3,17 +3,34 @@
 	"title": "Test Window",
 	"titleColor": {"r":1, "g":1, "b":0, "a":1},
 	"notitle": false,
-	"width": 800,
-	"height": 700,
-    "layout": "inline",
-    "borderThickness":5.0,
+	"width": "!! #gwidth + 0",
+	"height": "!! #gheight + 0",
+    "layout": "hbox",
+    "borderThickness":0.0,
 	"borderColor": "#212121",
 	"backgroundColor": "#ECEFF1",
 	"children": [
 		{
-			"type": "checkbox",
-			"text": "checkbox",
-			"fontColor": "#212121"
+			"type": "panel",
+			"layout": "hbox",
+			"flex": 1,
+			"backgroundColor": {"r":1, "g":0, "b":0, "a":1},
+			"children": [
+				{
+					"id": "pixi",
+					"type": "panel",
+					"layout": "vbox",
+					"width": "100%",
+					"height": 64,
+					"backgroundColor": {"r":1, "g":1, "b":0, "a":1}
+				}
+			]
+		},
+		{
+			"type": "panel",
+			"layout": "hbox",
+			"flex": 1,
+			"backgroundColor": {"r":1, "g":0, "b":1, "a":1}
 		}
 	]
 }

@@ -13,7 +13,7 @@
 	"styles": {
 		"stats_text": {
 			"shadowColor": {"r": 0.15, "g": 0.15, "b": 0.15, "a": 1.0 },
-			"shadowOffset": {"vert": -2, "hor": -2},
+			"shadowOffset": {"vert": 0, "hor": 0},
 			"margin": {"vert": 0, "hor": 32},
 			"fontSize": 14
 		},
@@ -22,10 +22,10 @@
 			"source": "data/ui/icons/test_icons.png",
 			"width": 64,
 			"height": 64,
-			"fontSize": 15,
-			"textPosition": {"hor": 0.5, "vert": 0.5},
-			"fontColor": {"r": 0.88, "g": 0.88, "b": 0.88, "a": 1.0 },
-			"shadowColor": {"r": 0.08, "g": 0.08, "b": 0.08, "a": 1.0 },
+			"fontSize": 10,
+			"textPosition": {"hor": 0.10, "vert": 0.25},
+			"fontColor": {"r": 0, "g": 0, "b": 0, "a": 1.0 },
+			"shadowColor": {"r": 0.23, "g": 0.23, "b": 0.23, "a": 1.0 },
 			"shadowOffset": {"vert": 1, "hor": 1}
 		}
 	},
@@ -33,7 +33,8 @@
 		{
 			"type": "panel",
 			"layout": "hbox",
-			"flex": 1,
+			"height": 64,
+			"width": "!! #gwidth + 0",
 			"children": [
 				{
 					"id": "hud_hp_text",
@@ -57,7 +58,27 @@
 		},
 		{
 			"type": "panel",
-			"flex": 1
+			"flex": 1,
+			"layout": "hbox",
+			"children": [
+				{
+					"type": "panel",
+					"layout": "hbox",
+					"flex": 1
+				},				
+				{
+					"id": "hud_eff_column",
+					"type": "panel",
+					"width": 64,
+					"height": "100%",
+					"layout": "vbox",
+					"backgroundColor": {"r": 1.0, "g": 0.15, "b": 0.15, "a": 1.0 },
+					"children": [
+
+					]
+				}
+			
+			]
 		},
 		{
 			"type": "panel",

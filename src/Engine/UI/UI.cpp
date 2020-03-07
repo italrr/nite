@@ -327,13 +327,60 @@ static int _parseGenericInt(const Jzon::Node &node, const String &name, Shared<n
 }
 
 // complex parses
-static nite::Vec2 _parseSize(const Jzon::Node &_node, Jzon::Node *style, const nite::Vec2 &contingency, Shared<nite::BaseUIComponent> &component){
+struct _RelSizeInfo {
+    bool isX;
+    bool isY;
+    nite::Vec2 size;
+    _RelSizeInfo(){
+        this->isX = false;
+        this->isY = false;
+    }
+};
+
+static inline float _parseRelSize(const String &v){
+    return v.length() > 0 && v[v.length()-1] == '%' ? nite::toFloat(v.substr(0, v.length()-1)) / 100.0f : -1.0f;
+}
+
+// TODO: improve this method. it's ugly as sin
+static _RelSizeInfo _parseSize(const Jzon::Node &_node, Jzon::Node *style, const nite::Vec2 &contingency, Shared<nite::BaseUIComponent> &component){
     static const String name = "size";
     auto &node = _node.has(name) || style == NULL ? _node : *style;
-    auto pnode = node.get(name);    
-    float width = _parseGenericFloat(node, "width", component);
-    float height = _parseGenericFloat(node, "height", component);
-    return nite::Vec2(width == 0.0f ? contingency.x : width, height == 0.0f ? contingency.y : height);
+    _RelSizeInfo rv;
+    
+    auto wn = node.get("width");
+    auto hn = node.get("height");
+
+    if(node.has("width") && wn.isNumber()){
+        rv.size.x = _parseGenericFloat(node, "width", component);
+    }else
+    if(node.has("width") && wn.isString()){
+        auto str = wn.toString();
+        if(str[str.length()-1] == '%'){
+            rv.size.x = _parseRelSize(wn.toString());
+            rv.isX = true;
+        }else{
+            rv.size.x = _parseGenericFloat(node, "width", component);
+        }
+    }else{
+        rv.size.x = contingency.x;
+    }
+
+    if(node.has("height") && hn.isNumber()){
+        rv.size.y = _parseGenericFloat(node, "height", component);
+    }else
+    if(node.has("height") && hn.isString()){
+        auto str = hn.toString();
+        if(str[str.length()-1] == '%'){        
+            rv.size.y = _parseRelSize(hn.toString());
+            rv.isY = true;
+        }else{
+            rv.size.y = _parseGenericFloat(node, "height", component);
+        }
+    }else{
+        rv.size.y = contingency.y;
+    }    
+
+    return rv;
 }
 
 static nite::Vec2 _parsePosition(const Jzon::Node &_node, Jzon::Node *style, const nite::Vec2 &contingency, Shared<nite::BaseUIComponent> &component){
@@ -465,7 +512,15 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         ref->setOnUnhover(onUnhoverMethod);     
         ref->setFlex(flex);    
         ref->setOnHover(onHoverMethod);
-        ref->setSize(size);
+        if(node.has("flex") && flex > 0.0f){
+            ref->setFlex(flex);
+        }else{
+            ref->setFlex(0.0f);   
+            ref->fillUpType = false;   
+            ref->setSize(size.size);
+            ref->useRelSizeX = size.isX;
+            ref->useRelSizeY = size.isY;
+        }  
         ref->setFontColor(fontColor);
         ref->setSelectorColor(selectorColor);
         ref->setBoxColor(boxColor);
@@ -502,7 +557,16 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         ref->setFlex(flex);         
         ref->setOnClick(onClickMethod);
         ref->setOnHover(onHoverMethod);
-        ref->setSize(size);
+        if(node.has("flex") && flex > 0.0f){
+            ref->setFlex(flex);
+        }else{
+            ref->setFlex(0.0f);   
+            ref->fillUpType = false;   
+            ref->setSize(size.size);
+            ref->relSize.set(size.size);
+            ref->useRelSizeX = size.isX;
+            ref->useRelSizeY = size.isY;
+        }  
         ref->setFontSize(fontSize);
         ref->setFontColor(textColor);    
         ref->setText(text);
@@ -539,7 +603,16 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         ref->setFontColor(fontColor);
         ref->setSecondColor(secondColor);    
         ref->setOnClick(onClickMethod);
-        ref->setSize(size);
+        if(node.has("flex") && flex > 0.0f){
+            ref->setFlex(flex);
+        }else{
+            ref->setFlex(0.0f);   
+            ref->fillUpType = false;   
+            ref->setSize(size.size);
+            ref->relSize.set(size.size);
+            ref->useRelSizeX = size.isX;
+            ref->useRelSizeY = size.isY;
+        }  
         ref->setText(text);
         if(backgroundImage != "" && nite::fileExists(backgroundImage)){
             ref->setBackgroundImage(nite::Texture(backgroundImage));
@@ -588,8 +661,11 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         }else{
             ref->setFlex(0.0f);   
             ref->fillUpType = false;   
-            ref->setSize(size);
-        }
+            ref->setSize(size.size);
+            ref->relSize.set(size.size);
+            ref->useRelSizeX = size.isX;
+            ref->useRelSizeY = size.isY;
+        }  
         ref->setBackgroundColor(backgroundColor);
         ref->setOnClick(onClickMethod);
         ref->setOnHover(onHoverMethod);
@@ -621,7 +697,10 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         }else{
             ref->setFlex(0.0f);   
             ref->fillUpType = false;   
-            ref->setSize(size);
+            ref->setSize(size.size);
+            ref->relSize.set(size.size);
+            ref->useRelSizeX = size.isX;
+            ref->useRelSizeY = size.isY;
         }        
         ref->setBackgroundColor(backgroundColor);
         ref->setOnClick(onClickMethod);
@@ -687,7 +766,9 @@ static void _build(Shared<nite::BaseUIComponent> &ui, const String &path, JsonSo
     asWindow->unmovable = unmovable;
     asWindow->setBorderThickness(borderthickness);
     asWindow->setShowTitle(!noTitle);
-    asWindow->setSize(size);
+    asWindow->setSize(size.size);
+    asWindow->useRelSizeX = size.isX;
+    asWindow->useRelSizeY = size.isY;
     asWindow->setTitleColor(titleColor);
     asWindow->setLayout(layout);
     asWindow->setBorderColor(borderColor);

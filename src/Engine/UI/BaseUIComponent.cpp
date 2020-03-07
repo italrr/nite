@@ -14,7 +14,6 @@ static String getUniqueId(){
     return nite::hashString(nite::toStr(nite::getTicks() + ++id));
 }
 
-
 nite::PoliVec2::PoliVec2(){
     useAbs = true;
     abs.set(32.0f);
@@ -70,6 +69,9 @@ nite::BaseUIComponent::BaseUIComponent(){
     position.set(0.0f);
     baseColor.set(0.0f, 0.0f, 0.0f, 1.0f);
     zdepth = 0;
+    useRelSizeX = false;
+    useRelSizeY = false;
+    relSize.set(0.0f);
     flex = 0.0f;
     visible = true;
     solid = false;
@@ -133,115 +135,134 @@ void nite::BaseUIComponent::add(std::shared_ptr<nite::BaseUIComponent> component
 }
 
 void nite::BaseUIComponent::destroy(){
-nite::UI::remove(this); 
+    nite::UI::remove(this); 
 }  
 
 void nite::Layout::VBox::recalculate(BaseUIComponent &head){
-  auto offset = head.padding * nite::Vec2(0.5f);
-  float leftVertSpace = head.size.y - head.padding.y;
-  nite::Vec2 spaceLeft(head.size - head.padding);  
-  nite::Vec2 totalSpace(head.size - head.padding);
-  float  vcursor = 0.0f;
-  float equalDiv = 0.0f;
-  int haveFlex = 0;
-  float zeroFlexSizes = 0.0f;  
-  for(int i = 0; i < head.children.size(); ++i){
-    auto child = head.children[i];      
-    equalDiv += child->flex;
-    if(child->flex > 0){
-      ++haveFlex;
+    auto offset = head.padding * nite::Vec2(0.5f);
+    float leftVertSpace = head.size.y - head.padding.y;
+    nite::Vec2 spaceLeft(head.size - head.padding);  
+    nite::Vec2 totalSpace(head.size - head.padding);
+    // let's calculate free space and flexes
+    float  vcursor = 0.0f;
+    float equalDiv = 0.0f;
+    int haveFlex = 0;
+    float zeroFlexSizes = 0.0f;  
+    for(int i = 0; i < head.children.size(); ++i){
+        auto child = head.children[i];      
+        equalDiv += child->flex;
+        if(child->flex > 0){
+            ++haveFlex;
+        }
+        if(child->flex <= 0){
+            auto cps = child->computeSize();      
+            zeroFlexSizes += cps.y;
+        }
     }
-    if(child->flex <= 0){
-      auto cps = child->computeSize();      
-      zeroFlexSizes += cps.y;
-    }    
-  }
-  zeroFlexSizes = zeroFlexSizes > 0.0f ? totalSpace.y - zeroFlexSizes : totalSpace.y;
-
-  for(int i = 0; i < head.children.size(); ++i){
-    auto child = head.children[i];
-    float ownDiv = child->flex / equalDiv;
-    float ownDivSize = ownDiv * zeroFlexSizes;
-    bool applyZeroFlex = ownDivSize > 0.0f;
-    if(child->fillUpType){
-      child->accommodate(totalSpace.x, child->flex > 0.0f ? ownDivSize : totalSpace.y);
+    zeroFlexSizes = zeroFlexSizes > 0.0f ? totalSpace.y - zeroFlexSizes : totalSpace.y;
+    // apply size
+    for(int i = 0; i < head.children.size(); ++i){
+        auto child = head.children[i];
+        float ownDiv = child->flex / equalDiv;
+        float ownDivSize = ownDiv * zeroFlexSizes;
+        bool applyZeroFlex = ownDivSize > 0.0f;
+        if(child->useRelSizeX || child->useRelSizeY){
+            nite::Vec2 ap;
+            ap.x = child->useRelSizeX ? totalSpace.x * child->relSize.x : (child->size.x == -1.0f ? totalSpace.x : child->size.x);
+            ap.y = child->useRelSizeY ? totalSpace.y * child->relSize.y : (child->size.y == -1.0f ? totalSpace.y : child->size.y);
+            child->accommodate(ap.x, ap.y);
+        }else   
+        if(child->fillUpType){
+            child->accommodate(totalSpace.x, child->flex > 0.0f ? ownDivSize : totalSpace.y);
+        }
+        auto cps = child->computeSize();
+        if(cps.y > leftVertSpace){
+            child->position.set(-1.0f, -1.0f);
+        }
+        child->position.set(nite::Vec2(0.0f, vcursor) + offset + cps * nite::Vec2(0.5f));
+        float hamnt = applyZeroFlex ? ownDivSize : cps.y;
+        vcursor += hamnt;
+        leftVertSpace -= hamnt;
     }
-    auto cps = child->computeSize();
-    if(cps.y > leftVertSpace){
-      child->position.set(-1.0f, -1.0f);
-    }
-    child->position.set(nite::Vec2(0.0f, vcursor) + offset + cps * nite::Vec2(0.5f));
-    float hamnt = applyZeroFlex ? ownDivSize : cps.y;
-    vcursor += hamnt;
-    leftVertSpace -= hamnt;
-  }
 }
 
 void nite::Layout::HBox::recalculate(BaseUIComponent &head){
-  auto offset = head.padding * nite::Vec2(0.5f);
-  float leftHorSpace = head.size.x - head.padding.x;
-  nite::Vec2 spaceLeft(head.size - head.padding);  
-  nite::Vec2 totalSpace(head.size - head.padding);
-  float  hcursor = 0.0f;
-  float equalDiv = 0.0f;
-  int haveFlex = 0;
-  float zeroFlexSizes = 0.0f;  
-  for(int i = 0; i < head.children.size(); ++i){
-    auto child = head.children[i];      
-    equalDiv += child->flex;
-    if(child->flex > 0){
-      ++haveFlex;
+    auto offset = head.padding * nite::Vec2(0.5f);
+    float leftHorSpace = head.size.x - head.padding.x;
+    nite::Vec2 spaceLeft(head.size - head.padding);  
+    nite::Vec2 totalSpace(head.size - head.padding);
+    float  hcursor = 0.0f;
+    float equalDiv = 0.0f;
+    int haveFlex = 0;
+    float zeroFlexSizes = 0.0f;  
+    for(int i = 0; i < head.children.size(); ++i){
+        auto child = head.children[i];      
+        equalDiv += child->flex;
+        if(child->flex > 0){
+            ++haveFlex;
+        }
+        if(child->flex <= 0){
+            auto cps = child->computeSize();      
+            zeroFlexSizes += cps.x;
+        }    
     }
-    if(child->flex <= 0){
-      auto cps = child->computeSize();      
-      zeroFlexSizes += cps.x;
-    }    
-  }
-  zeroFlexSizes = zeroFlexSizes > 0.0f ? totalSpace.x - zeroFlexSizes : totalSpace.x;
-  for(int i = 0; i < head.children.size(); ++i){
-    auto child = head.children[i];
-    float ownDiv = child->flex / equalDiv;
-    float ownDivSize = ownDiv * zeroFlexSizes;
-    bool applyZeroFlex = ownDivSize > 0.0f;
-    if(child->fillUpType){
-      child->accommodate(child->flex > 0.0f ? ownDivSize : totalSpace.x, totalSpace.y);
+    zeroFlexSizes = zeroFlexSizes > 0.0f ? totalSpace.x - zeroFlexSizes : totalSpace.x;
+    for(int i = 0; i < head.children.size(); ++i){
+        auto child = head.children[i];
+        float ownDiv = child->flex / equalDiv;
+        float ownDivSize = ownDiv * zeroFlexSizes;
+        bool applyZeroFlex = ownDivSize > 0.0f;
+        if(child->useRelSizeX || child->useRelSizeY){
+            nite::Vec2 ap;
+            ap.x = child->useRelSizeX ? totalSpace.x * child->relSize.x : (child->size.x == -1.0f ? totalSpace.x : child->size.x);
+            ap.y = child->useRelSizeY ? totalSpace.y * child->relSize.y : (child->size.y == -1.0f ? totalSpace.y : child->size.y);
+            child->accommodate(ap.x, ap.y);
+        }else         
+        if(child->fillUpType){
+            child->accommodate(child->flex > 0.0f ? ownDivSize : totalSpace.x, totalSpace.y);
+        }
+        auto cps = child->computeSize();
+        if(cps.x > leftHorSpace){
+            child->position.set(-1.0f, -1.0f);
+        }
+        child->position.set(nite::Vec2(hcursor, 0.0f) + offset + cps * nite::Vec2(0.5f));
+        float hamnt = applyZeroFlex ? ownDivSize : cps.x;
+        hcursor += hamnt;
+        leftHorSpace -= hamnt;
     }
-    auto cps = child->computeSize();
-    if(cps.x > leftHorSpace){
-      child->position.set(-1.0f, -1.0f);
-    }
-    child->position.set(nite::Vec2(hcursor, 0.0f) + offset + cps * nite::Vec2(0.5f));
-    float hamnt = applyZeroFlex ? ownDivSize : cps.x;
-    hcursor += hamnt;
-    leftHorSpace -= hamnt;
-  }
 }
 
 void nite::Layout::Inline::recalculate(BaseUIComponent &head){
-  auto offset = head.padding * nite::Vec2(0.5f);
-  nite::Vec2 cursor(0.0f);
-  nite::Vec2 spaceLeft(head.size - head.padding);
-  nite::Vec2 totalSpace(head.size - head.padding);
-  float lastLineHeight = 0.0f;
-  for(int i = 0; i < head.children.size(); ++i){
-    auto child = head.children[i];
-    if(child->fillUpType){
-      child->accommodate(totalSpace.x, totalSpace.y);
+    auto offset = head.padding * nite::Vec2(0.5f);
+    nite::Vec2 cursor(0.0f);
+    nite::Vec2 spaceLeft(head.size - head.padding);
+    nite::Vec2 totalSpace(head.size - head.padding);
+    float lastLineHeight = 0.0f;
+    for(int i = 0; i < head.children.size(); ++i){
+        auto child = head.children[i];
+        if(child->useRelSizeX || child->useRelSizeY){
+            nite::Vec2 ap;
+            ap.x = child->useRelSizeX ? totalSpace.x * child->relSize.x : (child->size.x == -1.0f ? totalSpace.x : child->size.x);
+            ap.y = child->useRelSizeY ? totalSpace.y * child->relSize.y : (child->size.y == -1.0f ? totalSpace.y : child->size.y);
+            child->accommodate(ap.x, ap.y);
+        }else       
+        if(child->fillUpType){
+            child->accommodate(totalSpace.x, totalSpace.y);
+        }
+        auto cps = child->computeSize();
+        if(cursor.x > 0.0f && cps.x > spaceLeft.x){
+            spaceLeft.x = head.size.x - head.padding.x;
+            cursor.x = 0.0f;
+            cursor.y += lastLineHeight;
+            lastLineHeight = 0.0f;
+        }
+        if(cps.y > spaceLeft.y){
+            child->position.set(-1.0f, -1.0f);
+        }
+        child->position.set(cursor + offset + cps * nite::Vec2(0.5f));
+        spaceLeft.x -= cps.x;
+        spaceLeft.y -= cps.y;
+        cursor.x += cps.x;
+        lastLineHeight = std::max(lastLineHeight, cps.y);
     }
-    auto cps = child->computeSize();
-    if(cursor.x > 0.0f && cps.x > spaceLeft.x){
-      spaceLeft.x = head.size.x - head.padding.x;
-      cursor.x = 0.0f;
-      cursor.y += lastLineHeight;
-      lastLineHeight = 0.0f;
-    }
-    if(cps.y > spaceLeft.y){
-      child->position.set(-1.0f, -1.0f);
-    }
-    child->position.set(cursor + offset + cps * nite::Vec2(0.5f));
-    spaceLeft.x -= cps.x;
-    spaceLeft.y -= cps.y;
-    cursor.x += cps.x;
-    lastLineHeight = std::max(lastLineHeight, cps.y);
-  }
 }
