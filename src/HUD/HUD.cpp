@@ -114,7 +114,17 @@ void Game::HUD::updateValues(){
     updateActionable(actSPanel, 4);
 
     // stats
+    auto statusPanel = this->main->getComponentById("hud_eff_column");
+    statusPanel->clear();
     auto &effs = ent->effectStat.effects;
+    //we're gonna create the same number of effects as panels
+    for(int i = 0; i < effs.size(); ++i){
+        auto efpnl = Shared<nite::PanelUI>(new nite::PanelUI());
+        // TODO: use effect color. and then icon
+        // statusPanel
+        statusPanel->add(efpnl);
+    }
+    auto actSPanel = this->main->getComponentById("actionable_s");
     for(int i = 0; i < effs.size(); ++i){
         auto &ef = effs[i];
         
