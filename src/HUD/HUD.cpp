@@ -124,7 +124,6 @@ void Game::HUD::updateValues(){
         // statusPanel
         statusPanel->add(efpnl);
     }
-    auto actSPanel = this->main->getComponentById("actionable_s");
     for(int i = 0; i < effs.size(); ++i){
         auto &ef = effs[i];
         
