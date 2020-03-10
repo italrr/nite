@@ -10,15 +10,16 @@ nite's drawing pipeline is procedural, a state machine, similarly to OpenGL. Exa
 
 ```
     
-    nite::Texture rect("./rect.png");
+nite::Texture rect("./rect.png");
 
-    while(true){
-        nite::setRenderTarget(nite::RenderTargetGame);
-        nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
-        auto ref = rect.draw(32.0f, 32.0f, 32.0f, 32.0f, 0.0f, 0.0f, 0.0f);
+while(true){
+    nite::setRenderTarget(nite::RenderTargetGame);
+    nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
+    nite::setDepth(nite::DepthMiddle);
+    auto ref = rect.draw(32.0f, 32.0f, 32.0f, 32.0f, 0.0f, 0.0f, 0.0f);
 
-        ...
-    }
+    ...
+}
 
 ```
 
@@ -26,10 +27,10 @@ In this example you may appreciate the fact that `nite::Texture::draw` returns a
 on the the fly that would be too verbose to do on a simple draw call.
 
 ```
-    auto ref = rect.draw(32.0f, 32.0f, 32.0f, 32.0f, 0.0f, 0.0f, 0.0f);
-    if(ref != NULL){ // always check if it's NULL
-        ref->angle = nite::toRadians(45); // nite only deals with angles in radians
-    }
+auto ref = rect.draw(32.0f, 32.0f, 32.0f, 32.0f, 0.0f, 0.0f, 0.0f);
+if(ref != NULL){ // always check if it's NULL
+    ref->angle = nite::toRadians(45); // nite only deals with angles in radians
+}
 ```
 
 Here we modified our rectangle's angle to be 45 degress.
@@ -57,7 +58,7 @@ This game is loosely inspired by another older project of the original author: [
 - Integrated in-game console (`nite::Console::*`)
 - Multi-layered and complex tileset system
 - Input support (Keyboard and mouse for now)
-- Object / world simulation (`nite::World`, `nite::NetWorld`, `nite::Object`, `nite::NetObj`)
+- Object / world simulation (`nite::World`, `Game::NetWorld`, `nite::Object`, `Game::NetObj`)
 - Shader support
 - Network support (UDP socket support, plus some abstraction for packets)
 - Integrated basic tools (File reading, Hashing, Math, AsyncTask, etc)
@@ -70,7 +71,6 @@ This game is loosely inspired by another older project of the original author: [
 - Asynchronous event-driven pipelines
 
 ### In Progress (Y -> Done | P -> Progress | S -> Stalled)
-
 - UI
     - [Y] Relative sizes (i.e. `"width": "100%"`)
     - [S] Focus
