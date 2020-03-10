@@ -44,9 +44,6 @@ Game::GameCore *Game::getGameCoreInstance(){
 	return instance;
 }
 
-#include "Network/Server.hpp"
-#include "Network/Client.hpp"
-
 int main(int argc, char* argv[]){
 	Vector<String> params;
 	for(int i = 0; i < argc; ++i){

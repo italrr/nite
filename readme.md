@@ -43,6 +43,7 @@ This game is inspired by another older project of the original author: [https://
 - UI
     - [Y] Relative sizes (i.e. `"width": "100%"`)
     - [S] Focus
+    - [S] Navigation through keyboward/gamepad input
     - [S] Scrolling
     - [S] Textboxes
     - [S] Flow control (freeze windows to wait for other to finish)
@@ -50,7 +51,8 @@ This game is inspired by another older project of the original author: [https://
     - [P] World synchronization
         - [P] Animations
         - [P] Physics
-    - [P] Control packets (add, remove, update skills, effects, inventory)
+    - [P] Entity-specific attribute manipulation packets (add, remove, update skills, effects, inventory)
+    - [P] More packet control (`bindOnAckFor()`) 
     - [S] Data transfer (send maps, and other dynamic content)
 - Stats/Entity
     - [P] Inventory system
@@ -58,11 +60,13 @@ This game is inspired by another older project of the original author: [https://
     - [P] Effects
     - [S] Add new class (Stalker/Assassin type)
 - RING
-    - [S] Search algorithms
-    - [S] Implement new maze generation algorithms
-    - [S] Implement rooms
+    - [Y] Implement depth-First Search algorithm (Maze generation)
+    - [S] Implement more maze generation algorithms
+    - [S] Implement rooms concept
 - AI
     - [S] Implement search algorithms
+        - [S] Dijkstra
+        - [S] A*
     - [S] Add optimizations for such algorithms
 - nite Script (canvas)
     - [S] TODO
