@@ -1,10 +1,10 @@
 #ifndef GAME_INVENTORY_HPP
   #define GAME_INVENTORY_HPP
 
-	#include "Engine/Types.hpp"
-	#include "Engine/Texture.hpp"
-	#include "Engine/Animation.hpp"
-	#include "Engine/Object.hpp"
+	#include "../Engine/Types.hpp"
+	#include "../Engine/Texture.hpp"
+	#include "../Engine/Animation.hpp"
+	#include "../Core/Object.hpp"
   	#include <memory>
 
   namespace Game {
@@ -57,29 +57,25 @@
 		};
 	}
 
-	struct Inventory;
 	struct BaseItem {
-		int id;
-		int type;
+		UInt16 id;
+		UInt8 type;
 		String name;
 		String description;
-		int weight;
-		int quantity;
+		UInt16 weight;
+		UInt32 quantity;
+		UInt16 element;
 		bool amountable;
-		
-		virtual void loadSpecific(const String &path){
-
-		}
 		
 		virtual void use(){
 
 		}
 		
-		virtual void afterUse(){
+		virtual void onAfterUse(){
 
 		}
 		
-		virtual void beforeUse(){
+		virtual void onBeforeUse(){
 
 		}
 		

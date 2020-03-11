@@ -2,7 +2,7 @@
     #define GAME_HUD_HPP
 
     #include "../Engine/UI/UI.hpp"
-    #include "../Network/World.hpp"
+    #include "../Core/World.hpp"
 
     namespace Game {
 

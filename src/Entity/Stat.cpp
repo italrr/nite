@@ -1,7 +1,5 @@
 #include "Stat.hpp"
 
-
-
 Game::ComplexStat::ComplexStat() {
 	maxCarry = 25;
 	walkRate = 0.25f;

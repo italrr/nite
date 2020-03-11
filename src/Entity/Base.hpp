@@ -1,7 +1,7 @@
 #ifndef GAME_ENTITY_BASE_HPP
     #define GAME_ENTITY_BASE_HPP
 
-    #include "../Network/Object.hpp"
+    #include "../Core/Object.hpp"
     #include "Stat.hpp"
 
     namespace Game {

@@ -2,7 +2,7 @@
     #define GAME_ENTITY_STATUS_HPP
 
     #include "../Engine/Tools/Tools.hpp"
-    #include "../Network/World.hpp"
+    #include "../Core/World.hpp"
 
     namespace Game {
 

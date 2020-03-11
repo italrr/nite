@@ -3,7 +3,7 @@
 #include "../Engine/Graphics.hpp"
 #include "../Engine/UI/TextUI.hpp"
 #include "../Entity/Base.hpp"
-#include "../Network/Client.hpp"
+#include "../Core/Client.hpp"
 
 static String HUDMainPath = "data/ui/hud/main.json";
 static nite::Console::CreateProxy cpAnDatTo("hud_main_src", nite::Console::ProxyType::Literal, HUDMainPath.size(), (char*)HUDMainPath.c_str());

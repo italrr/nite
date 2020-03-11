@@ -229,8 +229,8 @@ set(src_files
 	src/Core/Object.cpp
 	src/Core/World.cpp
 	src/Core/Input.cpp
-	src/Core/Inventory.cpp
 	# Entity #
+	src/Entity/Inventory.cpp
 	src/Entity/Base.cpp
 	src/Entity/Battle.cpp
 	src/Entity/Stat.cpp

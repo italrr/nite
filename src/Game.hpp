@@ -2,8 +2,8 @@
 	#define GAME_HPP
 
 	#include "Engine/Tools/Tools.hpp"
-	#include "Network/Server.hpp"
-	#include "Network/Client.hpp"
+	#include "Core/Server.hpp"
+	#include "Core/Client.hpp"
 	namespace Game {
 
 		struct GameCore {
