@@ -222,13 +222,14 @@ set(src_files
 	src/RING/Search.cpp
 	src/RING/Blueprint.cpp
 	src/RING/Map.cpp
-	# Network #
-	src/Network/Server.cpp
-	src/Network/Client.cpp
-	src/Network/Network.cpp
-	src/Network/Object.cpp
-	src/Network/World.cpp
-	src/Network/Input.cpp
+	# Core #
+	src/Core/Server.cpp
+	src/Core/Client.cpp
+	src/Core/Network.cpp
+	src/Core/Object.cpp
+	src/Core/World.cpp
+	src/Core/Input.cpp
+	src/Core/Inventory.cpp
 	# Entity #
 	src/Entity/Base.cpp
 	src/Entity/Battle.cpp
@@ -240,7 +241,6 @@ set(src_files
 	src/HUD/Icon.cpp
 	# GENERAL #
 	src/Camera.cpp
-	src/Inventory.cpp
 	src/Map.cpp
 	src/AI/AI.cpp
 )
