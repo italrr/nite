@@ -1,7 +1,7 @@
 nite Engine
 ----------
 
-`nite` Engine is a 2D game engine in C++11. It uses OpenGL 3.0 for rendering and SDL2 for input, window and event handling.
+nite is a 2D game engine in C++11. It uses OpenGL 3.0 for rendering and SDL2 for input, window and event handling.
 
 nite features some modern asynchronous event-driven pipelines such as `nite::AsyncTask` and Network's `bindOnAckFor()`,
 which allows the binding a specific callback for when it acknowledges the receipt of a specific Packet Header.
@@ -36,6 +36,8 @@ if(ref != NULL){ // always check if it's NULL
 Here we modified our rectangle's angle to be 45 degress.
 
 **Attention: Documentation is work in progress**
+
+Check `docs/` to see nite's official documentation.
 
 About the Game
 --------------
