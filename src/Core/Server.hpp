@@ -6,6 +6,8 @@
     #include "World.hpp"
     #include "../RING/Map.hpp"
     #include "Input.hpp"
+    #include "../Entity/Effect.hpp"
+    #include "../Entity/Inventory.hpp"
     
     namespace Game {
 
@@ -54,6 +56,8 @@
             UInt8 maxClients;
             UInt64 physicsUpdate;
             UInt64 lastPlayerInfoSent;
+            Dict<UInt64, UInt16> players;
+            Vector<Shared<Game::RING::Map>> maps;
             Server();
             ~Server();
             void removeClient(UInt64 uid);
@@ -62,24 +66,42 @@
             Game::SvClient *getClient(const String &nickname);
             Game::SvClient *getClient(UInt64 uid);
             Game::SvClient *getClientByIp(nite::IP_Port &ip);
+            Game::SvClient *getClientByEntityId(UInt16 entityId);
             void persSendAll(nite::Packet packet, UInt64 timeout, int retries);
             void sendAll(nite::Packet packet);
             void broadcast(const String &message);
             void sendRemoteCmdMsg(UInt64 uid, const String &msg, const nite::Color &color);
-            void sendEntitySkillList(UInt64 uid, UInt16 entityId);
             void preinit();
             void listen(const String &name, UInt8 maxClients, UInt16 port);
             void update();
             void close();
             void clear();
             void game();
-            // game
-            void sendInfoPlayerList(UInt64 uid);
-            Dict<UInt64, UInt16> players;
-            Vector<Shared<Game::RING::Map>> maps;
-            void setupGame(const String &name, int maxClients, int maps);
+
+
+            /*
+             game
+            */
+
+            // add/remove
+            void addItem(UInt16 entityId, Shared<Game::BaseItem> item);
+            void removeItem(UInt16 entityId, UInt16 itemId, UInt16 amnt);            
+            void addEffect(UInt16 entityId, const Game::Effect &eff);
+            void removeEffect(UInt16 entityId, UInt16 efType);
+            void addSkill(UInt16 entityId, UInt16 skillId, UInt8 lv);
+            void removeSkill(UInt16 entityId, UInt16 skillId);
+            
+            
+            // send info
+            void sendSkillList(UInt64 uid, UInt16 entityId);
+            void sendPlayerList(UInt64 uid); // sends it everyone
+            void notifyAddSkill(UInt64 uid, UInt16 skillId, UInt8 lv);
+            void notifyRemoveSkill(UInt64 uid, UInt16 skillId);
+            
+            // core
             Shared<Game::NetObject> spawn(Shared<Game::NetObject> obj);
-            bool destroy(UInt32 id);
+            bool destroy(UInt32 id);            
+            void setupGame(const String &name, int maxClients, int maps);
             Shared<Game::NetObject> createPlayer(UInt64 uid, UInt32 lv);
             bool removePlayer(UInt64 uid);
             bool killPlayer(UInt64 uid);

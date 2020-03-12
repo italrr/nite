@@ -100,22 +100,13 @@ Game::SvClient *Game::Server::getClientByIp(nite::IP_Port &ip){
     return NULL;
 }
 
-void Game::Server::sendInfoPlayerList(UInt64 uid){
-    auto cl = getClient(uid);
-    if(cl == NULL){
-        nite::print("failed to send player list to client '"+nite::toStr(uid)+"': it's not connected");
-        return;
+Game::SvClient *Game::Server::getClientByEntityId(UInt16 entityId){
+    for(auto &it : players){
+        if(it.second == entityId){
+            return getClient(it.first);
+        }
     }
-    UInt16 total = clients.size();
-    nite::Packet info(++cl->svOrder);
-    info.setHeader(Game::PacketType::SV_CLIENT_LIST);
-    info.write(&total, sizeof(UInt16));
-    for(auto cl : clients){
-        info.write(&cl.second.clientId, sizeof(UInt64));
-        info.write(&cl.second.ping, sizeof(UInt64));
-        info.write(cl.second.nickname);
-    }
-    persSend(cl->cl, info, 750, -1);
+    return NULL;
 }
 
 void Game::Server::dropClient(UInt64 uid, String reason){
@@ -306,7 +297,7 @@ void Game::Server::update(){
                         notify.write(&cl.clientId, sizeof(UInt64));
                         notify.write(cl.nickname);
                         persSendAll(notify, 750, -1);     
-                        sendInfoPlayerList(uid);
+                        sendPlayerList(uid);
                         ct.stop();                   
                     }), 100, netIdPack);
                 }
@@ -384,7 +375,7 @@ void Game::Server::update(){
     if(nite::getTicks()-lastPlayerInfoSent > 1000){
         lastPlayerInfoSent = nite::getTicks();
         for(auto cl : clients){
-            sendInfoPlayerList(cl.first);
+            sendPlayerList(cl.first);
         }        
     }
 
@@ -569,7 +560,7 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
                     nite::print("[server] failed to send skill list. ip was not found in the list");
                     return;
                 }
-                sendEntitySkillList(cl->clientId, cl->entityId);
+                sendSkillList(cl->clientId, cl->entityId);
                 // [3] send respective clients their default keybinds
                 bindOnAckFor(Game::PacketType::SV_SET_ENTITY_SKILLS, [&](nite::SmallPacket &pck, nite::IP_Port &ip){  
                     auto cl = this->getClientByIp(ip);
@@ -607,6 +598,180 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
     }), 5000);
 }
 
+void Game::Server::addItem(UInt16 entityId, Shared<Game::BaseItem> item){
+    auto failmsg = "[server] failed to add item for entity id "+nite::toStr(entityId)+": ";
+    auto it = world.objects.find(entityId);
+    if(it == world.objects.end()){
+        nite::print(failmsg+"it doesn't exist");
+        return;
+    }
+    // TODO: notify client
+    if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
+        ent->invStat.add(item);
+    }else{
+        nite::print(failmsg+" it's not an entity");
+    }
+}
+
+void Game::Server::removeItem(UInt16 entityId, UInt16 itemId, UInt16 amnt){
+    auto failmsg = "[server] failed to remove item for entity id "+nite::toStr(entityId)+": ";
+    auto it = world.objects.find(entityId);
+    if(it == world.objects.end()){
+        nite::print(failmsg+"it doesn't exist");
+        return;
+    }
+    if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
+        // TODO: notify client
+        if(!ent->invStat.remove(itemId, amnt)){
+            nite::print(failmsg+"it's not in its inventory");
+        }
+    }else{
+        nite::print(failmsg+" it's not an entity");
+    }    
+}
+
+void Game::Server::addSkill(UInt16 entityId, UInt16 skillId, UInt8 lv){
+    auto failmsg = "[server] failed to add skill for entity id "+nite::toStr(entityId)+": ";
+    auto it = world.objects.find(entityId);
+    if(it == world.objects.end()){
+        nite::print(failmsg+"it doesn't exist");
+        return;
+    }
+    auto sk = getSkill(skillId, lv);
+    if(sk.get() == NULL){
+        nite::print(failmsg+"skill id "+nite::toStr(skillId)+" doesn't exist");
+        return;
+    }
+    if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
+        ent->skillStat.add(skillId, lv);  
+        if(auto cl = getClientByEntityId(entityId)){
+            notifyAddSkill(cl->clientId, skillId, lv);
+        }
+    }else{
+        nite::print(failmsg+" it's not an entity");
+    }
+}
+
+void Game::Server::removeSkill(UInt16 entityId, UInt16 skillId){
+    auto failmsg = "[server] failed to remove skill for entity id "+nite::toStr(entityId)+": ";
+    auto it = world.objects.find(entityId);
+    if(it == world.objects.end()){
+        nite::print(failmsg+"it doesn't exist");
+        return;
+    }
+    auto sk = getSkill(skillId, 0);
+    if(sk.get() == NULL){
+        nite::print(failmsg+"skill id "+nite::toStr(skillId)+" doesn't exist");
+        return;
+    }
+    // TODO: notify client
+    if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
+        ent->skillStat.remove(skillId);
+        if(auto cl = getClientByEntityId(entityId)){
+            notifyRemoveSkill(cl->clientId, skillId);
+        }        
+    }else{
+        nite::print(failmsg+" it's not an entity");
+    }    
+}
+
+void Game::Server::addEffect(UInt16 entityId, const Game::Effect &eff){
+    auto failmsg = "[server] failed to add effect for entity id "+nite::toStr(entityId)+": ";
+    auto it = world.objects.find(entityId);
+    if(it == world.objects.end()){
+        nite::print(failmsg+"it doesn't exist");
+        return;
+    }
+    // TODO: notify client
+    if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
+        ent->effectStat.add(eff);
+    }else{
+        nite::print(failmsg+" it's not an entity");
+    }
+}
+
+void Game::Server::removeEffect(UInt16 entityId, UInt16 efType){
+    auto failmsg = "[server] failed to remove effect for entity id "+nite::toStr(entityId)+": ";
+    auto it = world.objects.find(entityId);
+    if(it == world.objects.end()){
+        nite::print(failmsg+"it doesn't exist");
+        return;
+    }
+    // TODO: notify client
+    if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
+        if(!ent->effectStat.isOn(efType)){
+            nite::print(failmsg+" entity doesn't have this effect type "+nite::toStr(efType));
+            return;
+        }
+        ent->effectStat.remove(efType);
+    }else{
+        nite::print(failmsg+" it's not an entity");
+    }
+}
+
+void Game::Server::notifyAddSkill(UInt64 uid, UInt16 skillId, UInt8 lv){
+    auto cl = getClient(uid);
+    nite::Packet packet(++cl->svOrder);
+    packet.setHeader(Game::PacketType::SV_ADD_ENTITY_SKILL);
+    packet.write(&cl->entityId, sizeof(cl->entityId));
+    packet.write(&skillId, sizeof(skillId));
+    packet.write(&lv, sizeof(lv));
+    persSend(cl->cl, packet, 750, -1);
+}
+
+void Game::Server::notifyRemoveSkill(UInt64 uid, UInt16 skillId){
+    auto cl = getClient(uid);
+    nite::Packet packet(++cl->svOrder);
+    packet.setHeader(Game::PacketType::SV_REMOVE_ENTITY_SKILL);
+    packet.write(&cl->entityId, sizeof(cl->entityId));
+    packet.write(&skillId, sizeof(skillId));
+    persSend(cl->cl, packet, 750, -1);
+}
+
+
+void Game::Server::sendPlayerList(UInt64 uid){
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        nite::print("failed to send player list to client '"+nite::toStr(uid)+"': it's not connected");
+        return;
+    }
+    UInt16 total = clients.size();
+    nite::Packet info(++cl->svOrder);
+    info.setHeader(Game::PacketType::SV_CLIENT_LIST);
+    info.write(&total, sizeof(UInt16));
+    for(auto cl : clients){
+        info.write(&cl.second.clientId, sizeof(UInt64));
+        info.write(&cl.second.ping, sizeof(UInt64));
+        info.write(cl.second.nickname);
+    }
+    persSend(cl->cl, info, 750, -1);
+}
+
+void Game::Server::sendSkillList(UInt64 uid, UInt16 entityId){
+    auto itent = this->world.objects.find(entityId);
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        nite::print("[server] failed to skill list for entity: client id "+nite::toStr(uid)+" doesn't exist");
+        return;
+    }
+    if(itent == this->world.objects.end()){
+        nite::print("[server] failed to skill list for entity: ent id "+nite::toStr(entityId)+" doesn't exist");
+        return;
+    }
+    auto ent = static_cast<Game::EntityBase*>(itent->second.get()); // we're gonna assume this is indeed an entity
+    auto &sklst = ent->skillStat.skills;
+    UInt8 skamnt = sklst.size();
+    nite::Packet pck(++cl->svOrder);
+    pck.setHeader(Game::PacketType::SV_SET_ENTITY_SKILLS);
+    pck.write(&ent->id, sizeof(UInt16));
+    pck.write(&skamnt, sizeof(UInt8));
+    for(auto sk : ent->skillStat.skills){
+        pck.write(&sk.first, sizeof(UInt16));
+        pck.write(&sk.second, sizeof(UInt8));
+    }
+    persSend(cl->cl, pck, 750, -1);
+}
+
 Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
     if(!init){
         return Shared<Game::NetObject>(NULL);
@@ -639,31 +804,6 @@ bool Game::Server::destroy(UInt32 id){
     obj->destroy();
     persSendAll(des, 1000, -1);    
     return true;
-}
-
-void Game::Server::sendEntitySkillList(UInt64 uid, UInt16 entityId){
-    auto itent = this->world.objects.find(entityId);
-    auto cl = getClient(uid);
-    if(cl == NULL){
-        nite::print("[server] failed to skill list for entity: client id "+nite::toStr(uid)+" doesn't exist");
-        return;
-    }
-    if(itent == this->world.objects.end()){
-        nite::print("[server] failed to skill list for entity: ent id "+nite::toStr(entityId)+" doesn't exist");
-        return;
-    }
-    auto ent = static_cast<Game::EntityBase*>(itent->second.get()); // we're gonna assume this is indeed an entity
-    auto &sklst = ent->skillStat.skills;
-    UInt8 skamnt = sklst.size();
-    nite::Packet pck(++cl->svOrder);
-    pck.setHeader(Game::PacketType::SV_SET_ENTITY_SKILLS);
-    pck.write(&ent->id, sizeof(UInt16));
-    pck.write(&skamnt, sizeof(UInt8));
-    for(auto sk : ent->skillStat.skills){
-        pck.write(&sk.first, sizeof(UInt16));
-        pck.write(&sk.second, sizeof(UInt8));
-    }
-    persSend(cl->cl, pck, 750, -1);
 }
 
 Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){

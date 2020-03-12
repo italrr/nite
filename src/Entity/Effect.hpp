@@ -2,7 +2,7 @@
     #define GAME_ENTITY_STATUS_HPP
 
     #include "../Engine/Tools/Tools.hpp"
-    #include "../Core/World.hpp"
+    #include "../Entity/Base.hpp"
 
     namespace Game {
 
@@ -78,7 +78,7 @@
                 onStart();
             }
 
-            virtual void step(Game::NetWorld &container){
+            virtual void step(Game::EntityBase &ent){
 
             }
 
@@ -96,14 +96,13 @@
 		};
 
         struct EffectStat {
-            Game::NetWorld *container;
             Vector<Game::Effect> effects;
-            void addEffect(Game::Effect status);
-            void removeEffect(UInt16 type);
-            void removeEffect(const String &name);
-            bool isEffectOn(UInt16 type);
-            void removeAllEffects();
-            void updateEffects();
+            bool add(Game::Effect status);
+            bool remove(UInt16 type);
+            bool remove(const String &name);
+            bool isOn(UInt16 type);
+            void removeAll();
+            void update(Game::EntityBase &ent);
         };
 
         /*
@@ -120,7 +119,7 @@
             void buildDesc(){
                 this->desc = "Healing "+nite::toStr(amnt)+" HP per second";
             }
-            void step(Game::NetWorld &container);
+            void step(Game::EntityBase &ent);
         };      
 
     }

@@ -4,6 +4,7 @@
     #include "../Engine/Tools/Tools.hpp"
 	#include "Effect.hpp"
 	#include "Skill.hpp"
+	#include "Inventory.hpp"
 
 	#define GAME_MAX_LEVEL 48
 	#define GAME_MAX_STAT 100
@@ -136,6 +137,7 @@
 			Game::ComplexStat complexStat;
 			Game::EffectStat effectStat;
 			Game::SkillStat skillStat;
+			Game::InventoryStat invStat;
 			void recalculateHealthStats();
 			void recalculateComplexStats();
             Int32 addBaseStat(UInt8 type, UInt32 amnt);

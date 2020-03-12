@@ -23,8 +23,8 @@
                 }
             };
             static const MasteryType::Type Knight        = Type(1, "Art of the Blade", "Knight", "Tree of skills for sword masters and endurants");
-            static const MasteryType::Type Cleric        = Type(2, "Path for the Divine", "Cleric", "Tree of skills for holy enchanters and curaters");
-            static const MasteryType::Type Ranger        = Type(3, "Walk of the Wild", "Ranger", "Tree of skills for the huntsman and nagivators of nature");
+            static const MasteryType::Type Cleric        = Type(2, "Path for the Divine", "Cleric", "Tree of skills for holy enchanters and curators");
+            static const MasteryType::Type Ranger        = Type(3, "Walk of the Wild", "Ranger", "Tree of skills for the huntsman and adventurers");
             static const MasteryType::Type Bard          = Type(4, "Speciality of the Charm", "Bard", "Tree of skills for the witty and smooth talkers");
             static const MasteryType::Type Necromancer   = Type(5, "Path for the Unholy", "Necromancer", "Tree of skills for the summoners of death");
             static const MasteryType::Type Sorcerer      = Type(6, "Master of the Elements", "Sorcerer", "Tree of skills for the channelers of chaos");
@@ -127,10 +127,10 @@
 
         struct SkillStat {
             Dict<UInt16, UInt8> skills;
-            bool addSkill(UInt16 id, UInt8 lv);
-            bool removeSkill(UInt16 id);
-            bool hasSkill(UInt16 id);
-            bool lvUpSkill(UInt16 id);
+            bool add(UInt16 id, UInt8 lv);
+            bool remove(UInt16 id);
+            bool contains(UInt16 id);
+            bool lvUp(UInt16 id);
         };
 
         /* SKILLS */

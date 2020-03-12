@@ -62,8 +62,8 @@ Shared<Game::Skill> Game::getSkill(UInt16 id, UInt8 lv){
     }
 }
 
-bool Game::SkillStat::addSkill(UInt16 id, UInt8 lv){
-    if(hasSkill(id)){
+bool Game::SkillStat::add(UInt16 id, UInt8 lv){
+    if(contains(id)){
         return false;
     }   
     if(this->skills[id] >= lv){
@@ -73,7 +73,7 @@ bool Game::SkillStat::addSkill(UInt16 id, UInt8 lv){
     return true;
 }
 
-bool Game::SkillStat::removeSkill(UInt16 id){
+bool Game::SkillStat::remove(UInt16 id){
     auto it = skills.find(id);
     if(it == skills.end()){
         return false;
@@ -81,12 +81,12 @@ bool Game::SkillStat::removeSkill(UInt16 id){
     skills.erase(it);
 }
 
-bool Game::SkillStat::hasSkill(UInt16 id){
+bool Game::SkillStat::contains(UInt16 id){
     return skills.find(id) != skills.end();
 }
 
-bool Game::SkillStat::lvUpSkill(UInt16 id){
-    if(hasSkill(id)){
+bool Game::SkillStat::lvUp(UInt16 id){
+    if(contains(id)){
         return false;
     }    
     skills[id] += skills[id] + 1;

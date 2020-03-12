@@ -2,33 +2,40 @@
 #include "Effect.hpp"
 #include "Base.hpp"
 
-void Game::EffectStat::addEffect(Game::Effect status){
+bool Game::EffectStat::add(Game::Effect status){
     auto copy = status;
     copy.start();
     effects.push_back(copy);
+    return true;
 }
 
-void Game::EffectStat::removeEffect(UInt16 type){
+bool Game::EffectStat::remove(UInt16 type){
+    bool success = false;
     for(int i = 0; i < effects.size(); ++i){
         if(effects[i].type == type){
             effects.erase(effects.begin() + i);
             --i;
+            success = true;
             continue;
         }
     } 
+    return success;
 }
 
-void Game::EffectStat::removeEffect(const String &name){
+bool Game::EffectStat::remove(const String &name){
+    bool success = false;
     for(int i = 0; i < effects.size(); ++i){
         if(effects[i].name == name){
             effects.erase(effects.begin() + i);
             --i;
+            success = true;
             continue;
         }
     }    
+    return success;
 }
 
-bool Game::EffectStat::isEffectOn(UInt16 type){
+bool Game::EffectStat::isOn(UInt16 type){
     for(int i = 0; i < effects.size(); ++i){
         if(effects[i].type == type){
             return true;
@@ -37,14 +44,11 @@ bool Game::EffectStat::isEffectOn(UInt16 type){
     return false;
 }
 
-void Game::EffectStat::removeAllEffects(){
+void Game::EffectStat::removeAll(){
     this->effects.clear();
 }
 
-void Game::EffectStat::updateEffects(){
-    if(this->container == NULL){
-        return;
-    }
+void Game::EffectStat::update(Game::EntityBase &ent){
     for(int i = 0; i < effects.size(); ++i){
         auto &ef = effects[i];
         if(nite::getTicks()-ef.started > ef.duration){
@@ -52,7 +56,7 @@ void Game::EffectStat::updateEffects(){
             --i;
             continue;
         }
-        ef.step(*this->container);
+        ef.step(ent);
     }
 }
 
@@ -63,17 +67,12 @@ void Game::EffectStat::updateEffects(){
 */
 
 // Eff_EffHeal
-void Game::Eff_EffHeal::step(Game::NetWorld &container){
+void Game::Eff_EffHeal::step(Game::EntityBase &ent){
     UInt16 diff = (nite::getTicks() - this->lastStep) / 1000;
     if(diff < 1){
         return;
     }
     this->lastStep = nite::getTicks();
     UInt16 toHeal = diff * amnt;
-    auto owner = container.objects.find(this->owner);
-    if(owner != container.objects.end()){
-        if(auto ent = dynamic_cast<Game::EntityBase*>(owner->second.get())){
-            ent->heal(toHeal, 0, 0);
-        }
-    }
+    ent.heal(toHeal, 0, 0);
 }

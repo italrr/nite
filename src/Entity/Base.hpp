@@ -16,7 +16,7 @@
 
         struct Actionable {
             UInt8 type;
-            UInt32 id; // either item-instance-id or skill id
+            UInt32 id; // either slotId or skill id
             Actionable(){
                 this->id = 0; // an item or skill cannot be 0
                 this->type = Game::ActionableType::None;

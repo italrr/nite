@@ -469,7 +469,7 @@ void Game::Client::update(){
                         continue;
                     }
                     auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                    ent->skillStat.addSkill(skId, lv);
+                    ent->skillStat.add(skId, lv);
                 }
             } break; 
             /*
@@ -493,7 +493,7 @@ void Game::Client::update(){
                     break;
                 }
                 auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                ent->skillStat.addSkill(skId, lv);                          
+                ent->skillStat.add(skId, lv);                          
             } break;            
             /*
                 SV_REMOVE_ENTITY_SKILLS
@@ -518,7 +518,7 @@ void Game::Client::update(){
                         continue;
                     }
                     auto ent = static_cast<Game::EntityBase*>(it->second.get()); // ok i know, i repeated it enough (if you don't know what, keep reading the project...)
-                    ent->skillStat.removeSkill(skId);
+                    ent->skillStat.remove(skId);
                 }
             } break; 
             /*
@@ -540,7 +540,7 @@ void Game::Client::update(){
                     break;
                 }
                 auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                ent->skillStat.removeSkill(skId);                          
+                ent->skillStat.remove(skId);                          
             } break;            
             /*
                 SV_SET_ENTITY_ACTIONABLES

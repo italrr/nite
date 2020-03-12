@@ -169,12 +169,12 @@ void Game::Stat::setupStat(UInt16 lv){
 	baseStat.statPoints = 12;
 	while(healthStat.lv < lv && lvUp());
 	// add base (start) skills. might be cool to get these from a json
-	skillStat.addSkill(Game::SkillList::BA_ATTACK, 1);
-	skillStat.addSkill(Game::SkillList::BA_BASH, 1);
-	skillStat.addSkill(Game::SkillList::BA_DODGE, 1);
-	skillStat.addSkill(Game::SkillList::BA_PARRY, 1);
-	skillStat.addSkill(Game::SkillList::BA_FIRST_AID, 1);
-	effectStat.removeAllEffects();
+	skillStat.add(Game::SkillList::BA_ATTACK, 1);
+	skillStat.add(Game::SkillList::BA_BASH, 1);
+	skillStat.add(Game::SkillList::BA_DODGE, 1);
+	skillStat.add(Game::SkillList::BA_PARRY, 1);
+	skillStat.add(Game::SkillList::BA_FIRST_AID, 1);
+	effectStat.removeAll();
 	fullHeal();
 }
 
