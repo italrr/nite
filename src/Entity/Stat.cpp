@@ -31,12 +31,12 @@ void Game::Stat::recalculateHealthStats(){
 }
 
 void Game::Stat::recalculateComplexStats(){
-	complexStat.maxCarry = 25 + nite::ceil(baseStat.strStat * GAME_STAT_BASE_SCALE * 4.0f + baseStat.enduStat * GAME_STAT_BASE_SCALE * 2.0f);
+	complexStat.maxCarry = 1000 + nite::ceil(baseStat.strStat * GAME_STAT_BASE_SCALE * 150.0f + baseStat.enduStat * GAME_STAT_BASE_SCALE * 65.0f);
 	complexStat.atk = nite::ceil(baseStat.strStat * 8.5f + baseStat.enduStat * 1.2f);
 	complexStat.magicAtk = nite::ceil(baseStat.intStat * 8.5f);
 	complexStat.def = nite::ceil(baseStat.enduStat * 5.8f + healthStat.lv * 0.7f);
 	complexStat.magicDef = nite::ceil(baseStat.intStat * 4.5f + baseStat.enduStat * 1.2f);		
-	complexStat.walkRate = nite::ceil(0.18f * baseStat.agiStat); 
+	complexStat.walkRate = nite::ceil(0.18f * baseStat.agiStat); // TODO: take weight into account
 	complexStat.critRate = (float)baseStat.lukStat / (float)GAME_MAX_STAT;
 	complexStat.precsRate = baseStat.dexStat * 1.25f;
 	complexStat.atkRate = baseStat.agiStat * (3.85f + healthStat.lv * 0.15f) + baseStat.dexStat * (1.1f + healthStat.lv * 0.1f);

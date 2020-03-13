@@ -14,6 +14,13 @@ bool Game::EffectStat::add(Shared<Game::Effect> eff){
     return true;
 }
 
+bool Game::EffectStat::add(Shared<Game::Effect> eff, UInt16 insId){
+    eff->start(owner);
+    eff->insId = insId;
+    effects[insId] = eff;
+    return true;
+}
+
 bool Game::EffectStat::remove(UInt16 insId){
     auto it = effects.find(insId);
     if(it == effects.end()) return false;

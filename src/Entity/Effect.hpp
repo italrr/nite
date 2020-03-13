@@ -111,6 +111,7 @@
             EntityBase *owner;
             Dict<UInt16, Shared<Game::Effect>>  effects;
             bool add(Shared<Game::Effect> eff);
+            bool add(Shared<Game::Effect> eff, UInt16 insId);
             bool remove(UInt16 insId);
             bool remove(const String &name);
             bool removeByType(UInt16 type);
