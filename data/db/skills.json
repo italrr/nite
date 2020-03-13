@@ -4,5 +4,29 @@
 		"desc": "None",
 		"reqs": [],
 		"iconId": 0
+	},
+	"2": {
+		"name": "Basic Attack",
+		"desc": "Delivers a basic attack which inflicts %i (3 + ATK/DEX + 30%WEAPDMG) physical damage using current wielded weapon.",
+		"reqs": [],
+		"iconId": 111
+	},
+	"3": {
+		"name": "Bash",
+		"desc": "Delivers a close ranged strike which inflicts %i (8 + ATK/DEX + 35%WEAP) physical damage using current wielded weapon.",
+		"reqs": [],
+		"iconId": 75
+	},
+	"4": {
+		"name": "Dodge",
+		"desc": "Makes a quick dash towars the direction the character is pointing towards equal to 3 units.",
+		"reqs": [],
+		"iconId": 88
+	},
+	"6": {
+		"name": "First Aid",
+		"desc": "Heals 25% of HP over 30 seconds. Only effective if HP is below 50%",
+		"reqs": [],
+		"iconId": 70
 	}
 }
