@@ -675,35 +675,39 @@ void Game::Server::removeSkill(UInt16 entityId, UInt16 skillId){
     }    
 }
 
-void Game::Server::addEffect(UInt16 entityId, const Game::Effect &eff){
+void Game::Server::addEffect(UInt16 entityId, Shared<Game::Effect> &eff){
     auto failmsg = "[server] failed to add effect for entity id "+nite::toStr(entityId)+": ";
     auto it = world.objects.find(entityId);
     if(it == world.objects.end()){
         nite::print(failmsg+"it doesn't exist");
         return;
     }
-    // TODO: notify client
     if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
         ent->effectStat.add(eff);
+        if(auto cl = getClientByEntityId(entityId)){
+            notifyAddEffect(cl->clientId, eff->type,  eff->insId);
+        }           
     }else{
         nite::print(failmsg+" it's not an entity");
     }
 }
 
-void Game::Server::removeEffect(UInt16 entityId, UInt16 efType){
+void Game::Server::removeEffect(UInt16 entityId, UInt16 insId){
     auto failmsg = "[server] failed to remove effect for entity id "+nite::toStr(entityId)+": ";
     auto it = world.objects.find(entityId);
     if(it == world.objects.end()){
         nite::print(failmsg+"it doesn't exist");
         return;
     }
-    // TODO: notify client
     if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
-        if(!ent->effectStat.isOn(efType)){
-            nite::print(failmsg+" entity doesn't have this effect type "+nite::toStr(efType));
+        if(!ent->effectStat.isOn(insId)){
+            nite::print(failmsg+" entity doesn't have this effect insId "+nite::toStr(insId));
             return;
         }
-        ent->effectStat.remove(efType);
+        ent->effectStat.remove(insId);
+        if(auto cl = getClientByEntityId(entityId)){
+            notifyRemoveEffect(cl->clientId, insId);
+        }         
     }else{
         nite::print(failmsg+" it's not an entity");
     }
@@ -711,6 +715,9 @@ void Game::Server::removeEffect(UInt16 entityId, UInt16 efType){
 
 void Game::Server::notifyAddSkill(UInt64 uid, UInt16 skillId, UInt8 lv){
     auto cl = getClient(uid);
+    if(cl == NULL){
+        return;
+    }
     nite::Packet packet(++cl->svOrder);
     packet.setHeader(Game::PacketType::SV_ADD_ENTITY_SKILL);
     packet.write(&cl->entityId, sizeof(cl->entityId));
@@ -728,6 +735,71 @@ void Game::Server::notifyRemoveSkill(UInt64 uid, UInt16 skillId){
     persSend(cl->cl, packet, 750, -1);
 }
 
+void Game::Server::notifyAddEffect(UInt64 uid, UInt16 type, UInt16 insId){
+    String msg = "failed to notify add effect for client uid "+nite::toStr(uid)+": ";
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        nite::print(msg+"it doesn't exist");
+        return;
+    }
+    auto it = world.objects.find(cl->entityId);
+    if(it == world.objects.end()){
+        nite::print(msg+"doesn't have an active entity");
+        return;
+    }
+    auto ent = static_cast<Game::EntityBase*>(world.objects[it->first].get());
+    auto itef = ent->effectStat.effects.find(insId);
+    if(itef == ent->effectStat.effects.end()){
+        nite::print(msg+"doesn't have an effect insId "+nite::toStr(insId));
+        return;
+    }
+    auto ef = ent->effectStat.effects[insId];
+    nite::Packet packet(++cl->svOrder);
+    packet.setHeader(Game::PacketType::SV_ADD_EFFECT);
+    packet.write(&type, sizeof(type));
+    packet.write(&insId, sizeof(insId));
+    ef->writeState(packet);
+    persSend(cl->cl, packet, 750, -1);    
+}
+
+void Game::Server::notifyRemoveEffect(UInt64 uid, UInt16 insId){
+    String msg = "failed to notify remove effect for client uid "+nite::toStr(uid)+": ";
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        nite::print(msg+"it doesn't exist");
+        return;
+    }
+    nite::Packet packet(++cl->svOrder);
+    packet.setHeader(Game::PacketType::SV_REMOVE_EFFECT);
+    packet.write(&insId, sizeof(insId));
+    persSend(cl->cl, packet, 750, -1);  
+}
+
+void Game::Server::notifyUpdateEffect(UInt64 uid, UInt16 insId){
+    String msg = "failed to notify add effect for client uid "+nite::toStr(uid)+": ";
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        nite::print(msg+"it doesn't exist");
+        return;
+    }
+    auto it = world.objects.find(cl->entityId);
+    if(it == world.objects.end()){
+        nite::print(msg+"doesn't have an active entity");
+        return;
+    }
+    auto ent = static_cast<Game::EntityBase*>(world.objects[it->first].get());
+    auto itef = ent->effectStat.effects.find(insId);
+    if(itef == ent->effectStat.effects.end()){
+        nite::print(msg+"doesn't have an effect insId "+nite::toStr(insId));
+        return;
+    }
+    auto ef = ent->effectStat.effects[insId];
+    nite::Packet packet(++cl->svOrder);
+    packet.setHeader(Game::PacketType::SV_UPDATE_EFFECT);
+    packet.write(&insId, sizeof(insId));
+    ef->writeState(packet);
+    persSend(cl->cl, packet, 750, -1);  
+}
 
 void Game::Server::sendPlayerList(UInt64 uid){
     auto cl = getClient(uid);

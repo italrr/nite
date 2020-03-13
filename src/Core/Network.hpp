@@ -335,6 +335,37 @@
                 }                
 
             */  
+            SV_ADD_EFFECT, // ACK
+            /*
+                UINT16 TYPE (effectId)
+                UINT16 INSID
+                {
+                    CUSTOM PAYLOAD // Ideally less than 32 bytes
+                }
+
+            */
+            SV_REMOVE_EFFECT, // ACK     
+            /*
+                UINT16 INSID
+            */    
+            SV_UPDATE_EFFECT, // ACK     
+            /*
+                UINT16 INSID
+                {
+                    CUSTOM PAYLOAD
+                }
+            */  
+            SV_ADD_ITEM,
+            /*
+                UINT16 ITEMID
+                UINT16 AMNT
+                UINT16 SLOTID
+            */
+            SV_REMOVE_ITEM,
+            /*
+                UINT16 SLOTID
+                UINT16 AMNT
+            */            
 
         };
 

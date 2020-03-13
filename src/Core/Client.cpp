@@ -562,7 +562,47 @@ void Game::Client::update(){
                     handler.read(&ent->actionables[i].type, sizeof(UInt8));
                     handler.read(&ent->actionables[i].id, sizeof(UInt16));
                 }
-            } break;                                     
+            } break;  
+            /*
+                SV_ADD_EFFECT
+            */ 
+            case Game::PacketType::SV_ADD_EFFECT: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 type, insId;
+                handler.read(&type, sizeof(UInt16));
+                handler.read(&insId, sizeof(UInt16));
+                auto it = world.objects.find(entityId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_ADD_EFFECT: entity id doesn't exist");
+                    break;
+                }      
+                auto eff = getEffect(type);
+                if(eff.get() == NULL){
+                    nite::print("[client] fail SV_ADD_EFFECT: effect type "+nite::toStr(type)+" doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->effectStat.add(eff);
+                eff->insId = insId;
+                eff->readState(handler);                         
+            } break;  
+            /*
+                SV_ADD_EFFECT
+            */ 
+            case Game::PacketType::SV_REMOVE_EFFECT: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 insId;
+                handler.read(&insId, sizeof(UInt16));
+                auto it = world.objects.find(entityId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_REMOVE_EFFECT: entity id doesn't exist");
+                    break;
+                }      
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->effectStat.remove(insId);                         
+            } break;                                                              
             /* 
                 UNKNOWN
             */
