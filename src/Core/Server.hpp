@@ -85,13 +85,13 @@
 
             // add/remove
             void addItem(UInt16 entityId, Shared<Game::BaseItem> item);
-            void removeItem(UInt16 entityId, UInt16 itemId, UInt16 amnt);            
+            void removeItem(UInt16 entityId, UInt16 slotId, UInt16 amnt);            
             void addEffect(UInt16 entityId, Shared<Game::Effect> &eff);
             void removeEffect(UInt16 entityId, UInt16 insId);
             void addSkill(UInt16 entityId, UInt16 skillId, UInt8 lv);
             void removeSkill(UInt16 entityId, UInt16 skillId);
             
-            // send info
+            // send info / notify
             void sendSkillList(UInt64 uid, UInt16 entityId);
             void sendPlayerList(UInt64 uid); // sends it everyone
             void notifyAddSkill(UInt64 uid, UInt16 skillId, UInt8 lv);
@@ -99,6 +99,8 @@
             void notifyAddEffect(UInt64 uid, UInt16 type, UInt16 insId);
             void notifyRemoveEffect(UInt64 uid, UInt16 insId);
             void notifyUpdateEffect(UInt64 uid, UInt16 insId);
+            void notifyAddItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UInt16 qty);
+            void notifyRemoveItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UInt16 qty);            
             
             // core
             Shared<Game::NetObject> spawn(Shared<Game::NetObject> obj);

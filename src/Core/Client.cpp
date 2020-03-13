@@ -569,10 +569,11 @@ void Game::Client::update(){
             case Game::PacketType::SV_ADD_EFFECT: {
                 if(!isSv){ break; }  
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
-                UInt16 type, insId;
+                UInt16 entId, type, insId;
+                handler.read(&entId, sizeof(UInt16));
                 handler.read(&type, sizeof(UInt16));
                 handler.read(&insId, sizeof(UInt16));
-                auto it = world.objects.find(entityId);
+                auto it = world.objects.find(entId);
                 if(it == world.objects.end()){
                     nite::print("[client] fail SV_ADD_EFFECT: entity id doesn't exist");
                     break;
@@ -583,26 +584,97 @@ void Game::Client::update(){
                     break;
                 }
                 auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                ent->effectStat.add(eff);
-                eff->insId = insId;
+                ent->effectStat.add(eff, insId);
                 eff->readState(handler);                         
             } break;  
             /*
-                SV_ADD_EFFECT
+                SV_REMOVE_EFFECT
             */ 
             case Game::PacketType::SV_REMOVE_EFFECT: {
                 if(!isSv){ break; }  
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
-                UInt16 insId;
+                UInt16 entId, insId;
+                handler.read(&entId, sizeof(UInt16));
                 handler.read(&insId, sizeof(UInt16));
-                auto it = world.objects.find(entityId);
+                auto it = world.objects.find(entId);
                 if(it == world.objects.end()){
                     nite::print("[client] fail SV_REMOVE_EFFECT: entity id doesn't exist");
                     break;
                 }      
                 auto ent = static_cast<Game::EntityBase*>(it->second.get());
                 ent->effectStat.remove(insId);                         
-            } break;                                                              
+            } break;     
+            /*
+                SV_UPDATE_EFFECT
+            */ 
+            case Game::PacketType::SV_UPDATE_EFFECT: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId, type, insId;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&insId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_UPDATE_EFFECT: entity id doesn't exist");
+                    break;
+                }      
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                auto itef = ent->effectStat.effects.find(insId);
+                if(itef == ent->effectStat.effects.end()){
+                    nite::print("[client] fail SV_UPDATE_EFFECT: effect ins id doesn't exist");
+                    break;
+                }
+                auto eff = ent->effectStat.effects[itef->first];
+                eff->readState(handler);                         
+            } break;
+            /*
+                SV_ADD_ITEM
+            */ 
+            case Game::PacketType::SV_ADD_ITEM: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId, itemId, slotId, qty;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&itemId, sizeof(UInt16));
+                handler.read(&slotId, sizeof(UInt16));
+                handler.read(&qty, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_ADD_ITEM: entity id doesn't exist");
+                    break;
+                }      
+                auto item = getItem(itemId, qty);
+                if(item.get() == NULL){
+                    nite::print("[client] fail SV_ADD_ITEM: item id "+nite::toStr(itemId)+" doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->invStat.add(item, slotId);                         
+            } break; 
+            /*
+                SV_REMOVE_ITEM
+            */ 
+            case Game::PacketType::SV_REMOVE_ITEM: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId, itemId, slotId, qty;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&itemId, sizeof(UInt16));
+                handler.read(&slotId, sizeof(UInt16));
+                handler.read(&qty, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_REMOVE_ITEM: entity id doesn't exist");
+                    break;
+                }      
+                auto item = getItem(itemId, qty);
+                if(item.get() == NULL){
+                    nite::print("[client] fail SV_REMOVE_ITEM: item id "+nite::toStr(itemId)+" doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->invStat.removeBySlotId(slotId, qty);                         
+            } break;                                                                                             
             /* 
                 UNKNOWN
             */
