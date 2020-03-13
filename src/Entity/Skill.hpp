@@ -6,6 +6,8 @@
 
     namespace Game {
 
+        struct EntityBase;
+
         namespace MasteryType {
             struct Type {
                 String name;
@@ -61,9 +63,13 @@
             UInt16 skPointsPerLv; // how many skill points cost one level
             int iconId;
             Skill();
-            virtual void beforeUse(Shared<Game::EntityBase> who);
-            virtual void afterUse(Shared<Game::EntityBase> who);
-            virtual void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at); // to is allowed to be null
+            virtual void passive(Game::EntityBase *who) {}
+            virtual void beforeUse(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
+            virtual void afterUse(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
+            virtual void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
+            virtual void buildDesc(EntityBase *owner){
+                this->desc = "None";
+            }            
         };
 
         enum SkillList : UInt16 {
@@ -126,11 +132,14 @@
         Shared<Game::Skill> getSkill(UInt16 id, UInt8 lv);
 
         struct SkillStat {
+            EntityBase *owner;
             Dict<UInt16, UInt8> skills;
             bool add(UInt16 id, UInt8 lv);
             bool remove(UInt16 id);
             bool contains(UInt16 id);
             bool lvUp(UInt16 id);
+            // TODO: update for passives
+            // TODO: add use
         };
 
         /* SKILLS */
@@ -141,24 +150,24 @@
             struct BA_Attack : Skill {
                 UInt16 baseDmg;
                 BA_Attack();
-                void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
+                void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };
             struct BA_Bash : Skill {
                 UInt16 baseDmg;
                 BA_Bash();
-                void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
+                void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };
             struct BA_Dodge : Skill {
                 BA_Dodge();
-                void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
+                void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };             
             struct BA_Parry : Skill {
                 BA_Parry();
-                void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
+                void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };         
             struct BA_FIRST_AID : Skill {
                 BA_FIRST_AID();
-                void use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at);
+                void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };               
 
 

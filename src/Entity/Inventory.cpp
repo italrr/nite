@@ -1,5 +1,6 @@
 #include "Inventory.hpp"
 #include "../Engine/Tools/Tools.hpp"
+#include "Base.hpp"
 
 Game::InventoryStat::InventoryStat(){
 	seedIndex = nite::randomInt(5, 35);
@@ -16,7 +17,7 @@ UInt16 Game::InventoryStat::add(Shared<Game::BaseItem> &item){
 	if(ins.get() == NULL || !item->amnt){
 		carry[seedIndex] = item;	
 		item->slotId = seedIndex;
-		item->onCarryAdd();
+		item->onCarryAdd(owner);
 		finalId = seedIndex;
 	}else{
 		ins->qty += item->qty;
@@ -55,11 +56,16 @@ bool Game::InventoryStat::remove(UInt16 id, UInt16 amnt){
                 item.qty -= amnt;
             }
             if(amnt == 0 || item.qty < 0){
-                item.onCarryRemove();
+                item.onCarryRemove(owner);
                 item.slotId = 0;
                 carry.erase(it.first);                
             }              
         }
     }
     return true;
+}
+
+
+Shared<Game::BaseItem> getItem(UInt16 id, UInt16 qty){
+
 }

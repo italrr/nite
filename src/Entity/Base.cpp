@@ -43,13 +43,13 @@ void Game::EntityBase::draw(){
     blank.draw(position.x, position.y, size.x, size.y, 0.5f, 0.5f, 0.0f);
 }
 
-void Game::EntityBase::writeInitialStateForSync(nite::Packet &packet){
+void Game::EntityBase::writeInitialState(nite::Packet &packet){
 	packet.write(&healthStat, sizeof(healthStat));
 	packet.write(&baseStat, sizeof(baseStat));
 	packet.write(&complexStat, sizeof(complexStat));
 }
 
-void Game::EntityBase::readInitialStateForSync(nite::Packet &packet){
+void Game::EntityBase::readInitialState(nite::Packet &packet){
 	packet.read(&healthStat, sizeof(healthStat));
 	packet.read(&baseStat, sizeof(baseStat));
 	packet.read(&complexStat, sizeof(complexStat));	

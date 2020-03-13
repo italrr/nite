@@ -24,6 +24,11 @@
         };
 
         struct EntityBase : Game::NetObject, Game::Stat {
+            EntityBase(){
+                this->effectStat.owner = this;
+                this->skillStat.owner = this;
+                this->invStat.owner = this;
+            }
             Game::Actionable actionables[5]; // z x c a s keys
             UInt8 faceDirection;
             String name;
@@ -35,8 +40,8 @@
 			virtual void onDeath(){
 				
 			}            
-            void writeInitialStateForSync(nite::Packet &packet);
-            void readInitialStateForSync(nite::Packet &packet);            
+            void writeInitialState(nite::Packet &packet);
+            void readInitialState(nite::Packet &packet);            
         };
     }
 

@@ -9,6 +9,8 @@
 
 	namespace Game {
 
+		#define GAME_ITEM_MAX_COMPOUND_SLOTS 4
+		struct EntityBase;
 		namespace Element {
 			enum Element : UInt8 {
 				None = 0,
@@ -63,33 +65,43 @@
 			Int32 qty;
 			UInt16 elemnt;
 			bool amnt;
-
+			UInt16 compound[GAME_ITEM_MAX_COMPOUND_SLOTS]; // item ids
 			BaseItem(){
 				slotId = 0; // it can never be 0
+				for(int i = 0; i < GAME_ITEM_MAX_COMPOUND_SLOTS; ++i){
+					this->compound[i] = 0; // means no compound
+				}
 			}
 			
-			virtual void use(){
+            virtual void buildDesc(EntityBase *owner){
+                this->desc = "None";
+            }
+						
+			virtual void use(EntityBase *on, EntityBase *owner){
 
 			}
 			
-			virtual void onAfterUse(){
+			virtual void onAfterUse(EntityBase *on, EntityBase *owner){
 
 			}
 			
-			virtual void onBeforeUse(){
+			virtual void onBeforeUse(EntityBase *on, EntityBase *owner){
 
 			}
 			
-			virtual void onCarryAdd(){
+			virtual void onCarryAdd(EntityBase *owner){
 
 			}
 
-			virtual void onCarryRemove(){
+			virtual void onCarryRemove(EntityBase *owner){
 
 			}
 		};
 
+		Shared<Game::BaseItem> getItem(UInt16 id, UInt16 qty);
+
 		struct InventoryStat {
+			EntityBase *owner;
 			UInt16 seedIndex;
 			Dict<UInt16, Shared<Game::BaseItem>> carry;
 			InventoryStat();
@@ -97,8 +109,15 @@
 			Shared<Game::BaseItem> get(UInt16 itemId);
 			bool contains(UInt16 id);
 			void clear();
-			bool remove(UInt16 id, UInt16 amnt);		
+			bool remove(UInt16 id, UInt16 amnt);	
+			// TODO: add use	
 		};
+
+		namespace Items {
+			struct HealthPotion : BaseItem {
+
+			};
+		}
 	}
 
 #endif

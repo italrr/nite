@@ -113,7 +113,7 @@ Int32 Game::Stat::addBaseStat(UInt8 type, UInt32 amnt){
 
 void Game::Stat::recalculateStats(){
 	recalculateHealthStats();
-	recalculateComplexStats();
+	recalculateComplexStats();	
 }
 
 void Game::Stat::resetBaseStat(UInt8 type){

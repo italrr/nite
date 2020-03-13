@@ -1,4 +1,5 @@
 #include "Skill.hpp"
+#include "Base.hpp"
 
 
 Game::Skill::Skill(){
@@ -16,19 +17,6 @@ Game::Skill::Skill(){
     adelay = 100;
     skPointsPerLv = 1;
 }
-
-void Game::Skill::beforeUse(Shared<Game::EntityBase> who){
-
-}
-
-void Game::Skill::afterUse(Shared<Game::EntityBase> who){
-
-}
-
-void Game::Skill::use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at){
-    this->lastUse = nite::getTicks();
-}
-
 
 Shared<Game::Skill> Game::getSkill(UInt16 id, UInt8 lv){
     switch(id){
@@ -113,7 +101,7 @@ Game::Skills::BA_Attack::BA_Attack(){
     this->range = 2; // doesn't apply using bow
 }
 
-void Game::Skills::BA_Attack::use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at){
+void Game::Skills::BA_Attack::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
 }
 
@@ -135,7 +123,7 @@ Game::Skills::BA_Bash::BA_Bash(){
     this->range = 2;
 }
 
-void Game::Skills::BA_Bash::use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at){
+void Game::Skills::BA_Bash::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
 }
 
@@ -157,7 +145,7 @@ Game::Skills::BA_Dodge::BA_Dodge(){
     this->range = 0;
 }
 
-void Game::Skills::BA_Dodge::use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at){
+void Game::Skills::BA_Dodge::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
 }
 
@@ -180,7 +168,7 @@ Game::Skills::BA_Parry::BA_Parry(){
     this->range = 0;
 }
 
-void Game::Skills::BA_Parry::use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at){
+void Game::Skills::BA_Parry::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
 }
 
@@ -202,6 +190,6 @@ Game::Skills::BA_FIRST_AID::BA_FIRST_AID(){
     this->range = 0;
 }
 
-void Game::Skills::BA_FIRST_AID::use(Shared<Game::EntityBase> who, Shared<Game::EntityBase> to, const nite::Vec2 &at){
+void Game::Skills::BA_FIRST_AID::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
 }

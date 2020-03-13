@@ -1,13 +1,14 @@
-#ifndef GAME_ENTITY_STATUS_HPP
-    #define GAME_ENTITY_STATUS_HPP
+#ifndef GAME_ENTITY_EFFECT_HPP
+    #define GAME_ENTITY_EFFECT_HPP
 
     #include "../Engine/Tools/Tools.hpp"
-    #include "../Entity/Base.hpp"
+    #include "../Engine/Packets.hpp"
 
     namespace Game {
+        struct EntityBase;
 
-		namespace EffectType {
-			enum EffectType : UInt16 {
+		namespace EffectList {
+			enum EffectList : UInt16 {
 				NONE = 0,
 
                 EXPBONUS,
@@ -61,66 +62,89 @@
             UInt64 started;
             UInt64 lastStep;
             UInt16 type;
-            UInt16 target;
-            UInt16 owner;
+            UInt16 insId;
+            Shared<Game::EntityBase> owner;
 
             Effect(){
                 this->name = "None";
-                this->owner = 0;
-                this->target = 0;
+                this->owner = Shared<Game::EntityBase>(NULL);
                 this->duration = 1000 * 30;
             }
 
-            void start(){
+            void start(EntityBase *owner){
                 this->lastStep = nite::getTicks();
                 this->started = nite::getTicks();
-                buildDesc();
-                onStart();
+                buildDesc(owner);
+                onStart(owner);
             }
 
-            virtual void step(Game::EntityBase &ent){
+            virtual void setup(){
 
             }
 
-            virtual void buildDesc(){
+            virtual void step(EntityBase *owner){
+
+            }
+
+            virtual void buildDesc(EntityBase *owner){
                 this->desc = "None";
             }
             
-            virtual void onStart(){
+            virtual void onStart(EntityBase *owner){
 
             }
 
-            virtual void onEnd(){
+            virtual void onEnd(EntityBase *owner){
+
+            }
+
+            virtual void readState(const nite::Packet &in){
+
+            }
+
+            virtual void writeState(const nite::Packet &out){
 
             }
 		};
 
         struct EffectStat {
-            Vector<Game::Effect> effects;
-            bool add(Game::Effect status);
-            bool remove(UInt16 type);
+            EntityBase *owner;
+            Dict<UInt16, Shared<Game::Effect>>  effects;
+            bool add(Shared<Game::Effect> eff);
+            bool remove(UInt16 insId);
             bool remove(const String &name);
-            bool isOn(UInt16 type);
+            bool removeByType(UInt16 type);
+            bool isOn(UInt16 insId);
+            bool isOnByType(UInt16 type);
             void removeAll();
-            void update(Game::EntityBase &ent);
+            void update();
+            // TODO: add update
         };
 
         /*
             EFFECTS
         */
-        struct Eff_EffHeal : Effect {
-            UInt16 amnt;
-            Eff_EffHeal(UInt16 amnt){
-                this->type = Game::EffectType::EF_HEAL;
-                this->amnt = amnt;
-                this->duration = 1000 * 10;
-                this->name = "Effective Heal";
-            }
-            void buildDesc(){
-                this->desc = "Healing "+nite::toStr(amnt)+" HP per second";
-            }
-            void step(Game::EntityBase &ent);
-        };      
+        namespace Effects {
+            struct EffHeal : Effect {
+                UInt16 amnt;
+                EffHeal(){
+                    this->type = Game::EffectList::EF_HEAL;
+                    this->name = "Effective Heal";
+                }
+                void setup(){
+                    this->amnt = 0; // TODO: proper way to setup this
+                    this->duration = 1000 * 10;   
+                    buildDesc();                 
+                }
+                void buildDesc(){
+                    this->desc = "Healing "+nite::toStr(amnt)+" HP per second";
+                }
+                void step();
+            };             
+        }
+
+
+        Shared<Game::Effect> getEffect(UInt16 type);  
 
     }
 
