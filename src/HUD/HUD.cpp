@@ -56,6 +56,7 @@ void Game::HUD::updateValues(){
     }
     auto it = client->world.objects.find(followId) ;
     if(it == client->world.objects.end()){
+        this->main->setVisible(false);
         return;
     }
     Game::EntityBase *ent = static_cast<Game::EntityBase*>(it->second.get()); 

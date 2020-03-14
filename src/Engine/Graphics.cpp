@@ -984,6 +984,9 @@ void nite::graphicsRender(){
 
 static void gameExit(){
 	static auto *ins = Game::getGameCoreInstance();
+	if(!ins->isRunning){
+		return;
+	}
 	nite::AsyncTask::update();
 	nite::AsyncTask::end();	
 	ins->end();	
@@ -1108,7 +1111,7 @@ void nite::graphicsInit(){
 		size.set(displayWidth, displayHeight);
 	}
 
-	const char *n = "RUSH IN DUNGEONS";
+	const char *n = "LOST IN DUNGEONS";
 
 	Window = SDL_CreateWindow(n, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, size.x, size.y, Flags);
 	Context = SDL_GL_CreateContext(Window);

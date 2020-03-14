@@ -141,7 +141,6 @@
 			void recalculateHealthStats();
 			void recalculateComplexStats();
             Int32 addBaseStat(UInt8 type, UInt32 amnt);
-            void printInfo();
             void recalculateStats();
 			void resetBaseStat(UInt8 type);
 			void fullHeal();

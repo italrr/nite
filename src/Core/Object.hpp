@@ -51,17 +51,17 @@
             // specific things from entities/objects but they'll read and prove it themselves
             // we should every entity with the changeForSync flag to be true
             bool changeForSync;
-            virtual void readChangeForSync(nite::Packet &packet){
+            virtual void readChange(nite::Packet &packet){
                 
             }
-            virtual void onChangeForSync(nite::Packet &packet){
+            virtual void onChange(nite::Packet &packet){
 
             } 
             // we'll be fetching the initial values to be sync'd
-            virtual void writeInitialStateForSync(nite::Packet &packet){
+            virtual void writeInitialState(nite::Packet &packet){
 
             }
-            virtual void readInitialStateForSync(nite::Packet &packet){
+            virtual void readInitialState(nite::Packet &packet){
 
             }
         };

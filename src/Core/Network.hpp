@@ -365,7 +365,7 @@
                 UINT16 SLOTID
                 UINT16 AMNT
             */
-            SV_REMOVE_ITEM,
+            SV_REMOVE_ITEM
             /*
                 UINT16 ENTID
                 UINT16 ITEMID

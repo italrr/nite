@@ -37,6 +37,7 @@
             void onCreate();
             void draw();
             void entityMove(float angle, float mod, bool holdStance);
+            void printInfo();
 			virtual void onDeath(){
 				
 			}            

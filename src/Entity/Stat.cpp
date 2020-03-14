@@ -44,25 +44,6 @@ void Game::Stat::recalculateComplexStats(){
 	complexStat.charmRate = nite::ceil(0.5f * healthStat.lv + baseStat.charismaStat * 5.96f);
 }
 
-void Game::Stat::printInfo(){
-	// #define str nite::toStr
-	// String ms = str(GAME_MAX_STAT);
-	// nite::print("ID "+str(id)+" | Name: "+name+" | LV "+str(lv)+" | Carry "+str(this->maxCarry));
-	// nite::print("HP "+str(maxHealth)+" | Mana "+str(maxMana)+" | Stamina "+str(maxStamina)+" | StatPoints "+str(statPoints));
-	// nite::print("Str "+str(strStat)+"/"+ms+" | Agi "+str(agiStat)+"/"+ms+
-	// " | Dex "+str(dexStat)+"/"+ms+" | Endurance "+str(enduStat)+"/"+ms+
-	// "| Luk "+str(lukStat)+"/"+ms+" | Int "+str(intStat)+"/"+ms+
-	// " | Char "+str(charismaStat)+"/"+ms);
-	// nite::print("Atk "+str(this->atk)+" "+"MAtk "+str(this->magicAtk)+" "+"Def "+str(this->def)+" "+"MDef "+str(this->magicDef));
-	// nite::print("WalkRate "+str(this->walkRate));
-	// nite::print("CritRate "+str(this->critRate));
-	// nite::print("PrecsRate "+str(this->precsRate));
-	// nite::print("AtkRate "+str(this->atkRate));
-	// nite::print("CharmRate "+str(this->charmRate));
-	// nite::print("PersuasionRate "+str(this->persuasionRate));    
-	// #undef str    
-}
-
 Int32 Game::Stat::addBaseStat(UInt8 type, UInt32 amnt){
 	Int32 toAdd = 0;
 	auto inc = [&](UInt32 &target){

@@ -14,7 +14,7 @@ Shared<Game::NetObject> Game::createNetObject(UInt16 id, UInt16 sig, float x, fl
             return player;
         } break;
         default:    
-            nite::print("failed to created object of sig "+nite::toStr(sig)+": it's undefined");
+            nite::print("[netplay] failed to created object of sig '"+nite::toStr(sig)+"': it's undefined");
             return Shared<Game::NetObject>(NULL);
     }
 }

@@ -31,7 +31,7 @@ void Game::IconManager::load(const nite::Texture &source, nite::Vec2 iconSize){
 Game::Icon &Game::IconManager::getIcon(int id){
     auto it = icons.find(id);
     if(it == icons.end()){
-        Game::Icon empty;
+        Game::Icon empty; // TODO: fix this. returning local ref
         empty.id = -1;
         return empty;
     }

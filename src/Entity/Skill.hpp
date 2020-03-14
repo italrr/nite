@@ -106,7 +106,7 @@
             
             // BARD [BD] 
             BD_MASTERY_BARD,            // 8% dmg inc with bows | 75% charm rate inc | ability to spell by typing in chat | ability of dealing dmg by playing instruments
-            BD_ENCORE,                  // 5% dmg inc with next "music attack" | if there's another player uses encore, it's 10%
+            BD_ENCORE,                  // 5% dmg inc with next "music attack" | if there's another player using encore, it's 10%
             BD_SING,                    // does not require an instrument | does a sing attack
             BD_WAR_OVERTUDE,            // requires guitar, flute or bagpipes. 10% dmg inc, 8% movement spd inc, complete immunity to magic for 4 secs for all party members in 40px radius
             BD_SONG_OF_MEDUSA,          // sings a song, entities within 90px radius proximity of the user have a  25% chance of being stunt (bosses and minibosses are immune)

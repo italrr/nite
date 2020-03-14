@@ -908,7 +908,7 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
     crt.write(&obj->sigId, sizeof(UInt16));
     crt.write(&obj->position.x, sizeof(float));
     crt.write(&obj->position.y, sizeof(float));
-    obj->writeInitialStateForSync(crt);
+    obj->writeInitialState(crt);
     persSendAll(crt, 1000, -1);
     return obj;
 }
@@ -933,16 +933,17 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
         nite::print("[server] failed to create player for unexisting client id '"+nite::toStr(uid)+"'");
         return Shared<Game::NetObject>(NULL);
     }
-    auto ent = Shared<Game::NetObject>(new Game::EntityBase());
-    auto player = static_cast<EntityBase*>(ent.get());
+    auto obj = Shared<Game::NetObject>(new Game::EntityBase());
+    auto player = static_cast<EntityBase*>(obj.get());
     player->setupStat(lv);
     player->position.x = nite::randomInt(0, 100);
     player->position.y = nite::randomInt(0, 100);
-    spawn(ent);
-    client->second.entityId = ent->id;
-    players[uid] = ent->id;
-    nite::print("[server] created player entity with id "+nite::toStr(ent->id)+" | for client id "+nite::toStr(uid)+"("+client->second.nickname+")");
-    return ent;
+    spawn(obj);
+    client->second.entityId = obj->id;
+    players[uid] = obj->id;
+    nite::print("[server] created player entity with id "+nite::toStr(obj->id)+" | for client id "+nite::toStr(uid)+"("+client->second.nickname+")");
+    player->printInfo(); // for debugging
+    return obj;
 }
 
 bool Game::Server::removePlayer(UInt64 uid){

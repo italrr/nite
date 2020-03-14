@@ -329,10 +329,10 @@ void Game::Client::update(){
             */
             case Game::PacketType::SV_CREATE_OBJECT: {
                 if(!isSv){ break; }      
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 UInt16 id;
                 UInt16 sigId;
                 float x, y;
-                sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 handler.read(&id, sizeof(UInt16));
                 handler.read(&sigId, sizeof(Int16));
                 handler.read(&x, sizeof(float));
@@ -348,7 +348,7 @@ void Game::Client::update(){
                     break;
                 }
                 obj->onCreate();
-                obj->readInitialStateForSync(handler);
+                obj->readInitialState(handler);
                 world.objects[id] = obj;
                 nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+Game::ObjectSig::name(sigId)+" at "+nite::Vec2(x, y).str());
             } break;
