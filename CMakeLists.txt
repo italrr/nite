@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(MMORPG CXX C)
+project(LID_PRO CXX C)
 
-set(CMAKE_C_FLAGS "-DGLEW_STATIC -g")
+set(CMAKE_C_FLAGS "-DGLEW_STATIC -g -m64")
 set(CMAKE_CXX_FLAGS "-DGLEW_STATIC -std=c++11 -g -m64")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/builds/cmake)
 
@@ -243,6 +243,7 @@ set(src_files
 	src/Camera.cpp
 	src/Map.cpp
 	src/AI/AI.cpp
+	src/Game.cpp
 )
 add_library(src ${src_files})
 target_link_libraries(src nite)
@@ -276,6 +277,8 @@ ENDIF(MINGW)
 
 aux_source_directory(src/ SRC_LIST)
 
-add_executable(Game src/Game.cpp)
+add_executable(Game src/LID.cpp)
+add_executable(Dedicated src/Server.cpp)
 
 target_link_libraries(Game src)
+target_link_libraries(Dedicated src)
