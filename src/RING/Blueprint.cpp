@@ -140,7 +140,7 @@ void Game::RING::Blueprint::generate(){
     
 
     depthFirstSearch();
-    generateMinimap();
+    // generateMinimap();
 
     for(int i = 0; i < total; ++i){
         if(grid[i].type == Game::RING::CellType::Path){
