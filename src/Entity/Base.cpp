@@ -62,28 +62,36 @@ void Game::EntityBase::draw(){
     blank.draw(position.x, position.y, size.x, size.y, 0.5f, 0.5f, 0.0f);
 }
 
-bool Game::EntityBase::damage(Int16 amnt, UInt8 elmnt, UInt8 enttype, UInt8 dmgType, bool isCrit){
+bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 	auto item = invStat.slots[Game::EquipSlot::Chest];
 	auto *armor = item.get() != NULL ? static_cast<Game::EquipItem*>(item.get()) : NULL; 
-	Int32 def = 0;
-	Int32 mdef = 0;
+	Int32 def = 0, mdef = 0;
+	auto efVal = Game::Element::isEffective(dmg.elmnt, armor == NULL ? Game::Element::Neutral : armor->elemnt); // entities are neutral by default
+	Int32 dmgdone = dmg.amnt * efVal * (dmg.isCrit ? 1.0f : 2.25f); // damage cannot be negative at the end	   
 	for(int i = 0; i < EquipSlot::TOTAL; ++i){
 		auto item = invStat.slots[i];
+		if(item.get() == NULL || i == EquipSlot::LeftAcc || i == EquipSlot::RightAcc) continue;
 		auto equip = static_cast<Game::EquipItem*>(item.get());
-		if(i == EquipSlot::Chest || i == EquipSlot::LeftAcc || i == EquipSlot::RightAcc) continue;
 		def += equip->def;
 		mdef += equip->mdef;
+		dmgdone = equip->onDamageRecv(dmgdone, dmg);
 	}
-	auto efVal = Game::Element::isEffective(elmnt, element); // TODO: use armor element
-	Int32 dmgdone = amnt * efVal * (isCrit ? 1.0f : 2.25f); // damage cannot be negative at the end
-	switch(dmgType){
+	switch(dmg.dmgtype){
 		case Game::DamageType::Magical: {
 			dmgdone -= mdef;
 		} break;
-		case Game::DamageType::Physical:
+		case Game::DamageType::Physical: {
+			dmgdone -= def;
+		} break;
 		case Game::DamageType::Ranged: {
-			dmgdone -= def; // considering setting ranged to 0.90-95% for balancing reasons
+			dmgdone = dmgdone * 0.90f - def; 
 		} break;				
+	}
+	if(dmgdone > 0){
+		this->healthStat.health -= dmgdone;
+	}
+	if(this->healthStat.health < 0){
+		this->healthStat.health = 0;
 	}
 	return dmgdone > 0;
 }

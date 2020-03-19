@@ -84,7 +84,7 @@
             */
 
             // add/remove
-            void addItem(UInt16 entityId, Shared<Game::BaseItem> item);
+            void addItem(UInt16 entityId, Shared<Game::ItemBase> item);
             void removeItem(UInt16 entityId, UInt16 slotId, UInt16 amnt);            
             void addEffect(UInt16 entityId, Shared<Game::Effect> &eff);
             void removeEffect(UInt16 entityId, UInt16 insId);

@@ -5,65 +5,13 @@
 	#include "../Engine/Texture.hpp"
 	#include "../Engine/Animation.hpp"
 	#include "../Core/Object.hpp"
+	#include "Battle.hpp"
   	#include <memory>
 
 	namespace Game {
 
 		#define GAME_ITEM_MAX_COMPOUND_SLOTS 4
 		struct EntityBase;
-
-		namespace Element {
-			enum Element : UInt8 {
-				None = 0,
-				Neutral,
-				Fire,
-				Electric,
-				Steel,
-				Wind,
-				Umbra,
-				Celestial,
-				Emerium
-			};
-			static String name(int id){
-				switch(id){
-					case Neutral:
-						return "Neutral";
-					case Fire:
-						return "Fire";
-					case Electric:
-						return "Electric";
-					case Umbra:
-						return "Umbra";	
-					case Celestial:
-						return "Wind";						
-					case Wind:
-						return "Celestial";							
-					case Steel:
-						return "Steel";			
-					case Emerium:
-						return "Emerium";			
-					default:
-						return "None";																										
-				}
-			}
-			// Effectiveness or uneffectiveness
-			static const float EffectiveTable[8][8] = {
-				//neutral   	fire  		electric steel   		wind  		umbra 		celestial 	emerium
-				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // neutral
-				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // fire
-				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // electric
-				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // steel
-				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // wind
-				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // umbra
-				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // celestial
-				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // emerium
-				
-			};
-			static float isEffective(UInt8 from, UInt8 to){
-				return from > 8 || to > 8 ? 0.0f : EffectiveTable[from][to];
-			}
-		}
-
 
 		// some naming conventions for items:
 		// U_ -> Usable
@@ -119,7 +67,7 @@
 			static const UInt8 TOTAL = 8;
 		}	
 
-		struct BaseItem {
+		struct ItemBase {
 			UInt16 id;
 			UInt16 slotId;
 			UInt8 type;
@@ -130,7 +78,7 @@
 			UInt16 elemnt;
 			bool amnt;
 			UInt16 compound[GAME_ITEM_MAX_COMPOUND_SLOTS]; // item ids
-			BaseItem(){
+			ItemBase(){
 				id = ItemList::NONE;
 				slotId = 0; // it can never be 0
 				for(int i = 0; i < GAME_ITEM_MAX_COMPOUND_SLOTS; ++i){
@@ -163,29 +111,39 @@
 			}
 		};
 
-		struct EquipItem : BaseItem {
+		struct EquipItem : ItemBase {
 			UInt8 equipType;
 			UInt16 dmg;
 			UInt16 mdmg;
 			UInt16 def;
 			UInt16 mdef;
-			virtual void onEquip(EntityBase *owner);
-			virtual void onUnequip(EntityBase *owner);
+			virtual void onEquip(EntityBase *owner){
+				
+			}
+			virtual void onUnequip(EntityBase *owner){
+
+			}
+			virtual UInt16 onDamageRecv(UInt16 amnt, const Game::DamageInfo &dmg){
+				return amnt;
+			}
+			virtual UInt16 onDamageDone(UInt16 amnt, const Game::DamageInfo &dmg){
+				return amnt;
+			}
 		};
 
-		Shared<Game::BaseItem> getItem(UInt16 id, UInt16 qty);
+		Shared<Game::ItemBase> getItem(UInt16 id, UInt16 qty);
 
 		struct InventoryStat {
 			EntityBase *owner;
 			UInt16 seedIndex;
-			Shared<BaseItem> slots[EquipSlot::TOTAL];
-			Dict<UInt16, Shared<Game::BaseItem>> carry;
+			Shared<ItemBase> slots[EquipSlot::TOTAL];
+			Dict<UInt16, Shared<Game::ItemBase>> carry;
 			InventoryStat();
-			UInt16 add(Shared<Game::BaseItem> &item);
-			UInt16 add(Shared<Game::BaseItem> &item, UInt16 slotId);
-			Shared<Game::BaseItem> get(UInt16 slotId);
+			UInt16 add(Shared<Game::ItemBase> &item);
+			UInt16 add(Shared<Game::ItemBase> &item, UInt16 slotId);
+			Shared<Game::ItemBase> get(UInt16 slotId);
 			bool contains(UInt16 id);
-			bool equip(Shared<Game::BaseItem> &item);
+			bool equip(Shared<Game::ItemBase> &item);
 			bool unequip(UInt16 itemId);
 			void clear();
 			bool remove(UInt16 id, UInt16 qty);
@@ -194,7 +152,7 @@
 		};
 
 		namespace Items {
-			struct HealthPotion : BaseItem {
+			struct HealthPotion : ItemBase {
 				HealthPotion(){
 					id = ItemList::U_APPLE;
 					name = "Apple";

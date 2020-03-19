@@ -14,14 +14,6 @@
             };
         }
 
-        namespace DamageType {
-            enum DamageType : UInt8 {
-                Physical = 0,
-                Magical,
-                Ranged,
-            };
-        }
-
         struct Actionable {
             UInt8 type;
             UInt32 id; // either slotId or skill id
@@ -36,10 +28,8 @@
                 this->effectStat.owner = this;
                 this->skillStat.owner = this;
                 this->invStat.owner = this;
-                this->element = Game::Element::Neutral;
             }
             Game::Actionable actionables[5]; // z x c a s keys
-            UInt8 element;
             UInt8 faceDirection;
             String name;
             float walkPushRate;
@@ -48,7 +38,7 @@
             void draw();
             void entityMove(float angle, float mod, bool holdStance);
             void printInfo();
-            bool damage(Int16 amnt, UInt8 elmnt, UInt8 enttype, UInt8 dmgType, bool isCrit);
+            bool damage(const Game::DamageInfo &dmg);
 			virtual void onDeath(){
 				
 			}            

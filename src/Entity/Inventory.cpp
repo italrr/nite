@@ -9,7 +9,7 @@ Game::InventoryStat::InventoryStat(){
 	}
 }
 
-UInt16 Game::InventoryStat::add(Shared<Game::BaseItem> &item, UInt16 slotId){
+UInt16 Game::InventoryStat::add(Shared<Game::ItemBase> &item, UInt16 slotId){
 	if(item.get() == NULL){
 		return 0;
 	}
@@ -37,7 +37,7 @@ UInt16 Game::InventoryStat::add(Shared<Game::BaseItem> &item, UInt16 slotId){
 }
 
 
-bool Game::InventoryStat::equip(Shared<Game::BaseItem> &item){
+bool Game::InventoryStat::equip(Shared<Game::ItemBase> &item){
 	auto it = carry.find(item->slotId);
 	if(it == carry.end()){
 		nite::print("failure: cannot equip an item outside of the carry");
@@ -69,13 +69,13 @@ bool Game::InventoryStat::unequip(UInt16 itemId){
 	return false;
 }
 
-UInt16 Game::InventoryStat::add(Shared<Game::BaseItem> &item){
+UInt16 Game::InventoryStat::add(Shared<Game::ItemBase> &item){
 	add(item, 0);
 }
 
-Shared<Game::BaseItem> Game::InventoryStat::get(UInt16 slotId){
+Shared<Game::ItemBase> Game::InventoryStat::get(UInt16 slotId){
 	auto it = carry.find(slotId);
-	return it == carry.end() ? Shared<Game::BaseItem>(NULL) : carry[it->first];
+	return it == carry.end() ? Shared<Game::ItemBase>(NULL) : carry[it->first];
 }
 
 bool Game::InventoryStat::contains(UInt16 id){
@@ -130,14 +130,14 @@ bool Game::InventoryStat::removeBySlotId(UInt16 slotId, UInt16 qty){
 }
 
 
-Shared<Game::BaseItem> Game::getItem(UInt16 id, UInt16 qty){
+Shared<Game::ItemBase> Game::getItem(UInt16 id, UInt16 qty){
 	switch(id){
 		case Game::ItemList::U_APPLE: {
-			auto r = Shared<Game::BaseItem>(new Items::HealthPotion());
+			auto r = Shared<Game::ItemBase>(new Items::HealthPotion());
 			r->qty = qty;
 			return r;
 		} break;
 		default:
-			return Shared<Game::BaseItem>(NULL);
+			return Shared<Game::ItemBase>(NULL);
 	}
 }

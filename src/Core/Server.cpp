@@ -598,7 +598,7 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
     }), 5000);
 }
 
-void Game::Server::addItem(UInt16 entityId, Shared<Game::BaseItem> item){
+void Game::Server::addItem(UInt16 entityId, Shared<Game::ItemBase> item){
     auto failmsg = "[server] failed to add item for entity id "+nite::toStr(entityId)+": ";
     auto it = world.objects.find(entityId);
     if(it == world.objects.end()){
