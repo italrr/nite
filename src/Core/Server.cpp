@@ -933,9 +933,10 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
         nite::print("[server] failed to create player for unexisting client id '"+nite::toStr(uid)+"'");
         return Shared<Game::NetObject>(NULL);
     }
-    auto obj = Shared<Game::NetObject>(new Game::EntityBase());
+    auto obj = Shared<Game::NetObject>(new Game::EntityBase()); // ideally we should create this using createNetObject
     auto player = static_cast<EntityBase*>(obj.get());
     player->setupStat(lv);
+    player->sigId = Game::ObjectSig::Player;
     player->position.x = nite::randomInt(0, 100);
     player->position.y = nite::randomInt(0, 100);
     spawn(obj);

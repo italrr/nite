@@ -19,7 +19,7 @@
 	},
 	"4": {
 		"name": "Dodge",
-		"desc": "Makes a quick dash towars the direction the character is pointing towards equal to 3 units.",
+		"desc": "Makes a quick dash towards the direction the character is pointing to equal to 3 units.",
 		"reqs": [],
 		"iconId": 88
 	},

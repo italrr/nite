@@ -35,6 +35,8 @@
 					case Umbra:
 						return "Umbra";	
 					case Celestial:
+						return "Wind";						
+					case Wind:
 						return "Celestial";							
 					case Steel:
 						return "Steel";			
@@ -43,6 +45,22 @@
 					default:
 						return "None";																										
 				}
+			}
+			// Effectiveness or uneffectiveness
+			static const float EffectiveTable[8][8] = {
+				//neutral   	fire  		electric steel   		wind  		umbra 		celestial 	emerium
+				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // neutral
+				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // fire
+				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // electric
+				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // steel
+				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // wind
+				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // umbra
+				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // celestial
+				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // emerium
+				
+			};
+			static float isEffective(UInt8 from, UInt8 to){
+				return from > 8 || to > 8 ? 0.0f : EffectiveTable[from][to];
 			}
 		}
 
@@ -73,6 +91,33 @@
 				Etc // everything else
 			};
 		}
+
+		namespace EquipType {
+			enum ItemType : UInt8 {
+				None = 0,
+				Weapon, // 
+				Headgear,
+				Armor,
+				Garment, // Or 'cape'
+				Accessory,
+				Footwear
+			};
+		}		
+
+
+		namespace EquipSlot {
+			enum EquipSlot : UInt8 {
+                Head,
+                Chest,
+                Body, 
+                Footwear,
+                LeftHand,
+                RightHand,
+                LeftAcc,
+                RightAcc
+			};
+			static const UInt8 TOTAL = 8;
+		}	
 
 		struct BaseItem {
 			UInt16 id;
@@ -118,17 +163,30 @@
 			}
 		};
 
+		struct EquipItem : BaseItem {
+			UInt8 equipType;
+			UInt16 dmg;
+			UInt16 mdmg;
+			UInt16 def;
+			UInt16 mdef;
+			virtual void onEquip(EntityBase *owner);
+			virtual void onUnequip(EntityBase *owner);
+		};
+
 		Shared<Game::BaseItem> getItem(UInt16 id, UInt16 qty);
 
 		struct InventoryStat {
 			EntityBase *owner;
 			UInt16 seedIndex;
+			Shared<BaseItem> slots[EquipSlot::TOTAL];
 			Dict<UInt16, Shared<Game::BaseItem>> carry;
 			InventoryStat();
 			UInt16 add(Shared<Game::BaseItem> &item);
 			UInt16 add(Shared<Game::BaseItem> &item, UInt16 slotId);
 			Shared<Game::BaseItem> get(UInt16 slotId);
 			bool contains(UInt16 id);
+			bool equip(Shared<Game::BaseItem> &item);
+			bool unequip(UInt16 itemId);
 			void clear();
 			bool remove(UInt16 id, UInt16 qty);
 			bool removeBySlotId(UInt16 slotId, UInt16 qty);	

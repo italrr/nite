@@ -4,6 +4,9 @@
 
 Game::InventoryStat::InventoryStat(){
 	seedIndex = nite::randomInt(5, 35);
+	for(int i = 0; i < EquipSlot::TOTAL; ++i){
+		slots[i] = Shared<Game::EquipItem>(NULL);
+	}
 }
 
 UInt16 Game::InventoryStat::add(Shared<Game::BaseItem> &item, UInt16 slotId){
@@ -31,6 +34,39 @@ UInt16 Game::InventoryStat::add(Shared<Game::BaseItem> &item, UInt16 slotId){
 		owner->recalculateStats();
 	}
 	return finalId;
+}
+
+
+bool Game::InventoryStat::equip(Shared<Game::BaseItem> &item){
+	auto it = carry.find(item->slotId);
+	if(it == carry.end()){
+		nite::print("failure: cannot equip an item outside of the carry");
+		return false;
+	}
+	if(item->type != ItemType::Equip){
+		nite::print("failure: cannot equip a non-equip item");
+		return false;
+	}
+	auto equip = static_cast<Game::EquipItem*>(item.get());
+	slots[equip->equipType] = item;
+	equip->onEquip(owner);
+	nite::print("equipped "+item->name);
+	return true;
+}
+
+bool Game::InventoryStat::unequip(UInt16 itemId){
+	for(int i = 0; i < EquipSlot::TOTAL; ++i){
+		for(auto &it : carry){
+			if(it.second->id == itemId){
+				auto equip = static_cast<Game::EquipItem*>(it.second.get());
+				equip->onUnequip(owner);				
+				slots[equip->equipType] = Shared<Game::EquipItem*>(NULL);
+				return true;
+			}
+		}
+	}
+	nite::print("failure: no item with such id to unequip");
+	return false;
 }
 
 UInt16 Game::InventoryStat::add(Shared<Game::BaseItem> &item){
