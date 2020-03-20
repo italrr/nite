@@ -26,7 +26,7 @@ int main(int argc, char* argv[]){
     String name = "LID-Dedi-"+nite::getTimestamp()+"-"+nite::toStr(nite::randomInt(250, 750));
     UInt64 timeout = nite::getTicks();
     static UInt64 ticktime = 1000 / 30; 
-    Game::Server sv;
+    auto &sv = game.localSv;
 
     for(int i = 1; params.size(); ++i){
         if((params[i] == "--max-players" || params[i] == "-mp") && i < params.size()-1){
