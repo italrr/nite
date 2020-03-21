@@ -1,5 +1,9 @@
 #include "../Engine/Graphics.hpp"
 #include "../Engine/Texture.hpp"
+
+#include "../Core/Network.hpp"
+#include "../Core/Server.hpp"
+
 #include "Base.hpp"
 
 
@@ -62,9 +66,39 @@ void Game::EntityBase::draw(){
     blank.draw(position.x, position.y, size.x, size.y, 0.5f, 0.5f, 0.0f);
 }
 
+void Game::EntityBase::updateStats(){
+
+	auto effupd = effectStat.update();
+	
+	// recalculate local stats
+	recalculateStats();
+
+	// recalculate effects-given stats
+	auto &eff = effectStat.effects;
+	for(auto &ef : eff){
+		ef.second->onRecalculateStat(this);
+	}
+	
+	// recalculate passive-items-given stats
+	auto &carry = invStat.carry;
+	for(auto &item : carry){
+		item.second->onRecalculateStat(this);
+	}
+
+	// server-side only
+	if(sv != NULL){ 
+		nite::Packet notify;
+		notify.setHeader(Game::PacketType::SV_UPDATE_ENTITY_ALL_STAT);
+		notify.write(&id, sizeof(id));
+		writeAllStatState(notify);
+		sv->persSendAll(notify, 750, -1);
+	}
+		
+}
+
 bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 	auto item = invStat.slots[Game::EquipSlot::Chest];
-	auto *armor = item.get() != NULL ? static_cast<Game::EquipItem*>(item.get()) : NULL; 
+	Game::ItemBase *armor = item.get() != NULL ? static_cast<Game::EquipItem*>(item.get()) : NULL; 
 	Int32 def = 0, mdef = 0;
 	auto efVal = Game::Element::isEffective(dmg.elmnt, armor == NULL ? Game::Element::Neutral : armor->elemnt); // entities are neutral by default
 	Int32 dmgdone = dmg.amnt * efVal * (dmg.isCrit ? 1.0f : 2.25f); // damage cannot be negative at the end	   
@@ -87,23 +121,49 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 			dmgdone = dmgdone * 0.90f - def; 
 		} break;				
 	}
+	auto &health = this->healthStat.health;
+	auto orig = health;
 	if(dmgdone > 0){
-		this->healthStat.health -= dmgdone;
+		health -= dmgdone;
 	}
-	if(this->healthStat.health < 0){
-		this->healthStat.health = 0;
+	if(health < 0){
+		health = 0;
+	}
+	// server-side only
+	if(orig != health && sv != NULL){ 
+		nite::Packet notify;
+		notify.setHeader(Game::PacketType::SV_UPDATE_ENTITY_HEALTH_STAT);
+		notify.write(&id, sizeof(id));
+		writeHealthStatState(notify);
+		sv->persSendAll(notify, 750, -1);		
 	}
 	return dmgdone > 0;
 }
 
-void Game::EntityBase::writeInitialState(nite::Packet &packet){
+void Game::EntityBase::writeAllStatState(nite::Packet &packet){
 	packet.write(&healthStat, sizeof(healthStat));
 	packet.write(&baseStat, sizeof(baseStat));
 	packet.write(&complexStat, sizeof(complexStat));
 }
 
-void Game::EntityBase::readInitialState(nite::Packet &packet){
+void Game::EntityBase::readAllStatState(nite::Packet &packet){
 	packet.read(&healthStat, sizeof(healthStat));
 	packet.read(&baseStat, sizeof(baseStat));
 	packet.read(&complexStat, sizeof(complexStat));	
+}
+
+void Game::EntityBase::writeHealthStatState(nite::Packet &packet){
+	packet.write(&healthStat, sizeof(healthStat));
+}
+
+void Game::EntityBase::readHealthStatState(nite::Packet &packet){
+	packet.read(&healthStat, sizeof(healthStat));
+}
+
+void Game::EntityBase::writeInitialState(nite::Packet &packet){
+	writeAllStatState(packet);
+}
+
+void Game::EntityBase::readInitialState(nite::Packet &packet){
+	readAllStatState(packet);
 }

@@ -26,13 +26,18 @@
         }  		
 
 		struct DamageInfo {
-			Shared<Game::EntityBase> owner;
-			Shared<Game::EntityBase> receiver;
+			Shared<Game::NetObject> owner;
+			Shared<Game::NetObject> receiver;
 			Shared<Game::EquipItem> weap; // weapon used to deal the dmg. for magic without staff can be null
 			UInt8 dmgtype;
 			Int32 amnt;
+			bool truedmg;
 			UInt8 elmnt;
 			bool isCrit;
+			DamageInfo(){
+				this->isCrit = false;
+				this->truedmg = false;
+			}
 		};     
 
 		namespace Element {

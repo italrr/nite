@@ -675,6 +675,39 @@ void Game::Client::update(){
                 auto ent = static_cast<Game::EntityBase*>(it->second.get());
                 ent->invStat.removeBySlotId(slotId, qty);                         
             } break;                                                                                             
+            /*
+                SV_UPDATE_ENTITY_ALL_STAT
+            */ 
+            case Game::PacketType::SV_UPDATE_ENTITY_ALL_STAT: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_UPDATE_ENTITY_ALL_STAT: entity id doesn't exist");
+                    break;
+                }      
+                auto ent = static_cast<Game::EntityBase*>(it->second.get()); // its an entity
+                ent->readAllStatState(handler);
+            } break; 
+            /*
+                SV_UPDATE_ENTITY_HEALTH_STAT
+            */ 
+            case Game::PacketType::SV_UPDATE_ENTITY_HEALTH_STAT: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_UPDATE_ENTITY_HEALTH_STAT: entity id doesn't exist");
+                    break;
+                }      
+                auto ent = static_cast<Game::EntityBase*>(it->second.get()); // its an entity
+                ent->readHealthStatState(handler);
+            } break;               
+                     
             /* 
                 UNKNOWN
             */
@@ -682,9 +715,6 @@ void Game::Client::update(){
                 if(!isSv){ break; }  
                 nite::print("[client] unknown packet type '"+nite::toStr(handler.getHeader())+"'");
             } break;
-        
-
-
         }
     }
     // timeout

@@ -14,9 +14,55 @@ static nite::Console::Result cfCloseServer(Vector<String> params){
     sv.close();
     return nite::Console::Result();
 }
-
 static auto cfSvCloseIns = nite::Console::CreateFunction("sv_close", &cfCloseServer, true, true);
 static auto cfSvStopIns = nite::Console::CreateFunction("sv_stop", &cfCloseServer, true, true);
+
+
+static nite::Console::Result cfDmgEntity(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    auto &sv = core->localSv;    
+
+    if(params.size() == 0){
+        return nite::Console::Result("not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    String amntStr = params[1], idStr = params[0];
+
+    if(!nite::isNumber(amntStr)){
+        return nite::Console::Result("'"+amntStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+
+    if(!nite::isNumber(idStr)){
+        return nite::Console::Result("'"+idStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }    
+
+    Int32 entId = nite::toInt(idStr), amnt = nite::toInt(amntStr);
+    if(!nite::isNumber(amntStr)){
+        return nite::Console::Result("damage cannot be negative", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+
+    auto it = sv.world.objects.find(entId);
+    if(it == sv.world.objects.end()){
+        return nite::Console::Result("object id '"+idStr+"' doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }   
+    auto &obj = it->second;
+
+    if(obj->objType != Game::ObjectType::Entity){
+        return nite::Console::Result("object id '"+idStr+"' is not an entity", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }    
+    auto ent = static_cast<Game::EntityBase*>(obj.get());
+    Game::DamageInfo dmg;
+    dmg.amnt = amnt;
+    dmg.dmgtype = Game::DamageType::Magical;
+    dmg.elmnt = Game::Element::Neutral;
+    dmg.isCrit = false;
+    dmg.owner = Shared<Game::EntityBase>(NULL);
+    dmg.receiver = obj;
+    dmg.truedmg = false;
+    dmg.weap = Shared<Game::EquipItem>(NULL);
+    ent->damage(dmg);
+    return nite::Console::Result();
+}
+static auto cfDmgEntityIns = nite::Console::CreateFunction("ent_apply_dmg", &cfDmgEntity, true, true);
 
 static nite::Console::Result cfKick(Vector<String> params){
     auto core = Game::getGameCoreInstance();
@@ -34,7 +80,6 @@ static nite::Console::Result cfKick(Vector<String> params){
     sv.dropClient(client->clientId, reason);
     return nite::Console::Result();
 }
-
 static auto cfKickIns = nite::Console::CreateFunction("kick", &cfKick, true, true);
 
 
@@ -425,7 +470,7 @@ void Game::Server::update(){
             queue.clear();
         }
         physicsUpdate = nite::getTicks();
-    }
+    }  
 
     //TODO: update animations
 
@@ -509,6 +554,18 @@ void Game::Server::game(){
         if(in.isKeyPress(Game::Key::LEFT)){
             ent.entityMove(3.142f, ent.walkPushRate, isSpace);
         }		        
+    }
+    // update entity specifics
+    for(auto &obj : world.objects){
+        if(obj.second->objType == ObjectType::Entity){
+            auto ent = static_cast<Game::EntityBase*>(obj.second.get());
+            // update stats
+            // TODO: consider updating only when values have changed
+            if(nite::getTicks()-ent->lastUpdateStats > Game::RecalculateStatTimeout){
+                ent->updateStats();
+                ent->lastUpdateStats = nite::getTicks();
+            }            
+        }
     }
     world.update();
 }
@@ -901,6 +958,7 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
         nite::print("cannot spawn undefined object");
         return Shared<Game::NetObject>(NULL);
     }    
+    obj->sv = this; // we guarantee entities will have its sv ref as long as its part of the world
     auto id = this->world.add(obj);
     nite::Packet crt;
     crt.setHeader(Game::PacketType::SV_CREATE_OBJECT);
@@ -923,6 +981,7 @@ bool Game::Server::destroy(UInt32 id){
     des.setHeader(Game::PacketType::SV_DESTROY_OBJECT);
     des.write(&id, sizeof(UInt32));
     obj->destroy();
+    obj->sv = NULL;
     persSendAll(des, 1000, -1);    
     return true;
 }

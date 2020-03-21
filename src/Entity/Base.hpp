@@ -14,6 +14,8 @@
             };
         }
 
+        static const UInt64 RecalculateStatTimeout = 150; 
+
         struct Actionable {
             UInt8 type;
             UInt32 id; // either slotId or skill id
@@ -28,6 +30,9 @@
                 this->effectStat.owner = this;
                 this->skillStat.owner = this;
                 this->invStat.owner = this;
+                this->lastUpdateStats = nite::getTicks();
+                this->objType = ObjectType::Entity;
+
             }
             Game::Actionable actionables[5]; // z x c a s keys
             UInt8 faceDirection;
@@ -39,11 +44,20 @@
             void entityMove(float angle, float mod, bool holdStance);
             void printInfo();
             bool damage(const Game::DamageInfo &dmg);
+            UInt64 lastUpdateStats;
+            void updateStats();
 			virtual void onDeath(){
 				
-			}            
-            void writeInitialState(nite::Packet &packet);
-            void readInitialState(nite::Packet &packet);            
+			}   
+
+            // stats         
+            virtual void writeInitialState(nite::Packet &packet);
+            virtual void readInitialState(nite::Packet &packet);     
+            virtual void writeAllStatState(nite::Packet &packet);       
+            virtual void readAllStatState(nite::Packet &packet); 
+
+            virtual void writeHealthStatState(nite::Packet &packet);       
+            virtual void readHealthStatState(nite::Packet &packet);           
         };
     }
 

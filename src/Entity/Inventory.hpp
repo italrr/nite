@@ -86,6 +86,11 @@
 				}
 			}
 			
+
+			virtual void onRecalculateStat(EntityBase *owner){ // ie passive 
+
+			}
+
             virtual void buildDesc(EntityBase *owner){
                 this->desc = "None";
             }
@@ -136,7 +141,7 @@
 		struct InventoryStat {
 			EntityBase *owner;
 			UInt16 seedIndex;
-			Shared<ItemBase> slots[EquipSlot::TOTAL];
+			Shared<Game::ItemBase> slots[EquipSlot::TOTAL];
 			Dict<UInt16, Shared<Game::ItemBase>> carry;
 			InventoryStat();
 			UInt16 add(Shared<Game::ItemBase> &item);

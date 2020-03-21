@@ -63,11 +63,11 @@
             UInt64 lastStep;
             UInt16 type;
             UInt16 insId;
-            Shared<Game::EntityBase> owner;
+            Game::EntityBase *owner;
 
             Effect(){
                 this->name = "None";
-                this->owner = Shared<Game::EntityBase>(NULL);
+                this->owner = NULL;
                 this->duration = 1000 * 30;
             }
 
@@ -82,19 +82,15 @@
 
             }
 
-            virtual void step(EntityBase *owner){
-
-            }
-
-            virtual void buildDesc(EntityBase *owner){
+            virtual void buildDesc(Game::EntityBase *owner){
                 this->desc = "None";
             }
             
-            virtual void onStart(EntityBase *owner){
+            virtual void onStart(Game::EntityBase *owner){
 
             }
 
-            virtual void onEnd(EntityBase *owner){
+            virtual void onEnd(Game::EntityBase *owner){
 
             }
 
@@ -105,10 +101,19 @@
             virtual void writeState(const nite::Packet &out){
 
             }
+
+            virtual bool step(Game::EntityBase *owner){
+                return false;
+            }
+
+            virtual void onRecalculateStat(Game::EntityBase *owner){
+
+            }
 		};
 
         struct EffectStat {
             EntityBase *owner;
+            bool hasChanged;
             Dict<UInt16, Shared<Game::Effect>>  effects;
             bool add(Shared<Game::Effect> eff);
             bool add(Shared<Game::Effect> eff, UInt16 insId);
@@ -118,8 +123,10 @@
             bool isOn(UInt16 insId);
             bool isOnByType(UInt16 type);
             void removeAll();
-            void update();
-            // TODO: add update
+            bool update();
+            EffectStat(){
+                hasChanged = false;
+            }
         };
 
         /*

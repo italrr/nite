@@ -41,22 +41,25 @@
         }
 
         struct NetWorld;
+        struct Server;
         struct NetObject : nite::PhysicsObject {
             UInt16 id;
             UInt8 objType;
             UInt16 sigId;
             Game::NetWorld *container;
+            Game::Server *sv;
+
+            NetObject(){
+                container = NULL;
+                sv = NULL;
+            }
+
 
             // the idea behind these is that we'll be updating
             // specific things from entities/objects but they'll read and prove it themselves
             // we should every entity with the changeForSync flag to be true
-            bool changeForSync;
-            virtual void readChange(nite::Packet &packet){
-                
-            }
-            virtual void onChange(nite::Packet &packet){
 
-            } 
+            bool readyForSync;
             // we'll be fetching the initial values to be sync'd
             virtual void writeInitialState(nite::Packet &packet){
 

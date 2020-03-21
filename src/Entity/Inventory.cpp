@@ -60,7 +60,7 @@ bool Game::InventoryStat::unequip(UInt16 itemId){
 			if(it.second->id == itemId){
 				auto equip = static_cast<Game::EquipItem*>(it.second.get());
 				equip->onUnequip(owner);				
-				slots[equip->equipType] = Shared<Game::EquipItem*>(NULL);
+				slots[equip->equipType] = Shared<Game::EquipItem>(NULL);
 				return true;
 			}
 		}

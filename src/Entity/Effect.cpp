@@ -11,6 +11,7 @@ bool Game::EffectStat::add(Shared<Game::Effect> eff){
     eff->start(owner);
     eff->insId = getUniqueId();
     effects[eff->insId] = eff;
+    hasChanged = true;
     return true;
 }
 
@@ -18,12 +19,14 @@ bool Game::EffectStat::add(Shared<Game::Effect> eff, UInt16 insId){
     eff->start(owner);
     eff->insId = insId;
     effects[insId] = eff;
+    hasChanged = true;
     return true;
 }
 
 bool Game::EffectStat::remove(UInt16 insId){
     auto it = effects.find(insId);
     if(it == effects.end()) return false;
+    hasChanged = true;
     effects.erase(insId);
 }
 
@@ -33,6 +36,7 @@ bool Game::EffectStat::remove(const String &name){
         if(ef->name == name){
             ef->onEnd(owner);
             effects.erase(it.first);
+            hasChanged = true;
             return true;
         }
     }
@@ -50,17 +54,27 @@ bool Game::EffectStat::isOn(UInt16 insId){
 }
 
 void Game::EffectStat::removeAll(){
+    hasChanged = true;
     this->effects.clear();
 }
 
-void Game::EffectStat::update(){
+bool Game::EffectStat::update(){
+    if(hasChanged){
+        hasChanged = false;
+        return true;
+    }
     for(auto it : effects){
         auto &ef = effects[it.first];
-        ef->step(owner);
+        auto updated = ef->step(owner);
         if(nite::getTicks()-ef->started > ef->duration){
             remove(ef->insId);
-        }        
+            return true;
+        }
+        if(updated){
+            return true;
+        }
     }
+    return false;
 }
 
 bool Game::EffectStat::isOnByType(UInt16 type){
@@ -79,6 +93,7 @@ bool Game::EffectStat::removeByType(UInt16 type){
         if(ef->type == type){
             ef->onEnd(owner);
             effects.erase(it.first);
+            hasChanged = true;
             return true;
         }
     }

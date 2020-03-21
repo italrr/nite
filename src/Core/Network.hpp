@@ -365,13 +365,43 @@
                 UINT16 SLOTID
                 UINT16 AMNT
             */
-            SV_REMOVE_ITEM
+            SV_REMOVE_ITEM,
             /*
                 UINT16 ENTID
                 UINT16 ITEMID
                 UINT16 SLOTID
                 UINT16 AMNT
-            */            
+            */ 
+            SV_UPDATE_ENTITY_ALL_STAT,
+            /*
+                UINT16 ENTID
+                {
+                    sizeof(HealthStat)
+                    sizeof(BaseStat)
+                    sizeof(ComplexCStat)
+                }
+            */           
+            SV_UPDATE_ENTITY_BASE_STAT,
+            /*
+                UINT16 ENTID
+                {
+                    sizeof(BaseStat)
+                }
+            */
+            SV_UPDATE_ENTITY_HEALTH_STAT,
+            /*
+                UINT16 ENTID
+                {
+                    sizeof(BaseStat)
+                }
+            */                                           
+            SV_UPDATE_ENTITY_COMPLEX_STAT,
+            /*
+                UINT16 ENTID
+                {
+                    sizeof(ComplexStat)
+                }
+            */ 
 
         };
 
