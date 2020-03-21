@@ -101,7 +101,7 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 	Game::ItemBase *armor = item.get() != NULL ? static_cast<Game::EquipItem*>(item.get()) : NULL; 
 	Int32 def = 0, mdef = 0;
 	auto efVal = Game::Element::isEffective(dmg.elmnt, armor == NULL ? Game::Element::Neutral : armor->elemnt); // entities are neutral by default
-	Int32 dmgdone = dmg.amnt * efVal * (dmg.isCrit ? 1.0f : 2.25f); // damage cannot be negative at the end	   
+	Int32 dmgdone = dmg.amnt * efVal * (dmg.isCrit ? 2.25f : 1.0f); // damage cannot be negative at the end	   
 	for(int i = 0; i < EquipSlot::TOTAL; ++i){
 		auto item = invStat.slots[i];
 		if(item.get() == NULL || i == EquipSlot::LeftAcc || i == EquipSlot::RightAcc) continue;
@@ -124,10 +124,11 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 	auto &health = this->healthStat.health;
 	auto orig = health;
 	if(dmgdone > 0){
-		health -= dmgdone;
-	}
-	if(health < 0){
-		health = 0;
+		if(dmgdone > health){
+			health = 0;
+		}else{
+			health -= dmgdone;
+		}
 	}
 	// server-side only
 	if(orig != health && sv != NULL){ 

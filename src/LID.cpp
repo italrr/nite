@@ -1,5 +1,6 @@
 
 #include "Game.hpp"
+#include "Engine/nScript.hpp"
 
 int main(int argc, char* argv[]){
 	Vector<String> params;
@@ -20,6 +21,10 @@ int main(int argc, char* argv[]){
 		game.client.connect("127.0.0.1", nite::NetworkDefaultPort);
 		ct.stop();
 	}), 1000);
+
+	nite::nScript debug("./debug_init.ns");
+	debug.execute();
+
 
 	while(game.isRunning){			
 		game.update();
