@@ -496,6 +496,7 @@ nite::Console::Result nite::Console::interpret(const String &command, bool remot
         if(func.serverSide && !svExec){
             if(pipeServerSide){
                 pipeServerSide(command);
+                nite::Console::add(command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
                 return nite::Console::Result("noop", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
             }else{
                 r = nite::Console::Result("you must be connected a server", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
@@ -515,7 +516,7 @@ nite::Console::Result nite::Console::interpret(const String &command, bool remot
         }
     }
     nite::Console::add((remoteExec ? "> " : "")+command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
-    nite::Console::Result r("Unknown expression or undefined symbol", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    nite::Console::Result r("unknown expression or undefined symbol", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
     nite::Console::add(r);
     return r;    
 }
