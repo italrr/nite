@@ -171,7 +171,9 @@
             head->recalculate();
         }
 
-        void add(std::shared_ptr<nite::BaseUIComponent> component);
+        bool add(std::shared_ptr<nite::BaseUIComponent> component);
+
+        bool remove(int id);
 
         void destroy();    
 

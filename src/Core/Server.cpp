@@ -663,12 +663,7 @@ void Game::Server::addItem(UInt16 entityId, Shared<Game::ItemBase> item){
         return;
     }
     if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
-        ent->invStat.add(item);
-        if(auto cl = getClientByEntityId(entityId)){
-            notifyAddItem(cl->clientId, item->id, item->slotId, item->qty);
-        }else{
-            nite::print("failed to notify add item to client: client doesn't exist");    
-        }       
+        ent->invStat.add(item);      
     }else{
         nite::print(failmsg+" it's not an entity");
     }
@@ -688,11 +683,7 @@ void Game::Server::removeItem(UInt16 entityId, UInt16 slotId, UInt16 amnt){
             return;
         }
         auto item = ent->invStat.carry[ititem->first];
-        if(auto cl = getClientByEntityId(entityId)){
-            notifyRemoveItem(cl->clientId, item->id, slotId, amnt);
-        }else{
-            nite::print("failed to notify add item to client: client doesn't exist");    
-        }
+        ent->invStat.removeBySlotId(slotId, amnt);
     }else{
         nite::print(failmsg+" it's not an entity");
     }    
@@ -712,11 +703,6 @@ void Game::Server::addSkill(UInt16 entityId, UInt16 skillId, UInt8 lv){
     }
     if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
         ent->skillStat.add(skillId, lv);  
-        if(auto cl = getClientByEntityId(entityId)){
-            notifyAddSkill(cl->clientId, skillId, lv);
-        }else{
-            nite::print("failed to notify add item to client: client doesn't exist");    
-        }
     }else{
         nite::print(failmsg+" it's not an entity");
     }
@@ -735,12 +721,7 @@ void Game::Server::removeSkill(UInt16 entityId, UInt16 skillId){
         return;
     }
     if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
-        ent->skillStat.remove(skillId);
-        if(auto cl = getClientByEntityId(entityId)){
-            notifyRemoveSkill(cl->clientId, skillId);
-        }else{
-            nite::print("failed to notify add item to client: client doesn't exist");    
-        }        
+        ent->skillStat.remove(skillId);       
     }else{
         nite::print(failmsg+" it's not an entity");
     }    
@@ -754,12 +735,7 @@ void Game::Server::addEffect(UInt16 entityId, Shared<Game::Effect> &eff){
         return;
     }
     if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
-        ent->effectStat.add(eff);
-        if(auto cl = getClientByEntityId(entityId)){
-            notifyAddEffect(cl->clientId, eff->type,  eff->insId);
-        }else{
-            nite::print("failed to notify add item to client: client doesn't exist");    
-        }           
+        ent->effectStat.add(eff);        
     }else{
         nite::print(failmsg+" it's not an entity");
     }
@@ -777,12 +753,7 @@ void Game::Server::removeEffect(UInt16 entityId, UInt16 insId){
             nite::print(failmsg+" entity doesn't have this effect insId "+nite::toStr(insId));
             return;
         }
-        ent->effectStat.remove(insId);
-        if(auto cl = getClientByEntityId(entityId)){
-            notifyRemoveEffect(cl->clientId, insId);
-        }else{
-            nite::print("failed to notify add item to client: client doesn't exist");    
-        }         
+        ent->effectStat.remove(insId);     
     }else{
         nite::print(failmsg+" it's not an entity");
     }
@@ -958,7 +929,7 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
         nite::print("cannot spawn undefined object");
         return Shared<Game::NetObject>(NULL);
     }    
-    obj->sv = this; // we guarantee entities will have its sv ref as long as its part of the world
+    obj->sv = this; // we guarantee entities will have its sv ref as long as is running on a a server
     auto id = this->world.add(obj);
     nite::Packet crt;
     crt.setHeader(Game::PacketType::SV_CREATE_OBJECT);
@@ -1003,6 +974,14 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
     players[uid] = obj->id;
     nite::print("[server] created player entity with id "+nite::toStr(obj->id)+" | for client id "+nite::toStr(uid)+"("+client->second.nickname+")");
     player->printInfo(); // for debugging
+
+    // testing effects
+    auto effect = getEffect(Game::EffectList::EF_HEAL);
+    auto efHeal = static_cast<Game::Effects::EffHeal*>(effect.get());
+    efHeal->setup(100, 5 * 1000);
+
+    this->addEffect(obj->id, effect);
+
     return obj;
 }
 

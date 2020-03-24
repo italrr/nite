@@ -1,3 +1,5 @@
+#include "../Core/Server.hpp"
+#include "../Core/Client.hpp"
 
 #include "Effect.hpp"
 #include "Base.hpp"
@@ -7,11 +9,31 @@ static UInt16 getUniqueId(){
     return ++seed;
 }
 
+static void notifyAddEffect(Game::EntityBase *ent, UInt16 type, UInt16 insId){
+    if(ent != NULL && ent->sv != NULL){
+        if(auto cl = ent->sv->getClientByEntityId(ent->id)){
+            ent->sv->notifyAddEffect(cl->clientId, type, insId);
+        }
+    }
+}
+
+static void notifyRemoveEffect(Game::EntityBase *ent, UInt16 insId){
+    if(ent != NULL && ent->sv != NULL){
+        if(auto cl = ent->sv->getClientByEntityId(ent->id)){
+            ent->sv->notifyRemoveEffect(cl->clientId, insId);
+        }
+    }
+}
+
 bool Game::EffectStat::add(Shared<Game::Effect> eff){
     eff->start(owner);
     eff->insId = getUniqueId();
     effects[eff->insId] = eff;
     hasChanged = true;
+
+    // server-side (notify owner specifically)
+    notifyAddEffect(owner, eff->type, eff->insId);
+
     return true;
 }
 
@@ -20,6 +42,10 @@ bool Game::EffectStat::add(Shared<Game::Effect> eff, UInt16 insId){
     eff->insId = insId;
     effects[insId] = eff;
     hasChanged = true;
+
+    // server-side (notify owner specifically)
+    notifyAddEffect(owner, eff->type, eff->insId);
+
     return true;
 }
 
@@ -28,6 +54,11 @@ bool Game::EffectStat::remove(UInt16 insId){
     if(it == effects.end()) return false;
     hasChanged = true;
     effects.erase(insId);
+
+    // server-side (notify owner specifically)
+    notifyRemoveEffect(owner, insId);
+
+    return true;
 }
 
 bool Game::EffectStat::remove(const String &name){
@@ -35,6 +66,10 @@ bool Game::EffectStat::remove(const String &name){
         auto ef = effects[it.first];
         if(ef->name == name){
             ef->onEnd(owner);
+
+            // server-side (notify owner specifically)
+            notifyRemoveEffect(owner, ef->insId);
+
             effects.erase(it.first);
             hasChanged = true;
             return true;
@@ -55,7 +90,13 @@ bool Game::EffectStat::isOn(UInt16 insId){
 
 void Game::EffectStat::removeAll(){
     hasChanged = true;
-    this->effects.clear();
+    Vector<UInt16> queue;
+    for(auto &it : effects){
+        queue.push_back(it.second->insId);
+    }
+    for(int i = 0; i < queue.size(); ++i){
+        remove(queue[i]);
+    }
 }
 
 bool Game::EffectStat::update(){
@@ -92,6 +133,7 @@ bool Game::EffectStat::removeByType(UInt16 type){
         auto ef = effects[it.first];
         if(ef->type == type){
             ef->onEnd(owner);
+            notifyRemoveEffect(owner, ef->insId);
             effects.erase(it.first);
             hasChanged = true;
             return true;
@@ -117,12 +159,24 @@ Shared<Game::Effect> Game::getEffect(UInt16 type){
 */
 
 // EffHeal
-void Game::Effects::EffHeal::step(){
+bool Game::Effects::EffHeal::step(Game::EntityBase *owner){
+    if(nite::getTicks()-started > this->duration){
+        return false;
+    }
     UInt16 diff = (nite::getTicks() - this->lastStep) / 1000;
     if(diff < 1){
-        return;
+        return false;
     }
     this->lastStep = nite::getTicks();
-    UInt16 toHeal = diff * amnt;
+    UInt16 toHeal = diff * amntpersecond;
     owner->heal(toHeal, 0, 0);
+    nite::print("healed "+nite::toStr(toHeal)+" diff "+nite::toStr(diff));
+    return true;
+}
+
+void Game::Effects::EffHeal::setup(UInt16 amnt, UInt64 time){ // time is msecs
+    this->amnt = amnt;
+    this->duration = time;  
+    this->amntpersecond = amnt / (time / 1000);
+    buildDesc();                 
 }

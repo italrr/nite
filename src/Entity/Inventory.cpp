@@ -1,6 +1,25 @@
+#include "../Core/Client.hpp"
+#include "../Core/Server.hpp"
+
 #include "Inventory.hpp"
 #include "../Engine/Tools/Tools.hpp"
 #include "Base.hpp"
+
+static void notifyAddItem(Game::EntityBase *ent, UInt16 itemId, UInt16 slotId, UInt16 qty){
+    if(ent != NULL && ent->sv != NULL){
+        if(auto cl = ent->sv->getClientByEntityId(ent->id)){
+            ent->sv->notifyAddItem(cl->clientId, itemId, slotId, qty);
+        }
+    }
+}
+
+static void notifyRemoveItem(Game::EntityBase *ent, UInt16 itemId, UInt16 slotId, UInt16 qty){
+    if(ent != NULL && ent->sv != NULL){
+        if(auto cl = ent->sv->getClientByEntityId(ent->id)){
+            ent->sv->notifyRemoveItem(cl->clientId, itemId, slotId, qty);
+        }
+    }
+}
 
 Game::InventoryStat::InventoryStat(){
 	seedIndex = nite::randomInt(5, 35);
@@ -27,11 +46,13 @@ UInt16 Game::InventoryStat::add(Shared<Game::ItemBase> &item, UInt16 slotId){
 		finalId = _seedIndex;
 		owner->complexStat.carry += item->weight;
 		owner->recalculateStats();
+		notifyAddItem(owner, item->id, item->slotId, item->qty);
 	}else{
 		ins->qty += item->qty;
 		finalId = ins->slotId;
 		owner->complexStat.carry += ins->weight * item->qty;
 		owner->recalculateStats();
+		notifyAddItem(owner, ins->id, ins->slotId, item->qty);
 	}
 	return finalId;
 }
@@ -97,6 +118,7 @@ bool Game::InventoryStat::remove(UInt16 id, UInt16 qty){
         if(item.id == id){
             if(item.amnt){
                 item.qty -= qty;
+				notifyRemoveItem(owner, id, item.slotId, qty);
             }
             if(qty == 0 || item.qty < 0){
                 item.onCarryRemove(owner);
@@ -118,6 +140,7 @@ bool Game::InventoryStat::removeBySlotId(UInt16 slotId, UInt16 qty){
 	auto item = carry[it->first];
 	if(item->amnt){
 		item->qty -= qty;
+		notifyRemoveItem(owner, item->id, slotId, qty);
 	}
 	if(qty == 0 || item->qty < 0){
 		item->onCarryRemove(owner);

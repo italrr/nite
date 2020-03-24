@@ -20,7 +20,7 @@ void Game::EntityBase::entityMove(float angle, float mod, bool holdStance){
 }
 
 void Game::EntityBase::kill(){
-	nite::print("Killed entity id "+nite::toStr(id)+" '"+name+"'");
+	nite::print("killed entity id "+nite::toStr(id)+" '"+name+"'");
 	if(healthStat.dead){
 		return;
 	}

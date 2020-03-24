@@ -116,15 +116,15 @@ void nite::BaseUIComponent::updateListeners(){
   // }
 }
 
-void nite::BaseUIComponent::add(std::shared_ptr<nite::BaseUIComponent> component){
+bool nite::BaseUIComponent::add(std::shared_ptr<nite::BaseUIComponent> component){
     if(component.get() == NULL){
         nite::print("attempt to add NULL nite::BaseUIComponent in a Component.");
-        return;
+        return false;
     }
     for(int i = 0; i < children.size(); ++i){
         if(children[i].get() == component.get()){
             nite::print("attempt to add a nite::BaseUIComponent twice in a Component.");
-            return;
+            return false;
         }
     }
     children.push_back(component);
@@ -132,6 +132,20 @@ void nite::BaseUIComponent::add(std::shared_ptr<nite::BaseUIComponent> component
     component->preinit();
     component->headComponent = this;
     recalculate();
+    return true;
+}
+
+bool nite::BaseUIComponent::remove(int id){
+    for(int i = 0; i < children.size(); ++i){
+        if(children[i]->id == id){
+            children[i]->onDestroy();
+            children[i]->headComponent = NULL;
+            children.erase(children.begin() + i);
+            recalculate();
+            return true;
+        }
+    }
+    return false;
 }
 
 void nite::BaseUIComponent::destroy(){

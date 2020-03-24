@@ -217,6 +217,9 @@ void nite::IconUI::setIconSize(const nite::Vec2 &iconSize){
 }
 
 void nite::IconUI::setIndex(int index){
+    if(index == this->index){
+        return;
+    }
     this->index = index;
     recalculate();
 }

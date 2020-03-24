@@ -63,12 +63,16 @@
             UInt64 lastStep;
             UInt16 type;
             UInt16 insId;
+            int iconId;
             Game::EntityBase *owner;
+            nite::Color color;
 
             Effect(){
                 this->name = "None";
                 this->owner = NULL;
                 this->duration = 1000 * 30;
+                this->color.set("#E24E75");
+                iconId = 0;
             }
 
             void start(EntityBase *owner){
@@ -135,19 +139,17 @@
         namespace Effects {
             struct EffHeal : Effect {
                 UInt16 amnt;
+                UInt16 amntpersecond;
                 EffHeal(){
                     this->type = Game::EffectList::EF_HEAL;
                     this->name = "Effective Heal";
+                    this->color.set("#30DE8D");
                 }
-                void setup(){
-                    this->amnt = 0; // TODO: proper way to setup this
-                    this->duration = 1000 * 10;   
-                    buildDesc();                 
-                }
+                void setup(UInt16 amnt, UInt64 time);
                 void buildDesc(){
-                    this->desc = "Healing "+nite::toStr(amnt)+" HP per second";
+                    this->desc = "Healing "+nite::toStr(amntpersecond)+" HP per second. 0 seconds left.";
                 }
-                void step();
+                bool step(Game::EntityBase *owner);
             };             
         }
 

@@ -118,6 +118,9 @@ void nite::TextUI::setFont(const nite::Font &font){
 }
 
 void nite::TextUI::setText(const String &text){
+    if(text == this->text){
+        return;
+    }
     this->text = text;
     this->originalText = text;
     calculateSize();  

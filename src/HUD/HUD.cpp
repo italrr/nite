@@ -11,6 +11,7 @@ static nite::Console::CreateProxy cpAnDatTo("hud_main_src", nite::Console::Proxy
 Game::HUD::HUD(){
     this->followId = 0;
     this->main = Shared<nite::BaseUIComponent>(NULL);
+    this->lastCheck = nite::getTicks();
 }
 
 void Game::HUD::start(Game::Client *client){
@@ -47,7 +48,11 @@ void Game::HUD::setFollow(UInt16 followId){
 }
 
 void Game::HUD::update(){
-    updateValues();
+
+    if(nite::getTicks()-lastCheck > 125){
+        updateValues();
+        lastCheck = nite::getTicks();
+    }
 }
 
 void Game::HUD::updateValues(){
@@ -114,21 +119,59 @@ void Game::HUD::updateValues(){
     auto actSPanel = this->main->getComponentById("actionable_s");
     updateActionable(actSPanel, 4);
 
-    // stats
-    auto statusPanel = this->main->getComponentById("hud_eff_column");
-    statusPanel->clear();
     auto &effs = ent->effectStat.effects;
-    //we're gonna create the same number of effects as panels
-    for(int i = 0; i < effs.size(); ++i){
-        auto efpnl = Shared<nite::PanelUI>(new nite::PanelUI());
-        // TODO: use effect color. and then icon
-        // statusPanel
-        statusPanel->add(efpnl);
+    auto statusPanel = this->main->getComponentById("hud_eff_column");
+
+    // stats
+    // auto updateStatus = [&](){
+    //     statusPanel->clear();
+    //     lastEffectList.clear();
+    //     //we're gonna create the same number of effects as panels
+    //     for(auto &it : effs){
+    //         auto efpnl = Shared<nite::PanelUI>(new nite::PanelUI());
+    //         efpnl->setBackgroundColor(it.second->color);
+    //         efpnl->setSize(nite::Vec2(64.0f));
+            
+    //         statusPanel->add(efpnl);
+    //     }
+    // };
+
+    // auto removeCmp = [&](int id){
+    //     for(int i = 0; i < statusPanel->children.size(); ++i){
+    //         if(statusPanel->children[i]->id == id){
+    //             statusPanel->children.erase(statusPanel->children.begin() + i);
+    //             return;
+    //         }
+    //     }
+    // };
+
+
+    // remove
+    for(auto &ef : lastEffectList){
+        auto it = effs.find(ef.first);
+        if(it == effs.end()){
+            nite::print("removed");
+            statusPanel->remove(ef.second->id);
+            lastEffectList.erase(ef.first);
+        }
     }
-    for(int i = 0; i < effs.size(); ++i){
-        auto &ef = effs[i];
-        
+
+    // add
+    for(auto &ef : effs){
+        auto it = lastEffectList.find(ef.second->insId);
+        if(it == lastEffectList.end()){
+            nite::print("added");
+            auto efpnl = Shared<nite::PanelUI>(new nite::PanelUI());
+            statusPanel->add(efpnl);
+            efpnl->setBackgroundColor(ef.second->color);
+            efpnl->setSize(nite::Vec2(64.0f));            
+            lastEffectList[ef.second->insId] = efpnl;
+        }
     }
+
+    // updateStatus();
+    
+
 }
 
 void Game::HUD::stop(){

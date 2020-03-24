@@ -1,6 +1,24 @@
+#include "../Core/Server.hpp"
+#include "../Core/Client.hpp"
+
 #include "Skill.hpp"
 #include "Base.hpp"
 
+static void notifyAddSkill(Game::EntityBase *ent, UInt16 skillId, UInt8 lv){
+    if(ent != NULL && ent->sv != NULL){
+        if(auto cl = ent->sv->getClientByEntityId(ent->id)){
+            ent->sv->notifyAddSkill(cl->clientId, skillId, lv);
+        }
+    }
+}
+
+static void notifyRemoveSkill(Game::EntityBase *ent, UInt16 skillId){
+    if(ent != NULL && ent->sv != NULL){
+        if(auto cl = ent->sv->getClientByEntityId(ent->id)){
+            ent->sv->notifyRemoveSkill(cl->clientId, skillId);
+        }
+    }
+}
 
 Game::Skill::Skill(){
     id =  Game::SkillList::NONE;
@@ -16,6 +34,7 @@ Game::Skill::Skill(){
     delay = 1000;
     adelay = 100;
     skPointsPerLv = 1;
+    iconId = 0;
 }
 
 Shared<Game::Skill> Game::getSkill(UInt16 id, UInt8 lv){
@@ -58,6 +77,8 @@ bool Game::SkillStat::add(UInt16 id, UInt8 lv){
         return false;
     }
     this->skills[id] = lv;
+    // server-side only
+    notifyAddSkill(owner, id, lv);
     return true;
 }
 
@@ -67,6 +88,9 @@ bool Game::SkillStat::remove(UInt16 id){
         return false;
     }
     skills.erase(it);
+    // server-side only
+    notifyRemoveSkill(owner, id); 
+    return true;
 }
 
 bool Game::SkillStat::contains(UInt16 id){

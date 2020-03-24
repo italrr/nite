@@ -78,11 +78,14 @@
 			UInt16 elemnt;
 			bool amnt;
 			UInt16 compound[GAME_ITEM_MAX_COMPOUND_SLOTS]; // item ids
+			int iconId;
+
 			ItemBase(){
-				id = ItemList::NONE;
-				slotId = 0; // it can never be 0
+				this->iconId = 0;
+				this->id = ItemList::NONE;
+				this->slotId = 0; // it can never be 0
 				for(int i = 0; i < GAME_ITEM_MAX_COMPOUND_SLOTS; ++i){
-					this->compound[i] = 0; // means no compound
+					this->compound[i] = 0; // no compounds since an item id cannot be 0
 				}
 			}
 			

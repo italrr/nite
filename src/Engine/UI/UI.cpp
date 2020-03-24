@@ -194,7 +194,7 @@ void nite::UI::render(){
 }
 
 void nite::UI::remove(nite::BaseUIComponent *comp){
-  removeQueue.push_back(comp);
+    removeQueue.push_back(comp);
 }
 
 struct JsonSource {
