@@ -16,6 +16,7 @@ void nite::TextUI::defaultInit(){
     originalText = "";
     realSize.set(-1.0f);  
     size.set(-1.0f);
+    type = "text";
     flex = 0.0f;
     fillUpType = true;
     componentName = "Text";    

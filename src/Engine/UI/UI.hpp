@@ -46,7 +46,7 @@
             void remove(nite::BaseUIComponent *comp);
 
             // builds a UI -anything- from a JSON file      
-            Shared<nite::BaseUIComponent> build(const String &path, const Dict<String, nite::ListenerLambda> &listeners);    
+            Shared<nite::BaseUIComponent> build(const String &path, Dict<String, nite::ListenerLambda> &listeners);    
             Shared<nite::BaseUIComponent> build(const String &path); 
             Shared<nite::BaseUIComponent> build(Jzon::Node &node, Dict<String, Jzon::Node> &styles, Dict<String, nite::ListenerLambda> &listeners, Dict<String, Shared<nite::BaseUIComponent>> &idsLookUp);
             Shared<nite::BaseUIComponent> build(Jzon::Node &node, Dict<String, Jzon::Node> &styles, Dict<String, nite::ListenerLambda> &listeners);

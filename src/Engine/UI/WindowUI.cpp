@@ -55,6 +55,7 @@ void nite::WindowUI::defaultInit(){
 	unmovable = false;
 	resizeable = true;
 	borderThickness = 8.0;
+	type = "window";
 	enableTitle = true;
 	baseColor.set(0.0f, 0.0f, 0.0f, 1.0f);
 	leftBorderColor.set(0.88f, 0.1f, 0.1f, 1.0f);

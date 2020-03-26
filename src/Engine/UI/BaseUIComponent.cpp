@@ -71,6 +71,7 @@ nite::BaseUIComponent::BaseUIComponent(){
     zdepth = 0;
     useRelSizeX = false;
     useRelSizeY = false;
+    type = "base";
     relSize.set(0.0f);
     flex = 0.0f;
     visible = true;
@@ -118,12 +119,12 @@ void nite::BaseUIComponent::updateListeners(){
 
 bool nite::BaseUIComponent::add(std::shared_ptr<nite::BaseUIComponent> component){
     if(component.get() == NULL){
-        nite::print("attempt to add NULL nite::BaseUIComponent in a Component.");
+        nite::print("attempted to add NULL BaseUIComponent in a Component.");
         return false;
     }
     for(int i = 0; i < children.size(); ++i){
         if(children[i].get() == component.get()){
-            nite::print("attempt to add a nite::BaseUIComponent twice in a Component.");
+            nite::print("attempted to add a BaseUIComponent twice in a Component.");
             return false;
         }
     }

@@ -64,6 +64,7 @@
         int zdepth;
         String literalId;
         bool fillUpType;
+        String type;
         unsigned renderOnTarget;
         std::shared_ptr<nite::LayoutSystemUI> layout;
         Vector<std::shared_ptr<nite::BaseUIComponent>> children;

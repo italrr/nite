@@ -17,6 +17,7 @@ void nite::CheckboxUI::defaultInit(){
     realSize.set(-1.0f);
     fillUpType = false;
     flex = 0.0f;
+    type = "checkbox";
     value = false;
     componentName = "Checkbox";  
     padding.set(8.0f);

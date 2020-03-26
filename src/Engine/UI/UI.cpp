@@ -7,6 +7,11 @@
 static Vector<std::shared_ptr<nite::BaseUIComponent>> components;
 static Vector<nite::BaseUIComponent*> removeQueue;
 
+static int getUniqueId(){
+	static int seed = 1 + nite::randomInt(15, 35);
+	return ++seed;
+}
+
 void nite::UI::ValueChangeListener::update(){
     if(target == NULL || type == ValueChangeListenerType::None){
         return;
@@ -201,6 +206,7 @@ struct JsonSource {
     String path;
     String hash;
     UInt64 lastTick;
+    Dict<String, Shared<nite::BaseUIComponent>> idsLookUp;
     Shared<nite::BaseUIComponent> ui;
     Dict<String, nite::ListenerLambda> listeners;
     nite::ListenerLambda getListener(const String &id){
@@ -474,21 +480,7 @@ static nite::Vec2 _parseDimensions(const String &name, Jzon::Node &_node, Jzon::
     }
 }
 
-Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzon::Node> &styles){
-    Dict<String, nite::ListenerLambda> dummy;
-    return nite::UI::build(node, styles, dummy);
-}
-
-Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node){
-    Dict<String, nite::ListenerLambda> dummy;
-    Dict<String, Jzon::Node> styles;
-    return nite::UI::build(node, styles, dummy);
-}
-
-Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzon::Node> &styles, Dict<String, nite::ListenerLambda> &listeners){
-    Dict<String, Shared<nite::BaseUIComponent>> idsLookUp;
-    return nite::UI::build(node, styles, listeners, idsLookUp);
-}
+// build from jzon node
 
 Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzon::Node> &styles, Dict<String, nite::ListenerLambda> &listeners, Dict<String, Shared<nite::BaseUIComponent>> &idsLookUp){
     Shared<nite::BaseUIComponent> base = Shared<nite::BaseUIComponent>(new nite::PanelUI);
@@ -509,6 +501,51 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         }
     }
 
+    if(type == "window" && node.has("styles") && node.get("styles").isObject()){
+        auto styls = node.get("styles");
+        for(auto &style : styls){
+            styles[style.first] = style.second;
+        }
+    }    
+
+    if(type == "window"){
+        base = Shared<nite::BaseUIComponent>(new nite::WindowUI());
+        auto *ref = static_cast<nite::WindowUI*>(base.get());
+        auto size = _parseSize(node, NULL, nite::Vec2(300, 450), base);
+        auto layout = _parseLayout(node, NULL, base);
+        auto borderColor = _parseColor("borderColor", node, NULL,ref->getBorderColor(), base);
+        auto backgroundColor = _parseColor("backgroundColor", node, NULL, ref->getBackgroundColor(), base);
+        auto titleColor = _parseColor("titleColor", node, NULL,ref->getTitleColor(), base);
+        auto title = _parseString("title", node, NULL, ref->getTitle(), base);
+        auto noTitle = _parseBool("notitle", node, NULL, false, base);
+        auto unmovable = _parseBool("unmovable", node, NULL, false, base);
+        auto resizeable = _parseBool("resizeable", node, NULL, true, base);
+        auto borderthickness = _parseFloat("borderThickness", node, NULL, 8.0f, base);
+        auto borderPattern = _parseString("borderPattern", node, NULL, "", base);
+        auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
+        auto position = _parsePosition(node, NULL, nite::Vec2(0.0f, 0.0f), base);    
+        auto id = _parseString("id", node, NULL, ref->literalId, base);
+        ref->setId(id);  
+        if(backgroundImage != "" && nite::fileExists(backgroundImage)){
+            ref->setBackgroundImage(nite::Texture(backgroundImage));
+        }
+        if(borderPattern != "" && nite::fileExists(borderPattern)){
+            ref->setCornerPattern(nite::Texture(borderPattern, nite::Color(0.0f, 0.0f, 0.0f, 1.0f)));
+        }
+        ref->resizeable = resizeable;
+        ref->unmovable = unmovable;
+        ref->setBorderThickness(borderthickness);
+        ref->setShowTitle(!noTitle);
+        ref->setSize(size.size);
+        ref->useRelSizeX = size.isX;
+        ref->useRelSizeY = size.isY;
+        ref->setTitleColor(titleColor);
+        ref->setLayout(layout);
+        ref->setBorderColor(borderColor);
+        ref->setBackgroundColor(backgroundColor);  
+        ref->setPosition(position);  
+        ref->setTitle(title);
+    }else
     if(type == "checkbox"){
         base = Shared<nite::BaseUIComponent>(new nite::CheckboxUI());
         auto *ref = static_cast<nite::CheckboxUI*>(base.get());
@@ -743,92 +780,84 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto comp = nite::UI::build(child, styles, listeners, idsLookUp); 
         idsLookUp[comp->literalId] = comp;
         base->add(comp);
-    }     
+    } 
 
     return  base;
 }
 
-static void _build(Shared<nite::BaseUIComponent> &ui, const String &path, JsonSource &source){
-    ui->clear(); // clear children  
-    Jzon::Parser parser;
-    nite::print("building ui '"+path+"'...");
-    // head is always parsed manually for windows (only way to spawn other components)
-    Jzon::Node node = parser.parseFile(path);  
-    if(!node.isValid()){
-        nite::print("failed to build UI from '"+path+"': invalid Json");
-        return;
-    }
-    auto asWindow = static_cast<nite::WindowUI*>(ui.get());  
-    auto size = _parseSize(node, NULL, nite::Vec2(300, 450), ui);
-    auto layout = _parseLayout(node, NULL, ui);
-    auto borderColor = _parseColor("borderColor", node, NULL,asWindow->getBorderColor(), ui);
-    auto backgroundColor = _parseColor("backgroundColor", node, NULL, asWindow->getBackgroundColor(), ui);
-    auto titleColor = _parseColor("titleColor", node, NULL,asWindow->getTitleColor(), ui);
-    auto title = _parseString("title", node, NULL, asWindow->getTitle(), ui);
-    auto noTitle = _parseBool("notitle", node, NULL, false, ui);
-    auto unmovable = _parseBool("unmovable", node, NULL, false, ui);
-    auto resizeable = _parseBool("resizeable", node, NULL, true, ui);
-    auto borderthickness = _parseFloat("borderThickness", node, NULL, 8.0f, ui);
-    auto borderPattern = _parseString("borderPattern", node, NULL, "", ui);
-    auto backgroundImage = _parseString("backgroundImage", node, NULL, "", ui);
-    auto position = _parsePosition(node, NULL, nite::Vec2(0.0f, 0.0f), ui);    
-    auto id = _parseString("id", node, NULL, asWindow->literalId, ui);
-    asWindow->setId(id);  
-    if(backgroundImage != "" && nite::fileExists(backgroundImage)){
-        asWindow->setBackgroundImage(nite::Texture(backgroundImage));
-    }
-    if(borderPattern != "" && nite::fileExists(borderPattern)){
-        asWindow->setCornerPattern(nite::Texture(borderPattern, nite::Color(0.0f, 0.0f, 0.0f, 1.0f)));
-    }
-    if(node.has("styles") && node.get("styles").isObject()){
-        auto styles = node.get("styles");
-        for(auto &style : styles){
-            asWindow->styles[style.first] = style.second;
-        }
-    }
-    asWindow->resizeable = resizeable;
-    asWindow->unmovable = unmovable;
-    asWindow->setBorderThickness(borderthickness);
-    asWindow->setShowTitle(!noTitle);
-    asWindow->setSize(size.size);
-    asWindow->useRelSizeX = size.isX;
-    asWindow->useRelSizeY = size.isY;
-    asWindow->setTitleColor(titleColor);
-    asWindow->setLayout(layout);
-    asWindow->setBorderColor(borderColor);
-    asWindow->setBackgroundColor(backgroundColor);  
-    asWindow->setPosition(position);  
-    asWindow->setTitle(title);
-
-    auto _c = node.get("children");
-    for(int i = 0; i < _c.getCount(); ++i){
-        auto child = _c.get(i);
-        auto built = nite::UI::build(child, asWindow->styles, source.listeners, asWindow->idsLookUp);
-        asWindow->idsLookUp[built->literalId] = built; 
-        asWindow->add(built);
-    }
-    nite::print("built ui '"+path+"' id "+nite::toStr(asWindow->id)+" | "+nite::toStr(source.listeners.size())+" listener(s) | "+nite::toStr(asWindow->styles.size())+" style(s)");
+Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzon::Node> &styles){
+    Dict<String, nite::ListenerLambda> dummy;
+    return nite::UI::build(node, styles, dummy);
 }
 
+Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node){
+    Dict<String, nite::ListenerLambda> dummy;
+    Dict<String, Jzon::Node> styles;
+    return nite::UI::build(node, styles, dummy);
+}
 
-// static UInt64 _l;
-void nite::UI::update(){
-    // if(nite::getTicks()-_l > 1000){
-    //   nite::print(sources.size());
-    //   _l = nite::getTicks();
-    // }
-    for(int i = 0; i < sources.size(); ++i){
-        auto &so = sources[i];
-        if(nite::getTicks()-so.lastTick > 1000){
-            so.lastTick = nite::getTicks();
-            auto hash = nite::hashFile(so.path);
-            if(hash != so.hash){
-                nite::print("changes on UI '"+so.path+"': reloading...");
-                so.hash = hash;
-                _build(so.ui, so.path, so);
-            }
-        }
+Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzon::Node> &styles, Dict<String, nite::ListenerLambda> &listeners){
+    Dict<String, Shared<nite::BaseUIComponent>> idsLookUp;
+    return nite::UI::build(node, styles, listeners, idsLookUp);
+}
+
+// build from file
+
+Shared<nite::BaseUIComponent> nite::UI::build(const String &path){
+    Dict<String, nite::ListenerLambda> listeners;
+    return build(path, listeners);
+}
+
+Shared<nite::BaseUIComponent> nite::UI::build(const String &path, Dict<String, nite::ListenerLambda> &listeners){
+    Dict<String, Jzon::Node> styles;
+    Jzon::Parser parser;
+    Jzon::Node obj = parser.parseFile(path);
+    JsonSource source;
+    UInt64 timer = nite::getTicks();
+
+    if(!obj.isValid()){
+        nite::print("failed to build UI from JSON '"+path+"': invalid json");
+        return Shared<nite::BaseUIComponent>(NULL);
     }
+
+    auto comp = nite::UI::build(obj, styles, listeners, source.idsLookUp);
+
+    // only windows are automatically handled by the system itself
+    // every other component is completely untethered
+    if(comp.get() != NULL && comp->type == "window"){
+        source.listeners = listeners;  
+        source.path = path;
+        source.hash = nite::hashFile(path);
+        source.ui = comp;
+        sources.push_back(source);  
+        comp->idsLookUp = source.idsLookUp;
+        nite::UI::add(comp);      
+    }
+
+    if(comp.get() == NULL){
+        nite::print("failed to build UI from JSON '"+path+"'");
+        return Shared<nite::BaseUIComponent>(NULL);
+    }
+
+    nite::print("built UI from JSON '"+path+"' | "+nite::toStr(nite::getTicks()-timer)+" msecs");
+
+    return comp;
+}
+
+void nite::UI::update(){
+    // no refresh for now
+    // for(int i = 0; i < sources.size(); ++i){
+    //     auto &so = sources[i];
+    //     if(nite::getTicks()-so.lastTick > 1000){
+    //         so.lastTick = nite::getTicks();
+    //         auto hash = nite::hashFile(so.path);
+    //         if(hash != so.hash){
+    //             nite::print("changes on UI '"+so.path+"': reloading...");
+    //             so.hash = hash;
+    //             // _build(so.ui, so.path, so);
+    //         }
+    //     }
+    // }
     for(int i = 0; i < components.size(); ++i){
         components[i]->updateRelativePosition(nite::Vec2(0.0f));
         components[i]->updateListeners();
@@ -858,27 +887,4 @@ void nite::UI::update(){
         }
     }
     removeQueue.clear();
-}
-
-std::shared_ptr<nite::BaseUIComponent> nite::UI::build(const String &path){
-    return build(path, Dict<String, nite::ListenerLambda>());
-}
-
-static int getUniqueId(){
-	static int seed = 1 + nite::randomInt(15, 35);
-	return ++seed;
-}
-
-std::shared_ptr<nite::BaseUIComponent> nite::UI::build(const String &path, const Dict<String, nite::ListenerLambda> &listeners){
-    JsonSource source;
-    auto base = Shared<nite::BaseUIComponent>(new nite::WindowUI);
-	base->id = getUniqueId();
-    add(base);
-    source.listeners = listeners;  
-    _build(base, path, source);
-    source.path = path;
-    source.hash = nite::hashFile(path);
-    source.ui = base;
-    sources.push_back(source);
-    return base;
 }

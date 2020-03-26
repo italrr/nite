@@ -12,6 +12,7 @@ void nite::ButtonUI::defaultInit(){
     resetColor();
     fillUpType = false;
     componentName = "Button";
+    type = "button";
     padding.set(8.0f);
     flex = 0.0f;
     pressOffset = 5.0f;

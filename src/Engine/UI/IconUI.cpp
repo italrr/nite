@@ -7,6 +7,7 @@ void nite::IconUI::defaultInit(){
     fontSize = 14;
     flex = 0.0f;
     index = -1;
+    type = "icon";
     textPosition.set(0.5f);
     textColor.set(0.0f, 0.0f, 0.0f, 1.0f);
     iconSize.set(32.0f);

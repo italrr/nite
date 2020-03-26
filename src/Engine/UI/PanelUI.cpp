@@ -3,7 +3,8 @@
 void nite::PanelUI::defaultInit(){
     size.set(16.0f);
     fillUpType = true;  
-    componentName = "Panel";    
+    componentName = "Panel"; 
+    type = "panel";   
     flex = 0.0f;
     baseColor.set(1.0f, 1.0f, 1.0f, 0.0f);
     onClickMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &panel){
