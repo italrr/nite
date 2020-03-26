@@ -2,6 +2,7 @@
 #include "Tools/Tools.hpp"
 #include <stdio.h>
 #include <cstdlib>
+#include <string>
 
 using namespace nite;
 
@@ -55,6 +56,13 @@ void nite::Color::set(const String &hex){
   g = ((hexValue >> 8) & 0xFF) / 255.0;   // Extract the GG byte
   b = ((hexValue) & 0xFF) / 255.0;        // Extract the BB byte
   a = 1.0f;
+}
+
+String nite::Color::hex(){
+	int ri = r * 255.0f; int gi = g * 255.0f; int bi = b * 255.0f;
+	int hex = ((ri & 0xff) << 16) + ((gi & 0xff) << 8) + (bi & 0xff); // loses alpha though
+	char hexString[4*sizeof(int)+1];
+	return String(hexString);
 }
 
 void nite::Color::set(float r, float g, float b, float a){

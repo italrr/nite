@@ -8,7 +8,7 @@
 
         struct Client;
         struct HUD {
-            Dict<UInt16, Shared<nite::PanelUI>> lastEffectList;
+            Dict<UInt16, Shared<nite::BaseUIComponent>> lastEffectList;
             UInt64 lastCheck;
             HUD();
             Shared<nite::BaseUIComponent> main;

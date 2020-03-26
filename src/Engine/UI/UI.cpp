@@ -474,9 +474,32 @@ static nite::Vec2 _parseDimensions(const String &name, Jzon::Node &_node, Jzon::
     }
 }
 
-static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSource &source, Dict<String, Shared<nite::BaseUIComponent>> &idsLookUp, Dict<String, Jzon::Node> &styles){
+Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzon::Node> &styles){
+    Dict<String, nite::ListenerLambda> dummy;
+    return nite::UI::build(node, styles, dummy);
+}
+
+Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node){
+    Dict<String, nite::ListenerLambda> dummy;
+    Dict<String, Jzon::Node> styles;
+    return nite::UI::build(node, styles, dummy);
+}
+
+Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzon::Node> &styles, Dict<String, nite::ListenerLambda> &listeners){
+    Dict<String, Shared<nite::BaseUIComponent>> idsLookUp;
+    return nite::UI::build(node, styles, listeners, idsLookUp);
+}
+
+Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzon::Node> &styles, Dict<String, nite::ListenerLambda> &listeners, Dict<String, Shared<nite::BaseUIComponent>> &idsLookUp){
     Shared<nite::BaseUIComponent> base = Shared<nite::BaseUIComponent>(new nite::PanelUI);
     String type = node.get("type").toString();
+
+    auto getListener = [&](const String &id){
+        auto dummy = [](const Shared<nite::ListenerInfo> &info, const nite::BaseUIComponent &component){
+            return;
+        };
+        return listeners.find(id) != listeners.end() ? listeners[id] : dummy;
+    };
 
     Jzon::Node *style = NULL;
     if(node.has("style") && node.get("style").isString()){
@@ -490,8 +513,8 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         base = Shared<nite::BaseUIComponent>(new nite::CheckboxUI());
         auto *ref = static_cast<nite::CheckboxUI*>(base.get());
         auto text = node.get("text").toString();
-        auto onChangeMethod = source.getListener(node.get("onChange").toString());
-        auto onHoverMethod = source.getListener(node.get("onHover").toString());        
+        auto onChangeMethod = getListener(node.get("onChange").toString());
+        auto onHoverMethod = getListener(node.get("onHover").toString());        
         auto fontColor = _parseColor("fontColor", node, style, ref->getFontColor(), base);
         auto selectorColor = _parseColor("selectorColor", node, style, ref->getSelectorColor(), base);
         auto boxColor = _parseColor("boxColor", node, style, ref->getBoxColor(), base);        
@@ -499,7 +522,7 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         auto size = _parseSize(node, style, nite::Vec2(-1.0f), base);  
         auto fontSize = _parseInt("fontSize", node, style, ref->getFontSize(), base);
         auto flex = _parseFloat("flex", node, style, 0.0f, base);
-        auto onUnhoverMethod = source.getListener(node.get("onUnhover").toString());
+        auto onUnhoverMethod = getListener(node.get("onUnhover").toString());
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
@@ -535,10 +558,10 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         auto textColor = _parseColor("fontColor", node, style, nite::Color(1.0f, 1.0f, 1.0f, 1.0f), base);
         auto fontSize = _parseInt("fontSize", node, style, ref->getFontSize(), base);
         auto size = _parseSize(node, style, nite::Vec2(-1.0f), base);     
-        auto onClickMethod = source.getListener(node.get("onClick").toString());
-        auto onHoverMethod = source.getListener(node.get("onHover").toString());
+        auto onClickMethod = getListener(node.get("onClick").toString());
+        auto onHoverMethod = getListener(node.get("onHover").toString());
         auto flex = _parseFloat("flex", node, style, 0.0f, base);
-        auto onUnhoverMethod = source.getListener(node.get("onUnhover").toString());
+        auto onUnhoverMethod = getListener(node.get("onUnhover").toString());
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto shadowOffset = _parseDimensions("shadowOffset", node, style, ref->getShadowOffset(), base); 
@@ -576,14 +599,14 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         auto *ref = static_cast<nite::ButtonUI*>(base.get());
         auto text = node.get("text").toString();
         auto fontSize = _parseInt("fontSize", node, style, ref->getFontSize(), base);
-        auto onClickMethod = source.getListener(node.get("onClick").toString());
-        auto onHoverMethod = source.getListener(node.get("onHover").toString());
+        auto onClickMethod = getListener(node.get("onClick").toString());
+        auto onHoverMethod = getListener(node.get("onHover").toString());
         auto size = _parseSize(node, style, nite::Vec2(-1.0f), base); 
         auto baseColor = _parseColor("baseColor", node, style, ref->getBaseColor(), base); 
         auto fontColor = _parseColor("fontColor", node, style, ref->getFontColor(), base); 
         auto secondColor = _parseColor("secondColor", node, style, ref->getSecondColor(), base); 
         auto flex = _parseFloat("flex", node, style, 0.0f, base);
-        auto onUnhoverMethod = source.getListener(node.get("onUnhover").toString());
+        auto onUnhoverMethod = getListener(node.get("onUnhover").toString());
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(8.0f), base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
@@ -622,12 +645,12 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         base = Shared<nite::BaseUIComponent>(new nite::IconUI());
         auto *ref = static_cast<nite::IconUI*>(base.get());
         auto layout = _parseLayout(node, style, base);
-        auto onClickMethod = source.getListener(node.get("onClick").toString());
-        auto onHoverMethod = source.getListener(node.get("onHover").toString());    
+        auto onClickMethod = getListener(node.get("onClick").toString());
+        auto onHoverMethod = getListener(node.get("onHover").toString());    
         auto backgroundColor = _parseColor("backgroundColor", node, style, nite::Color(1.0f, 1.0f, 1.0f, 1.0f), base);     
         auto size = _parseSize(node, style, nite::Vec2(16.0f), base); 
         auto flex = _parseFloat("flex", node, style, ref->flex, base);
-        auto onUnhoverMethod = source.getListener(node.get("onUnhover").toString());
+        auto onUnhoverMethod = getListener(node.get("onUnhover").toString());
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto iconSize = _parseDimensions("iconSize", node, style, ref->getIconSize(), base);
@@ -678,12 +701,12 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
         base = Shared<nite::BaseUIComponent>(new nite::PanelUI());
         auto *ref = static_cast<nite::PanelUI*>(base.get());
         auto layout = _parseLayout(node, style, base);
-        auto onClickMethod = source.getListener(node.get("onClick").toString());
-        auto onHoverMethod = source.getListener(node.get("onHover").toString());    
+        auto onClickMethod = getListener(node.get("onClick").toString());
+        auto onHoverMethod = getListener(node.get("onHover").toString());    
         auto backgroundColor = _parseColor("backgroundColor", node, style, nite::Color(1.0f, 1.0f, 1.0f, 0.0f), base);     
         auto size = _parseSize(node, style, nite::Vec2(16.0f), base); 
         auto flex = _parseFloat("flex", node, style, ref->flex, base);
-        auto onUnhoverMethod = source.getListener(node.get("onUnhover").toString());
+        auto onUnhoverMethod = getListener(node.get("onUnhover").toString());
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
@@ -712,23 +735,24 @@ static Shared<nite::BaseUIComponent> _buildComponent(Jzon::Node &node, JsonSourc
     }else{
         nite::print("parsing component without/undefined type from a UI JSON");    
     }
+
     // parse children
     auto _c = node.get("children");
     for(int i = 0; i < _c.getCount(); ++i){
         auto child = _c.get(i);
-        auto comp = _buildComponent(child, source, idsLookUp, styles);
-        idsLookUp[comp->literalId] = comp; 
+        auto comp = nite::UI::build(child, styles, listeners, idsLookUp); 
+        idsLookUp[comp->literalId] = comp;
         base->add(comp);
-    }  
-    return base;
-}
+    }     
 
+    return  base;
+}
 
 static void _build(Shared<nite::BaseUIComponent> &ui, const String &path, JsonSource &source){
     ui->clear(); // clear children  
     Jzon::Parser parser;
     nite::print("building ui '"+path+"'...");
-    // head is always parsed manually
+    // head is always parsed manually for windows (only way to spawn other components)
     Jzon::Node node = parser.parseFile(path);  
     if(!node.isValid()){
         nite::print("failed to build UI from '"+path+"': invalid Json");
@@ -779,7 +803,7 @@ static void _build(Shared<nite::BaseUIComponent> &ui, const String &path, JsonSo
     auto _c = node.get("children");
     for(int i = 0; i < _c.getCount(); ++i){
         auto child = _c.get(i);
-        auto built = _buildComponent(child, source, asWindow->idsLookUp, asWindow->styles);
+        auto built = nite::UI::build(child, asWindow->styles, source.listeners, asWindow->idsLookUp);
         asWindow->idsLookUp[built->literalId] = built; 
         asWindow->add(built);
     }

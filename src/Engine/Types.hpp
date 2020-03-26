@@ -77,6 +77,7 @@
 			void to1();			
 			operator String();
 			String str();
+			String hex();
 			bool lerp(const Color &v, float Step);
 			bool lerpDiscrete(const Color &v, float Step);
 		};

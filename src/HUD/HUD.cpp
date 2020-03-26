@@ -150,21 +150,35 @@ void Game::HUD::updateValues(){
     for(auto &ef : lastEffectList){
         auto it = effs.find(ef.first);
         if(it == effs.end()){
-            nite::print("removed");
             statusPanel->remove(ef.second->id);
             lastEffectList.erase(ef.first);
         }
     }
 
+
+    auto buildEffPanel = [&](Game::Effect *ef){
+            Jzon::Node json = Jzon::object();
+            Jzon::Node color = Jzon::object();
+            color.add("r", ef->color.r);
+            color.add("g", ef->color.g);
+            color.add("b", ef->color.b);
+            color.add("a", 1.0f);
+            json.add("width", 64);
+            json.add("height", 64);
+            json.add("type", "panel");
+            json.add("layout", "hbox");
+            json.add("backgroundColor", color);
+            return nite::UI::build(json);
+    };
+
     // add
     for(auto &ef : effs){
         auto it = lastEffectList.find(ef.second->insId);
         if(it == lastEffectList.end()){
-            nite::print("added");
-            auto efpnl = Shared<nite::PanelUI>(new nite::PanelUI());
+            
+            
+            auto efpnl = buildEffPanel(ef.second.get());
             statusPanel->add(efpnl);
-            efpnl->setBackgroundColor(ef.second->color);
-            efpnl->setSize(nite::Vec2(64.0f));            
             lastEffectList[ef.second->insId] = efpnl;
         }
     }

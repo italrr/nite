@@ -170,7 +170,6 @@ bool Game::Effects::EffHeal::step(Game::EntityBase *owner){
     this->lastStep = nite::getTicks();
     UInt16 toHeal = diff * amntpersecond;
     owner->heal(toHeal, 0, 0);
-    nite::print("healed "+nite::toStr(toHeal)+" diff "+nite::toStr(diff));
     return true;
 }
 
