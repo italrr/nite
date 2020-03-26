@@ -183,7 +183,7 @@ void nite::TextUI::setSize(const nite::Vec2 &size){
 void nite::TextUI::render(){
     nite::setColor(baseColor);
     auto cps = computeSize();
-    nite::Vec2 p(realPosition.x + padding.x * 0.5f - cps.x * 0.5f, realPosition.y + padding.y * 0.5f - cps.y * 0.5f);
+    nite::Vec2 p(position.x + padding.x * 0.5f - cps.x * 0.5f, position.y + padding.y * 0.5f - cps.y * 0.5f);
     auto *ref = font.draw(text, p.x, p.y, 0.0f, 0.0f, 0.0f);
     if(ref != NULL && shadowColor.a > 0.0f){
         ref->setShadow(shadowColor, shadowOffset);
@@ -191,7 +191,7 @@ void nite::TextUI::render(){
 }
 
 void nite::TextUI::update(){
-    if(!realPosition.lerpDiscrete(position, componentTranslationSpeed)){
-    // recalculate();    
-    }   
+    // if(!realPosition.lerpDiscrete(position, componentTranslationSpeed)){
+    // // recalculate();    
+    // }   
 }

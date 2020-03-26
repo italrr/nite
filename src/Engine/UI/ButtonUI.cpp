@@ -162,7 +162,7 @@ void nite::ButtonUI::setOnUnhover(nite::ListenerLambda onUnhover){
 
 void nite::ButtonUI::render(){
     static nite::Texture blank("data/sprite/empty.png");
-    nite::Vec2 p(realPosition.x, realPosition.y);
+    nite::Vec2 p(position.x, position.y);
     // nite::print(padding);
     auto cs = size + padding;
     nite::Color bc = baseColor;
@@ -216,9 +216,9 @@ void nite::ButtonUI::setBorderThickness(const nite::Vec2 &bt){
 }
 
 void nite::ButtonUI::update(){
-    if(!realPosition.lerpDiscrete(position, componentTranslationSpeed)){
-        recalculate();    
-    }
+    // if(!realPosition.lerpDiscrete(position, componentTranslationSpeed)){
+    //     recalculate();    
+    // }
     if(!nite::lerp(currentPressOffset, buttonState == 2 ? pressOffset : 0.0f, 0.70f)){
         recalculate();
     }

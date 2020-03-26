@@ -91,7 +91,7 @@ nite::Vec2 nite::CheckboxUI::computeSize(){
 
 void nite::CheckboxUI::render(){
     static nite::Texture blank("data/sprite/empty.png");
-    nite::Vec2 p(realPosition.x, realPosition.y);
+    nite::Vec2 p(position.x, position.y);
     float boxdim = font.getHeight();
     auto cs = size + padding;
     nite::Vec2 rp(cs * 0.5f);
@@ -106,9 +106,10 @@ void nite::CheckboxUI::render(){
 }
 
 void nite::CheckboxUI::update(){
-    if(!realPosition.lerpDiscrete(position, componentTranslationSpeed)){
-        recalculate();    
-    }
+    // animations
+    // if(!realPosition.lerpDiscrete(position, componentTranslationSpeed)){
+    //     recalculate();    
+    // }
 }
 
 nite::Color nite::CheckboxUI::getBoxColor(){
