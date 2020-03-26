@@ -179,3 +179,7 @@ void Game::Effects::EffHeal::setup(UInt16 amnt, UInt64 time){ // time is msecs
     this->amntpersecond = amnt / (time / 1000);
     buildDesc();                 
 }
+
+void Game::Effects::EffHeal::setup(){
+    setup(100, 1000 * 5);
+}

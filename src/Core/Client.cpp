@@ -40,6 +40,36 @@ static nite::Console::Result cfRcon(Vector<String> params){
 static auto cfRconIns = nite::Console::CreateFunction("rcon", &cfRcon);
 
 /*
+    WHOAMI
+*/
+static nite::Console::Result cfWhoami(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    auto &cl = core->client;    
+    
+    String whoami = cl.nickname + " | " + nite::toStr(cl.clientId) + " | " + cl.sv.str() + " | " + nite::toStr(cl.entityId);
+    String filter = params.size() > 0 ? nite::toLower(params[0]) : "";
+
+    if(filter == "nickname" || filter == "nick"){
+        whoami = cl.nickname;
+    }
+
+    if(filter == "clientid" || filter == "id"){
+        whoami = nite::toStr(cl.clientId);
+    }
+
+    if(filter == "ip" && cl.connected){
+        whoami = cl.sv.str();
+    }    
+
+    if((filter == "entity" || filter =="entityid") && cl.connected){
+        whoami = nite::toStr(cl.entityId);
+    }          
+
+    return nite::Console::Result(whoami, nite::Color(1.0f, 1.0f, 0.0f, 1.0f));
+}
+static auto cfWhoamiIns = nite::Console::CreateFunction("cl_whoami", &cfWhoami);
+
+/*
     CONNECT IP PORT(OPT)
 */
 static nite::Console::Result cfConnect(Vector<String> params){

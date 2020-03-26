@@ -36,9 +36,6 @@ static nite::Console::Result cfDmgEntity(Vector<String> params){
     }    
 
     Int32 entId = nite::toInt(idStr), amnt = nite::toInt(amntStr);
-    if(!nite::isNumber(amntStr)){
-        return nite::Console::Result("damage cannot be negative", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-    }
 
     auto it = sv.world.objects.find(entId);
     if(it == sv.world.objects.end()){
@@ -63,6 +60,49 @@ static nite::Console::Result cfDmgEntity(Vector<String> params){
     return nite::Console::Result();
 }
 static auto cfDmgEntityIns = nite::Console::CreateFunction("ent_apply_dmg", &cfDmgEntity, true, true);
+
+static nite::Console::Result cfAddEffectEntity(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    auto &sv = core->localSv;    
+
+    if(params.size() == 0){
+        return nite::Console::Result("not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    String entityIdStr = params[0], effectIdStr = params[1];
+    
+    if(!nite::isNumber(entityIdStr)){
+        return nite::Console::Result("'"+entityIdStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+
+    if(!nite::isNumber(effectIdStr)){
+        return nite::Console::Result("'"+effectIdStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }    
+
+    UInt16 entId = nite::toInt(entityIdStr), effectId = nite::toInt(effectIdStr);
+
+    auto it = sv.world.objects.find(entId);
+    if(it == sv.world.objects.end()){
+        return nite::Console::Result("object id '"+entityIdStr+"' doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }   
+    auto &obj = it->second;
+
+    if(obj->objType != Game::ObjectType::Entity){
+        return nite::Console::Result("object id '"+entityIdStr+"' is not an entity", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }    
+    
+    auto ent = static_cast<Game::EntityBase*>(obj.get());
+    auto effect = Game::getEffect(effectId);
+
+    if(effect.get() == NULL){
+        return nite::Console::Result("effect type '"+nite::toStr(effectId)+"' doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+
+    effect->setup();
+    ent->effectStat.add(effect);
+
+    return nite::Console::Result();
+}
+static auto cfAddEffectEntityIns = nite::Console::CreateFunction("ent_add_effect", &cfAddEffectEntity, true, true);
 
 static nite::Console::Result cfKick(Vector<String> params){
     auto core = Game::getGameCoreInstance();

@@ -1,6 +1,7 @@
 
-#include "Game.hpp"
 #include "Engine/nScript.hpp"
+
+#include "Game.hpp"
 
 int main(int argc, char* argv[]){
 	Vector<String> params;

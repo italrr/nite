@@ -38,7 +38,7 @@
             void add(const String &input, bool print = true);
             void add(const String &input, const nite::Color &color, bool print = true);
             void add(const nite::Console::Result &result, bool print = true);
-            nite::Console::Result interpret(const String &command, bool remoteExec, bool svExec = false, bool asAdmin = false);
+            nite::Console::Result interpret(const String &command, bool remoteExec, bool svExec = false, bool asAdmin = false, bool silent = false);
             void open();
             void close();
             bool isOpen();

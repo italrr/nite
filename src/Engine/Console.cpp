@@ -85,7 +85,7 @@ static nite::Console::Result cfBind(Vector<String> params){
     }
     String &_key = params[0];
     String command = params[1]; 
-    // TODO: these two erase can cause the whole game to crash. improve this.
+    // TODO: these two erases can cause the whole game to crash. improve this.
     while(command.at(0) == '"'){
         command.erase(0, 1);
     }
@@ -399,15 +399,25 @@ static UInt8 getOperandType(const String &operand){
     return nite::Console::ProxyType::Unknown;
 }
 
-// TODO: This needs some improvement
+// TODO: this needs some improvement
 static Vector<String> splitTokens(String input, char sep){
     Vector<String> tokens;
     bool quote = false;
+    bool interp = false;
     for(int i = 0; i < input.size(); ++i){
-        if(input.at(i) == '"'){
+        if(input[i] == '"'){
             quote = !quote;
         }
-        if(input.at(i) == sep && !quote){
+
+        if(!quote && input[i] == '{'){
+            interp = true;
+        } 
+
+        if(!quote && input[i] == '}'){
+            interp = false;
+        }          
+              
+        if(input[i] == sep && !quote && !interp){
             tokens.push_back(input.substr(0, i));
             input = input.substr(i + 1, input.size() - i);
             i = -1;
@@ -420,7 +430,7 @@ static Vector<String> splitTokens(String input, char sep){
     return tokens;
 }
 
-nite::Console::Result nite::Console::interpret(const String &command, bool remoteExec, bool svExec, bool asAdmin){
+nite::Console::Result nite::Console::interpret(const String &command, bool remoteExec, bool svExec, bool asAdmin, bool silent){
     if(inputHistory.size() == 0 || inputHistory[inputHistory.size()-1] != command){
         inputHistory.push_back(command);
         currentHistorySelect = -1;
@@ -438,7 +448,15 @@ nite::Console::Result nite::Console::interpret(const String &command, bool remot
     }
     
     String imperative = tokens[0];
-    // Modify variable
+
+    // eval interporlations
+    for(int i = 1; i < tokens.size(); ++i){
+        if(!(tokens[i][0] == '{' && tokens[i][tokens[i].length()-1] == '}')) continue;
+        tokens[i] = nite::Console::interpret(tokens[i].substr(1, tokens[i].length() - 2), false, false, false, true).msg;
+    }
+
+    // -- execute --
+    // modify variable
     if(isProxy(imperative)){
         ProxyObject &op = (*proxies)[imperative];
         if(tokens.size() == 1){
@@ -496,28 +514,40 @@ nite::Console::Result nite::Console::interpret(const String &command, bool remot
         if(func.serverSide && !svExec){
             if(pipeServerSide){
                 pipeServerSide(command);
-                nite::Console::add(command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
-                return nite::Console::Result("noop", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+                if(!silent){
+                    nite::Console::add(command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
+                }
+                return nite::Console::Result("noop", nite::Color(1.0f, 1.0f, 1.0f, 1.0f)); // technical limitation. server side interpolations resolve in noop
             }else{
                 r = nite::Console::Result("you must be connected a server", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-                nite::Console::add(r);
+                if(!silent){
+                    nite::Console::add(r);
+                }
                 return r;
             }
         }else{
             nite::Console::Function function = func.function;
             if(func.adminType && !asAdmin){
                 r = nite::Console::Result("you must be an admin to run this command", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-                nite::Console::add(r);
+                if(!silent){
+                    nite::Console::add(r);
+                }
                 return r;                
             }
             r = function(params);   
-            nite::Console::add(r);     
+            if(!silent){
+                nite::Console::add(r);     
+            }
             return r;    
         }
     }
-    nite::Console::add((remoteExec ? "> " : "")+command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
+    if(!silent){
+        nite::Console::add((remoteExec ? "> " : "")+command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
+    }
     nite::Console::Result r("unknown expression or undefined symbol", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-    nite::Console::add(r);
+    if(!silent){
+        nite::Console::add(r);
+    }
     return r;    
 }
 

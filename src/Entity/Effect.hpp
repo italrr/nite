@@ -83,7 +83,7 @@
             }
 
             virtual void setup(){
-
+                
             }
 
             virtual void buildDesc(Game::EntityBase *owner){
@@ -145,6 +145,7 @@
                     this->name = "Effective Heal";
                     this->color.set("#30DE8D");
                 }
+                void setup();
                 void setup(UInt16 amnt, UInt64 time);
                 void buildDesc(){
                     this->desc = "Healing "+nite::toStr(amntpersecond)+" HP per second. 0 seconds left.";
