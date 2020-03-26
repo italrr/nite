@@ -122,30 +122,6 @@ void Game::HUD::updateValues(){
     auto &effs = ent->effectStat.effects;
     auto statusPanel = this->main->getComponentById("hud_eff_column");
 
-    // stats
-    // auto updateStatus = [&](){
-    //     statusPanel->clear();
-    //     lastEffectList.clear();
-    //     //we're gonna create the same number of effects as panels
-    //     for(auto &it : effs){
-    //         auto efpnl = Shared<nite::PanelUI>(new nite::PanelUI());
-    //         efpnl->setBackgroundColor(it.second->color);
-    //         efpnl->setSize(nite::Vec2(64.0f));
-            
-    //         statusPanel->add(efpnl);
-    //     }
-    // };
-
-    // auto removeCmp = [&](int id){
-    //     for(int i = 0; i < statusPanel->children.size(); ++i){
-    //         if(statusPanel->children[i]->id == id){
-    //             statusPanel->children.erase(statusPanel->children.begin() + i);
-    //             return;
-    //         }
-    //     }
-    // };
-
-
     // remove
     for(auto &ef : lastEffectList){
         auto it = effs.find(ef.first);
@@ -157,17 +133,32 @@ void Game::HUD::updateValues(){
 
 
     auto buildEffPanel = [&](Game::Effect *ef){
-            Jzon::Node json = Jzon::object();
             Jzon::Node color = Jzon::object();
+            Jzon::Node icon = Jzon::object();
+            Jzon::Node json = Jzon::object();
+            Jzon::Node children = Jzon::array();
+            Jzon::Node iconSize = Jzon::object();
+            iconSize.add("hor", 32);
+            iconSize.add("vert", 32);
+            // color
             color.add("r", ef->color.r);
             color.add("g", ef->color.g);
             color.add("b", ef->color.b);
             color.add("a", 1.0f);
+            // icon
+            icon.add("type", "icon");
+            icon.add("source", "data/ui/icons/test_icons.png");
+            icon.add("width", 64);
+            icon.add("height", 64);
+            icon.add("iconSize", iconSize);
+            children.add(icon);
+            // panel
             json.add("width", 64);
             json.add("height", 64);
             json.add("type", "panel");
             json.add("layout", "hbox");
             json.add("backgroundColor", color);
+            json.add("children", children);
             return nite::UI::build(json);
     };
 
@@ -175,10 +166,11 @@ void Game::HUD::updateValues(){
     for(auto &ef : effs){
         auto it = lastEffectList.find(ef.second->insId);
         if(it == lastEffectList.end()){
-            
-            
             auto efpnl = buildEffPanel(ef.second.get());
             statusPanel->add(efpnl);
+            if(auto icon = dynamic_cast<nite::IconUI*>(efpnl->children[0].get())){
+                icon->setIndex(ef.second->iconId);
+            }            
             lastEffectList[ef.second->insId] = efpnl;
         }
     }
