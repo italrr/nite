@@ -314,7 +314,8 @@ void Game::Client::update(){
                 SV_CLIENT_LIST
             */
             case Game::PacketType::SV_CLIENT_LIST: {
-                if(!isSv){ break; }                
+                if(!isSv){ break; }                      
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);         
                 clients.clear();
                 UInt16 n;
                 handler.read(&n, sizeof(UInt16));
@@ -325,7 +326,6 @@ void Game::Client::update(){
                     handler.read(player.nickname);  
                     clients[player.uid] = player;
                 }
-                sendAck(this->sv, handler.getOrder(), ++sentOrder);
             } break;
             /*
                 SV_BROADCAST_MESSAGE

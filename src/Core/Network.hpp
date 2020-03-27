@@ -68,6 +68,7 @@
             Game::PersisentDelivey& persSend(nite::IP_Port &client, nite::Packet &packet);
             Game::PersisentDelivey& persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries);  
             void dropPersFor(UInt64 netId);
+            void dropPersForHeader(UInt64 netId, UInt16 header);
             void updateDeliveries();       
             void ack(nite::Packet &packet);
             void sendAck(nite::IP_Port &client, UInt32 ackId, UInt32 order);

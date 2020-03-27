@@ -25,12 +25,18 @@ Game::BaseStat::BaseStat(){
 }
 
 void Game::Stat::recalculateHealthStats(){
+	if(healthStat.dead){
+		return;
+	}	
 	healthStat.maxHealth = nite::ceil((12.5f + baseStat.enduStat * 1.5f)  * GAME_STAT_BASE_SCALE * healthStat.lv);
 	healthStat.maxMana = nite::ceil((4.5f + baseStat.intStat * 0.5f) * GAME_STAT_BASE_SCALE * healthStat.lv);
 	healthStat.maxStamina = nite::ceil((1.9f + baseStat.dexStat * 0.35f + baseStat.enduStat * 0.15f) * GAME_STAT_BASE_SCALE * healthStat.lv);
 }
 
 void Game::Stat::recalculateComplexStats(){
+	if(healthStat.dead){
+		return;
+	}	
 	complexStat.maxCarry = 1000 + nite::ceil(baseStat.strStat * GAME_STAT_BASE_SCALE * 150.0f + baseStat.enduStat * GAME_STAT_BASE_SCALE * 65.0f);
 	complexStat.atk = nite::ceil(baseStat.strStat * 8.5f + baseStat.enduStat * 1.2f);
 	complexStat.magicAtk = nite::ceil(baseStat.intStat * 8.5f);
@@ -45,6 +51,9 @@ void Game::Stat::recalculateComplexStats(){
 }
 
 Int32 Game::Stat::addBaseStat(UInt8 type, UInt32 amnt){
+	if(healthStat.dead){
+		return 0;
+	}
 	Int32 toAdd = 0;
 	auto inc = [&](UInt32 &target){
 		int toRest = baseStat.statPoints;
@@ -98,6 +107,9 @@ void Game::Stat::recalculateStats(){
 }
 
 void Game::Stat::resetBaseStat(UInt8 type){
+	if(healthStat.dead){
+		return;
+	}
 	baseStat.statPoints = GAME_STAT_POINTS_PER_LV * this->healthStat.lv;
 	switch(type){
 		case BaseStatType::Strength:{
@@ -132,6 +144,9 @@ void Game::Stat::fullHeal(){
 }
 
 bool Game::Stat::lvUp(){
+	if(healthStat.dead){
+		return false;
+	}	
 	if(healthStat.lv >= GAME_MAX_LEVEL){
 		return false;
 	}
@@ -160,6 +175,10 @@ void Game::Stat::setupStat(UInt16 lv){
 }
 
 void Game::Stat::heal(UInt32 hp, UInt32 mana, UInt32 stamina){
+	if(healthStat.dead){
+		return;
+	}
+		
 	healthStat.health += hp;
 	if(healthStat.health > healthStat.maxHealth){
 		healthStat.health = healthStat.maxHealth;

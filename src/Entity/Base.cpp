@@ -87,6 +87,10 @@ void Game::EntityBase::entityStep(){
 
 void Game::EntityBase::updateStats(){
 
+	if(this->healthStat.dead){
+		return;
+	}
+
 	auto effupd = effectStat.update();
 	
 	// recalculate local stats
@@ -116,6 +120,9 @@ void Game::EntityBase::updateStats(){
 }
 
 bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
+	if(this->healthStat.dead){
+		return false;
+	}
 	auto item = invStat.slots[Game::EquipSlot::Chest];
 	Game::ItemBase *armor = item.get() != NULL ? static_cast<Game::EquipItem*>(item.get()) : NULL; 
 	Int32 def = 0, mdef = 0;

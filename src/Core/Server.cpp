@@ -1,11 +1,18 @@
 #include <algorithm>
+
 #include "../Engine/Tools/Tools.hpp"
 #include "../Engine/Console.hpp"
+#include "../Engine/UI/UI.hpp"
+
 #include "../Game.hpp"
 #include "Server.hpp"
 #include "Input.hpp"
 #include "Object.hpp"
 #include "../Entity/Base.hpp"
+
+static Shared<nite::BaseUIComponent> debug = Shared<nite::BaseUIComponent>(NULL);
+static bool debugging = false;
+static UInt64 lastDebug = nite::getTicks();
 
 static nite::Console::Result cfCloseServer(Vector<String> params){
     auto core = Game::getGameCoreInstance();
@@ -168,6 +175,16 @@ void Game::Server::listen(const String &name, UInt8 maxClients, UInt16 port){
     nite::print("[server] waiting for clients...");
     this->init = true;
     setState(Game::ServerState::Idle);
+
+    if(debugging){
+        debug = nite::UI::build("./debug_window.json");
+        auto json = Jzon::object();
+        json.add("type", "text");
+        json.add("fontColor", "#000000");
+        json.add("fontSize", "16");
+        json.add("text", "debug");
+        debug->add(nite::UI::build(json));
+    }
 }
 
 Game::SvClient *Game::Server::getClient(UInt64 uid){
@@ -278,6 +295,10 @@ void Game::Server::clear(){
     tilesets.clear();
     world.clear();
     setState(Game::ServerState::Off);
+
+    if(debugging && debug.get() != NULL){
+        static_cast<nite::WindowUI*>(debug.get())->close();
+    }    
 }
 
 void Game::Server::update(){
@@ -581,6 +602,16 @@ void Game::Server::broadcast(const String &message){
 void Game::Server::game(){
     if(!init) return;
 
+    if(debugging && nite::getTicks()-lastDebug > 1000){
+        auto text = static_cast<nite::TextUI*>(debug->children[0].get());
+        lastDebug = nite::getTicks();
+        String composed = "remaining deliveries: "+nite::toStr(deliveries.size())+" | ";
+        for(int i = 0; i < deliveries.size(); ++i){
+            composed += " "+nite::toStr(deliveries[i].packet.getHeader());
+        }        
+        text->setText(composed);
+    }    
+
     // someone joined, let's start the game
     if(nite::getTicks()-lastState > 5000 && state == Game::ServerState::Waiting){
         start();
@@ -610,7 +641,7 @@ void Game::Server::game(){
         }
         if(allDead == clients.size()){
             // TODO: show game over on the screen
-            nite::print("[server] Game Over. Restarting in 8000 seconds");
+            nite::print("[server] Game Over. Restarting in 8 seconds");
             setState(Game::ServerState::GameOver);
             // notify clients
             for(auto &cl : clients){
@@ -688,9 +719,12 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
 
     // [0] bind on the initialHeader before we start creating players and asigning
     bindOnAckFor(initialHeader, [&](nite::SmallPacket &pck, nite::IP_Port &ip){
-        for(auto cl : clients){
-            createPlayer(cl.second.clientId, 1);
-        }        
+        auto cl = getClientByIp(ip);
+        if(cl == NULL){
+            nite::print("[server] failed to notify clients their respective entity. ip was not found in the list");
+            return;
+        }
+        createPlayer(cl->clientId, 1);
         // [1] notify clients of their respective owners
         bindOnAckFor(Game::PacketType::SV_CREATE_OBJECT, [&](nite::SmallPacket &pck, nite::IP_Port &ip){   
             auto cl = getClientByIp(ip);

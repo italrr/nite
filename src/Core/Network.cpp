@@ -19,11 +19,13 @@ Game::PersisentDelivey& Game::Net::persSend(nite::IP_Port &client, nite::Packet 
     if(!init){
         nite::print("persend when net is not init");
     }    
+    UInt64 netId = client.address + client.port + sock.getSock();
+    dropPersForHeader(netId, packet.getHeader()); // remove older versions of this packet
     Game::PersisentDelivey pd;
     pd.retryInterval = retryInterval;
     pd.retries = retries;
     pd.retry = 0; 
-    pd.netId = client.address + client.port + sock.getSock();
+    pd.netId = netId;
     pd.packet = packet;
     pd.cl = client;
     pd.order = packet.getOrder();
@@ -51,7 +53,8 @@ void Game::Net::updateDeliveries(){
     for(int i = 0; i < deliveries.size(); ++i){
         auto &del = deliveries[i];
         // only drops packages with positive retries
-        if(del.retries != -1 && del.retry >= del.retries){
+        // also, if a client doesn't respond a packet after 30 seconds of retries the packet is dropped
+        if(del.retries != -1 && del.retry >= del.retries || (nite::getTicks()-del.created  > 30 * 1000)){ 
             deliveries.erase(deliveries.begin() + i);
             --i;
         }
@@ -61,7 +64,17 @@ void Game::Net::updateDeliveries(){
 void Game::Net::dropPersFor(UInt64 netId){
     for(int i = 0; i < deliveries.size(); ++i){
         auto &del = deliveries[i];
-        if(del.netId = netId){
+        if(del.netId == netId){
+            deliveries.erase(deliveries.begin() + i);
+            --i;
+        }
+    }
+}
+
+void Game::Net::dropPersForHeader(UInt64 netId, UInt16 header){
+    for(int i = 0; i < deliveries.size(); ++i){
+        auto &del = deliveries[i];
+        if(del.netId == netId && del.packet.getHeader() == header){
             deliveries.erase(deliveries.begin() + i);
             --i;
         }
