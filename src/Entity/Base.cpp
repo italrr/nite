@@ -6,8 +6,18 @@
 
 #include "Base.hpp"
 
+static void notifyEntityDeath(Game::EntityBase *ent){
+    if(ent != NULL && ent->sv != NULL){
+        if(auto cl = ent->sv->getClientByEntityId(ent->id)){
+            ent->sv->notifyDeath(cl->clientId);
+        }
+    }
+}
 
 void Game::EntityBase::entityMove(float angle, float mod, bool holdStance){ 
+	if(healthStat.dead){
+		return;
+	}
 	if(!holdStance && (nite::toDegrees(angle) <= 45 || nite::toDegrees(angle) >= 315)){
 		faceDirection = EntityFacing::Right;
 	}
@@ -64,6 +74,15 @@ void Game::EntityBase::draw(){
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	nite::setDepth(nite::DepthMiddle);
     blank.draw(position.x, position.y, size.x, size.y, 0.5f, 0.5f, 0.0f);
+}
+
+void Game::EntityBase::entityStep(){
+	
+	if(healthStat.health == 0){
+		healthStat.dead = true;
+		notifyEntityDeath(this);
+		onDeath();
+	}
 }
 
 void Game::EntityBase::updateStats(){

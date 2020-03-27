@@ -392,7 +392,7 @@
             /*
                 UINT16 ENTID
                 {
-                    sizeof(BaseStat)
+                    sizeof(HealthStat)
                 }
             */                                           
             SV_UPDATE_ENTITY_COMPLEX_STAT,
@@ -402,6 +402,22 @@
                     sizeof(ComplexStat)
                 }
             */ 
+            SV_NOTIFY_ENTITY_DEATH,
+            /*
+                UINT16 ENTID
+                {
+                    sizeof(HealthStat)
+                }
+            */  
+            SV_NOTIFY_ENTITY_REVIVE,
+            /*
+                UINT16 ENTID
+                {
+                    sizeof(HealthStat)
+                }
+            */ 
+           SV_SET_GAME_OVER,   
+           SV_SET_GAME_RESTART,                 
 
         };
 

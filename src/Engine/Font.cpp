@@ -57,7 +57,7 @@ struct fontT {
 	}
 	void clear(){
 		if(atlas == 0) return;
-		nite::print("unloaded font `"+filename+"` ("+nite::toStr(size)+").");
+		// nite::print("unloaded font `"+filename+"` ("+nite::toStr(size)+").");
 		glDeleteTextures(1, &atlas);
     atlas = 0;
 		hash = "NULL";

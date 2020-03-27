@@ -38,10 +38,12 @@
             UInt8 faceDirection;
             String name;
             float walkPushRate;
+            bool dead;
 			void kill();
             void onCreate();
             void draw();
             void entityMove(float angle, float mod, bool holdStance);
+            void entityStep();
             void printInfo();
             bool damage(const Game::DamageInfo &dmg);
             UInt64 lastUpdateStats;

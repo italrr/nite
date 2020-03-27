@@ -28,7 +28,7 @@ struct textureT {
 	Vector<nite::Texture*> owners;
 	void clear(){
 		if(texture == 0) return;
-    nite::print("unloaded texture `"+filename+"`.");
+    // nite::print("unloaded texture `"+filename+"`.");
 		empty = true;
 		Hash = "NULL";
     filename = "NULL";

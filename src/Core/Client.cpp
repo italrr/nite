@@ -736,8 +736,65 @@ void Game::Client::update(){
                 }      
                 auto ent = static_cast<Game::EntityBase*>(it->second.get()); // its an entity
                 ent->readHealthStatState(handler);
-            } break;               
-                     
+            } break; 
+            /*
+                SV_NOTIFY_ENTITY_DEATH
+            */ 
+            case Game::PacketType::SV_NOTIFY_ENTITY_DEATH: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_NOTIFY_ENTITY_DEATH: entity id doesn't exist");
+                    break;
+                }      
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                if(ent->healthStat.dead){
+                    break; // already dead bro
+                }
+                ent->readHealthStatState(handler);
+                ent->onDeath();
+                if(ent->id == entityId){
+                    nite::print("your character dead");
+                }
+            } break;  
+            /*
+                SV_NOTIFY_ENTITY_REVIVE
+            */ 
+            case Game::PacketType::SV_NOTIFY_ENTITY_REVIVE: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_NOTIFY_ENTITY_REVIVE: entity id doesn't exist");
+                    break;
+                }     
+                // **TODO** 
+                break;
+            } break; 
+            /*
+                SV_NOTIFY_GAME_OVER
+            */ 
+            case Game::PacketType::SV_SET_GAME_OVER: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                nite::print("Game Over!");
+                // **TODO** 
+            } break;                                      
+            /*
+                SV_NOTIFY_GAME_RESTART
+            */ 
+            case Game::PacketType::SV_SET_GAME_RESTART: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                nite::print("Restarting...");
+                world.objects.clear(); // manually clear world (might be dangerous?)
+                // **TODO** 
+            } break;                      
             /* 
                 UNKNOWN
             */

@@ -44,7 +44,7 @@ struct ShaderT {
 	}
 	void clear(){
 		empty = true;
-		nite::print("unloaded shader '"+filename+"'");
+		// nite::print("unloaded shader '"+filename+"'");
 		glDeleteProgram(Program);
 	}
 };

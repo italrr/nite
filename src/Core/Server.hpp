@@ -19,6 +19,15 @@
             };
         }
 
+        enum ServerState: UInt32 {
+            Off = 0,
+            Idle,
+            Waiting,      // waiting for players to join
+            InGame,
+            GameOver,
+            ShuttingDown
+        };        
+
         struct SvClient {
             nite::IP_Port cl;
             Game::InputSimulator input;
@@ -33,6 +42,7 @@
             UInt32 lastSentOrder;  
             UInt64 lastPing;    
             UInt64 lastPacketTimeout;
+            UInt64 lastState;
             SvClient(){
                 role = Game::SvClientRole::Player;
                 lastRecvOrder = 0;
@@ -60,6 +70,7 @@
             Vector<Shared<Game::RING::Map>> maps;
             Server();
             ~Server();
+            void setState(unsigned state);
             void removeClient(UInt64 uid);
             void dropClient(UInt64 uid);
             void dropClient(UInt64 uid, String reason);
@@ -75,6 +86,8 @@
             void listen(const String &name, UInt8 maxClients, UInt16 port);
             void update();
             void close();
+            void start();
+            void restart();
             void clear();
             void game();
 
@@ -100,7 +113,10 @@
             void notifyRemoveEffect(UInt64 uid, UInt16 insId);
             void notifyUpdateEffect(UInt64 uid, UInt16 insId);
             void notifyAddItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UInt16 qty);
-            void notifyRemoveItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UInt16 qty);            
+            void notifyRemoveItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UInt16 qty); 
+            void notifyDeath(UInt64 uid);
+            void notifyGameOver(UInt64 uid);
+            void notifyGameRestart(UInt64 uid);
             
             // core
             Shared<Game::NetObject> spawn(Shared<Game::NetObject> obj);
@@ -109,6 +125,7 @@
             Shared<Game::NetObject> createPlayer(UInt64 uid, UInt32 lv);
             bool removePlayer(UInt64 uid);
             bool killPlayer(UInt64 uid);
+            void createPlayersOnStart(UInt16 initialHeader);
         };
 
     }

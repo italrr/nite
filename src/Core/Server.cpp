@@ -125,6 +125,12 @@ static auto cfKickIns = nite::Console::CreateFunction("kick", &cfKick, true, tru
 
 Game::Server::Server(){
     this->init = false;
+    setState(Game::ServerState::Off);
+}
+
+void Game::Server::setState(unsigned state){
+    this->state = state;
+    lastState = nite::getTicks();
 }
 
 Game::Server::~Server(){
@@ -161,6 +167,7 @@ void Game::Server::listen(const String &name, UInt8 maxClients, UInt16 port){
     nite::print("[server] started server '"+name+"' | max clients "+nite::toStr(this->maxClients)+" | listening at "+nite::toStr(port));
     nite::print("[server] waiting for clients...");
     this->init = true;
+    setState(Game::ServerState::Idle);
 }
 
 Game::SvClient *Game::Server::getClient(UInt64 uid){
@@ -246,9 +253,9 @@ void Game::Server::close(){
     if(!init){
         return;
     }
+    setState(Game::ServerState::ShuttingDown);
     broadcast("server is closing down");
-    nite::print("[server] closing server down...");
-    nite::print("[server] dropping clients...");
+    nite::print("[server] closing server down, dropping clients...");
     Vector<UInt32> ids;
     for(auto cl : clients){
         ids.push_back(cl.first);
@@ -270,6 +277,7 @@ void Game::Server::clear(){
     maps.clear();
     tilesets.clear();
     world.clear();
+    setState(Game::ServerState::Off);
 }
 
 void Game::Server::update(){
@@ -349,6 +357,16 @@ void Game::Server::update(){
                     sock.send(sender, reject); 
                     break;
                 }
+                // TODO: add option to allow campaigns to let players join midgame
+                if(state == Game::ServerState::InGame){
+                    nite::Packet reject((UInt32)0);
+                    reject.setHeader(Game::PacketType::SV_CONNECT_REJECT);
+                    String msg = "game already started";
+                    reject.write(msg);
+                    nite::print("[server] rejected client "+nite::toStr(netId)+": "+msg);
+                    sock.send(sender, reject); 
+                    break;
+                }
                 UInt32 clVer;
                 String nick;
                 handler.read(&clVer, sizeof(UInt32));
@@ -372,6 +390,10 @@ void Game::Server::update(){
                     nite::SmallPacket netIdPack;
                     netIdPack.write(&netId, sizeof(UInt64));
                     nite::print("[server] accepted clientId "+nite::toStr(netId)+" | nickname '"+nick+"'");
+                    if(clients.size() > 0 && state == Game::ServerState::Idle){
+                        nite::print("[server] game starting in 5 seconds...");
+                        setState(Game::ServerState::Waiting);
+                    }
                     // notify clients someone joined
                     nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
                         nite::Packet notify;
@@ -385,6 +407,7 @@ void Game::Server::update(){
                         sendPlayerList(uid);
                         ct.stop();                   
                     }), 100, netIdPack);
+                    
                 }
             } break; 
             /*
@@ -556,6 +579,52 @@ void Game::Server::broadcast(const String &message){
 }
 
 void Game::Server::game(){
+    if(!init) return;
+
+    // someone joined, let's start the game
+    if(nite::getTicks()-lastState > 5000 && state == Game::ServerState::Waiting){
+        start();
+    }
+
+    // everyone left
+    if(clients.size() == 0 && nite::getTicks()-lastState > 5000  && (state == Game::ServerState::InGame || state == Game::ServerState::GameOver)){
+        nite::print("[server] no players in the game. closing down server...");
+        close();
+    }
+
+    // everyone died
+    if(clients.size() > 0 && state == Game::ServerState::InGame){
+        int allDead = 0;
+        for(auto &cl : clients){
+            auto it = world.objects.find(cl.second.entityId);
+            if(it == world.objects.end()){
+                continue;
+            }
+            if(it->second->objType != Game::ObjectType::Entity){
+                continue;
+            }
+            auto ent = static_cast<Game::EntityBase*>(it->second.get());
+            if(ent->healthStat.dead){
+                ++allDead;
+            }
+        }
+        if(allDead == clients.size()){
+            // TODO: show game over on the screen
+            nite::print("[server] Game Over. Restarting in 8000 seconds");
+            setState(Game::ServerState::GameOver);
+            // notify clients
+            for(auto &cl : clients){
+                notifyGameOver(cl.second.clientId);
+            }
+        }
+    }
+
+    // game over and restart
+    if(state == Game::ServerState::GameOver && nite::getTicks()-lastState > 8000){
+        restart();
+    }
+
+    // update inputs
     for(auto cl : clients){
         cl.second.input.update();
         auto it = players.find(cl.second.clientId);
@@ -595,6 +664,7 @@ void Game::Server::game(){
             ent.entityMove(3.142f, ent.walkPushRate, isSpace);
         }		        
     }
+
     // update entity specifics
     for(auto &obj : world.objects){
         if(obj.second->objType == ObjectType::Entity){
@@ -604,44 +674,24 @@ void Game::Server::game(){
             if(nite::getTicks()-ent->lastUpdateStats > Game::RecalculateStatTimeout){
                 ent->updateStats();
                 ent->lastUpdateStats = nite::getTicks();
-            }            
+            }
+            ent->entityStep();
         }
     }
+    
+    // update local physics
     world.update();
 }
 
-void Game::Server::setupGame(const String &name, int maxClients, int maps){
-    if(maps <= 0){
-        maps = 1;
-    }
-    if(maxClients <= 0){
-        maxClients = 4;
-    }
-    nite::print("[server] setting up game for "+nite::toStr(maxClients)+" players | "+nite::toStr(maps)+" maps");
-    Game::RING::TileSource src("data/tileset/dungeon.json");
-    // build maps
-    for(int i = 0; i < maps; ++i){
-        Shared<Game::RING::Blueprint> bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
-        Shared<Game::RING::Map> map = Shared<Game::RING::Map>(new Game::RING::Map());
-        bp->generate(35, 35);
-        map->build(bp, src, 3);
-        this->maps.push_back(map);
-    }
-    listen(name, maxClients, nite::NetworkDefaultPort);
-    // TODO: send map to the players
-    // wait some time before starting the game here
-    nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
-        nite::print("starting game in 5 secs...");    
-        nite::Packet startPacket;
-        startPacket.setHeader(Game::PacketType::SV_SET_GAME_START);
-        persSendAll(startPacket, 1000, -1);             
+void Game::Server::createPlayersOnStart(UInt16 initialHeader){
+    // and now some chained-deliveries craziness... (apologies in advance)
+    bindOnAckFor(initialHeader, [&](nite::SmallPacket &pck, nite::IP_Port &ip){
         for(auto cl : clients){
             createPlayer(cl.second.clientId, 1);
-        }
-        // now some chained-deliveries
+        }        
         // [1] notify clients of their respective owners
         bindOnAckFor(Game::PacketType::SV_CREATE_OBJECT, [&](nite::SmallPacket &pck, nite::IP_Port &ip){   
-            auto cl = this->getClientByIp(ip);
+            auto cl = getClientByIp(ip);
             if(cl == NULL){
                 nite::print("[server] failed to notify clients their respective entity. ip was not found in the list");
                 return;
@@ -652,7 +702,7 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
             persSend(cl->cl, noti);         
             // [2] send respective clients their default skill list
             bindOnAckFor(Game::PacketType::SV_NOTI_ENTITY_OWNER, [&](nite::SmallPacket &pck, nite::IP_Port &ip){   
-                auto cl = this->getClientByIp(ip);
+                auto cl = getClientByIp(ip);
                 if(cl == NULL){
                     nite::print("[server] failed to send skill list. ip was not found in the list");
                     return;
@@ -660,13 +710,13 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
                 sendSkillList(cl->clientId, cl->entityId);
                 // [3] send respective clients their default keybinds
                 bindOnAckFor(Game::PacketType::SV_SET_ENTITY_SKILLS, [&](nite::SmallPacket &pck, nite::IP_Port &ip){  
-                    auto cl = this->getClientByIp(ip);
+                    auto cl = getClientByIp(ip);
                     if(cl == NULL){
                         nite::print("[server] failed to send default keybinds: ip was not found in the list");
                         return;
                     }
-                    auto itent = this->world.objects.find(cl->entityId);
-                    if(itent == this->world.objects.end()){
+                    auto itent = world.objects.find(cl->entityId);
+                    if(itent == world.objects.end()){
                         nite::print("[server] failed to send default keybinds: ent id "+nite::toStr(cl->entityId)+" doesn't exist");
                         return;
                     }
@@ -690,9 +740,53 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
                     persSend(cl->cl, packet, 750, -1);
                 });                    
             });             
-        });               
-        ct.stop();
-    }), 5000);
+        });             
+    });  
+}
+
+void Game::Server::restart(){
+    setState(Game::ServerState::InGame);
+    // clean up map
+    // TODO
+    // remove players
+    for(auto &cl : clients){
+        cl.second.entityId = 0;
+    }
+    players.clear();
+    // clean up world
+    world.clear();
+    nite::Packet restart;
+    restart.setHeader(Game::PacketType::SV_SET_GAME_RESTART);
+    persSendAll(restart, 1000, -1);    
+    createPlayersOnStart(Game::PacketType::SV_SET_GAME_RESTART); 
+}
+
+void Game::Server::start(){
+    setState(Game::ServerState::InGame);
+    nite::Packet start;
+    start.setHeader(Game::PacketType::SV_SET_GAME_START);
+    persSendAll(start, 1000, -1);  
+    createPlayersOnStart(Game::PacketType::SV_SET_GAME_START);
+}
+
+void Game::Server::setupGame(const String &name, int maxClients, int maps){
+    if(maps <= 0){
+        maps = 1;
+    }
+    if(maxClients <= 0){
+        maxClients = 4;
+    }
+    nite::print("[server] setting up game for "+nite::toStr(maxClients)+" players | "+nite::toStr(maps)+" maps");
+    Game::RING::TileSource src("data/tileset/dungeon.json");
+    // build maps
+    for(int i = 0; i < maps; ++i){
+        Shared<Game::RING::Blueprint> bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
+        Shared<Game::RING::Map> map = Shared<Game::RING::Map>(new Game::RING::Map());
+        bp->generate(35, 35);
+        map->build(bp, src, 3);
+        this->maps.push_back(map);
+    }
+    listen(name, maxClients, nite::NetworkDefaultPort);
 }
 
 void Game::Server::addItem(UInt16 entityId, Shared<Game::ItemBase> item){
@@ -916,6 +1010,52 @@ void Game::Server::notifyUpdateEffect(UInt64 uid, UInt16 insId){
     packet.write(&insId, sizeof(insId));
     ef->writeState(packet);
     persSend(cl->cl, packet, 750, -1);  
+}
+
+void Game::Server::notifyGameOver(UInt64 uid){
+       String msg = "failed to notify game over for client uid "+nite::toStr(uid)+": ";
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        nite::print(msg+"it doesn't exist");
+        return;
+    }
+    nite::Packet packet(++cl->svOrder);
+    packet.setHeader(Game::PacketType::SV_SET_GAME_OVER);
+    persSend(cl->cl, packet, 750, -1);   
+}
+
+
+void Game::Server::notifyGameRestart(UInt64 uid){
+       String msg = "failed to notify game over for client uid "+nite::toStr(uid)+": ";
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        nite::print(msg+"it doesn't exist");
+        return;
+    }
+    nite::Packet packet(++cl->svOrder);
+    packet.setHeader(Game::PacketType::SV_SET_GAME_RESTART);
+    persSend(cl->cl, packet, 750, -1);   
+}
+
+void Game::Server::notifyDeath(UInt64 uid){
+    String msg = "failed to notify entity death for client uid "+nite::toStr(uid)+": ";
+    // TODO(note?): We only want to notify clients who are able to see the entity in question
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        nite::print(msg+"it doesn't exist");
+        return;
+    }
+    auto it = world.objects.find(cl->entityId);
+    if(it == world.objects.end()){
+        nite::print(msg+"doesn't have an active entity");
+        return;
+    }
+    auto ent = static_cast<Game::EntityBase*>(world.objects[it->first].get());
+    nite::Packet packet(++cl->svOrder);
+    packet.setHeader(Game::PacketType::SV_NOTIFY_ENTITY_DEATH);
+    packet.write(&cl->entityId, sizeof(cl->entityId));
+    ent->writeHealthStatState(packet);
+    persSend(cl->cl, packet, 750, -1);
 }
 
 void Game::Server::sendPlayerList(UInt64 uid){
