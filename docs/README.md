@@ -6,8 +6,17 @@ nite is a 2D game engine in C++11. It uses OpenGL 3.0 for rendering and SDL2 for
 
 ## Content Table
 - History
+
+nite started a hobby project of mine in my first quarter of university when I was in Dominican Republic. I've wanting to make videogames since I was 13. I started with Game Maker, learning its own language, Game Maker. Ever since I've been fascinated with the concept of making games.
+
+nite was originally a C++03 project. 
+
 - Introduction
+
+nite itself is not special compared to other game engines, other than it was designed from the ground-up to be a RPG/Topdown game. It does feature a good amount of modern game development technologies.
+
 - Basic Game Tutorial
+TODO
 - Engine
     - Console
     - nite Script
@@ -20,7 +29,7 @@ nite is a 2D game engine in C++11. It uses OpenGL 3.0 for rendering and SDL2 for
     - Hitboxes
     - Rendering
         - Simulated Z (Depth)
-        - Layers
+        - Layers (Game layer, UI layer, etc.)
         - Shaders
         - Textures
         - Batches (Frame buffers)
@@ -30,7 +39,7 @@ nite is a 2D game engine in C++11. It uses OpenGL 3.0 for rendering and SDL2 for
         - Gamepad
     - Maps
         - Tilesets
-- Featured Game (`Rush In Dungeons`)
+- Featured Game (`Lost In Dungeons`)
     - Introduction
     - Multiplayer/Co-op
     - Monsters
