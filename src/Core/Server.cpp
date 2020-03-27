@@ -685,6 +685,8 @@ void Game::Server::game(){
 
 void Game::Server::createPlayersOnStart(UInt16 initialHeader){
     // and now some chained-deliveries craziness... (apologies in advance)
+
+    // [0] bind on the initialHeader before we start creating players and asigning
     bindOnAckFor(initialHeader, [&](nite::SmallPacket &pck, nite::IP_Port &ip){
         for(auto cl : clients){
             createPlayer(cl.second.clientId, 1);
@@ -776,7 +778,7 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
     if(maxClients <= 0){
         maxClients = 4;
     }
-    nite::print("[server] setting up game for "+nite::toStr(maxClients)+" players | "+nite::toStr(maps)+" maps");
+    nite::print("[server] setting up game for "+nite::toStr(maxClients)+" player(s) | "+nite::toStr(maps)+" map(s)");
     Game::RING::TileSource src("data/tileset/dungeon.json");
     // build maps
     for(int i = 0; i < maps; ++i){

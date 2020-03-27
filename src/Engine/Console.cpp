@@ -454,6 +454,13 @@ nite::Console::Result nite::Console::interpret(const String &command, bool remot
         if(!(tokens[i][0] == '{' && tokens[i][tokens[i].length()-1] == '}')) continue;
         tokens[i] = nite::Console::interpret(tokens[i].substr(1, tokens[i].length() - 2), false, false, false, true).msg;
     }
+    
+    String composed = imperative; // after interpolations
+
+    for(int i = 1; i < tokens.size(); ++i){
+        composed += " "+tokens[i];
+    }
+
 
     // -- execute --
     // modify variable
@@ -513,7 +520,7 @@ nite::Console::Result nite::Console::interpret(const String &command, bool remot
         nite::Console::Result r;
         if(func.serverSide && !svExec){
             if(pipeServerSide){
-                pipeServerSide(command);
+                pipeServerSide(composed);
                 if(!silent){
                     nite::Console::add(command, nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
                 }

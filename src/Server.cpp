@@ -23,47 +23,50 @@ int main(int argc, char* argv[]){
     bool running = true;
     UInt8 difficulty = 4;
     UInt8 mapNumber = 1; // TODO: this is 4, in production
-    String name = "LID-Dedi-"+nite::getTimestamp()+"-"+nite::toStr(nite::randomInt(250, 750));
+    String name = "LID-Dedi-"+nite::getTimestamp()+"-"+nite::toStr(nite::randomInt(25000, 75000));
     UInt64 timeout = nite::getTicks();
     static UInt64 ticktime = 1000 / 30; 
     auto &sv = game.localSv;
+    sv.preinit();
 
-    for(int i = 1; params.size(); ++i){
-        if((params[i] == "--max-players" || params[i] == "-mp") && i < params.size()-1){
-            if(nite::isNumber(params[i+1])){
-                maxPlayers = nite::toInt(params[i+1]);
-            }else{
-                nite::print(params[i]+" must be a number");
+    if(params.size() > 1){
+        for(int i = 1; params.size(); ++i){
+            if((params[i] == "--max-players" || params[i] == "-mp") && i < params.size()-1){
+                if(nite::isNumber(params[i+1])){
+                    maxPlayers = nite::toInt(params[i+1]);
+                }else{
+                    nite::print(params[i]+" must be a number");
+                }
             }
-        }
-        if((params[i] == "--port" || params[i] == "-p") && i < params.size()-1){
-            if(nite::isNumber(params[i+1])){
-                port = nite::toInt(params[i+1]);
-            }else{
-                nite::print(params[i]+" must be a number");
-            }
-        }     
-        if((params[i] == "--tick-rate" || params[i] == "-tr") && i < params.size()-1){
-            if(nite::isNumber(params[i+1])){
-                ticktime = nite::toInt(params[i+1]);
-            }else{
-                nite::print(params[i]+" must be a number");
-            }
-        }  
-        if((params[i] == "--name" || params[i] == "-tr") && i < params.size()-1){
-            if(params[i+1].length() > 2){
-                name = params[i+1];
-            }else{
-                nite::print(params[i]+" must be at least 2 characters long");
-            }
-        }    
-        if((params[i] == "--map-number" || params[i] == "-mn") && i < params.size()-1){
-            if(nite::isNumber(params[i+1])){
-                mapNumber = nite::toInt(params[i+1]);
-            }else{
-                nite::print(params[i]+" must be a number");
-            }
-        }                                
+            if((params[i] == "--port" || params[i] == "-p") && i < params.size()-1){
+                if(nite::isNumber(params[i+1])){
+                    port = nite::toInt(params[i+1]);
+                }else{
+                    nite::print(params[i]+" must be a number");
+                }
+            }     
+            if((params[i] == "--tick-rate" || params[i] == "-tr") && i < params.size()-1){
+                if(nite::isNumber(params[i+1])){
+                    ticktime = nite::toInt(params[i+1]);
+                }else{
+                    nite::print(params[i]+" must be a number");
+                }
+            }  
+            if((params[i] == "--name" || params[i] == "-tr") && i < params.size()-1){
+                if(params[i+1].length() > 2){
+                    name = params[i+1];
+                }else{
+                    nite::print(params[i]+" must be at least 2 characters long");
+                }
+            }    
+            if((params[i] == "--map-number" || params[i] == "-mn") && i < params.size()-1){
+                if(nite::isNumber(params[i+1])){
+                    mapNumber = nite::toInt(params[i+1]);
+                }else{
+                    nite::print(params[i]+" must be a number");
+                }
+            }                                
+        }        
     }
 
     nite::socketInit();

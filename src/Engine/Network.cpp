@@ -100,7 +100,7 @@ bool nite::UDPSocket::open(UInt16 port){
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = htons(port);
 	if (bind(sock, (const sockaddr*) &addr, sizeof(sockaddr_in)) == SOCKET_ERROR){
- 		nite::print("failed to bind UDP socket to port"); // TODO: add proper error handling
+ 		nite::print("failed to bind UDP socket to port "+nite::toStr(port)); // TODO: add proper error handling
 		close_(sock);
 		return false;
 	}
