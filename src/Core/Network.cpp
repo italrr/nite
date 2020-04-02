@@ -4,6 +4,7 @@
 
 Game::Net::Net(){
     setState(Game::NetState::Disconnected);
+    clock.set(nite::getTicks());
 }
 
 void Game::Net::setState(unsigned state){
@@ -37,6 +38,7 @@ Game::PersisentDelivey& Game::Net::persSend(nite::IP_Port &client, nite::Packet 
 }
 
 void Game::Net::updateDeliveries(){
+    clock.update();
     if(!init){
         return;
     }    
@@ -59,6 +61,16 @@ void Game::Net::updateDeliveries(){
             --i;
         }
     }    
+}
+
+void Game::RemoteClock::update(){
+    time += (nite::getTicks() - lastTick);
+    lastTick = nite::getTicks();
+}
+
+void Game::RemoteClock::set(UInt64 time){
+    this->time = time;
+    lastTick = nite::getTicks();
 }
 
 void Game::Net::dropPersFor(UInt64 netId){

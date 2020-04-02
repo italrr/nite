@@ -145,9 +145,7 @@ bool Game::EffectStat::removeByType(UInt16 type){
 Shared<Game::Effect> Game::getEffect(UInt16 type){
     switch(type){
         case Game::EffectList::EF_HEAL: {
-            auto ef = Shared<Game::Effect>(new Game::Effects::EffHeal());
-
-            return ef;
+            return Shared<Game::Effect>(new Game::Effects::EffHeal());
         };
         default:
             return Shared<Game::Effect>(NULL);               
@@ -160,9 +158,6 @@ Shared<Game::Effect> Game::getEffect(UInt16 type){
 
 // EffHeal
 bool Game::Effects::EffHeal::step(Game::EntityBase *owner){
-    if(nite::getTicks()-started > this->duration){
-        return false;
-    }
     UInt16 diff = (nite::getTicks() - this->lastStep) / 1000;
     if(diff < 1){
         return false;
@@ -170,16 +165,22 @@ bool Game::Effects::EffHeal::step(Game::EntityBase *owner){
     this->lastStep = nite::getTicks();
     UInt16 toHeal = diff * amntpersecond;
     owner->heal(toHeal, 0, 0);
+
     return true;
 }
 
 void Game::Effects::EffHeal::setup(UInt16 amnt, UInt64 time){ // time is msecs
     this->amnt = amnt;
     this->duration = time;  
-    this->amntpersecond = amnt / (time / 1000);
-    buildDesc();                 
+    this->amntpersecond = amnt / (time / 1000);                
 }
 
 void Game::Effects::EffHeal::setup(){
-    setup(100, 1000 * 5);
+    setup(30, 1000 * 5);
+}
+
+String Game::Effects::EffHeal::getStatus(Game::EntityBase *owner){
+    UInt64 target = this->started + this->duration;
+    UInt64 current = target - owner->net->clock.time; // we use server's remote time
+    return nite::toStr(((current / 1000) + 1))+"s";
 }

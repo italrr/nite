@@ -278,7 +278,7 @@ ENDIF(MINGW)
 aux_source_directory(src/ SRC_LIST)
 
 add_executable(Game src/LID.cpp)
-add_executable(Dedicated src/Server.cpp)
+#add_executable(Dedicated src/Server.cpp)#
 
 target_link_libraries(Game src)
-target_link_libraries(Dedicated src)
+#target_link_libraries(Dedicated src)#

@@ -16,6 +16,7 @@
         static const UInt64 ClientTimeout = 1000 * 10; // TODO: inc this for release
         static const UInt64 ConnectingTimeout = 1000 * 3;
         static const UInt64 UpdatePhysicsTimeout = 32; // every 32 msecs a snapshot is sent
+
         static const UInt32 CLIENT_VERSION = 0x0; // TODO: This is temporary
 
        /*
@@ -57,7 +58,20 @@
             }
         };
 
+
+        struct RemoteClock {
+            UInt64 time;
+            UInt64 lastTick;
+            void update();
+            void set(UInt64 time);
+            RemoteClock(){
+                this->time = nite::getTicks();
+            }
+        };
+
+
         struct Net {
+            Game::RemoteClock clock;
             Vector<Game::PersisentDelivey> deliveries;
             unsigned state;
             UInt64 lastState;
@@ -94,6 +108,8 @@
             
             SV_PING,
             /*
+                SEVER-SIDE ONY:
+                UINT64 REMOTE_TIME
             */
             
             SV_PONG,

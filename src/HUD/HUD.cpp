@@ -170,12 +170,23 @@ void Game::HUD::updateValues(){
             statusPanel->add(efpnl);
             if(auto icon = dynamic_cast<nite::IconUI*>(efpnl->children[0].get())){
                 icon->setIndex(ef.second->iconId);
+                icon->setFontSize(12);
+                icon->setTextPosition(nite::Vec2(0.15f));
             }            
             lastEffectList[ef.second->insId] = efpnl;
         }
     }
 
-    // updateStatus();
+    // update
+    for(auto &ef : effs){
+        auto it = lastEffectList.find(ef.second->insId);
+        if(it != lastEffectList.end() && it->second->children.size() > 0){
+            auto icon = static_cast<nite::IconUI*>(it->second->children[0].get());
+            icon->setText(ef.second->getStatus(ent));
+        }
+    }    
+
+    
     
 
 }

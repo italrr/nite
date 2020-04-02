@@ -523,10 +523,12 @@ void Game::Server::update(){
     // ping
     for(auto cl : clients){
         auto &client = clients[cl.first];
-        if(nite::getTicks()-client.lastPing > 500){
+        if(nite::getTicks()-client.lastPing > 1000){
             client.lastPing = nite::getTicks();
             nite::Packet ping(++client.lastSentOrder);
             ping.setHeader(Game::PacketType::SV_PING);
+            UInt64 ticks = nite::getTicks();
+            ping.write(&ticks, sizeof(ticks));
             sock.send(client.cl, ping);
         }
     }
@@ -1003,7 +1005,7 @@ void Game::Server::notifyAddEffect(UInt64 uid, UInt16 type, UInt16 insId){
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&type, sizeof(type));
     packet.write(&insId, sizeof(insId));
-    ef->writeState(packet);
+    ef->writeInitialState(packet);
     persSend(cl->cl, packet, 750, -1);    
 }
 
@@ -1146,6 +1148,7 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
         return Shared<Game::NetObject>(NULL);
     }    
     obj->sv = this; // we guarantee entities will have its sv ref as long as is running on a a server
+    obj->net = this;
     auto id = this->world.add(obj);
     nite::Packet crt;
     crt.setHeader(Game::PacketType::SV_CREATE_OBJECT);

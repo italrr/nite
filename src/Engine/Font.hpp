@@ -44,9 +44,9 @@
 		class Font {
 			public:
 				bool isLoaded();
-				void load(const String &path, unsigned size);
+				void load(const String &path, unsigned size, float outlineThickness = 0.0f);
 				Font();
-				Font(const String &path, unsigned size);
+				Font(const String &path, unsigned size, float outlineThickness = 0.0f);
 				~Font();
 				Font& operator= (const nite::Font &other);
 				nite::RenderableFont *draw(const String &text, float x, float y);

@@ -231,6 +231,9 @@ void Game::Client::update(){
             */             
             case Game::PacketType::SV_PING: {
                 if(!isSv){ break; }     
+                UInt64 svTime;
+                handler.read(&svTime, sizeof(svTime));
+                clock.set(svTime + ping);
                 nite::Packet pong(++sentOrder);
                 pong.setHeader(Game::PacketType::SV_PONG);
                 sock.send(this->sv, pong);                
@@ -378,6 +381,7 @@ void Game::Client::update(){
                     break;
                 }
                 obj->onCreate();
+                obj->net = this;
                 obj->readInitialState(handler);
                 world.objects[id] = obj;
                 nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+Game::ObjectSig::name(sigId)+" at "+nite::Vec2(x, y).str());
@@ -615,7 +619,7 @@ void Game::Client::update(){
                 }
                 auto ent = static_cast<Game::EntityBase*>(it->second.get());
                 ent->effectStat.add(eff, insId);
-                eff->readState(handler);                         
+                eff->readInitialState(handler);                         
             } break;  
             /*
                 SV_REMOVE_EFFECT

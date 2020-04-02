@@ -240,7 +240,7 @@ void nite::WindowUI::setCornerPattern(const nite::Texture &tex){
 }
 
 void nite::WindowUI::onCreate(){
-	basicFont.load(defaultFontUI, defaultFontRatio * 16 * getGeneralScale());
+	basicFont.load(defaultFontUI, defaultFontRatio * 16 * getGeneralScale(), 1.0f);
 	uiBasicTexture.load("data/sprite/empty.png");
 	uiShader.load("data/shaders/basic_ui_background_f.glsl", "data/shaders/basic_ui_background_v.glsl");
 	headerHeight = basicFont.getHeight() * 0.5f * 2.0f;  

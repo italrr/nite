@@ -64,7 +64,7 @@ void nite::CheckboxUI::setFont(const nite::Font &font){
 }
 
 void nite::CheckboxUI::onCreate(){
-    font.load(defaultFontUI, fontSize * defaultFontRatio);
+    font.load(defaultFontUI, fontSize * defaultFontRatio, 1.0f); 
     calculateSize();  
 }
 

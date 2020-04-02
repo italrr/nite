@@ -42,16 +42,19 @@
 
         struct NetWorld;
         struct Server;
+        struct Net;
         struct NetObject : nite::PhysicsObject {
             UInt16 id;
             UInt8 objType;
             UInt16 sigId;
             Game::NetWorld *container;
             Game::Server *sv;
+            Game::Net *net;
 
             NetObject(){
                 container = NULL;
                 sv = NULL;
+                net = NULL;
             }
 
 

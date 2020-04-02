@@ -63,7 +63,7 @@ void nite::ButtonUI::setOnClick(nite::ListenerLambda onClick){
 }
 
 void nite::ButtonUI::onCreate(){ 
-    font.load(defaultFontUI, fontSize * defaultFontRatio);
+    font.load(defaultFontUI, fontSize * defaultFontRatio, 1.0f); 
     calculateSize();
 }
 

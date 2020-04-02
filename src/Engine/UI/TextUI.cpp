@@ -73,7 +73,7 @@ void nite::TextUI::accommodate(float w, float h){
 }
 
 void nite::TextUI::onCreate(){
-  font.load(defaultFontUI, fontSize * defaultFontRatio);  
+  font.load(defaultFontUI, fontSize * defaultFontRatio, 1.0f);  
 }
 
 void nite::TextUI::setShadowColor(const nite::Color &color){

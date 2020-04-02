@@ -1,4 +1,5 @@
 #include "Object.hpp"
+#include "Network.hpp"
 
 #include "../Entity/Base.hpp"
 

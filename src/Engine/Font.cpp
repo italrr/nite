@@ -1,6 +1,7 @@
 #include "FreeType/include/ft2build.h"
 #include "FreeType/include/freetype/freetype.h"
 #include "FreeType/include/freetype/ftglyph.h"
+#include "FreeType/include/freetype/ftstroke.h"
 #include FT_FREETYPE_H
 
 #include  <algorithm>
@@ -32,7 +33,6 @@ struct glyphT {
 	nite::Vec2 size;
 	nite::Vec2 orig;
 	nite::Vec2 index;
-	nite::Vec2 _size;
 };
 
 struct fontT {
@@ -45,7 +45,7 @@ struct fontT {
 	bool empty;
 	float vertAdvance;
 	Vector<nite::Font*> owners;
-  String filename;
+  	String filename;
 	bool stick;
 	fontT(){
 		size = 0;
@@ -105,99 +105,227 @@ void nite::Font::setTick(bool v){
 	fontList[objectId].stick = v;
 }
 
-void nite::Font::load(const String &path, unsigned size){
-	FT_Library Library;
-	FT_Face Face;
+struct Single {
+	int w, h;
+	unsigned char *buffer;
+	size_t size;
+	Single(int w, int h, unsigned char *src){
+		pure(w, h, src);
+	}
+	// pure makes a base with the exact same level per channel
+	void pure(int w, int h, unsigned char* src){
+		int channels = 4;
+		this->w = w;
+		this->h = h;
+		size = w * h * channels;
+		buffer = new unsigned char[size];
+		memset(buffer, 0, size);
+		for(int i = 0; i < w*h; ++i){
+			buffer[i*4 + 0] = src[i] > 0 ? 255 : 0;
+			buffer[i*4 + 1] = src[i] > 0 ? 255 : 0;
+			buffer[i*4 + 2] = src[i] > 0 ? 255 : 0;
+			buffer[i*4 + 3] = src[i];
+		}
+	}
+	// strong makes a base with strong opposite (> 0 -> 0, == 0 -> 255)
+	void strong(int w, int h, unsigned char* src){
+		int channels = 4;
+		this->w = w;
+		this->h = h;
+		size = w * h * channels;
+		buffer = new unsigned char[size];
+		memset(buffer, 0, size);
+		for(int i = 0; i < w*h; ++i){
+			unsigned char v = src[i] > 0 ? 0 : 255;
+			buffer[i*4 + 0] = v;
+			buffer[i*4 + 1] = v;
+			buffer[i*4 + 2] = v;
+			buffer[i*4 + 3] = src[i];
+		}
+	}
+	// bliz paints over a strong base
+	void blitz(int w, int h, unsigned char* src){
+		// blitz expects a smaller bitmap
+		int offsetx = (this->w - w) / 2;
+		int offsety = (this->h - h) / 2;
+		for(int y = 0; y < h; ++y){
+			for(int x = 0; x < w; ++x){
+				int i = y * w  + x; //src
+				int j = (y + offsety)  * this->w + x + offsetx; // target
+				
+				// unsigned char v = src[i] > 0 ? 255 : 0;
+				buffer[j*4 + 0] = src[i];
+				buffer[j*4 + 1] = src[i];
+				buffer[j*4 + 2] = src[i];
+				// buffer[j*4 + 3] = (buffer[j*4 + 3] + src[i]); // disregard alpha			
+
+			}
+		}
+	}
+	Single(){
+		buffer = NULL;
+	}	
+	void clear(){
+		if(buffer != NULL){
+			delete buffer;
+		}
+	}
+};
+
+void nite::Font::load(const String &path, unsigned size, float thickness){
+	FT_Library library;
+	FT_Face face;
 	String filename = path;
 	size *= SCALING;
 	ln = -1.0f;
-	if (!nite::fileExists(filename)){
-		nite::print("Error: Couldn't load font: File '"+filename+"' doesn't exist.");
+
+	if(!nite::fileExists(filename)){
+		nite::print("couldn't load font '"+filename+"': doesn't exist");
 		return;
 	}
 
-	if(FT_Init_FreeType(&Library)){
-		nite::print("Error: FreeType library couldn't be started.");
+	if(FT_Init_FreeType(&library)){
+		nite::print("failure starting FreeType: FT_Init_FreeType");
 		return;
 	}
-	if(FT_New_Face(Library, filename.c_str(), 0, &Face)) {
-		nite::print("Error: Couldn't load font '"+filename+"'.");
-		FT_Done_FreeType(Library);
+
+	if(FT_New_Face(library, filename.c_str(), 0, &face)) {
+		nite::print("failure loading font '"+filename+"': FT_New_Face");
+		FT_Done_FreeType(library);
 		return;
-	}
-	if(FT_Set_Char_Size(Face, size*64.0, size*64.0, 96, 96)){
-		nite::print("Error: FT_Set_Char_Size() Failed.");
-		FT_Done_FreeType(Library);
-		return;
-	}
+	}	
+
 	unload();
 	String pathAndSize = path+nite::toStr(size);
 	String fileHash = nite::hashMemory((char*)pathAndSize.c_str(), pathAndSize.size());
 	objectId = getSlotByHash(fileHash);
 	if (objectId <= -1){
 		objectId = getEmptySlot();
-		fontList[objectId].empty = 0;
+		fontList[objectId].empty = false;
 		fontList[objectId].owners.push_back(this);
 		fontList[objectId].hash = fileHash;
-    fontList[objectId].filename = path;
+    	fontList[objectId].filename = path;
 	}else{
 		fontList[objectId].owners.push_back(this);
 		return;
 	}
-	fontT &F = fontList[objectId];
+	fontT &proxy = fontList[objectId];
 
-	float atlasWidth = 0, atlasHeight = 0;
-	FT_GlyphSlot g = Face->glyph;
 
-	for(int i = 32; i < 128; i++) {
-		if(FT_Load_Char(Face, i, FT_LOAD_RENDER)) {
-			nite::print("Failed to load character "+nite::toStr((char)i)+".");
+	if(FT_Set_Char_Size(face, size << 6, size << 6, 96, 96)){
+		nite::print("failure loading font '"+filename+"': FT_New_Face");
+		FT_Done_FreeType(library);		
+		return;
+	}
+
+	FT_Stroker stroker;
+	if(thickness > 0.0f){
+		FT_Stroker_New(library, &stroker);
+		FT_Stroker_Set(stroker, (int)(thickness * 64.0f), FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+	}
+
+	Vector<Single> frags; // maybe a vector could be too slow?
+	nite::Vec2 dims;
+	int xcursor = 0.0f;
+
+	for(int i = 32; i < 128; i++){
+		FT_UInt cindex = FT_Get_Char_Index(face, i);
+		FT_Glyph glyph, stroke;
+		if(FT_Load_Glyph(face, cindex, FT_LOAD_DEFAULT)){
+			nite::print("failed to load char '"+nite::toStr((char)i)+"' for font '"+filename+"'");
 			continue;
 		}
-		atlasWidth += g->bitmap.width + 2;
-		atlasHeight = std::max((unsigned int)atlasHeight, g->bitmap.rows);
-	}
-
-	GLuint texture;
-	glEnable(GL_TEXTURE_2D);
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, atlasWidth, atlasHeight, 0, GL_ALPHA, GL_UNSIGNED_BYTE, 0);
-
-	int xi = 0;
-	for(int i = 32; i < 128; i++){
-		if(FT_Load_Char(Face, i, FT_LOAD_RENDER | FT_LOAD_NO_HINTING ))
+		if(FT_Get_Glyph(face->glyph, &glyph)){
+			nite::print("failed to load char '"+nite::toStr((char)i)+"' for font '"+filename+"'");
 			continue;
-		glTexSubImage2D(GL_TEXTURE_2D, 0, xi, 0, g->bitmap.width, g->bitmap.rows, GL_ALPHA, GL_UNSIGNED_BYTE, g->bitmap.buffer);
-		F.glyphs[i].index.x = xi;
-		F.glyphs[i].index.y = 0;
-		F.glyphs[i].coors.x = g->bitmap.width;
-		F.glyphs[i].coors.y = g->bitmap.rows;
-		F.glyphs[i].orig.x = g->bitmap_left;
-		F.glyphs[i].orig.y = g->bitmap_top;
-		F.glyphs[i].size.x = g->advance.x >> 6;
-		F.glyphs[i].size.y = g->metrics.horiBearingY >> 6;
-		F.glyphs[i]._size.x = g->metrics.width;
-		F.glyphs[i]._size.y = g->metrics.height;
+		}
+		if(thickness > 0.0f){
+			if(FT_Get_Glyph(face->glyph, &stroke)){
+				nite::print("failed to load char '"+nite::toStr((char)i)+"' for font '"+filename+"'");
+				continue;
+			}		
+			// stroke
+			FT_Glyph_StrokeBorder(&stroke, stroker, 0, 1);			
+		}
+		// render to bitmap
+		FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, NULL, true);
+		FT_BitmapGlyph bitmap = reinterpret_cast<FT_BitmapGlyph>(glyph);
+		FT_BitmapGlyph bitmapStroke;
+		if(thickness > 0.0f){
+			FT_Glyph_To_Bitmap(&stroke, FT_RENDER_MODE_NORMAL, NULL, true);
+			bitmapStroke = reinterpret_cast<FT_BitmapGlyph>(stroke);
+		}
+		
+		Single buffer;
 
-		xi += g->bitmap.width + 2;
+		// render filler alone
+		if(thickness == 0.0f){
+			buffer = Single();
+			buffer.pure(bitmap->bitmap.width, bitmap->bitmap.rows, bitmap->bitmap.buffer);
+		// render outline as a strong and blit on it the filler
+		}else{
+			buffer = Single();
+			buffer.strong(bitmapStroke->bitmap.width, bitmapStroke->bitmap.rows, bitmapStroke->bitmap.buffer);
+			buffer.blitz(bitmap->bitmap.width, bitmap->bitmap.rows, bitmap->bitmap.buffer);		
+		}
+
+		frags.push_back(buffer);
+		auto biggest = thickness == 0.0f ? bitmap : bitmapStroke;
+
+		// metrics
+		proxy.glyphs[i].index.x = xcursor;
+		proxy.glyphs[i].index.y = 0;
+		proxy.glyphs[i].coors.x = biggest->bitmap.width;
+		proxy.glyphs[i].coors.y = biggest->bitmap.rows;
+		proxy.glyphs[i].orig.x = biggest->left;
+		proxy.glyphs[i].orig.y = biggest->top; 
+		proxy.glyphs[i].size.x = face->glyph->advance.x >> 6;
+		proxy.glyphs[i].size.y = face->glyph->metrics.horiBearingY >> 6;
+		// atlas info
+		dims.x += biggest->bitmap.width + 2;
+		dims.y = std::max((unsigned)dims.y, biggest->bitmap.rows);
+		// cursor update
+		xcursor += biggest->bitmap.width + 2;
+		FT_Done_Glyph(glyph);
+		if(thickness > 0.0f){
+			FT_Done_Glyph(stroke);
+		}
 	}
-	F.vertAdvance = Face->size->metrics.height >> 6;
+	proxy.vertAdvance = face->size->metrics.height >> 6;
 
-	F.atlas = texture;
-	F.hash = fileHash;
-	F.atlasSize.set(atlasWidth, atlasHeight);
-	F.path = path;
-	F.size = size;
-	F.empty = 0;
-	nite::print("loaded font '"+filename+"' size: "+nite::toStr(size)+".");
-	FT_Done_Face(Face);
-	FT_Done_FreeType(Library);
+	// compose atlas
+	GLuint atlas;
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &atlas);
+	glBindTexture(GL_TEXTURE_2D, atlas);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims.x, dims.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);	
+	xcursor = 0;
+	for(int i = 0; i < frags.size(); ++i){
+		auto &frag = frags[i];
+		glTexSubImage2D(GL_TEXTURE_2D, 0, xcursor, 0, frag.w, frag.h, GL_RGBA, GL_UNSIGNED_BYTE, frag.buffer);
+		xcursor += frag.w + 2;
+		frag.clear();
+	}
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	// finish up
+	proxy.hash = fileHash;
+	proxy.atlasSize = dims;
+	proxy.path = path;
+	proxy.size = size;
+	proxy.empty = false;
+	proxy.atlas = atlas;
+
+	nite::print("loaded font '"+filename+"' size: "+nite::toStr(size));
+
+	// clean up
+	if(thickness > 0.0f){
+		FT_Stroker_Done(stroker);
+	}
+	FT_Done_Face(face);
+	FT_Done_FreeType(library);
 }
 
 int nite::Font::getFontSize(){
@@ -217,12 +345,12 @@ nite::Font::Font(){
 	shadow = true;
 }
 
-nite::Font::Font(const String &path, unsigned size){
+nite::Font::Font(const String &path, unsigned size, float outlineThickness){
 	objectId = -1;
 	scale = nite::Vec2(1, 1);
 	shadow = false;
 	smooth = true;
-	load(path, size);
+	load(path, size, outlineThickness);
 }
 
 void nite::Font::unload(){
@@ -237,7 +365,7 @@ void nite::Font::unload(){
 		fontList[objectId].clear();
 		fontList[objectId].empty = true;
 	}
-  objectId = -1;
+  	objectId = -1;
 }
 
 nite::Font::~Font(){

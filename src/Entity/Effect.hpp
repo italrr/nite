@@ -58,6 +58,7 @@
         struct Effect {
             String name;
             String desc;
+            String status;
             UInt64 duration;
             UInt64 started;
             UInt64 lastStep;
@@ -72,13 +73,13 @@
                 this->owner = NULL;
                 this->duration = 1000 * 30;
                 this->color.set("#E24E75");
+                this->status = "";
                 iconId = 0;
             }
 
             void start(EntityBase *owner){
                 this->lastStep = nite::getTicks();
                 this->started = nite::getTicks();
-                buildDesc(owner);
                 onStart(owner);
             }
 
@@ -86,8 +87,8 @@
                 
             }
 
-            virtual void buildDesc(Game::EntityBase *owner){
-                this->desc = "None";
+            virtual String getStatus(Game::EntityBase *owner){
+                return nite::toStr((nite::getTicks()-(started+this->duration))/1000)+ "s";
             }
             
             virtual void onStart(Game::EntityBase *owner){
@@ -98,13 +99,23 @@
 
             }
 
-            virtual void readState(const nite::Packet &in){
+            virtual void readState(nite::Packet &in){
 
             }
 
-            virtual void writeState(const nite::Packet &out){
+            virtual void writeState(nite::Packet &out){
 
             }
+
+            virtual void readInitialState(nite::Packet &in){
+                in.read(&started, sizeof(started));
+                in.read(&duration, sizeof(started));
+            }
+
+            virtual void writeInitialState(nite::Packet &out){
+                out.write(&started, sizeof(started));
+                out.write(&duration, sizeof(started));
+            }            
 
             virtual bool step(Game::EntityBase *owner){
                 return false;
@@ -137,7 +148,7 @@
             EFFECTS
         */
         namespace Effects {
-            struct EffHeal : Effect {
+            struct EffHeal : Game::Effect {
                 UInt16 amnt;
                 UInt16 amntpersecond;
                 EffHeal(){
@@ -145,11 +156,9 @@
                     this->name = "Effective Heal";
                     this->color.set("#30DE8D");
                 }
+                String getStatus(Game::EntityBase *owner);
                 void setup();
                 void setup(UInt16 amnt, UInt64 time);
-                void buildDesc(){
-                    this->desc = "Healing "+nite::toStr(amntpersecond)+" HP per second. 0 seconds left.";
-                }
                 bool step(Game::EntityBase *owner);
             };             
         }

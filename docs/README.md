@@ -5,9 +5,10 @@ nite is a 2D game engine in C++11. It uses OpenGL 3.0 for rendering and SDL2 for
 
 
 ## Content Table
+
 - History
 
-nite started a hobby project of mine in my first quarter of university when I was in Dominican Republic. I've wanting to make videogames since I was 13. I started with Game Maker, learning its own language, Game Maker. Ever since I've been fascinated with the concept of making games.
+nite started a hobby project of mine in my first quarter of university when I was in Dominican Republic. I've wanting to make videogames since I was 13. I started with Game Maker, learning its own language, Game Maker Language. Ever since I've been fascinated with the concept of making games.
 
 nite was originally a C++03 project. 
 
