@@ -59,6 +59,7 @@
 				float getWidth(const String &str);
 				float getHeight();
 				float getHeight(const String &str);
+				float getRealHeight(const String &str); // texture size
 				void setScale(float x, float y);
 				void setScale(const nite::Vec2 &s);
 				void unload();

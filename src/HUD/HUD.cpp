@@ -90,34 +90,41 @@ void Game::HUD::updateValues(){
         }
     }       
 
-    auto updateActionable = [&](Shared<nite::BaseUIComponent> cmp, int indx){
-        if(cmp.get() != NULL && ent->actionables[0].type != Game::ActionableType::None){
-            if(auto icon = dynamic_cast<nite::IconUI*>(cmp->children[0].get())){
-                auto act = ent->actionables[indx];
-                switch(act.type){
-                    case Game::ActionableType::Skill: {
-                        auto sk = getSkill(ent->actionables[indx].id, 0);
-                        icon->setIndex(sk->iconId);
-                    } break ;
-                    case Game::ActionableType::Item: {
-                        // TODO
-                    } break ;          
-                }
+    auto updateActionable = [&](Shared<nite::BaseUIComponent> cmp, int indx, String letter){
+        if(cmp.get() == NULL || ent->actionables[indx].type == Game::ActionableType::None){
+            return;
+        }
+        auto iconcmp = cmp->getComponentByType("icon");
+        auto textcmp = cmp->getComponentByType("text");
+        if(auto icon = dynamic_cast<nite::IconUI*>(iconcmp.get())){
+            auto act = ent->actionables[indx];
+            switch(act.type){
+                case Game::ActionableType::Skill: {
+                    auto sk = getSkill(ent->actionables[indx].id, 0);
+                    icon->setIndex(sk->iconId);
+                } break ;
+                case Game::ActionableType::Item: {
+                    // TODO
+                } break ;          
             }
-        }  
+        }
+        if(auto text = dynamic_cast<nite::TextUI*>(textcmp.get())){
+            text->setText(letter);
+        }
+
     };
 
  
     auto actZPanel = this->main->getComponentById("actionable_z");
-    updateActionable(actZPanel, 0);
+    updateActionable(actZPanel, 0, "Z");
     auto actXPanel = this->main->getComponentById("actionable_x");
-    updateActionable(actXPanel, 1);
+    updateActionable(actXPanel, 1, "X");
     auto actCPanel = this->main->getComponentById("actionable_c");
-    updateActionable(actCPanel, 2);
+    updateActionable(actCPanel, 2, "C");
     auto actAPanel = this->main->getComponentById("actionable_a");
-    updateActionable(actAPanel, 3);
+    updateActionable(actAPanel, 3, "A");
     auto actSPanel = this->main->getComponentById("actionable_s");
-    updateActionable(actSPanel, 4);
+    updateActionable(actSPanel, 4, "S");
 
     auto &effs = ent->effectStat.effects;
     auto statusPanel = this->main->getComponentById("hud_eff_column");
@@ -138,19 +145,26 @@ void Game::HUD::updateValues(){
             Jzon::Node json = Jzon::object();
             Jzon::Node children = Jzon::array();
             Jzon::Node iconSize = Jzon::object();
-            iconSize.add("hor", 32);
-            iconSize.add("vert", 32);
+            Jzon::Node iconTextPosition = Jzon::object();
             // color
             color.add("r", ef->color.r);
             color.add("g", ef->color.g);
             color.add("b", ef->color.b);
             color.add("a", 1.0f);
+            // iconTextPosition
+            iconTextPosition.add("hor", 0.5f);
+            iconTextPosition.add("vert", 0.5f);            
+            // icon size
+            iconSize.add("hor", 32);
+            iconSize.add("vert", 32);            
             // icon
             icon.add("type", "icon");
             icon.add("source", "data/ui/icons/test_icons.png");
             icon.add("width", 64);
             icon.add("height", 64);
             icon.add("iconSize", iconSize);
+            icon.add("textPosition", iconTextPosition);
+            icon.add("fontColor", color);
             children.add(icon);
             // panel
             json.add("width", 64);
@@ -168,7 +182,7 @@ void Game::HUD::updateValues(){
         if(it == lastEffectList.end()){
             auto efpnl = buildEffPanel(ef.second.get());
             statusPanel->add(efpnl);
-            if(auto icon = dynamic_cast<nite::IconUI*>(efpnl->children[0].get())){
+            if(auto icon = dynamic_cast<nite::IconUI*>(efpnl->getComponentByType("icon").get())){
                 icon->setIndex(ef.second->iconId);
                 icon->setFontSize(12);
                 icon->setTextPosition(nite::Vec2(0.15f));
@@ -181,7 +195,7 @@ void Game::HUD::updateValues(){
     for(auto &ef : effs){
         auto it = lastEffectList.find(ef.second->insId);
         if(it != lastEffectList.end() && it->second->children.size() > 0){
-            auto icon = static_cast<nite::IconUI*>(it->second->children[0].get());
+            auto icon = static_cast<nite::IconUI*>(it->second->getComponentByType("icon").get());
             icon->setText(ef.second->getStatus(ent));
         }
     }    

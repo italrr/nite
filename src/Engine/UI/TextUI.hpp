@@ -40,7 +40,7 @@
         nite::Color getShadowColor();
         nite::Vec2 getShadowOffset();
         nite::Color getFontColor();
-        void setSize(const nite::Vec2 &size);
+        // void setSize(const nite::Vec2 &size);
         nite::Vec2 computeSize();
         void render();
         void update();

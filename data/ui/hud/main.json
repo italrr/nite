@@ -78,7 +78,7 @@
 			"type": "panel",
 			"layout": "hbox",
 			"width": "!! #gwidth + 0.0",
-			"height": "!! #gheight * 0.08",
+			"height": 92,
 			"children": [
 				{
 					"type": "panel",
@@ -88,89 +88,29 @@
 					"children": [
 						{
 							"id": "actionable_z",
-							"type":"panel",
-							"layout": "hbox",
-							"width": 64,
-							"height": 64,
-							"margin": {"hor": 16},
 							"backgroundColor": {"r": 0.9, "g": 0.15, "b": 0.15, "a": 1.0},
-							"children": [
-								{
-									"type": "icon",
-									"text": "Z",
-									"style": "actionable_bar",
-									"fontColor": {"r": 0.9, "g": 0.15, "b": 0.15, "a": 1.0}
-								}
-							]
+							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
 							"id": "actionable_x",
-							"type":"panel",
-							"layout": "hbox",
-							"width": 64,
-							"height": 64,
-							"margin": {"hor": 16},
 							"backgroundColor": {"r": 0.15, "g": 0.9, "b": 0.15, "a": 1.0},
-							"children": [
-								{
-									"type": "icon",
-									"text": "X",
-									"style": "actionable_bar",
-									"fontColor": {"r": 0.15, "g": 0.9, "b": 0.15, "a": 1.0}
-								}
-							]
+							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
 							"id": "actionable_c",
-							"type":"panel",
-							"layout": "hbox",
-							"width": 64,
-							"height": 64,
-							"margin": {"hor": 16},
 							"backgroundColor": {"r": 0.15, "g": 0.15, "b": 0.9, "a": 1.0},
-							"children": [
-								{
-									"type": "icon",
-									"text": "C",
-									"style": "actionable_bar",
-									"fontColor": {"r": 0.15, "g": 0.15, "b": 0.9, "a": 1.0}
-								}
-							]
+							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
 							"id": "actionable_a",
-							"type":"panel",
-							"layout": "hbox",
-							"width": 64,
-							"height": 64,
-							"margin": {"hor": 16},
 							"backgroundColor": {"r": 0.9, "g": 0.85, "b": 0.15, "a": 1.0},
-							"children": [
-								{
-									"type": "icon",
-									"text": "A",
-									"style": "actionable_bar",
-									"fontColor": {"r": 0.9, "g": 0.85, "b": 0.15, "a": 1.0}
-								}
-							]
+							"import": "data/ui/hud/actionbar_object.json",
 						},
 						{
 							"id": "actionable_s",
-							"type":"panel",
-							"layout": "hbox",
-							"width": 64,
-							"height": 64,
-							"margin": {"hor": 16 },
 							"backgroundColor": {"r": 0.92, "g": 0.15, "b": 0.99, "a": 1.0},
-							"children": [
-								{
-									"type": "icon",
-									"text": "S",
-									"style": "actionable_bar",
-									"fontColor": {"r": 0.92, "g": 0.15, "b": 0.99, "a": 1.0}
-								}
-							]
-						}							
+							"import": "data/ui/hud/actionbar_object.json"
+						}																														
 					]
 				}
 			]

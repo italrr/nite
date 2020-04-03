@@ -949,7 +949,7 @@ void nite::graphicsRender(){
 	initDelta = nite::getTicks();
 
 	glClear(GL_COLOR_BUFFER_BIT);
-	glClearColor(1, 1, 1, 1);
+	glClearColor(0, 0, 0, 1);
 	for(int c = 0; c < RenderTargetNumber; ++c){
 		if(targets[c].objects.size() == 0) continue;
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targets[c].objectId);

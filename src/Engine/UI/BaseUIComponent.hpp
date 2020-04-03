@@ -79,6 +79,7 @@
         Dict<String, Shared<nite::BaseUIComponent>> idsLookUp;
         Dict<String, Jzon::Node> styles;
 
+        // nicely optmized with pre-cached data
         Shared<nite::BaseUIComponent> getComponentById(const String &id){
             auto it = idsLookUp.find(id);
             if(it == idsLookUp.end()){
@@ -86,6 +87,19 @@
             }
             return it->second;
         }
+
+        // complexity off the charts thou
+        // must be careful to execute this one
+        Shared<nite::BaseUIComponent> getComponentByType(const String &type){ // first one
+            auto result = Shared<nite::BaseUIComponent>(NULL); 
+            for(int i = 0; i < children.size(); ++i){
+                result = children[i]->type == type ? children[i] : children[i]->getComponentByType(type);
+                if(result.get() != NULL){
+                    return result;
+                }
+            }
+            return result;
+        }        
 
         BaseUIComponent *getTopHeadComponent(){
             return headComponent == NULL ? this : headComponent->getTopHeadComponent();

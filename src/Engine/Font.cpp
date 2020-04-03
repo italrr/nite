@@ -51,9 +51,9 @@ struct fontT {
 		size = 0;
 		empty = 1;
 		hash = "NULL";
-    filename = "NULL";
+    	filename = "NULL";
 		stick = false;
-    atlas = 0;
+    	atlas = 0;
 	}
 	void clear(){
 		if(atlas == 0) return;
@@ -152,13 +152,10 @@ struct Single {
 			for(int x = 0; x < w; ++x){
 				int i = y * w  + x; //src
 				int j = (y + offsety)  * this->w + x + offsetx; // target
-				
-				// unsigned char v = src[i] > 0 ? 255 : 0;
 				buffer[j*4 + 0] = src[i];
 				buffer[j*4 + 1] = src[i];
 				buffer[j*4 + 2] = src[i];
 				// buffer[j*4 + 3] = (buffer[j*4 + 3] + src[i]); // disregard alpha			
-
 			}
 		}
 	}
@@ -172,6 +169,7 @@ struct Single {
 	}
 };
 
+// TODO: Unicode
 void nite::Font::load(const String &path, unsigned size, float thickness){
 	FT_Library library;
 	FT_Face face;
@@ -223,12 +221,11 @@ void nite::Font::load(const String &path, unsigned size, float thickness){
 		FT_Stroker_New(library, &stroker);
 		FT_Stroker_Set(stroker, (int)(thickness * 64.0f), FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
 	}
-
 	Vector<Single> frags; // maybe a vector could be too slow?
 	nite::Vec2 dims;
 	int xcursor = 0.0f;
-
-	for(int i = 32; i < 128; i++){
+	// render characters
+	for(int i = ASCII_MIN; i < ASCII_MAX; i++){
 		FT_UInt cindex = FT_Get_Char_Index(face, i);
 		FT_Glyph glyph, stroke;
 		if(FT_Load_Glyph(face, cindex, FT_LOAD_DEFAULT)){
@@ -294,6 +291,8 @@ void nite::Font::load(const String &path, unsigned size, float thickness){
 	proxy.vertAdvance = face->size->metrics.height >> 6;
 
 	// compose atlas
+	// TODO: might use a more complex algorithm than just a very long texture
+	// specially if we ever get to implement unicode
 	GLuint atlas;
 	glEnable(GL_TEXTURE_2D);
 	glGenTextures(1, &atlas);
@@ -634,6 +633,10 @@ nite::RenderableFont *nite::Font::draw(const String &text, float x, float y, flo
 	return obj;
 }
 
+void nite::Font::setSmooth(bool S){
+	smooth = S;
+}
+
 float nite::Font::getWidth(const String &str){
 	if(objectId <= -1) return 0;
 	float s = 0.0f;
@@ -650,8 +653,8 @@ float nite::Font::getWidth(const String &str){
 	return fs > 0 ? fs / SCALING : 0;
 }
 
-void nite::Font::setSmooth(bool S){
-	smooth = S;
+float nite::Font::getRealHeight(const String &str){
+	return fontList[objectId].glyphs['A'].coors.y * SCALING;
 }
 
 float nite::Font::getHeight(){

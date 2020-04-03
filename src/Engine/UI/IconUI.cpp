@@ -28,14 +28,12 @@ void nite::IconUI::defaultInit(){
 void nite::IconUI::rerender(){
     // if(!toRerender) return;  
     batch.begin();
-
     nite::setColor(baseColor.r, baseColor.g, baseColor.b, 1.0f);
     if(source.isLoaded() && index > -1){
         int tx = source.getWidth() / iconSize.x;
         int ty = source.getHeight() / iconSize.y;
         int x = index % tx;
         int y = index / ty;
-        this->iconPosition.set(x, y);
         source.setRegion(x * iconSize.x, y * iconSize.y, iconSize.x, iconSize.y);
         source.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);         
     }else{
@@ -43,8 +41,10 @@ void nite::IconUI::rerender(){
     }
 
     if(text.length() > 0){
-        nite::setColor(textColor);
         nite::Vec2 p = textPosition * size; // position it's actually a percentange
+        float tw = font.getWidth(text);
+        float th = font.getRealHeight(text);
+        nite::setColor(textColor);
         auto ref = font.draw(text, 0.0f + p.x, 0.0f + p.y, 0.5f, 0.5f, 0.0f);
         if(ref != NULL && shadowColor.a > 0.0f){
             ref->setShadow(shadowColor, shadowOffset);
@@ -116,7 +116,7 @@ void nite::IconUI::setFontSize(int s){
     this->fontSize = s;
     auto fn = font.getFilename();
     if(fn.length() > 0){
-        font.load(fn, s);
+        font.load(fn, s, 1.5f);
     }
     calculateSize();  
     recalculate();
@@ -173,7 +173,7 @@ void nite::IconUI::setSize(const nite::Vec2 &size){
 }
 
 nite::Vec2 nite::IconUI::computeSize(){
-    return size + padding + margin;
+    return size + padding + margin + nite::Vec2(0.0f, text.size() > 0 ? nite::getHeight() : 0.0f);
 }
 
 void nite::IconUI::onCreate(){

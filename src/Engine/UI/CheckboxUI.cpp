@@ -79,7 +79,7 @@ void nite::CheckboxUI::setFontSize(int size){
     this->fontSize = size;
     auto fn = font.getFilename();
     if(fn.length() > 0){
-        font.load(fn, size);
+        font.load(fn, size, 1.0f);
     }
     calculateSize();  
     recalculate(); 

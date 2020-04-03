@@ -1,0 +1,55 @@
+{
+	"type":"panel",
+	"layout": "vbox",
+	"width": 64,
+	"height": 92,
+	"margin": {"hor": 16},
+	"children": [
+		{
+			"type": "panel",
+			"layout": "hbox",
+			"width": 64,
+			"height": 64,
+			"children": [
+				{
+					"type": "panel",
+					"layout": "hbox",
+					"flex": 1
+				},
+				{
+					"type": "icon",
+					"style": "actionable_bar"
+				},
+				{
+					"type": "panel",
+					"layout": "hbox",
+					"flex": 1
+				}				
+			]
+		},
+		{
+			"type": "panel",
+			"layout": "hbox",
+			"width": 64,
+			"height": 28,
+			"children": [
+				{
+					"type": "panel",
+					"layout": "hbox",
+					"flex": 1
+				},
+				{
+					"type": "text",
+					"text": "text",
+					"textColor": {"r": 0.0, "g": 0.0, "b": 1.0, "a": 1.0},
+					"fontSize": 10
+				},
+				{
+					"type": "panel",
+					"layout": "hbox",
+					"flex": 1
+				}				
+			]
+		}
+	]
+}

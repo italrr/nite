@@ -97,7 +97,7 @@ void nite::TextUI::setFontSize(int size){
     this->fontSize = size;
     auto fn = font.getFilename();
     if(fn.length() > 0){
-        font.load(fn, size);
+        font.load(fn, size, 1.0f);
     }
     calculateSize();  
     recalculate();
@@ -162,7 +162,7 @@ void nite::TextUI::calculateSize(){
 }
 
 nite::Vec2 nite::TextUI::computeSize(){
-    return size + margin + padding;
+    return nite::Vec2(font.getWidth(text), font.getHeight()) + margin + padding;
 }
 
 void nite::TextUI::setFontColor(const nite::Color &color){
@@ -174,11 +174,11 @@ nite::Color nite::TextUI::getFontColor(){
     return baseColor;
 }
 
-void nite::TextUI::setSize(const nite::Vec2 &size){
-    this->realSize.set(size);
-    calculateSize();
-    recalculate();  
-}
+// void nite::TextUI::setSize(const nite::Vec2 &size){
+//     this->realSize.set(size);
+//     calculateSize();
+//     recalculate();  
+// }
 
 void nite::TextUI::render(){
     nite::setColor(baseColor);

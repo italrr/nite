@@ -506,8 +506,33 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         for(auto &style : styls){
             styles[style.first] = style.second;
         }
-    }    
+    }  
 
+    if(node.has("import") && node.get("import").isString()){
+        String path = node.get("import").toString();
+        if(nite::fileExists(path)){
+            Jzon::Parser parser;
+            auto imported = parser.parseFile(path);         
+            if(!imported.isValid()){
+                nite::print("failed to UI import '"+path+"': "+parser.getError());
+            }else{
+                nite::print("UI import '"+path+"'");
+            }
+            for(auto item : node){
+                if(item.first == "import"){
+                    continue;
+                }
+                imported.add(item.first, item.second);
+            }
+            base = nite::UI::build(imported, styles, listeners, idsLookUp);
+            return base;
+        }else{
+            base = Shared<nite::BaseUIComponent>(new nite::TextUI());
+            auto *ref = static_cast<nite::TextUI*>(base.get());
+            ref->setText("failed import");
+            nite::print("failed to UI import '"+path+"': it doesn't exist");
+        }
+    }else
     if(type == "window"){
         base = Shared<nite::BaseUIComponent>(new nite::WindowUI());
         auto *ref = static_cast<nite::WindowUI*>(base.get());
@@ -594,7 +619,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto text = node.get("text").toString();
         auto textColor = _parseColor("fontColor", node, style, nite::Color(1.0f, 1.0f, 1.0f, 1.0f), base);
         auto fontSize = _parseInt("fontSize", node, style, ref->getFontSize(), base);
-        auto size = _parseSize(node, style, nite::Vec2(-1.0f), base);     
+        // auto size = _parseSize(node, style, nite::Vec2(-1.0f), base);     
         auto onClickMethod = getListener(node.get("onClick").toString());
         auto onHoverMethod = getListener(node.get("onHover").toString());
         auto flex = _parseFloat("flex", node, style, 0.0f, base);
@@ -622,10 +647,10 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         }else{
             ref->setFlex(0.0f);   
             ref->fillUpType = false;   
-            ref->setSize(size.size);
-            ref->relSize.set(size.size);
-            ref->useRelSizeX = size.isX;
-            ref->useRelSizeY = size.isY;
+            // ref->setSize(size.size);
+            // ref->relSize.set(size.size);
+            // ref->useRelSizeX = size.isX;
+            // ref->useRelSizeY = size.isY;
         }  
         ref->setFontSize(fontSize);
         ref->setFontColor(textColor);    
@@ -816,7 +841,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(const String &path, Dict<String, n
     UInt64 timer = nite::getTicks();
 
     if(!obj.isValid()){
-        nite::print("failed to build UI from JSON '"+path+"': invalid json");
+        nite::print("failed to build UI from JSON '"+path+"': "+parser.getError());
         return Shared<nite::BaseUIComponent>(NULL);
     }
 
