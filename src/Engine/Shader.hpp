@@ -18,8 +18,11 @@
 				int getProgram();
 				bool faulty;
 				int id;
+				String shaderName;
 				String fragFilename;
+				String fragSource;
 				String vertFilename;
+				String vertSource;
 
 		};
 	}

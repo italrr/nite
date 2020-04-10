@@ -50,12 +50,70 @@ struct __ShaderData {
 	Vector<nite::Shader*> borrows;
 	String frag;
 	String vert;
+	String shaderName;
 	__ShaderData(){
 		id = ++lastId;
 		program = 0;
 	}
 	void clear(){
 		glDeleteProgram(program);
+	}
+	bool compile(const String &shaderName, const String &fragSource, const String &vertSource){
+		const char *fragSrc = fragSource.c_str();
+		const char *vertSrc = vertSource.c_str();
+		this->shaderName = shaderName;
+		// create shaders
+		GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
+		GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+		GLint Result = GL_FALSE;
+		int logLength = 5000;
+		char *buffer = new char[5000];
+		memset(buffer, 0, logLength);
+		String str;
+		// compile vertex
+		glShaderSource(vertShader, 1, &vertSrc, NULL);
+		glCompileShader(vertShader);
+		glGetShaderiv(vertShader, GL_COMPILE_STATUS, &Result);
+		glGetShaderiv(vertShader, GL_INFO_LOG_LENGTH, &logLength);
+		memset(buffer, 0, logLength);
+		glGetShaderInfoLog(vertShader, logLength, NULL, buffer);
+		str = String(buffer);
+		if(str.length() > 0) {
+			nite::print("shader compilation error '"+shaderName+"' [Vertex]: \n\n"+str+"\n\n");
+		}
+		str = "";
+		// compile frag
+		glShaderSource(fragShader, 1, &fragSrc, NULL);
+		glCompileShader(fragShader);
+		glGetShaderiv(fragShader, GL_COMPILE_STATUS, &Result);
+		glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
+		memset(buffer, 0, logLength);
+		glGetShaderInfoLog(fragShader, logLength, NULL, buffer);
+		str = String(buffer);
+		if(str.length() > 0) {
+			nite::print("shader compilation error '"+shaderName+"' [Fragment]: \n\n"+str+"\n\n");
+		}
+		str = "";
+		// put together
+		program = glCreateProgram();
+		glAttachShader(program, vertShader);
+		glAttachShader(program, fragShader);
+		glLinkProgram(program);
+		// check status
+		glGetProgramiv(program, GL_LINK_STATUS, &Result);
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+		memset(buffer, 0, logLength);
+		glGetProgramInfoLog(program, logLength, NULL, buffer);
+		str = String(buffer);
+		if(str.length() > 0) {
+			nite::print("Shader Error '"+shaderName+"' [Program]: \n\n"+str+"\n\n");
+		}
+		str = "";
+		// clean
+		glDeleteShader(vertShader);
+		glDeleteShader(fragShader);
+		delete buffer;
+		return true;
 	}
 };
 static Dict<int, __ShaderData> shaders;
@@ -69,16 +127,17 @@ static __ShaderData *getShaderData(const String &hash){
 }
 
 static nite::Console::Result cfReloadShaders(Vector<String> params){
-	Dict<int, void*> reloaded;
-	for(int i = 0; i < shaders.size(); ++i){
-		auto &shader = shaders[i];
-		auto it = reloaded.find(shader.id);
-		if(it == reloaded.end()){
-			shader.borrows[0]->reload(); // theorically these cannot be null
-			reloaded[shader.id] = &shaders[i];
+	Dict<int, void*> reloads;
+
+	for(auto &it : shaders){
+		auto rit = reloads.find(it.second.id);
+		if(it.second.borrows.size() > 0){
+			void *ref = it.second.borrows[0]; // shouldn't be null
+			static_cast<nite::Shader*>(ref)->reload();
+			reloads[it.second.id] = ref;
 		}
-		
 	}
+
 	return nite::Console::Result("true", nite::Color(0.40f, 0.40f, 0.40f, 1.0f));
 }
 
@@ -104,14 +163,13 @@ void nite::Shader::reload(){
 	if(id == -1){
 		return;
 	}
-	auto &borrows = shaders[id].borrows;
-	for(int i = 0; i < borrows.size(); ++i){
-		if(borrows[i] == this){
-			borrows.erase(borrows.begin() + i);
-			break; // impossible to be there more than one
-		}
+	String fragSource = loadSource(fragFilename);
+	String vertSource = loadSource(vertFilename);	
+	if(fragSource == "NULL" || vertSource == "NULL"){
+		return;
 	}
-	load(fragFilename, vertFilename);
+	shaders[id].clear(); // delete from gpu
+	shaders[id].compile(shaderName, fragSource, vertSource); // compile again
 }
 
 nite::Shader::Shader(){
@@ -155,11 +213,11 @@ void nite::Shader::load(const String &frag, const String &vert){
 
 	fragFilename = frag;
 	vertFilename = vert;
+	shaderName = nite::getFilename(fragFilename); // removes path
 	String fragSource = loadSource(frag);
 	String vertSource = loadSource(vert);
 	String merged = fragSource + vertSource;
 	String hash = hashString(merged); // this might be too complex. TODO: optimize :^)
-	String shaderName = fragFilename;
 	auto *data = getShaderData(hash);
 
 	if (data == NULL){
@@ -173,71 +231,15 @@ void nite::Shader::load(const String &frag, const String &vert){
 		data = &shaders[id];
 	}else{
 		id = data->id;
+		this->shaderName = data->shaderName;
+		this->fragFilename = data->frag;
+		this->vertFilename = data->vert;
 		data->borrows.push_back(this);
 		return;
 	}
 
-	const char *fragSrc = fragSource.c_str();
-	const char *vertSrc = vertSource.c_str();
-
-	/* Create shaders */
-	GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-	GLint Result = GL_FALSE;
-	int logLength = 5000;
-	char *buffer = new char[5000];
-    memset(buffer, 0, logLength);
-	String str;
-
-
-	// compile vertex
-	glShaderSource(vertShader, 1, &vertSrc, NULL);
-	glCompileShader(vertShader);
-	glGetShaderiv(vertShader, GL_COMPILE_STATUS, &Result);
-	glGetShaderiv(vertShader, GL_INFO_LOG_LENGTH, &logLength);
-  	memset(buffer, 0, logLength);
-	glGetShaderInfoLog(vertShader, logLength, NULL, buffer);
-	str = String(buffer);
-	if(str.length() > 0) {
-		nite::print("shader compilation error '"+shaderName+"' [Vertex]: \n\n"+str+"\n\n");
-	}
-	str = "";
-	// compile frag
-	glShaderSource(fragShader, 1, &fragSrc, NULL);
-	glCompileShader(fragShader);
-	glGetShaderiv(fragShader, GL_COMPILE_STATUS, &Result);
-	glGetShaderiv(fragShader, GL_INFO_LOG_LENGTH, &logLength);
-  	memset(buffer, 0, logLength);
-	glGetShaderInfoLog(fragShader, logLength, NULL, buffer);
-	str = String(buffer);
-	if(str.length() > 0) {
-		nite::print("shader compilation error '"+shaderName+"' [Fragment]: \n\n"+str+"\n\n");
-	}
-	str = "";
-
-	GLuint program = glCreateProgram();
-	glAttachShader(program, vertShader);
-	glAttachShader(program, fragShader);
-	glLinkProgram(program);
-
-	/* Check status */
-	glGetProgramiv(program, GL_LINK_STATUS, &Result);
-	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
-    memset(buffer, 0, logLength);
-	glGetProgramInfoLog(program, logLength, NULL, buffer);
-	str = String(buffer);
-	if(str.length() > 0) {
-		nite::print("Shader Error '"+shaderName+"' [Program]: \n\n"+str+"\n\n");
-	}
-	str = "";
-
-	/* Clean up */
-	glDeleteShader(vertShader);
-	glDeleteShader(fragShader);
-
-	data->program = program;
-	delete buffer;
+	data->compile(shaderName, fragSource, vertSource);
+	
 	print("loaded shader '"+shaderName+"'.");
 }
 
@@ -249,14 +251,14 @@ void nite::Shader::unload(){
 	auto &borrows = shaders[id].borrows;
 
 	for(unsigned i=0; i< borrows.size(); i++){
-		if (shaders[id].borrows[i] == this){
-			shaders[id].borrows.erase(borrows.begin() + i);
+		if (borrows[i] == this){
+			borrows.erase(borrows.begin() + i);
 			break;
 		}
 	}
 
 	if (borrows.size() == 0){
-		borrows.clear();
+		shaders.erase(id);
 	}
 
 	faulty = false;
@@ -273,6 +275,9 @@ nite::Shader& nite::Shader::operator=(const nite::Shader &other){
 	}
 	unload();
 	id = other.id;
+	fragFilename = other.fragFilename;
+	vertFilename = other.vertFilename;
+	shaderName = other.shaderName;
 	shaders[id].borrows.push_back(this);
 	return *this;
 }
