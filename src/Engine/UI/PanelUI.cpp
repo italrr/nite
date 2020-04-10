@@ -30,7 +30,15 @@ void nite::PanelUI::rerender(){
             base->repeat = true;
         }
     }else{  
-        uiBasicTexture.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);
+        auto ref = uiBasicTexture.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);
+        if(ref != NULL && userShader){
+            nite::Uniform uni;
+            uni.add("size", size);
+            uni.add("color", baseColor);
+            uni.add("alpha", baseColor.a);
+            uni.add("thickness", 5.0f);
+            ref->apply(shader, uni);
+        }        
     }
 
     // Render Children

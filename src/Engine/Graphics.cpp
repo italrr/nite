@@ -261,13 +261,13 @@ nite::Renderable::~Renderable(){
 }
 
 void nite::Renderable::apply(nite::Shader &shader){
-	nite::Program *program = new nite::Program(shader.getProgram(), shader.getName(), &shader);
+	nite::Program *program = new nite::Program(shader.getProgram(), shader.fragFilename, &shader);
 	this->programs.push_back(program);
 }
 
 void nite::Renderable::apply(nite::Shader &shader, Uniform uniforms){
-	nite::Program *program = new nite::Program(shader.getProgram(), uniforms, shader.getName(), &shader);
-	uniforms.shaderName = shader.getName();
+	nite::Program *program = new nite::Program(shader.getProgram(), uniforms, shader.fragFilename, &shader);
+	uniforms.shaderName = shader.fragFilename;
 	this->programs.push_back(program);
 }
 

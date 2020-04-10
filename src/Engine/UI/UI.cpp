@@ -470,6 +470,31 @@ static nite::Texture _parseImage(const String &name, Jzon::Node &_node, Jzon::No
     }
 }
 
+struct ShaderPair {
+    String vert;
+    String frag;
+    bool success;
+    ShaderPair(){
+        success = false;
+    }
+};
+
+static ShaderPair _parseShader(const String &name, Jzon::Node &_node, Jzon::Node *style, Shared<nite::BaseUIComponent> &component){
+    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    ShaderPair shader;
+    if(node.has(name) && node.get(name).isObject()){
+        String vert = node.get(name).get("vert").toString();
+        String frag = node.get(name).get("frag").toString();
+        if(nite::fileExists(vert) && nite::fileExists(frag)){
+            shader.success = true;
+            shader.vert = vert;
+            shader.frag = frag;
+        }
+    }
+    return shader;    
+}
+
+
 static nite::Vec2 _parseDimensions(const String &name, Jzon::Node &_node, Jzon::Node *style, const nite::Vec2 &contingency, Shared<nite::BaseUIComponent> &component){
     auto &node = _node.has(name) || style == NULL ? _node : *style;
     if(node.has(name) && node.get(name).isObject()){
@@ -549,6 +574,10 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto borderPattern = _parseString("borderPattern", node, NULL, "", base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto position = _parsePosition(node, NULL, nite::Vec2(0.0f, 0.0f), base);    
+        auto userShader = _parseShader("shader", node, NULL, base);
+        if(userShader.success){
+            base->apply(nite::Shader(userShader.frag, userShader.vert));
+        }
         auto id = _parseString("id", node, NULL, ref->literalId, base);
         ref->setId(id);  
         if(backgroundImage != "" && nite::fileExists(backgroundImage)){
@@ -588,6 +617,10 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
+        auto userShader = _parseShader("shader", node, style, base);
+        if(userShader.success){
+            base->apply(nite::Shader(userShader.frag, userShader.vert));
+        }        
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
         }          
@@ -630,6 +663,10 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base);  
         auto id = _parseString("id", node, style, base->literalId, base);
         auto font = _parseString("font", node, style, "", base); 
+        auto userShader = _parseShader("shader", node, style, base);
+        if(userShader.success){
+            base->apply(nite::Shader(userShader.frag, userShader.vert));
+        }         
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
         }               
@@ -674,6 +711,10 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto id = _parseString("id", node, style, base->literalId, base);
         auto font = _parseString("font", node, style, "", base); 
+        auto userShader = _parseShader("shader", node, style, base);
+        if(userShader.success){
+            base->apply(nite::Shader(userShader.frag, userShader.vert));
+        }         
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
         }           
@@ -725,7 +766,11 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto fontSize = _parseInt("fontSize", node, style, ref->getFontSize(), base);
         auto font = _parseString("font", node, style, "", base); 
         auto shadowOffset = _parseDimensions("shadowOffset", node, style, ref->getShadowOffset(), base); 
-        auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base);         
+        auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base); 
+        auto userShader = _parseShader("shader", node, style, base);
+        if(userShader.success){
+            base->apply(nite::Shader(userShader.frag, userShader.vert));
+        }                 
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
         }           
@@ -773,6 +818,12 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
+        auto userShader = _parseShader("shader", node, style, base);
+        if(userShader.success){
+            nite::Shader shader;
+            shader.load(userShader.frag, userShader.vert);
+            base->apply(shader);
+        }         
         ref->setId(id);    
         ref->setMargin(margin);
         ref->setPadding(padding);        

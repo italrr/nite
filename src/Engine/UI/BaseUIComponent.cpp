@@ -82,6 +82,7 @@ nite::BaseUIComponent::BaseUIComponent(){
     renderOnTarget = nite::RenderTargetUI;
     isHovered = false;
     uninteract = false;
+    userShader = false;
     literalId = getUniqueId();
 }
 

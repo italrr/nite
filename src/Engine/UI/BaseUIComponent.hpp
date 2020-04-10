@@ -2,6 +2,7 @@
   #define NITE_BASIC_UI_COMPONENT_HPP
 
   #include "../Graphics.hpp"
+  #include "../Shader.hpp"
   #include "../Tools/Tools.hpp"
   #include <memory>
 
@@ -78,6 +79,17 @@
         bool uninteract;
         Dict<String, Shared<nite::BaseUIComponent>> idsLookUp;
         Dict<String, Jzon::Node> styles;
+        nite::Shader shader;
+        bool userShader;
+
+        virtual void apply(const nite::Shader &shader){
+            this->shader = shader;
+            userShader = true;
+        }
+
+        virtual void unapply(){
+            userShader = false;
+        }
 
         // nicely optmized with pre-cached data
         Shared<nite::BaseUIComponent> getComponentById(const String &id){

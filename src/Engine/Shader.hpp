@@ -4,8 +4,7 @@
 	#include "Types.hpp"
 	#include "Graphics.hpp"
 	namespace nite {
-		class Shader {
-			public:
+		struct Shader {
 				Shader();
 				~Shader();
 				Shader(const String &frag, const String &vert);
@@ -15,17 +14,12 @@
 				void reload();
 				void applyRenderTarget(unsigned T);
 				void applyRenderTarget(unsigned T, Uniform uniforms);
-				int getProgram();
-				String getName();
 				Shader& operator= (const Shader &other);
-				String getFragFilename();
-				String getVertFilename();
+				int getProgram();
 				bool faulty;
-			private:
+				int id;
 				String fragFilename;
 				String vertFilename;
-				int objectId;
-				String name;
 
 		};
 	}

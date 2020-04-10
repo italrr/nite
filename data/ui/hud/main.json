@@ -88,27 +88,22 @@
 					"children": [
 						{
 							"id": "actionable_z",
-							"backgroundColor": {"r": 0.9, "g": 0.15, "b": 0.15, "a": 1.0},
 							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
 							"id": "actionable_x",
-							"backgroundColor": {"r": 0.15, "g": 0.9, "b": 0.15, "a": 1.0},
 							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
 							"id": "actionable_c",
-							"backgroundColor": {"r": 0.15, "g": 0.15, "b": 0.9, "a": 1.0},
 							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
 							"id": "actionable_a",
-							"backgroundColor": {"r": 0.9, "g": 0.85, "b": 0.15, "a": 1.0},
-							"import": "data/ui/hud/actionbar_object.json",
+							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
 							"id": "actionable_s",
-							"backgroundColor": {"r": 0.92, "g": 0.15, "b": 0.99, "a": 1.0},
 							"import": "data/ui/hud/actionbar_object.json"
 						}																														
 					]
