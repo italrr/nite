@@ -80,15 +80,15 @@
         Dict<String, Shared<nite::BaseUIComponent>> idsLookUp;
         Dict<String, Jzon::Node> styles;
         nite::Shader shader;
-        bool userShader;
+        bool useShader;
 
         virtual void apply(const nite::Shader &shader){
             this->shader = shader;
-            userShader = true;
+            useShader = true;
         }
 
         virtual void unapply(){
-            userShader = false;
+            useShader = false;
         }
 
         // nicely optmized with pre-cached data
@@ -199,6 +199,7 @@
         }
 
         bool add(std::shared_ptr<nite::BaseUIComponent> component);
+        std::shared_ptr<nite::BaseUIComponent> add(Jzon::Node &node);
 
         bool remove(int id);
 

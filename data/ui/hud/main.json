@@ -19,9 +19,13 @@
 			"iconSize": {"hor": 32, "vert": 32},
 			"source": "data/ui/icons/test_icons.png",
 			"width": 64,
-			"height": 64,
-			"fontSize": 10,
-			"textPosition": {"hor": 0.25, "vert": 0.25}
+			"height": 64
+		},
+		"effect_col": {
+			"iconSize": {"hor": 32, "vert": 32},
+			"source": "data/ui/icons/test_icons.png",
+			"width": 48,
+			"height": 48
 		}
 	},
 	"children": [
@@ -64,7 +68,7 @@
 				{
 					"id": "hud_eff_column",
 					"type": "panel",
-					"width": 64,
+					"width": 72,
 					"height": "100%",
 					"layout": "vbox",
 					"children": [

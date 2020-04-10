@@ -35,7 +35,10 @@ void nite::IconUI::rerender(){
         int x = index % tx;
         int y = index / ty;
         source.setRegion(x * iconSize.x, y * iconSize.y, iconSize.x, iconSize.y);
-        source.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);         
+        auto ref = source.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);         
+        if(ref != NULL){
+            ref->smooth = true;
+        }
     }else{
         empty.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);
     }

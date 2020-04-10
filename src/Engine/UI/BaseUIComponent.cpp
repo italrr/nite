@@ -82,7 +82,7 @@ nite::BaseUIComponent::BaseUIComponent(){
     renderOnTarget = nite::RenderTargetUI;
     isHovered = false;
     uninteract = false;
-    userShader = false;
+    useShader = false;
     literalId = getUniqueId();
 }
 
@@ -135,6 +135,13 @@ bool nite::BaseUIComponent::add(std::shared_ptr<nite::BaseUIComponent> component
     component->headComponent = this;
     recalculate();
     return true;
+}
+
+std::shared_ptr<nite::BaseUIComponent> nite::BaseUIComponent::add(Jzon::Node &node){
+    auto top = getTopHeadComponent(); // shouldn't be null
+    auto cmp = nite::UI::build(node, top->styles); // in this case we're overlooking for listeners and idsLookUp. TODO
+    this->add(cmp);
+    return cmp;
 }
 
 bool nite::BaseUIComponent::remove(int id){

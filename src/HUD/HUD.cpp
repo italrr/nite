@@ -138,55 +138,29 @@ void Game::HUD::updateValues(){
         }
     }
 
-
-    auto buildEffPanel = [&](Game::Effect *ef){
-            Jzon::Node color = Jzon::object();
-            Jzon::Node icon = Jzon::object();
-            Jzon::Node json = Jzon::object();
-            Jzon::Node children = Jzon::array();
-            Jzon::Node iconSize = Jzon::object();
-            Jzon::Node iconTextPosition = Jzon::object();
-            // color
-            color.add("r", ef->color.r);
-            color.add("g", ef->color.g);
-            color.add("b", ef->color.b);
-            color.add("a", 1.0f);
-            // iconTextPosition
-            iconTextPosition.add("hor", 0.5f);
-            iconTextPosition.add("vert", 0.5f);            
-            // icon size
-            iconSize.add("hor", 32);
-            iconSize.add("vert", 32);            
-            // icon
-            icon.add("type", "icon");
-            icon.add("source", "data/ui/icons/test_icons.png");
-            icon.add("width", 64);
-            icon.add("height", 64);
-            icon.add("iconSize", iconSize);
-            icon.add("textPosition", iconTextPosition);
-            icon.add("fontColor", color);
-            children.add(icon);
-            // panel
-            json.add("width", 64);
-            json.add("height", 64);
-            json.add("type", "panel");
-            json.add("layout", "hbox");
-            json.add("backgroundColor", color);
-            json.add("children", children);
-            return nite::UI::build(json);
-    };
-
     // add
     for(auto &ef : effs){
         auto it = lastEffectList.find(ef.second->insId);
         if(it == lastEffectList.end()){
-            auto efpnl = buildEffPanel(ef.second.get());
-            statusPanel->add(efpnl);
-            if(auto icon = dynamic_cast<nite::IconUI*>(efpnl->getComponentByType("icon").get())){
+
+            Jzon::Node json = Jzon::object();
+            json.add("import", "data/ui/hud/effectcol_object.json");
+
+            auto efpnl = statusPanel->add(json);
+
+
+            auto panel = static_cast<nite::PanelUI*>(efpnl.get());
+            panel->setBackgroundColor(ef.second->color);
+
+
+            auto iconcmp = efpnl->getComponentByType("icon");
+            auto textcmp = efpnl->getComponentByType("text");                    
+            if(auto icon = dynamic_cast<nite::IconUI*>(iconcmp.get())){
                 icon->setIndex(ef.second->iconId);
-                icon->setFontSize(12);
-                icon->setTextPosition(nite::Vec2(0.15f));
-            }            
+            }
+            if(auto text = dynamic_cast<nite::TextUI*>(textcmp.get())){
+                text->setText(ef.second->getStatus(ent));
+            }             
             lastEffectList[ef.second->insId] = efpnl;
         }
     }
@@ -195,8 +169,14 @@ void Game::HUD::updateValues(){
     for(auto &ef : effs){
         auto it = lastEffectList.find(ef.second->insId);
         if(it != lastEffectList.end() && it->second->children.size() > 0){
-            auto icon = static_cast<nite::IconUI*>(it->second->getComponentByType("icon").get());
-            icon->setText(ef.second->getStatus(ent));
+            auto iconcmp = it->second->getComponentByType("icon");
+            auto textcmp = it->second->getComponentByType("text");
+            if(auto icon = dynamic_cast<nite::IconUI*>(iconcmp.get())){
+                icon->setIndex(ef.second->iconId);
+            }
+            if(auto text = dynamic_cast<nite::TextUI*>(textcmp.get())){
+                text->setText(ef.second->getStatus(ent));
+            }
         }
     }    
 

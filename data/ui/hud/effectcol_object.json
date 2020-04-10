@@ -1,20 +1,20 @@
 {
 	"type":"panel",
 	"layout": "vbox",
-	"width": 64,
-	"height": 92,
+	"width": 48,
+	"height": 64,
 	"backgroundColor": {"r": 0.97, "g": 0.09, "b": 0.15, "a": 1.0},	
 	"shader": {
 		"frag": "data/shaders/ui/actionbar_object_f.glsl",
 		"vert": "data/shaders/ui/actionbar_object_v.glsl",
 	},	
-	"margin": {"hor": 16},
+	"margin": {"vert": 8},
 	"children": [
 		{
 			"type": "panel",
 			"layout": "hbox",
-			"width": 64,
-			"height": 64,
+			"width": 48,
+			"height": 48,
 			"children": [
 				{
 					"type": "panel",
@@ -23,7 +23,7 @@
 				},
 				{
 					"type": "icon",
-					"style": "actionable_bar"
+					"style": "effect_col"
 				},
 				{
 					"type": "panel",
@@ -35,8 +35,8 @@
 		{
 			"type": "panel",
 			"layout": "hbox",
-			"width": 64,
-			"height": 28,
+			"width": 48,
+			"height": 16,
 			"children": [
 				{
 					"type": "panel",
@@ -47,7 +47,7 @@
 					"type": "text",
 					"text": "text",
 					"textColor": {"r": 0.0, "g": 0.0, "b": 1.0, "a": 1.0},
-					"fontSize": 10
+					"fontSize": 6.5
 				},
 				{
 					"type": "panel",

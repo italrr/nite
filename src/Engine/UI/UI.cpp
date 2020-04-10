@@ -560,6 +560,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
     }else
     if(type == "window"){
         base = Shared<nite::BaseUIComponent>(new nite::WindowUI());
+        base->styles = styles; // for now only window is allowed to keep a copy this
         auto *ref = static_cast<nite::WindowUI*>(base.get());
         auto size = _parseSize(node, NULL, nite::Vec2(300, 450), base);
         auto layout = _parseLayout(node, NULL, base);
