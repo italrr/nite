@@ -1,32 +1,107 @@
 {
+	"__root__": {
+		
+	},
 	"0": {
 		"name": "None",
 		"desc": "None",
 		"reqs": [],
-		"iconId": 0
+		"iconId": 0,
+		"type": 1,
+		"maxLv": 1,
+		"manaCost": 0,
+		"staminaCost": 0,
+		"family": 0,
+		"range": 1,
+		"delay": 1000,
+		"adelay": 100,
+		"minUseLv": 1,
+		"skPointsPerLv": 1,
+		"baseDmg": 0
 	},
 	"2": {
 		"name": "Basic Attack",
-		"desc": "Delivers a basic attack which inflicts %i (3 + ATK/DEX + 30%WEAPDMG) physical damage using current wielded weapon.",
+		"desc": "Inflicts [3 + ATK/DEX + 30%WEAP] physical damage using current wielded weapon.",
 		"reqs": [],
-		"iconId": 111
+		"iconId": 111,
+		"type": 0,
+		"maxLv": 1,
+		"manaCost": 0,
+		"staminaCost": 0,
+		"family": 0,
+		"range": 2,
+		"delay": 100,
+		"adelay": 50,
+		"minUseLv": 1,
+		"skPointsPerLv": 1,
+		"baseDmg": 3
 	},
 	"3": {
 		"name": "Bash",
-		"desc": "Delivers a close ranged strike which inflicts %i (8 + ATK/DEX + 35%WEAP) physical damage using current wielded weapon.",
+		"desc": "Inflicts [8 + ATK/DEX + 30%WEAP] physical damage using current wielded weapon.",
 		"reqs": [],
-		"iconId": 75
+		"iconId": 75,
+		"type": 0,
+		"maxLv": 1,
+		"manaCost": 0,
+		"staminaCost": 0,
+		"family": 0,
+		"range": 2,
+		"delay": 2500,
+		"adelay": 400,
+		"minUseLv": 1,
+		"skPointsPerLv": 1,
+		"baseDmg": 8
 	},
 	"4": {
 		"name": "Dodge",
-		"desc": "Makes a quick dash towards the direction the character is pointing to equal to 3 units.",
+		"desc": "Makes a quick dash helping avoid hits",
 		"reqs": [],
-		"iconId": 88
+		"iconId": 88,
+		"type": 0,
+		"maxLv": 1,
+		"manaCost": 0,
+		"staminaCost": 0,
+		"family": 0,
+		"range": 0,
+		"delay": 8000,
+		"adelay": 400,
+		"minUseLv": 1,
+		"skPointsPerLv": 1,
+		"baseDmg": 0
+	},
+	"5": {
+		"name": "Parry",
+		"desc": "If used in the right time, blocks between 45-90% of the next incoming physical (ranged or close) attack",
+		"reqs": [],
+		"iconId": 66,
+		"type": 0,
+		"maxLv": 1,
+		"manaCost": 0,
+		"staminaCost": 0,
+		"family": 0,
+		"range": 0,
+		"delay": 3000,
+		"adelay": 190,
+		"minUseLv": 1,
+		"skPointsPerLv": 1,
+		"baseDmg": 0
 	},
 	"6": {
 		"name": "First Aid",
-		"desc": "Heals 25% of HP over 30 seconds. Only effective if HP is below 50%",
+		"desc": "Heals up to 20% of HP over 30 seconds. Doesn't work with >50% of current HP",
 		"reqs": [],
-		"iconId": 70
+		"iconId": 70,
+		"type": 0,
+		"maxLv": 1,
+		"manaCost": 0,
+		"staminaCost": 0,
+		"family": 0,
+		"range": 0,
+		"delay": 60000,
+		"adelay": 250,
+		"minUseLv": 1,
+		"skPointsPerLv": 1,
+		"baseDmg": 0
 	}
 }

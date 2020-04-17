@@ -498,12 +498,13 @@ void Game::Client::update(){
                     UInt8 lv;
                     handler.read(&skId, sizeof(UInt16));
                     handler.read(&lv, sizeof(UInt8));
-                    if(getSkill(skId, lv).get() == NULL){
+                    auto sk = getSkill(skId, lv);
+                    if(sk.get() == NULL){
                         nite::print("[client] warn SV_SET_ENTITY_SKILLS: skill id "+nite::toStr(skId)+" doesn't exist");
                         continue;
                     }
                     auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                    ent->skillStat.add(skId, lv);
+                    ent->skillStat.add(sk);
                 }
             } break; 
             /*
@@ -522,12 +523,13 @@ void Game::Client::update(){
                     nite::print("[client] fail SV_ADD_ENTITY_SKILL: entity id doesn't exist");
                     break;
                 }      
-                if(getSkill(skId, 0).get() == NULL){
+                auto sk = getSkill(skId, 0);
+                if(sk.get() == NULL){
                     nite::print("[client] warn SV_ADD_ENTITY_SKILL: skill id "+nite::toStr(skId)+" doesn't exist");
                     break;
                 }
                 auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                ent->skillStat.add(skId, lv);                          
+                ent->skillStat.add(sk);                          
             } break;            
             /*
                 SV_REMOVE_ENTITY_SKILLS

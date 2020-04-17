@@ -62,23 +62,32 @@
             UInt16 minUseLv;
             UInt16 skPointsPerLv; // how many skill points cost one level
             int iconId;
-            Skill();
+            UInt16 baseDmg;
+            Skill(){
+                id = 0;
+            }
+			virtual void onRecalculateStat(EntityBase *owner){}             
             virtual void passive(Game::EntityBase *who) {}
             virtual void beforeUse(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
             virtual void afterUse(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
             virtual void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
             virtual void buildDesc(EntityBase *owner){
                 this->desc = "None";
-            }            
+            }           
+			void parse(Jzon::Node &obj);
+
+			virtual void parseSpecial(Jzon::Node &obj){
+				
+			}             
         };
 
         enum SkillList : UInt16 {
-            NONE = 1,
+            NONE = 0,
             
             // SPECIALS [SP] 
             
             // BASE [BA] 
-            BA_ATTACK,                  // basic attack (arrow shoot, sword swing, bare hands punch)
+            BA_ATTACK = 2,              // basic attack (arrow shoot, sword swing, bare hands punch)
             BA_BASH,                    // stronger 'attack', only close range
             BA_DODGE,                   // dash movement to `dodge` attacks
             BA_PARRY,                   // block % of next physical attack received
@@ -130,11 +139,12 @@
         };
 
         Shared<Game::Skill> getSkill(UInt16 id, UInt8 lv);
+        void DBLoadSkill(const String &path);
 
         struct SkillStat {
             EntityBase *owner;
-            Dict<UInt16, UInt8> skills;
-            bool add(UInt16 id, UInt8 lv);
+            Dict<UInt16, Shared<Game::Skill>> skills;
+            bool add(Shared<Game::Skill> &sk);
             bool remove(UInt16 id);
             bool contains(UInt16 id);
             bool lvUp(UInt16 id);
@@ -148,25 +158,23 @@
 
             // BASE [BA] 
             struct BA_Attack : Skill {
-                UInt16 baseDmg;
-                BA_Attack();
+                BA_Attack(){ this->id = Game::SkillList::BA_ATTACK; }
                 void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };
             struct BA_Bash : Skill {
-                UInt16 baseDmg;
-                BA_Bash();
+                BA_Bash(){ this->id = Game::SkillList::BA_BASH; }
                 void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };
             struct BA_Dodge : Skill {
-                BA_Dodge();
+                BA_Dodge(){ this->id = Game::SkillList::BA_DODGE; }
                 void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };             
             struct BA_Parry : Skill {
-                BA_Parry();
+                BA_Parry(){ this->id = Game::SkillList::BA_PARRY; }
                 void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };         
             struct BA_FIRST_AID : Skill {
-                BA_FIRST_AID();
+                BA_FIRST_AID(){ this->id = Game::SkillList::BA_FIRST_AID; }
                 void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };               
 

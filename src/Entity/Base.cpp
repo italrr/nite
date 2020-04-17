@@ -54,10 +54,10 @@ void Game::EntityBase::printInfo(){
 	String ms = str(GAME_MAX_STAT);
 	nite::print("ID "+str(id)+" | Name: "+name+" | LV "+str(healthStat.lv)+" | Carry "+str(complexStat.maxCarry));
 	nite::print("HP "+str(healthStat.maxHealth)+" | Mana "+str(healthStat.maxMana)+" | Stamina "+str(healthStat.maxStamina)+" | StatPoints "+str(baseStat.statPoints));
-	nite::print("Str "+str(baseStat.strStat)+"/"+ms+" | Agi "+str(baseStat.agiStat)+"/"+ms+
-	" | Dex "+str(baseStat.dexStat)+"/"+ms+" | Endurance "+str(baseStat.enduStat)+"/"+ms+
-	"| Luk "+str(baseStat.lukStat)+"/"+ms+" | Int "+str(baseStat.intStat)+"/"+ms+
-	" | Char "+str(baseStat.charismaStat)+"/"+ms);
+	nite::print("Str "+str(baseStat.strAdd)+"/"+ms+" | Agi "+str(baseStat.agiAdd)+"/"+ms+
+	" | Dex "+str(baseStat.dexAdd)+"/"+ms+" | Endurance "+str(baseStat.enduAdd)+"/"+ms+
+	"| Luk "+str(baseStat.lukAdd)+"/"+ms+" | Int "+str(baseStat.intelAdd)+"/"+ms+
+	" | Char "+str(baseStat.charmAdd)+"/"+ms);
 	nite::print("Atk "+str(complexStat.atk)+" "+"MAtk "+str(complexStat.magicAtk)+" "+"Def "+str(complexStat.def)+" "+"MDef "+str(complexStat.magicDef));
 	nite::print("WalkRate "+str(complexStat.walkRate));
 	nite::print("CritRate "+str(complexStat.critRate));
@@ -85,16 +85,13 @@ void Game::EntityBase::entityStep(){
 	}
 }
 
-void Game::EntityBase::updateStats(){
+void Game::EntityBase::recalculateStats(){
 
 	if(this->healthStat.dead){
 		return;
 	}
 
-	auto effupd = effectStat.update();
-	
-	// recalculate local stats
-	recalculateStats();
+	baseStat.resetAdd();
 
 	// recalculate effects-given stats
 	auto &eff = effectStat.effects;
@@ -108,7 +105,18 @@ void Game::EntityBase::updateStats(){
 		item.second->onRecalculateStat(this);
 	}
 
-	// server-side only
+	// recalculate passive-skill-given stats
+	auto &skills = skillStat.skills;
+	for(auto &sk : carry){
+		sk.second->onRecalculateStat(this);
+	}
+
+	// recalculate local stats
+	recalculateBaseStats();
+	recalculateHealthStats();
+	recalculateComplexStats();		
+
+	// server-side only (notify client owner)
 	if(sv != NULL){ 
 		nite::Packet notify;
 		notify.setHeader(Game::PacketType::SV_UPDATE_ENTITY_ALL_STAT);
@@ -123,9 +131,9 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 	if(this->healthStat.dead){
 		return false;
 	}
+	Int32 def = 0, mdef = 0;
 	auto item = invStat.slots[Game::EquipSlot::Chest];
 	Game::ItemBase *armor = item.get() != NULL ? static_cast<Game::EquipItem*>(item.get()) : NULL; 
-	Int32 def = 0, mdef = 0;
 	auto efVal = Game::Element::isEffective(dmg.elmnt, armor == NULL ? Game::Element::Neutral : armor->elemnt); // entities are neutral by default
 	Int32 dmgdone = dmg.amnt * efVal * (dmg.isCrit ? 2.25f : 1.0f); // damage cannot be negative at the end	   
 	for(int i = 0; i < EquipSlot::TOTAL; ++i){
@@ -134,7 +142,9 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 		auto equip = static_cast<Game::EquipItem*>(item.get());
 		def += equip->def;
 		mdef += equip->mdef;
-		dmgdone = equip->onDamageRecv(dmgdone, dmg);
+		if(!dmg.truedmg){ // truedmg ignores damage buffs from weaps and items
+			dmgdone = equip->onDamageRecv(dmgdone, dmg); 
+		}
 	}
 	switch(dmg.dmgtype){
 		case Game::DamageType::Magical: {
@@ -144,7 +154,7 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 			dmgdone -= def;
 		} break;
 		case Game::DamageType::Ranged: {
-			dmgdone = dmgdone * 0.90f - def; 
+			dmgdone = dmgdone * 0.90f - def; // ranged attacks are always 90% of the real value
 		} break;				
 	}
 	auto &health = this->healthStat.health;

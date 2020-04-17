@@ -47,7 +47,7 @@
             void printInfo();
             bool damage(const Game::DamageInfo &dmg);
             UInt64 lastUpdateStats;
-            void updateStats();
+            void recalculateStats();
 			virtual void onDeath(){
 				
 			}   

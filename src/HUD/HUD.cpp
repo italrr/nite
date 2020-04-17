@@ -100,8 +100,11 @@ void Game::HUD::updateValues(){
             auto act = ent->actionables[indx];
             switch(act.type){
                 case Game::ActionableType::Skill: {
-                    auto sk = getSkill(ent->actionables[indx].id, 0);
-                    icon->setIndex(sk->iconId);
+                    int skId = ent->actionables[indx].id;
+                    if(ent->skillStat.contains(skId)){
+                        auto sk = ent->skillStat.skills[skId];
+                        icon->setIndex(sk->iconId);
+                    }
                 } break ;
                 case Game::ActionableType::Item: {
                     // TODO

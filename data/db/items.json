@@ -1,10 +1,37 @@
 {
+	"__root__": {
+		
+	},
 	"0": {
 		"name": "None",
 		"desc": "None",
+		"type": 0,
 		"weight": 0,
-		"type": "etc"
-		"elmnt": "neutral"
-		"icon": 0
-	}
+		"element": 0,
+		"iconId": 0,
+		"amnt": true
+	},
+	"1": {
+		"name": "None",
+		"desc": "None",
+		"type": 1,
+		"weight": 0,
+		"element": 0,
+		"iconId": 0,
+		"amnt": false,
+		"equipType": 1,
+		"dmg": 0,
+		"mdmg": 0,
+		"def": 0,
+		"mdef": 0
+	},
+	"2": {
+		"name": "Apple",
+		"desc": "Heals 25 HP over 5 seconds",
+		"type": 3,
+		"weight": 100,
+		"element": 0,
+		"iconId": 0,
+		"amnt": true
+	}	
 }

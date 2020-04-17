@@ -15,47 +15,68 @@ Game::ComplexStat::ComplexStat() {
 }
 
 Game::BaseStat::BaseStat(){
-	strStat = 0;
-	agiStat = 0;
-	dexStat = 0;
-	enduStat = 0;
-	lukStat = 0;
-	intStat = 0;
-	charismaStat = 0;
+	str = 0;
+	agi = 0;
+	dex = 0;
+	endu = 0;
+	luk = 0;
+	intel = 0;
+	charm = 0;
+	resetAdd();	
+}
+
+void Game::BaseStat::resetAdd(){
+	strAdd = 0;
+	agiAdd = 0;
+	dexAdd = 0;
+	enduAdd = 0;
+	lukAdd = 0;
+	intelAdd = 0;
+	charmAdd = 0;
+}
+
+void Game::Stat::recalculateBaseStats(){
+	baseStat.strAdd += baseStat.str;
+	baseStat.agiAdd += baseStat.agi;
+	baseStat.dexAdd += baseStat.dex;
+	baseStat.enduAdd += baseStat.endu;
+	baseStat.lukAdd += baseStat.luk;
+	baseStat.intelAdd += baseStat.intel;
+	baseStat.charmAdd += baseStat.charm;
 }
 
 void Game::Stat::recalculateHealthStats(){
 	if(healthStat.dead){
 		return;
 	}	
-	healthStat.maxHealth = nite::ceil((12.5f + baseStat.enduStat * 1.5f)  * GAME_STAT_BASE_SCALE * healthStat.lv);
-	healthStat.maxMana = nite::ceil((4.5f + baseStat.intStat * 0.5f) * GAME_STAT_BASE_SCALE * healthStat.lv);
-	healthStat.maxStamina = nite::ceil((1.9f + baseStat.dexStat * 0.35f + baseStat.enduStat * 0.15f) * GAME_STAT_BASE_SCALE * healthStat.lv);
+	healthStat.maxHealth = nite::ceil((12.5f + baseStat.enduAdd * 1.5f)  * GAME_STAT_BASE_SCALE * healthStat.lv);
+	healthStat.maxMana = nite::ceil((4.5f + baseStat.intelAdd * 0.5f) * GAME_STAT_BASE_SCALE * healthStat.lv);
+	healthStat.maxStamina = nite::ceil((1.9f + baseStat.dexAdd * 0.35f + baseStat.enduAdd * 0.15f) * GAME_STAT_BASE_SCALE * healthStat.lv);
 }
 
 void Game::Stat::recalculateComplexStats(){
 	if(healthStat.dead){
 		return;
 	}	
-	complexStat.maxCarry = 1000 + nite::ceil(baseStat.strStat * GAME_STAT_BASE_SCALE * 150.0f + baseStat.enduStat * GAME_STAT_BASE_SCALE * 65.0f);
-	complexStat.atk = nite::ceil(baseStat.strStat * 8.5f + baseStat.enduStat * 1.2f);
-	complexStat.magicAtk = nite::ceil(baseStat.intStat * 8.5f);
-	complexStat.def = nite::ceil(baseStat.enduStat * 5.8f + healthStat.lv * 0.7f);
-	complexStat.magicDef = nite::ceil(baseStat.intStat * 4.5f + baseStat.enduStat * 1.2f);		
-	complexStat.walkRate = nite::ceil(0.18f * baseStat.agiStat); // TODO: take weight into account
-	complexStat.critRate = (float)baseStat.lukStat / (float)GAME_MAX_STAT;
-	complexStat.precsRate = baseStat.dexStat * 1.25f;
-	complexStat.atkRate = baseStat.agiStat * (3.85f + healthStat.lv * 0.15f) + baseStat.dexStat * (1.1f + healthStat.lv * 0.1f);
-	complexStat.persuasionRate = nite::ceil(0.45f * healthStat.lv + baseStat.charismaStat * 5.96f + baseStat.intStat * 2.25f);
-	complexStat.charmRate = nite::ceil(0.5f * healthStat.lv + baseStat.charismaStat * 5.96f);
+	complexStat.maxCarry = 1000 + nite::ceil(baseStat.strAdd * GAME_STAT_BASE_SCALE * 150.0f + baseStat.enduAdd * GAME_STAT_BASE_SCALE * 65.0f);
+	complexStat.atk = nite::ceil(baseStat.strAdd * 8.5f + baseStat.enduAdd * 1.2f);
+	complexStat.magicAtk = nite::ceil(baseStat.intelAdd * 8.5f);
+	complexStat.def = nite::ceil(baseStat.enduAdd * 5.8f + healthStat.lv * 0.7f);
+	complexStat.magicDef = nite::ceil(baseStat.intelAdd * 4.5f + baseStat.enduAdd * 1.2f);		
+	complexStat.walkRate = nite::ceil(0.18f * baseStat.agiAdd); // TODO: take weight into account
+	complexStat.critRate = (float)baseStat.lukAdd / (float)GAME_MAX_STAT;
+	complexStat.precsRate = baseStat.dexAdd * 1.25f;
+	complexStat.atkRate = baseStat.agiAdd * (3.85f + healthStat.lv * 0.15f) + baseStat.dexAdd * (1.1f + healthStat.lv * 0.1f);
+	complexStat.persuasionRate = nite::ceil(0.45f * healthStat.lv + baseStat.charmAdd * 5.96f + baseStat.intelAdd * 2.25f);
+	complexStat.charmRate = nite::ceil(0.5f * healthStat.lv + baseStat.charmAdd * 5.96f);
 }
 
-Int32 Game::Stat::addBaseStat(UInt8 type, UInt32 amnt){
+Int32 Game::Stat::addBaseStat(UInt8 type, GAME_STAT_TYPE amnt){
 	if(healthStat.dead){
 		return 0;
 	}
 	Int32 toAdd = 0;
-	auto inc = [&](UInt32 &target){
+	auto inc = [&](GAME_STAT_TYPE &target){
 		int toRest = baseStat.statPoints;
 		// handle remaining points
 		if(amnt <= toRest){
@@ -75,25 +96,25 @@ Int32 Game::Stat::addBaseStat(UInt8 type, UInt32 amnt){
 	};
 	switch(type){
 		case BaseStatType::Strength:{
-			inc(baseStat.strStat);
+			inc(baseStat.str);
 		} break;
 		case BaseStatType::Agility:{
-			inc(baseStat.agiStat);
+			inc(baseStat.agi);
 		} break;
 		case BaseStatType::Dexterity:{
-			inc(baseStat.dexStat);
+			inc(baseStat.dex);
 		} break;
 		case BaseStatType::Endurance:{
-			inc(baseStat.enduStat);
+			inc(baseStat.endu);
 		} break;
 		case BaseStatType::Luck:{
-			inc(baseStat.lukStat);
+			inc(baseStat.luk);
 		} break;
 		case BaseStatType::Intelligence:{
-			inc(baseStat.intStat);
+			inc(baseStat.intel);
 		} break;
 		case BaseStatType::Charisma:{
-			inc(baseStat.charismaStat);
+			inc(baseStat.charm);
 		} break;
 	}
 	recalculateStats();
@@ -102,6 +123,8 @@ Int32 Game::Stat::addBaseStat(UInt8 type, UInt32 amnt){
 
 
 void Game::Stat::recalculateStats(){
+	baseStat.resetAdd();
+	recalculateBaseStats();
 	recalculateHealthStats();
 	recalculateComplexStats();	
 }
@@ -113,25 +136,25 @@ void Game::Stat::resetBaseStat(UInt8 type){
 	baseStat.statPoints = GAME_STAT_POINTS_PER_LV * this->healthStat.lv;
 	switch(type){
 		case BaseStatType::Strength:{
-			baseStat.strStat = 0;
+			baseStat.str = 0;
 		} break;
 		case BaseStatType::Agility:{
-			baseStat.agiStat = 0;
+			baseStat.agi = 0;
 		} break;
 		case BaseStatType::Dexterity:{
-			baseStat.dexStat = 0;
+			baseStat.dex = 0;
 		} break;
 		case BaseStatType::Endurance:{
-			baseStat.enduStat = 0;
+			baseStat.endu = 0;
 		} break;
 		case BaseStatType::Luck:{
-			baseStat.lukStat = 0;
+			baseStat.luk = 0;
 		} break;
 		case BaseStatType::Intelligence:{
-			baseStat.intStat = 0;
+			baseStat.intel = 0;
 		} break;
 		case BaseStatType::Charisma:{
-			baseStat.charismaStat = 0;
+			baseStat.charm = 0;
 		} break;
 	}
 	recalculateStats();	
@@ -165,11 +188,16 @@ void Game::Stat::setupStat(UInt16 lv){
 	baseStat.statPoints = 12;
 	while(healthStat.lv < lv && lvUp());
 	// add base (start) skills. might be cool to get these from a json
-	skillStat.add(Game::SkillList::BA_ATTACK, 1);
-	skillStat.add(Game::SkillList::BA_BASH, 1);
-	skillStat.add(Game::SkillList::BA_DODGE, 1);
-	skillStat.add(Game::SkillList::BA_PARRY, 1);
-	skillStat.add(Game::SkillList::BA_FIRST_AID, 1);
+	auto baAttackSk = getSkill(Game::SkillList::BA_ATTACK, 1);
+	skillStat.add(baAttackSk);
+	auto baBash = getSkill(Game::SkillList::BA_BASH, 1);
+	skillStat.add(baBash);
+	auto baDodge = getSkill(Game::SkillList::BA_DODGE, 1);
+	skillStat.add(baDodge);
+	auto baParry = getSkill(Game::SkillList::BA_PARRY, 1);
+	skillStat.add(baParry);
+	auto baFirstAid = getSkill(Game::SkillList::BA_FIRST_AID, 1);
+	skillStat.add(baFirstAid);
 	effectStat.removeAll();
 	fullHeal();
 }

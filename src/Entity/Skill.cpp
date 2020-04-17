@@ -20,65 +20,93 @@ static void notifyRemoveSkill(Game::EntityBase *ent, UInt16 skillId){
     }
 }
 
-Game::Skill::Skill(){
-    id =  Game::SkillList::NONE;
-    name = "NONE";
-    desc = "NONE";
-    type = Game::SkillType::Active;
-    maxLv = 1;
-    family = 0;
-    staminaCost = 1;
-    manaCost = 1;
-    range = 1;
-    minUseLv = 1;
-    delay = 1000;
-    adelay = 100;
-    skPointsPerLv = 1;
-    iconId = 0;
+static Jzon::Node db = Jzon::object();
+
+void Game::DBLoadSkill(const String &path){
+    String msg = "failed to load Skill Db '"+path+"': ";
+    if(!nite::fileExists(path)){
+        nite::print(msg+"it doesn't exist");
+        return;
+    }
+    Jzon::Parser parser;
+    auto root  = parser.parseFile(path);
+    if(!root.isValid()){
+        nite::print(msg+parser.getError());
+        return;
+    }
+    if(!root.isObject() || root.getCount() == 0){
+        nite::print("root must be an object");
+        return;
+    }
+    db = Jzon::object();
+    for(auto &obj : root){
+        if(obj.first == "__root__"){
+            continue;
+        }
+        db.add(obj.first, obj.second);
+    }
+    nite::print("loaded Skill Db '"+path+"': added "+nite::toStr(root.getCount()-1)+" object(s)");
+}
+
+
+void Game::Skill::parse(Jzon::Node &obj){
+    name = obj.get("name").toString("None");
+    desc = obj.get("desc").toString("None");
+    for(auto &it : obj.get("reqs")){
+        reqs.push_back(it.second.toInt(0));
+    }
+    iconId = obj.get("iconId").toInt(0);
+    type = obj.get("type").toInt(0);
+    maxLv = obj.get("maxLv").toInt(1);
+    manaCost = obj.get("manaCost").toInt(0);
+    staminaCost = obj.get("staminaCost").toInt(0);
+    family = obj.get("family").toInt(0);
+    range = obj.get("range").toInt(1);
+    delay = obj.get("delay").toInt(1000);
+    adelay = obj.get("adelay").toInt(100);
+    minUseLv = obj.get("minUseLv").toInt(1);
+    skPointsPerLv = obj.get("skPointsPerLv").toInt(1);
+    baseDmg = obj.get("baseDmg").toInt(0);
 }
 
 Shared<Game::Skill> Game::getSkill(UInt16 id, UInt8 lv){
+	auto dbInfo = db.get(nite::toStr(id)); 
+    auto sk = Shared<Game::Skill>(NULL);
     switch(id){
         case Game::SkillList::BA_ATTACK: {
-            auto sk = Shared<Game::Skill>(new Game::Skills::BA_Attack());
-            sk->lv = lv;
-            return sk;
-        };
+            sk = Shared<Game::Skill>(new Game::Skills::BA_Attack());
+        } break;
         case Game::SkillList::BA_BASH: {
-            auto sk = Shared<Game::Skill>(new Game::Skills::BA_Bash());
-            sk->lv = lv;
-            return sk;
-        };
+            sk = Shared<Game::Skill>(new Game::Skills::BA_Bash());
+        } break;
         case Game::SkillList::BA_DODGE: {
-            auto sk = Shared<Game::Skill>(new Game::Skills::BA_Dodge());
-            sk->lv = lv;
-            return sk;
-        };
+            sk = Shared<Game::Skill>(new Game::Skills::BA_Dodge());
+        } break;
         case Game::SkillList::BA_PARRY: {
-            auto sk = Shared<Game::Skill>(new Game::Skills::BA_Parry());
-            sk->lv = lv;
-            return sk;
-        };    
+            sk = Shared<Game::Skill>(new Game::Skills::BA_Parry());
+        } break;  
         case Game::SkillList::BA_FIRST_AID: {
-            auto sk = Shared<Game::Skill>(new Game::Skills::BA_FIRST_AID());
-            sk->lv = lv;
-            return sk;
-        };
-        default:
-            return Shared<Game::Skill>(NULL);               
+            sk = Shared<Game::Skill>(new Game::Skills::BA_FIRST_AID());
+        } break;               
     }
+    if(sk.get() != NULL){
+        sk->lv = lv;
+        if(db.has(nite::toStr(id))){
+            sk->parse(dbInfo);
+            sk->parseSpecial(dbInfo);
+        }     
+    }
+    return sk;
 }
 
-bool Game::SkillStat::add(UInt16 id, UInt8 lv){
-    if(contains(id)){
+bool Game::SkillStat::add(Shared<Game::Skill> &sk){
+    if(contains(sk->id)){
         return false;
     }   
-    if(this->skills[id] >= lv){
-        return false;
-    }
-    this->skills[id] = lv;
+    this->skills[sk->id] = sk;
     // server-side only
-    notifyAddSkill(owner, id, lv);
+    notifyAddSkill(owner, sk->id, sk->lv);
+    owner->recalculateStats();
     return true;
 }
 
@@ -90,6 +118,7 @@ bool Game::SkillStat::remove(UInt16 id){
     skills.erase(it);
     // server-side only
     notifyRemoveSkill(owner, id); 
+    owner->recalculateStats();
     return true;
 }
 
@@ -101,7 +130,10 @@ bool Game::SkillStat::lvUp(UInt16 id){
     if(contains(id)){
         return false;
     }    
-    skills[id] += skills[id] + 1;
+    if(skills[id]->lv >= skills[id]->maxLv){
+        return false;
+    }
+    ++skills[id]->lv;
     return true;
 }
 
@@ -110,21 +142,6 @@ bool Game::SkillStat::lvUp(UInt16 id){
 /*
     SK_BA_Attack
 */
-Game::Skills::BA_Attack::BA_Attack(){
-    this->name = "Basic Attack";
-    this->desc = "Inflicts [3 + ATK/DEX + 30%WEAP] physical damage using current wielded weapon.";
-    this->id = Game::SkillList::BA_ATTACK;
-    this->lv = 1;
-    this->type = Game::SkillType::Active;
-    this->family = 0; // no family tree
-    this->delay = 100;
-    this->iconId = 16 * 6 + 15;
-    this->adelay = 50;
-    this->minUseLv = 1;
-    this->maxLv = 1;
-    this->range = 2; // doesn't apply using bow
-}
-
 void Game::Skills::BA_Attack::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
 }
@@ -132,21 +149,6 @@ void Game::Skills::BA_Attack::use(Game::EntityBase *who, Game::EntityBase *to, c
 /*
     SK_BA_Bash
 */
-Game::Skills::BA_Bash::BA_Bash(){
-    this->name = "Bash";
-    this->desc = "Inflicts [8 + ATK/DEX + 30%WEAP] physical damage using current wielded weapon.";
-    this->id = Game::SkillList::BA_BASH;
-    this->lv = 1;
-    this->type = Game::SkillType::Active;
-    this->family = 0; // no family tree
-    this->delay = 2500;
-    this->iconId = 16 * 4 + 11;
-    this->adelay = 400;
-    this->minUseLv = 1;
-    this->maxLv = 1;
-    this->range = 2;
-}
-
 void Game::Skills::BA_Bash::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
 }
@@ -154,44 +156,13 @@ void Game::Skills::BA_Bash::use(Game::EntityBase *who, Game::EntityBase *to, con
 /*
     SK_BA_Dodge
 */
-Game::Skills::BA_Dodge::BA_Dodge(){
-    this->name = "Dodge";
-    this->desc = "Makes a quick dash helping avoid hits.";
-    this->id = Game::SkillList::BA_DODGE;
-    this->lv = 1;
-    this->type = Game::SkillType::Active;
-    this->family = 0; // no family tree
-    this->delay = 8000;
-    this->iconId = 16 * 5 + 8;
-    this->adelay = 400;
-    this->minUseLv = 1;
-    this->maxLv = 1;
-    this->range = 0;
-}
-
 void Game::Skills::BA_Dodge::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
 }
 
-
 /*
     SK_BA_Parry
 */
-Game::Skills::BA_Parry::BA_Parry(){
-    this->name = "Parry";
-    this->desc = "If used in the right time, blocks between 45-90% of the next incoming physical (ranged or close) attack";
-    this->id = Game::SkillList::BA_PARRY;
-    this->lv = 1;
-    this->type = Game::SkillType::Active;
-    this->family = 0; // no family tree
-    this->delay = 3000;
-    this->iconId = 16 * 4 + 2;
-    this->adelay = 190;
-    this->minUseLv = 1;
-    this->maxLv = 1;
-    this->range = 0;
-}
-
 void Game::Skills::BA_Parry::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
 }
@@ -199,21 +170,6 @@ void Game::Skills::BA_Parry::use(Game::EntityBase *who, Game::EntityBase *to, co
 /*
     SK_BA_FIRST_AID
 */
-Game::Skills::BA_FIRST_AID::BA_FIRST_AID(){
-    this->name = "First Aid";
-    this->desc = "Heals up to 20% of HP over 30 seconds. Doesn't work with >50% of current HP.";
-    this->id = Game::SkillList::BA_FIRST_AID;
-    this->lv = 1;
-    this->type = Game::SkillType::Active;
-    this->family = 0; // no family tree
-    this->delay = 60 * 1000;
-    this->iconId = 16 * 4 + 6;
-    this->adelay = 250;
-    this->minUseLv = 1;
-    this->maxLv = 1;
-    this->range = 0;
-}
-
 void Game::Skills::BA_FIRST_AID::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
 }

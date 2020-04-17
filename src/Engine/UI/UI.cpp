@@ -170,7 +170,7 @@ static nite::Console::Result cfUIRerender(Vector<String> params){
 	for(int i = 0; i < comps.size(); ++i){
         comps[i]->rerender();
 	}
-    return nite::Console::Result("requested ui recalc", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+    return nite::Console::Result("true", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 static auto cfUIRerenderIns = nite::Console::CreateFunction("ui_rerender", &cfUIRerender); 
 

@@ -13,10 +13,11 @@
 		const static unsigned RenderTargetMiddle4 = 5;
 		const static unsigned RenderTargetMiddle5 = 6;
 		const static unsigned RenderTargetUI = 7;
-    	const static unsigned RenderTargetPosteriori = 8;
-		const static unsigned RenderTargetPosterioriEngine = 9;
-		const static unsigned RenderTargetDummy = 10;
-		#define RenderTargetNumber 11
+		const static unsigned RenderTargetUI2 = 8;
+    	const static unsigned RenderTargetPosteriori = 9;
+		const static unsigned RenderTargetPosterioriEngine = 10;
+		const static unsigned RenderTargetDummy = 11;
+		#define RenderTargetNumber 12
 
 		#ifdef _WIN32
 			const static String niteCurrentPlatform = "WINDOWS";

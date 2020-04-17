@@ -166,6 +166,7 @@ void nite::Shader::reload(){
 	String fragSource = loadSource(fragFilename);
 	String vertSource = loadSource(vertFilename);	
 	if(fragSource == "NULL" || vertSource == "NULL"){
+		nite::print(":^)");
 		return;
 	}
 	shaders[id].clear(); // delete from gpu

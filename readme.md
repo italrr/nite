@@ -8,6 +8,7 @@ which allows the binding a specific callback for when it acknowledges the receip
 
 nite's drawing pipeline is procedural, a state machine, similarly to OpenGL. Example of rendering a simple rectangle texture shaded red at position `{x: 32.0f, y: 32.0f}` with a 32x32 pixels size:
 
+It's worth mentioning nite won't be officially relased up until this game is released. There are many aspects of the API which are constantly changing to accomodate a proper game design.
 ```
     
 nite::Texture rect("./rect.png");

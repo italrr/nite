@@ -71,7 +71,7 @@
 					case Emerium:
 						return "Emerium";			
 					default:
-						return "None";																										
+						return "Undefined";																										
 				}
 			}
 			// Effectiveness or uneffectiveness

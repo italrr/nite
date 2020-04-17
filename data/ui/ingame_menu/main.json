@@ -1,0 +1,19 @@
+{
+	"type": "window",
+	"title": "M E N U",
+	"notitle": false,
+	"width": 400,
+	"height": 250,
+	"layout": "vbox",
+	"unmovable": false,
+	"resizeable": false,
+    "borderThickness": 2.0,
+	"backgroundColor": {"r": 1.0, "g": 0.0, "b": 0.0, "a": 1.0},
+	"borderColor": {"r": 0.0, "g": 1.0, "b": 0.0, "a": 1.0 },
+	"styles": {
+
+	},
+	"children": [
+
+	]
+}

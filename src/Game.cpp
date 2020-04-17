@@ -1,6 +1,10 @@
 #include "Game.hpp"
 #include "Engine/View.hpp"
 
+#include "Entity/Skill.hpp"
+#include "Entity/Effect.hpp"
+#include "Entity/Inventory.hpp"
+
 static Game::GameCore *instance = NULL;
 
 void Game::GameCore::start(){
@@ -10,6 +14,10 @@ void Game::GameCore::start(){
 	isRunning = true;
 	stepGeneralTimer.name = "STEP GENERAL";
 	drawGeneralTimer.name = "DRAW GENERAL";
+	// load dbs
+	Game::DBLoadSkill("data/db/skills.json");
+	Game::DBLoadEffect("data/db/effects.json");
+	Game::DBLoadInventory("data/db/items.json");
 }
 
 void Game::GameCore::end(){

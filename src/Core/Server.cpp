@@ -704,10 +704,11 @@ void Game::Server::game(){
             auto ent = static_cast<Game::EntityBase*>(obj.second.get());
             // update stats
             // TODO: consider updating only when values have changed
-            if(nite::getTicks()-ent->lastUpdateStats > Game::RecalculateStatTimeout){
-                ent->updateStats();
-                ent->lastUpdateStats = nite::getTicks();
-            }
+            // if(nite::getTicks()-ent->lastUpdateStats > Game::RecalculateStatTimeout){
+            //     ent->recalculateStats();
+            //     ent->lastUpdateStats = nite::getTicks();
+            // }
+            ent->effectStat.update();
             ent->entityStep();
         }
     }
@@ -874,7 +875,7 @@ void Game::Server::addSkill(UInt16 entityId, UInt16 skillId, UInt8 lv){
         return;
     }
     if(auto ent = dynamic_cast<Game::EntityBase*>(it->second.get())){
-        ent->skillStat.add(skillId, lv);  
+        ent->skillStat.add(sk);  
     }else{
         nite::print(failmsg+" it's not an entity");
     }

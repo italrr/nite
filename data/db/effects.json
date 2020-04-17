@@ -1,7 +1,25 @@
 {
+	"__root__": {
+		
+	},
 	"0": {
 		"name": "None",
 		"desc": "None",
-		"iconId": 0
+		"duration": 1000,
+		"type": 0,
+		"iconId": 0,
+		"amnt" 0,
+		"amntpersecond": 0,
+		"color": "#E24E75"
+	},
+	"5": {
+		"name": "Effective Heal",
+		"desc": "None",
+		"duration": 30000,
+		"type": 0,
+		"iconId": 0,
+		"amnt" 0,
+		"amntpersecond": 0,
+		"color": "#30DE8D"
 	}
 }

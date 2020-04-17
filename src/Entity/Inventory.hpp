@@ -21,6 +21,7 @@
 		namespace ItemList {
 			enum EffectList : UInt16 {
 				NONE = 0,
+				NONE_EQUIP = 1,
 
 				U_APPLE,
 
@@ -117,6 +118,12 @@
 			virtual void onCarryRemove(EntityBase *owner){
 
 			}
+
+			void parse(Jzon::Node &obj);
+
+			virtual void parseSpecial(Jzon::Node &obj){
+				
+			}
 		};
 
 		struct EquipItem : ItemBase {
@@ -137,9 +144,11 @@
 			virtual UInt16 onDamageDone(UInt16 amnt, const Game::DamageInfo &dmg){
 				return amnt;
 			}
+			void parseSpecial(Jzon::Node &obj);
 		};
 
 		Shared<Game::ItemBase> getItem(UInt16 id, UInt16 qty);
+		void DBLoadInventory(const String &path);
 
 		struct InventoryStat {
 			EntityBase *owner;
@@ -163,10 +172,6 @@
 			struct HealthPotion : ItemBase {
 				HealthPotion(){
 					id = ItemList::U_APPLE;
-					name = "Apple";
-					desc = "Heals 25 HP points over 5 seconds";
-					type = ItemType::Usable;
-					weight = 100;
 				}
 			};
 		}

@@ -67,6 +67,8 @@
             int iconId;
             Game::EntityBase *owner;
             nite::Color color;
+            UInt16 amnt;
+            UInt16 amntpersecond;            
 
             Effect(){
                 this->name = "None";
@@ -124,6 +126,12 @@
             virtual void onRecalculateStat(Game::EntityBase *owner){
 
             }
+
+			void parse(Jzon::Node &obj);
+
+			virtual void parseSpecial(Jzon::Node &obj){
+				
+			}            
 		};
 
         struct EffectStat {
@@ -149,15 +157,10 @@
         */
         namespace Effects {
             struct EffHeal : Game::Effect {
-                UInt16 amnt;
-                UInt16 amntpersecond;
                 EffHeal(){
                     this->type = Game::EffectList::EF_HEAL;
-                    this->name = "Effective Heal";
-                    this->color.set("#30DE8D");
                 }
                 String getStatus(Game::EntityBase *owner);
-                void setup();
                 void setup(UInt16 amnt, UInt64 time);
                 bool step(Game::EntityBase *owner);
             };             
@@ -165,6 +168,7 @@
 
 
         Shared<Game::Effect> getEffect(UInt16 type);  
+        void DBLoadEffect(const String &path);
 
     }
 

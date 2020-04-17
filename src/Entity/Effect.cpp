@@ -25,6 +25,43 @@ static void notifyRemoveEffect(Game::EntityBase *ent, UInt16 insId){
     }
 }
 
+static Jzon::Node db = Jzon::object();
+
+void Game::DBLoadEffect(const String &path){
+    String msg = "failed to load Effect Db '"+path+"': ";
+    if(!nite::fileExists(path)){
+        nite::print(msg+"it doesn't exist");
+        return;
+    }
+    Jzon::Parser parser;
+    auto root  = parser.parseFile(path);
+    if(!root.isValid()){
+        nite::print(msg+parser.getError());
+        return;
+    }
+    if(!root.isObject() || root.getCount() == 0){
+        nite::print("root must be an object");
+        return;
+    }
+    for(auto &obj : root){
+        if(obj.first == "__root__"){
+            continue;
+        }
+        db.add(obj.first, obj.second);
+    }
+    nite::print("loaded Effect Db '"+path+"': added "+nite::toStr(root.getCount()-1)+" object(s)");
+}
+
+void Game::Effect::parse(Jzon::Node &obj){
+    name = obj.get("name").toString("None");
+    desc = obj.get("desc").toString("None");
+    duration = obj.get("duration").toInt(1000);
+    iconId = obj.get("iconId").toInt(0);
+    amnt = obj.get("amnt").toInt(0);    
+    amntpersecond = obj.get("amntpersecond").toInt(0);    
+    color = nite::Color(obj.get("color").toString());
+}
+
 bool Game::EffectStat::add(Shared<Game::Effect> eff){
     eff->start(owner);
     eff->insId = getUniqueId();
@@ -33,6 +70,8 @@ bool Game::EffectStat::add(Shared<Game::Effect> eff){
 
     // server-side (notify owner specifically)
     notifyAddEffect(owner, eff->type, eff->insId);
+
+    owner->recalculateStats();
 
     return true;
 }
@@ -46,6 +85,8 @@ bool Game::EffectStat::add(Shared<Game::Effect> eff, UInt16 insId){
     // server-side (notify owner specifically)
     notifyAddEffect(owner, eff->type, eff->insId);
 
+    owner->recalculateStats();
+
     return true;
 }
 
@@ -53,10 +94,13 @@ bool Game::EffectStat::remove(UInt16 insId){
     auto it = effects.find(insId);
     if(it == effects.end()) return false;
     hasChanged = true;
+    it->second->onEnd(owner);
     effects.erase(insId);
 
     // server-side (notify owner specifically)
     notifyRemoveEffect(owner, insId);
+
+    owner->recalculateStats();
 
     return true;
 }
@@ -69,9 +113,9 @@ bool Game::EffectStat::remove(const String &name){
 
             // server-side (notify owner specifically)
             notifyRemoveEffect(owner, ef->insId);
-
             effects.erase(it.first);
             hasChanged = true;
+            owner->recalculateStats();
             return true;
         }
     }
@@ -143,13 +187,18 @@ bool Game::EffectStat::removeByType(UInt16 type){
 }
 
 Shared<Game::Effect> Game::getEffect(UInt16 type){
+    auto dbInfo = db.get(nite::toStr(type));
+    auto ef = Shared<Game::Effect>(NULL);
     switch(type){
         case Game::EffectList::EF_HEAL: {
-            return Shared<Game::Effect>(new Game::Effects::EffHeal());
-        };
-        default:
-            return Shared<Game::Effect>(NULL);               
+            ef = Shared<Game::Effect>(new Game::Effects::EffHeal());
+        } break;            
     }
+    if(ef.get() != NULL && db.has(nite::toStr(type))){		
+		ef->parse(dbInfo);
+	    ef->parseSpecial(dbInfo);
+    }
+    return ef;
 }
 
 /*
@@ -175,12 +224,8 @@ void Game::Effects::EffHeal::setup(UInt16 amnt, UInt64 time){ // time is msecs
     this->amntpersecond = amnt / (time / 1000);                
 }
 
-void Game::Effects::EffHeal::setup(){
-    setup(30, 1000 * 5);
-}
-
 String Game::Effects::EffHeal::getStatus(Game::EntityBase *owner){
     UInt64 target = this->started + this->duration;
-    UInt64 current = target - owner->net->clock.time; // we use server's remote time
+    UInt64 current = owner->net->clock.time >= target ? 0 : target - owner->net->clock.time; // we use server's remote time
     return nite::toStr(((current / 1000) + 1))+"s";
 }

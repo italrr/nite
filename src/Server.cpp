@@ -8,6 +8,9 @@
 #include "Core/Server.hpp"
 #include "Core/Client.hpp"
 
+#include "Entity/Skill.hpp"
+#include "Entity/Effect.hpp"
+#include "Entity/Inventory.hpp"
 
 int main(int argc, char* argv[]){
 	Game::GameCore game;
@@ -16,6 +19,10 @@ int main(int argc, char* argv[]){
 	for(int i = 0; i < argc; ++i){
 		params.push_back(String(argv[i]));
 	}
+
+	Game::DBLoadSkill("data/db/skills.json");
+	Game::DBLoadEffect("data/db/effects.json");
+	Game::DBLoadInventory("data/db/items.json");
 
     int opt;
     UInt16 maxPlayers = 4;
