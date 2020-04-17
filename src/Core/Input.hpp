@@ -67,7 +67,7 @@
             bool capturing;
             Vector<InputFrameBuffer> getBuffer();
             Input();
-            void update();
+            void update(bool update);
         };
 
         struct InputSimulator {

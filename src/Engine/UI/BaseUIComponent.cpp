@@ -14,6 +14,19 @@ static String getUniqueId(){
     return nite::hashString(nite::toStr(nite::getTicks() + ++id));
 }
 
+
+nite::NavUI::NavUI(){
+    current = 0;
+    enable = false;
+    index = 0;
+    split = 0;
+    cursor = 0.0f;
+    a = nite::Color(0.86f, 0.84f, 0.12f, 1.0f);
+    b = nite::Color(0.81f, 0.77f, 0.08f, 1.0f);
+    color = a;
+    colorFlip = false;
+}
+
 nite::PoliVec2::PoliVec2(){
     useAbs = true;
     abs.set(32.0f);

@@ -21,7 +21,7 @@ void Game::HUD::start(Game::Client *client){
     if(auto win = dynamic_cast<nite::WindowUI*>(this->main.get())){
         win->setPosition(nite::Vec2(0.0f));
         win->setSize(nite::Vec2(nite::getWidth(), nite::getHeight()));
-        win->setVisible(false);         
+        win->setVisible(true);         
         win->setOnRerenderListener([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &component){
            this->resetValues();
         });

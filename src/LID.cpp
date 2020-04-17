@@ -17,18 +17,18 @@ int main(int argc, char* argv[]){
 	Game::GameCore game;
 	game.start();
 
-	// if(runserver){
-	// 	game.localSv.preinit();
-	// 	game.localSv.setupGame("Pacifier's corner", 4, 1);
-	// }	
+	if(runserver){
+		game.localSv.preinit();
+		game.localSv.setupGame("Pacifier's corner", 4, 1);
+	}	
 
-	// game.client.setup("pepper"+nite::toStr(nite::randomInt(25, 50)));
+	game.client.setup("pepper"+nite::toStr(nite::randomInt(25, 50)));
 
 
-	// nite::nScript debug("./debug_init.ns");
-	// debug.execute();
+	nite::nScript debug("./debug_init.ns");
+	debug.execute();
 
-	nite::UI::build("data/ui/ingame_menu/main.json");
+	// nite::UI::build("data/ui/ingame_menu/main.json");
 	while(game.isRunning){			
 		game.update();
 		game.render();

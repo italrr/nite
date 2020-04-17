@@ -137,6 +137,10 @@ void nite::WindowUI::close(){
 }
 
 void nite::WindowUI::rerenderDecoration(){
+	if(!this->visible){
+		decoration.flush();  
+		return;
+	}
 	decoration.begin();  
 	// Render Base
 	if(uiBackgroundImage.isLoaded()){
@@ -203,6 +207,7 @@ void nite::WindowUI::rerender(){
 	if(!toRerender) return;
 	rerenderDecoration();
 	batch.begin();  
+
 	// Render Children
 	if(this->visible){
 		for(int i = 0; i < children.size(); ++i){
@@ -212,6 +217,20 @@ void nite::WindowUI::rerender(){
 			children[i]->beforeRender();
 			children[i]->render();
 			children[i]->afterRender();
+			if(nav.enable && nav.index == children[i]->nav.index){
+				// TODO: move this to an appropriate place
+				static nite::Shader marker("data/shaders/ui/ui_marker_f.glsl", "data/shaders/ui/ui_marker_v.glsl");
+				nite::setColor(nav.a);
+				auto ref = uiBasicTexture.draw(children[i]->position.x, children[i]->position.y, children[i]->size.x, children[i]->size.y, 0.5f, 0.5f, 0.0f);
+				if(ref != NULL){
+					auto uni = nite::Uniform();
+	            	uni.add("size", size);
+            		uni.add("color", nav.color);
+            		uni.add("alpha", nav.color.a);
+            		uni.add("thickness", 5.0f);
+					ref->apply(marker, uni);
+				}
+			}			
 		}		
 	}
 	// auto offset = padding * nite::Vec2(0.5f);
@@ -251,6 +270,68 @@ void nite::WindowUI::onCreate(){
 }
 
 void nite::WindowUI::update(){
+
+	auto lrpUpd = nav.color.lerpDiscrete(nav.colorFlip ? nav.a : nav.b, 0.16f);
+	if(nav.enable && lrpUpd){
+		nav.colorFlip = !nav.colorFlip;
+		recalculate();
+	}
+
+	if(nav.enable && !lrpUpd){
+		recalculate();	
+	}
+
+	if(nav.enable && nite::keyboardPressed(nite::keyRIGHT)){
+		if(layout->xorient && !layout->yorient || !layout->xorient && layout->yorient){
+			nav.index = nav.index+1 >= children.size() ? 0 : nav.index + 1;
+		}else
+		if(layout->xorient && layout->yorient && nav.split != 0){
+			nav.index = (nav.index + 1) % nav.split == 0 ? nav.index - (nav.split-1) : nav.index + 1;
+		}		
+		recalculate();
+	}
+
+
+	if(nav.enable && nite::keyboardPressed(nite::keyLEFT)){
+		if(layout->xorient && !layout->yorient || !layout->xorient && layout->yorient){
+			nav.index = nav.index-1 < 0 ? children.size()-1 : nav.index - 1;
+		}else
+		if(layout->xorient && layout->yorient && nav.split != 0){
+			--nav.index;
+			if(nav.index < 0 || (nav.index + 1) % nav.split == 0){
+				nav.index += nav.split;
+			}
+		}		
+		recalculate();
+	}
+
+	if(nav.enable && nite::keyboardPressed(nite::keyDOWN)){
+		if(layout->xorient && !layout->yorient || !layout->xorient && layout->yorient){
+			nav.index = nav.index+1 >= children.size() ? 0 : nav.index + 1;
+		}else
+		if(layout->xorient && layout->yorient && nav.split != 0){
+			nav.index += nav.split;
+			if(nav.index > children.size()-1){
+				nav.index = nav.index - children.size();
+			}
+		}		
+		recalculate();
+	}	
+
+
+	if(nav.enable && nite::keyboardPressed(nite::keyUP)){
+		if(layout->xorient && !layout->yorient || !layout->xorient && layout->yorient){
+			nav.index = nav.index-1 < 0 ? children.size()-1 : nav.index - 1;
+		}else
+		if(layout->xorient && layout->yorient && nav.split != 0){
+			nav.index -= nav.split;
+			if(nav.index < 0){
+				nav.index = children.size() + nav.index;
+			}
+		}		
+		recalculate();
+	}
+
 //   origPosition.set(toDestroy ? (position - nite::Vec2(0.0f, -16.0f)) : position);      
 	origPosition.lerp(toDestroy ? (position - nite::Vec2(0.0f, -16.0f)) : position, 0.15f);  
 	

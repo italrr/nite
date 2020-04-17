@@ -13,7 +13,7 @@ void Game::InGameMenu::start(Game::Client *client){
     this->client = client;
     this->main = nite::UI::build(IGMMainPath);
     if(auto win = dynamic_cast<nite::WindowUI*>(this->main.get())){
-        win->setVisible(false);
+        win->setVisible(open);
     }
 }
 
@@ -27,7 +27,7 @@ void Game::InGameMenu::update(){
 }
 
 void Game::InGameMenu::stop(){
-    if(auto win = dynamic_cast<nite::WindowUI*>(this->main.get())){
-        win->close();
-    }
+    // if(auto win = dynamic_cast<nite::WindowUI*>(this->main.get())){
+    //     win->close();
+    // }
 }

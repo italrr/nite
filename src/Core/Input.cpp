@@ -20,7 +20,7 @@ Game::Input::Input(){
     lastFrame = 0;
 }
 
-void Game::Input::update(){
+void Game::Input::update(bool ignore){
     if(capturing){
         ++lastFrame;
     }
@@ -31,8 +31,8 @@ void Game::Input::update(){
     for(auto key : this->mapping){
         auto gk = key.second;
         auto nk = key.first;
-        bool pressed = nite::keyboardPressed(nk);
-        bool released = nite::keyboardReleased(nk);
+        bool pressed = !ignore && nite::keyboardPressed(nk);
+        bool released = !ignore && nite::keyboardReleased(nk);
         if(!pressed && !released){
             continue;
         }

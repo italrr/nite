@@ -841,7 +841,7 @@ void Game::Client::onStart(){
 }
 
 void Game::Client::game(){
-    input.update();
+    input.update(igmenu.open);
     hud.update();
     igmenu.update();
 

@@ -505,6 +505,16 @@ static nite::Vec2 _parseDimensions(const String &name, Jzon::Node &_node, Jzon::
     }
 }
 
+
+static void _parseNav(const String &name, Jzon::Node &node, Shared<nite::BaseUIComponent> &component){
+    if(node.has(name) && node.get(name).isObject()){
+        auto nav = node.get(name);
+        component->nav.index = nav.get("index").toInt(0);
+        component->nav.enable = nav.get("enable").toBool(false);
+        component->nav.split = nav.get("split").toInt(0);
+    }
+}
+
 // build from jzon node
 
 Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzon::Node> &styles, Dict<String, nite::ListenerLambda> &listeners, Dict<String, Shared<nite::BaseUIComponent>> &idsLookUp){
@@ -576,6 +586,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto position = _parsePosition(node, NULL, nite::Vec2(0.0f, 0.0f), base);    
         auto userShader = _parseShader("shader", node, NULL, base);
+        _parseNav("navigate", node, base);
         if(userShader.success){
             base->apply(nite::Shader(userShader.frag, userShader.vert));
         }
@@ -619,6 +630,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
         auto userShader = _parseShader("shader", node, style, base);
+        _parseNav("navigate", node, base);
         if(userShader.success){
             base->apply(nite::Shader(userShader.frag, userShader.vert));
         }        
@@ -665,6 +677,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto id = _parseString("id", node, style, base->literalId, base);
         auto font = _parseString("font", node, style, "", base); 
         auto userShader = _parseShader("shader", node, style, base);
+        _parseNav("navigate", node, base);
         if(userShader.success){
             base->apply(nite::Shader(userShader.frag, userShader.vert));
         }         
@@ -713,6 +726,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto id = _parseString("id", node, style, base->literalId, base);
         auto font = _parseString("font", node, style, "", base); 
         auto userShader = _parseShader("shader", node, style, base);
+        _parseNav("navigate", node, base);
         if(userShader.success){
             base->apply(nite::Shader(userShader.frag, userShader.vert));
         }         
@@ -769,6 +783,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto shadowOffset = _parseDimensions("shadowOffset", node, style, ref->getShadowOffset(), base); 
         auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base); 
         auto userShader = _parseShader("shader", node, style, base);
+        _parseNav("navigate", node, base);
         if(userShader.success){
             base->apply(nite::Shader(userShader.frag, userShader.vert));
         }                 
@@ -820,6 +835,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto id = _parseString("id", node, style, base->literalId, base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto userShader = _parseShader("shader", node, style, base);
+        _parseNav("navigate", node, base);
         if(userShader.success){
             nite::Shader shader;
             shader.load(userShader.frag, userShader.vert);
@@ -855,6 +871,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
     for(int i = 0; i < _c.getCount(); ++i){
         auto child = _c.get(i);
         auto comp = nite::UI::build(child, styles, listeners, idsLookUp); 
+        comp->nav.index = i;
         idsLookUp[comp->literalId] = comp;
         base->add(comp);
     } 

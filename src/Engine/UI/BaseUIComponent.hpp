@@ -12,8 +12,13 @@
     struct UIMaster;    
 
     struct LayoutSystemUI {
-      
+        bool xorient;
+        bool yorient;
         nite::Vec2 size;
+        LayoutSystemUI(){
+            yorient = true;
+            xorient = true;
+        }
         virtual void recalculate(BaseUIComponent &head){
 
         }
@@ -21,12 +26,24 @@
 
     namespace Layout {
         struct VBox : public nite::LayoutSystemUI {
+            VBox(){
+                yorient = true;
+                xorient = false;
+            }
             void recalculate(BaseUIComponent &head);
         };
         struct HBox : public nite::LayoutSystemUI {
+            HBox(){
+                yorient = false;
+                xorient = true;                
+            }
             void recalculate(BaseUIComponent &head);
         };       
         struct Inline : public nite::LayoutSystemUI {
+            Inline(){
+                yorient = true;
+                xorient = true;                  
+            }
             void recalculate(BaseUIComponent &head);
         };
     }
@@ -50,6 +67,19 @@
         float y(float rh);
     };
 
+    struct NavUI {
+        int index;
+        bool enable;
+        int current;
+        int split;
+        float cursor;
+        nite::Color a;
+        nite::Color b;
+        nite::Color color;
+        bool colorFlip;
+        NavUI();
+    };
+
     struct BaseUIComponent {
         nite::Vec2 position;
         nite::Vec2 realPosition;
@@ -62,6 +92,7 @@
         nite::Vec2 relativePosition;
         nite::Color baseColor;
         nite::UIMaster *currentMaster;
+        nite::NavUI nav;
         int zdepth;
         String literalId;
         bool fillUpType;

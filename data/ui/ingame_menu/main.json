@@ -20,31 +20,35 @@
 			"height": 128,		
 			"padding": { "vert": 0, "hor": 0},
 			"margin": { "vert": 0, "hor": 0},	
-			"fontSize": 11,
-			"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
-			"baseColor": {"r": 0.80, "g": 0.80, "b": 0.80, "a": 1.0}			
+			"fontSize": 10,
+			"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+			"baseColor": {"r": 0.80, "g": 0.80, "b": 0.80, "a": 0.9}			
 		}
+	},
+	"navigate": {
+		"enable": true,
+		"split": 3
 	},
 	"children": [
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "Status"
+			"text": "STATUS"
 		},
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "Equip"
+			"text": "EQUIP"
 		},
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "Inventory"
+			"text": "INVENTORY"
 		},
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "Skills"
+			"text": "SKILLS"
 		},
 		{
 			"type": "button"
@@ -54,22 +58,22 @@
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "Map"
+			"text": "MAP"
 		},	
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "Quest"
+			"text": "QUEST"
 		},
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "Codex"
+			"text": "CODEX"
 		},
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "Interact"
+			"text": "INTERACT"
 		}		
 	]
 }
