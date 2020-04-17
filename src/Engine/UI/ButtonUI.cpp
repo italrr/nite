@@ -132,7 +132,7 @@ void nite::ButtonUI::setFontColor(const nite::Color &baseColor){
 }
 
 nite::Vec2 nite::ButtonUI::computeSize(){
-    return size + margin + padding + nite::Vec2(2.0f);
+    return size + margin + padding;
 }
 
 void nite::ButtonUI::onClick(){

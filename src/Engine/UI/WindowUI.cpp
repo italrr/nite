@@ -230,7 +230,7 @@ void nite::WindowUI::rerender(){
 void nite::WindowUI::recalculate(){
 	batch.init(size.x, size.y);
 	decoration.init(size.x, size.y);
-	padding.set(52.0f * getGeneralScale(), (enableTitle ? headerHeight * 2.0f + 24.0f : 52.0f) * getGeneralScale());
+	padding.set(borderThickness * 2.0f * getGeneralScale(), (enableTitle ? headerHeight * 2.0f + borderThickness : borderThickness * 2.0f) * getGeneralScale());
 	layout->recalculate(*this);
 	toRerender = true;
 }

@@ -1,19 +1,75 @@
 {
 	"type": "window",
-	"title": "M E N U",
-	"notitle": false,
-	"width": 400,
-	"height": 250,
-	"layout": "vbox",
-	"unmovable": false,
+	"title": "Menu",
+	"notitle": true,
+	"width": 388,
+	"height": 388,
+	"layout": "inline",
+	"unmovable": true,
 	"resizeable": false,
     "borderThickness": 2.0,
-	"backgroundColor": {"r": 1.0, "g": 0.0, "b": 0.0, "a": 1.0},
-	"borderColor": {"r": 0.0, "g": 1.0, "b": 0.0, "a": 1.0 },
+	"position": {
+		"x": "!! #gwidth * 0.5 - 196",
+		"y": "!! #gheight * 0.5 - 196"
+	},
+	"backgroundColor": {"r": 0.08, "g": 0.08, "b": 0.08, "a": 1.0},
+	"borderColor": {"r": 0.02, "g": 0.02, "b": 0.02, "a": 1.0 },
 	"styles": {
-
+		"menubutton": {
+			"width": 128,
+			"height": 128,		
+			"padding": { "vert": 0, "hor": 0},
+			"margin": { "vert": 0, "hor": 0},	
+			"fontSize": 11,
+			"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
+			"baseColor": {"r": 0.80, "g": 0.80, "b": 0.80, "a": 1.0}			
+		}
 	},
 	"children": [
-
+		{
+			"type": "button"
+			"style": "menubutton",
+			"text": "Status"
+		},
+		{
+			"type": "button"
+			"style": "menubutton",
+			"text": "Equip"
+		},
+		{
+			"type": "button"
+			"style": "menubutton",
+			"text": "Inventory"
+		},
+		{
+			"type": "button"
+			"style": "menubutton",
+			"text": "Skills"
+		},
+		{
+			"type": "button"
+			"style": "menubutton",
+			"text": "TBA"
+		},
+		{
+			"type": "button"
+			"style": "menubutton",
+			"text": "Map"
+		},	
+		{
+			"type": "button"
+			"style": "menubutton",
+			"text": "Quest"
+		},
+		{
+			"type": "button"
+			"style": "menubutton",
+			"text": "Codex"
+		},
+		{
+			"type": "button"
+			"style": "menubutton",
+			"text": "Interact"
+		}		
 	]
 }

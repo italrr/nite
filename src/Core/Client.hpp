@@ -7,6 +7,7 @@
     #include "World.hpp"
     #include "../HUD/HUD.hpp"
     #include "../HUD/Icon.hpp"
+    #include "../Menu/IngameMenu.hpp"
 
     namespace Game {
 
@@ -27,6 +28,7 @@
             Game::IconManager icons;
             Game::Input input;
             Game::HUD hud;
+            Game::InGameMenu igmenu;
             Dict<UInt64, Game::ClClient> clients;
             Game::NetWorld world;
             nite::IP_Port sv;

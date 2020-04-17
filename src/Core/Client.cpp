@@ -4,6 +4,7 @@
 #include "Client.hpp"
 #include "../Entity/Base.hpp"
 #include "../Game.hpp"
+#include "../Menu/IngameMenu.hpp"
 
 static void pipeServerSideCmds(const String &input){
     auto core = Game::getGameCoreInstance();
@@ -835,11 +836,14 @@ void Game::Client::update(){
 
 void Game::Client::onStart(){
     hud.start(this);
+    igmenu.start(this);
+
 }
 
 void Game::Client::game(){
     input.update();
     hud.update();
+    igmenu.update();
 
     // local input
     for(auto key : this->input.mapping){
