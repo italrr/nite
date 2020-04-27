@@ -21,13 +21,13 @@ void nite::CheckboxUI::defaultInit(){
     value = false;
     componentName = "Checkbox";  
     padding.set(8.0f);
-    onChangeMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &checkbox){
+    onChangeMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *checkbox){
         return;
     };
-    onHoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &checkbox){
+    onHoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *checkbox){
         return;
     };   
-    onUnhoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &checkbox){
+    onUnhoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *checkbox){
         return;
     };   
 }
@@ -89,9 +89,9 @@ nite::Vec2 nite::CheckboxUI::computeSize(){
     return size + nite::Vec2(4.0f, 0.0f) + margin + padding + nite::Vec2(2.0f);
 }
 
-void nite::CheckboxUI::render(){
+void nite::CheckboxUI::render(const nite::Vec2 &offset){
     static nite::Texture blank("data/sprite/empty.png");
-    nite::Vec2 p(position.x, position.y);
+    nite::Vec2 p(position.x + offset.x, position.y + offset.y);
     float boxdim = font.getHeight();
     auto cs = size + padding;
     nite::Vec2 rp(cs * 0.5f);
@@ -147,16 +147,16 @@ void nite::CheckboxUI::setSize(const nite::Vec2 &size){
 
 void nite::CheckboxUI::onClick(){
     value = !value;
-    onChangeMethod(Shared<nite::ListenerInfoCheckbox>(new nite::ListenerInfoCheckbox(value)), *this);
+    onChangeMethod(Shared<nite::ListenerInfoCheckbox>(new nite::ListenerInfoCheckbox(value)), this);
     recalculate();
 } 
 
 void nite::CheckboxUI::onHover(){
-    onHoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
+    onHoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);
 }
 
 void nite::CheckboxUI::onUnhover(){
-    onUnhoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
+    onUnhoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);
 }
 
 int nite::CheckboxUI::getFontSize(){

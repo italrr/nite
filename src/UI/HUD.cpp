@@ -22,7 +22,7 @@ void Game::HUD::start(Game::Client *client){
         win->setPosition(nite::Vec2(0.0f));
         win->setSize(nite::Vec2(nite::getWidth(), nite::getHeight()));
         win->setVisible(true);         
-        win->setOnRerenderListener([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &component){
+        win->setOnRerenderListener([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
            this->resetValues();
         });
     }

@@ -192,8 +192,11 @@ void nite::UI::add(std::shared_ptr<BaseUIComponent> comp){
 
 void nite::UI::render(){
     for(int i = 0; i < components.size(); ++i){
+        if(!components[i]->visible){
+            continue;
+        }        
         components[i]->beforeRender();
-        components[i]->render();
+        components[i]->render(nite::Vec2(0.0f));
         components[i]->afterRender();
     }
 }
@@ -210,7 +213,7 @@ struct JsonSource {
     Shared<nite::BaseUIComponent> ui;
     Dict<String, nite::ListenerLambda> listeners;
     nite::ListenerLambda getListener(const String &id){
-        auto dummy = [](const Shared<nite::ListenerInfo> &info, const nite::BaseUIComponent &component){
+        auto dummy = [](const Shared<nite::ListenerInfo> &info, const nite::BaseUIComponent *component){
             return;
         };
         return listeners.find(id) != listeners.end() ? listeners[id] : dummy;
@@ -241,6 +244,12 @@ static float expression(const String &input, Shared<nite::BaseUIComponent> &comp
         if(tok == "height"){
             return component->computeSize().y;
         }
+        if(tok == "hwidth"){
+            return component->getTopHeadComponent()->computeSize().x;
+        }
+        if(tok == "hheight"){
+            return component->getTopHeadComponent()->computeSize().y;
+        }        
     };
     auto parseToken = [&](const String &token){
         if(token.length() == 0) return 0.0f;
@@ -289,6 +298,7 @@ static float expression(const String &input, Shared<nite::BaseUIComponent> &comp
     auto isOp = [&](const String &op){
         return op == "-" || op == "+" || op == "/" || op == "*";
     };
+    // TODO: apply PEDMAS here
     // remove !!
     element.erase(element.begin());
     for(int i = 0; i < element.size(); ++i){
@@ -511,9 +521,41 @@ static void _parseNav(const String &name, Jzon::Node &node, Shared<nite::BaseUIC
         auto nav = node.get(name);
         component->nav.index = nav.get("index").toInt(0);
         component->nav.enable = nav.get("enable").toBool(false);
-        component->nav.split = nav.get("split").toInt(0);
+        component->nav.split = _parseInt("split", nav, NULL, 0, component);
     }
 }
+
+static void _parseListenOn(const String &name, Jzon::Node &node, Dict<String, nite::ListenerLambda> &_listeners, Shared<nite::BaseUIComponent> &component){
+    if(node.has(name) && node.get(name).isObject()){
+        auto listeners = node.get(name);
+        for(auto &list : listeners){
+            auto it = _listeners.find(list.second.toString());
+            if(it != _listeners.end()){
+                component->keyListeners[list.first] = it->second;
+            }
+        }
+    }
+}
+
+static void _parseOverflow(const String &name, Jzon::Node &node, Shared<nite::BaseUIComponent> &component){
+    if(node.has(name) && node.get(name).isString()){
+        auto overflow = node.get(name).toString();
+        if(overflow == "scroll-x"){
+            component->allowOverflow = true;
+            component->scrollX = true;
+        }else
+        if(overflow == "scroll-y"){
+            component->allowOverflow = true;
+            component->scrollY = true;            
+        }else   
+        if(overflow == "scroll-xy" || overflow == "scroll-bidirectional"){
+            component->allowOverflow = true;
+            component->scrollX = true;               
+            component->scrollY = true;   
+        }             
+    }
+}
+
 
 // build from jzon node
 
@@ -522,7 +564,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
     String type = node.get("type").toString();
 
     auto getListener = [&](const String &id){
-        auto dummy = [](const Shared<nite::ListenerInfo> &info, const nite::BaseUIComponent &component){
+        auto dummy = [](const Shared<nite::ListenerInfo> &info, const nite::BaseUIComponent *component){
             return;
         };
         return listeners.find(id) != listeners.end() ? listeners[id] : dummy;
@@ -581,12 +623,15 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto noTitle = _parseBool("notitle", node, NULL, false, base);
         auto unmovable = _parseBool("unmovable", node, NULL, false, base);
         auto resizeable = _parseBool("resizeable", node, NULL, true, base);
+        auto modal = _parseBool("modal", node, NULL, false, base);
         auto borderthickness = _parseFloat("borderThickness", node, NULL, 8.0f, base);
         auto borderPattern = _parseString("borderPattern", node, NULL, "", base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto position = _parsePosition(node, NULL, nite::Vec2(0.0f, 0.0f), base);    
         auto userShader = _parseShader("shader", node, NULL, base);
+        _parseOverflow("overflow", node, base);
         _parseNav("navigate", node, base);
+        _parseListenOn("listenOn", node, listeners, base);
         if(userShader.success){
             base->apply(nite::Shader(userShader.frag, userShader.vert));
         }
@@ -600,6 +645,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         }
         ref->resizeable = resizeable;
         ref->unmovable = unmovable;
+        ref->setModal(modal);
         ref->setBorderThickness(borderthickness);
         ref->setShowTitle(!noTitle);
         ref->setSize(size.size);
@@ -631,6 +677,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto id = _parseString("id", node, style, base->literalId, base);
         auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
+        _parseListenOn("listenOn", node, listeners, base);
         if(userShader.success){
             base->apply(nite::Shader(userShader.frag, userShader.vert));
         }        
@@ -678,6 +725,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto font = _parseString("font", node, style, "", base); 
         auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
+        _parseListenOn("listenOn", node, listeners, base);
         if(userShader.success){
             base->apply(nite::Shader(userShader.frag, userShader.vert));
         }         
@@ -727,6 +775,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto font = _parseString("font", node, style, "", base); 
         auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
+        _parseListenOn("listenOn", node, listeners, base);
         if(userShader.success){
             base->apply(nite::Shader(userShader.frag, userShader.vert));
         }         
@@ -784,6 +833,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base); 
         auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
+        _parseListenOn("listenOn", node, listeners, base);
         if(userShader.success){
             base->apply(nite::Shader(userShader.frag, userShader.vert));
         }                 
@@ -835,7 +885,9 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto id = _parseString("id", node, style, base->literalId, base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto userShader = _parseShader("shader", node, style, base);
+        _parseOverflow("overflow", node, base);
         _parseNav("navigate", node, base);
+        _parseListenOn("listenOn", node, listeners, base);
         if(userShader.success){
             nite::Shader shader;
             shader.load(userShader.frag, userShader.vert);
@@ -953,6 +1005,9 @@ void nite::UI::update(){
     //     }
     // }
     for(int i = 0; i < components.size(); ++i){
+        if(!components[i]->visible){
+            continue;
+        }
         components[i]->updateRelativePosition(nite::Vec2(0.0f));
         components[i]->updateListeners();
         components[i]->beforeUpdate();

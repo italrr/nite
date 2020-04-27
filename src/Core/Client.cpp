@@ -4,7 +4,7 @@
 #include "Client.hpp"
 #include "../Entity/Base.hpp"
 #include "../Game.hpp"
-#include "../Menu/IngameMenu.hpp"
+#include "../UI/IngameMenu.hpp"
 
 static void pipeServerSideCmds(const String &input){
     auto core = Game::getGameCoreInstance();
@@ -844,6 +844,8 @@ void Game::Client::game(){
     input.update(igmenu.open);
     hud.update();
     igmenu.update();
+
+    nite::setZoom(nite::RenderTargetGame, igmenu.open ? 0.70f : 0.90f);
 
     // local input
     for(auto key : this->input.mapping){

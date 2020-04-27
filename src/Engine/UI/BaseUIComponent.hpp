@@ -67,6 +67,7 @@
         float y(float rh);
     };
 
+    struct BaseUIComponent;
     struct NavUI {
         int index;
         bool enable;
@@ -78,7 +79,15 @@
         nite::Color color;
         bool colorFlip;
         NavUI();
+        void update(BaseUIComponent *comp);
     };
+
+
+    struct ListenerInfo {
+
+    };
+    
+    typedef Lambda<void(const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component)> ListenerLambda;    
 
     struct BaseUIComponent {
         nite::Vec2 position;
@@ -112,6 +121,13 @@
         Dict<String, Jzon::Node> styles;
         nite::Shader shader;
         bool useShader;
+        bool scrollX;
+        bool scrollY;
+        bool allowOverflow;
+        nite::Vec2 scrollOffset;
+        nite::Vec2 scrollOffsetTrans;
+
+        Dict<String, nite::ListenerLambda> keyListeners;
 
         virtual void apply(const nite::Shader &shader){
             this->shader = shader;
@@ -306,19 +322,13 @@
         virtual void beforeRender(){
 
         }
-        virtual void render(){
+        virtual void render(const nite::Vec2 &offset){
 
         }
         virtual void afterRender(){
 
         }
     };
-
-    struct ListenerInfo {
-
-    };
-
-    typedef Lambda<void(const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &component)> ListenerLambda;    
 
   }
 #endif

@@ -66,7 +66,7 @@
         nite::Vec2 computeSize();
         void onCreate();
         void update();
-        void render();
+        void render(const nite::Vec2 &offset);
         void setBackgroundColor(const nite::Color &color);
         nite::Color getBackgroundColor();
     };

@@ -18,13 +18,13 @@ void nite::ButtonUI::defaultInit(){
     pressOffset = 5.0f;
     currentPressOffset = 0.0f;
     borderThickness.set(2.0f);
-    onClickMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &button){
+    onClickMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *button){
         return;
     };
-    onHoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &button){
+    onHoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *button){
         return;
     };
-    onUnhoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &button){
+    onUnhoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *button){
         return;
     };  
 }
@@ -141,11 +141,11 @@ void nite::ButtonUI::onClick(){
 }
 
 void nite::ButtonUI::onUnhover(){
-    this->onUnhoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
+    this->onUnhoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);
 }
 
 void nite::ButtonUI::onHover(){
-    this->onHoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
+    this->onHoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);
     if(buttonState == 2) return;
     buttonState = 1; // on hover
     stateTimeout = nite::getTicks();
@@ -160,9 +160,9 @@ void nite::ButtonUI::setOnUnhover(nite::ListenerLambda onUnhover){
 
 }
 
-void nite::ButtonUI::render(){
+void nite::ButtonUI::render(const nite::Vec2 &offset){
     static nite::Texture blank("data/sprite/empty.png");
-    nite::Vec2 p(position.x, position.y);
+    nite::Vec2 p(position.x + offset.x, position.y + offset.y);
     // nite::print(padding);
     auto cs = size + padding;
     nite::Color bc = baseColor;
@@ -226,7 +226,7 @@ void nite::ButtonUI::update(){
         recalculate();
         if(nite::getTicks()-stateTimeout > 35 * (buttonState == 2 ? 4 : 1)){
             if(buttonState == 2){
-                this->onClickMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);    
+                this->onClickMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);    
             }
             buttonState = 0;
             recalculate();

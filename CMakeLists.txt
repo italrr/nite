@@ -236,11 +236,10 @@ set(src_files
 	src/Entity/Stat.cpp
 	src/Entity/Skill.cpp
 	src/Entity/Effect.cpp
-	# In-Game Menu #
-	src/Menu/IngameMenu.cpp
-	# HUD #
-	src/HUD/HUD.cpp
-	src/HUD/Icon.cpp
+	# UI #
+	src/UI/HUD.cpp
+	src/UI/Icon.cpp
+	src/UI/IngameMenu.cpp
 	# GENERAL #
 	src/Camera.cpp
 	src/Map.cpp

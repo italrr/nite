@@ -5,9 +5,9 @@
     #include "Object.hpp"
     #include "Input.hpp"
     #include "World.hpp"
-    #include "../HUD/HUD.hpp"
-    #include "../HUD/Icon.hpp"
-    #include "../Menu/IngameMenu.hpp"
+    #include "../UI/HUD.hpp"
+    #include "../UI/Icon.hpp"
+    #include "../UI/IngameMenu.hpp"
 
     namespace Game {
 

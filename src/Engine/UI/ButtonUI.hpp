@@ -51,7 +51,7 @@
 		nite::Vec2 getBorderThickness();
 		void setBorderThickness(const nite::Vec2 &bt);
         nite::Vec2 computeSize();
-        void render();
+        void render(const nite::Vec2 &offset);
         void update();
         int getFontSize();
         String getFontFilename();

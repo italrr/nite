@@ -42,7 +42,7 @@
         nite::Color getFontColor();
         // void setSize(const nite::Vec2 &size);
         nite::Vec2 computeSize();
-        void render();
+        void render(const nite::Vec2 &offset);
         void update();
         int getFontSize();
         String getFontFilename();

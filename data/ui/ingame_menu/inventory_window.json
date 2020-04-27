@@ -1,0 +1,402 @@
+{
+	"type": "window",
+	"title": "Inventory",
+	"notitle": true,
+	"width": 388,
+	"height": 388,
+	"layout": "vbox",
+	"unmovable": true,
+	"resizeable": false,
+	"modal": true,
+    "borderThickness": 2.0,
+	"position": {
+		"x": "!! #gwidth * 0.5 - 196",
+		"y": "!! #gheight * 0.5 - 196"
+	},
+	"listenOn":{
+		"LSHIFT": "onclick_goback"
+	},
+	"backgroundColor": {"r": 0.08, "g": 0.08, "b": 0.08, "a": 1.0},
+	"borderColor": {"r": 0.02, "g": 0.02, "b": 0.02, "a": 1.0 },
+	"styles": {
+
+	},
+	"children": [
+		{
+			"type": "panel",
+			"width": "100%",
+			"height": 48,
+			"layout": "vbox",
+			"backgroundColor": {"r": 1.0, "g": 0.0, "b": 0.0, "a": 0.9},
+			"children": [
+				{
+					"type": "text",
+					"text": "Inventory"
+				}
+			]
+		},
+		{
+			"type": "panel",
+			"flex": 1,
+			"id": "inv_list",
+			"layout": "inline",
+			"overflow": "scroll-y",
+			"backgroundColor": {"r": 0.80, "g": 0.80, "b": 0.80, "a": 0.9},
+			"navigate": {
+				"enable": true,
+				"split": 4
+			},
+			"children": [
+				{
+					"type": "button",
+					"text": "0",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "1",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "2",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "3",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "4",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "5",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "6",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "7",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "8",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "9",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "10",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "11",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "12",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "13",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "14",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "15",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "16",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "17",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "18",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "19",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "20",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "21",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "22",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "23",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "24",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "25",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "26",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "0",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "0",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "0",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				},
+				{
+					"type": "button",
+					"text": "0",
+					"width": 96,
+					"height": 96,
+					"fontSize": 10,
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
+					"baseColor": {"r": 1.0, "g": 0.0, "b": 1.0, "a": 1.0},		
+					"padding": { "vert": 0, "hor": 0},
+					"margin": { "vert": 0, "hor": 0}	
+				}				
+				
+			]
+		},
+		{
+			"type": "panel",
+			"width": "100%",
+			"height": 48,
+			"layout": "vbox",
+			"backgroundColor": {"r": 1.0, "g": 0.0, "b": 0.0, "a": 0.9}	
+		}
+	]
+}

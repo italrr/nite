@@ -23,13 +23,13 @@ void nite::TextUI::defaultInit(){
     shadowOffset.set(1.0f);
     shadowColor.set(0.0f, 0.0f, 0.0f, 0.0f);
     baseColor.set(1.0f, 1.0f, 1.0f, 1.0f);
-    onClickMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &text){
+    onClickMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *text){
         return;
     };
-    onHoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &text){
+    onHoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *text){
         return;
     };
-    onUnhoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &text){
+    onUnhoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *text){
         return;
     };    
 }
@@ -145,15 +145,15 @@ void nite::TextUI::setOnUnhover(nite::ListenerLambda onUnhover){
 }
 
 void nite::TextUI::onHover(){
-    this->onHoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
+    this->onHoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);
 }
 
 void nite::TextUI::onClick(){
-    this->onClickMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
+    this->onClickMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);
 }
 
 void nite::TextUI::onUnhover(){
-    this->onUnhoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
+    this->onUnhoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);
 }
 
 void nite::TextUI::calculateSize(){
@@ -180,10 +180,11 @@ nite::Color nite::TextUI::getFontColor(){
 //     recalculate();  
 // }
 
-void nite::TextUI::render(){
+void nite::TextUI::render(const nite::Vec2 &offset){
     nite::setColor(baseColor);
     auto cps = computeSize();
     nite::Vec2 p(position.x + padding.x * 0.5f - cps.x * 0.5f, position.y + padding.y * 0.5f - cps.y * 0.5f);
+    p = p + offset;
     auto *ref = font.draw(text, p.x, p.y, 0.0f, 0.0f, 0.0f);
     if(ref != NULL && shadowColor.a > 0.0f){
         ref->setShadow(shadowColor, shadowOffset);

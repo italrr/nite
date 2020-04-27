@@ -56,13 +56,14 @@ void nite::WindowUI::defaultInit(){
 	resizeable = true;
 	borderThickness = 8.0;
 	type = "window";
+	modal = false;
 	enableTitle = true;
 	baseColor.set(0.0f, 0.0f, 0.0f, 1.0f);
 	leftBorderColor.set(0.88f, 0.1f, 0.1f, 1.0f);
 	titleColor.set(1.0f, 1.0f, 1.0f, 1.0f);
 	toDestroy = false;
 	generalAlpha = 100.0;
-	this->onRerender = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &component){
+	this->onRerender = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
 		return;
 	};	
 }
@@ -124,6 +125,11 @@ void nite::WindowUI::setSize(const nite::Vec2 &size){
 void nite::WindowUI::setShowTitle(bool v){
 	enableTitle = v;
 	recalculate();
+}
+
+void nite::WindowUI::setModal(bool m){
+	modal = m;
+	recalculate(); 
 }
 
 void nite::WindowUI::setBorderThickness(float tn){
@@ -214,14 +220,17 @@ void nite::WindowUI::rerender(){
 			if(children[i]->position.x < 0 || children[i]->position.y < 0 || !children[i]->visible){
 				continue;
 			}
+			scrollOffsetTrans.lerpDiscrete(scrollOffset, 0.004f);
+			auto usoffset = scrollX || scrollY ? scrollOffsetTrans : nite::Vec2(0.0f);
 			children[i]->beforeRender();
-			children[i]->render();
+			children[i]->render(usoffset);
 			children[i]->afterRender();
 			if(nav.enable && nav.index == children[i]->nav.index){
 				// TODO: move this to an appropriate place
 				static nite::Shader marker("data/shaders/ui/ui_marker_f.glsl", "data/shaders/ui/ui_marker_v.glsl");
 				nite::setColor(nav.a);
-				auto ref = uiBasicTexture.draw(children[i]->position.x, children[i]->position.y, children[i]->size.x, children[i]->size.y, 0.5f, 0.5f, 0.0f);
+				auto ref = uiBasicTexture.draw(children[i]->position.x + usoffset.x, children[i]->position.y + usoffset.y, children[i]->size.x, children[i]->size.y, 0.5f, 0.5f, 0.0f);
+				// TODO: Scroll bar
 				if(ref != NULL){
 					auto uni = nite::Uniform();
 	            	uni.add("size", size);
@@ -242,7 +251,7 @@ void nite::WindowUI::rerender(){
 	batch.end();
 	batch.flush();
 	toRerender = false;
-	this->onRerender(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
+	this->onRerender(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);
 }
 
 
@@ -271,66 +280,8 @@ void nite::WindowUI::onCreate(){
 
 void nite::WindowUI::update(){
 
-	auto lrpUpd = nav.color.lerpDiscrete(nav.colorFlip ? nav.a : nav.b, 0.16f);
-	if(nav.enable && lrpUpd){
-		nav.colorFlip = !nav.colorFlip;
-		recalculate();
-	}
-
-	if(nav.enable && !lrpUpd){
-		recalculate();	
-	}
-
-	if(nav.enable && nite::keyboardPressed(nite::keyRIGHT)){
-		if(layout->xorient && !layout->yorient || !layout->xorient && layout->yorient){
-			nav.index = nav.index+1 >= children.size() ? 0 : nav.index + 1;
-		}else
-		if(layout->xorient && layout->yorient && nav.split != 0){
-			nav.index = (nav.index + 1) % nav.split == 0 ? nav.index - (nav.split-1) : nav.index + 1;
-		}		
-		recalculate();
-	}
-
-
-	if(nav.enable && nite::keyboardPressed(nite::keyLEFT)){
-		if(layout->xorient && !layout->yorient || !layout->xorient && layout->yorient){
-			nav.index = nav.index-1 < 0 ? children.size()-1 : nav.index - 1;
-		}else
-		if(layout->xorient && layout->yorient && nav.split != 0){
-			--nav.index;
-			if(nav.index < 0 || (nav.index + 1) % nav.split == 0){
-				nav.index += nav.split;
-			}
-		}		
-		recalculate();
-	}
-
-	if(nav.enable && nite::keyboardPressed(nite::keyDOWN)){
-		if(layout->xorient && !layout->yorient || !layout->xorient && layout->yorient){
-			nav.index = nav.index+1 >= children.size() ? 0 : nav.index + 1;
-		}else
-		if(layout->xorient && layout->yorient && nav.split != 0){
-			nav.index += nav.split;
-			if(nav.index > children.size()-1){
-				nav.index = nav.index - children.size();
-			}
-		}		
-		recalculate();
-	}	
-
-
-	if(nav.enable && nite::keyboardPressed(nite::keyUP)){
-		if(layout->xorient && !layout->yorient || !layout->xorient && layout->yorient){
-			nav.index = nav.index-1 < 0 ? children.size()-1 : nav.index - 1;
-		}else
-		if(layout->xorient && layout->yorient && nav.split != 0){
-			nav.index -= nav.split;
-			if(nav.index < 0){
-				nav.index = children.size() + nav.index;
-			}
-		}		
-		recalculate();
-	}
+	
+	nav.update(this);
 
 //   origPosition.set(toDestroy ? (position - nite::Vec2(0.0f, -16.0f)) : position);      
 	origPosition.lerp(toDestroy ? (position - nite::Vec2(0.0f, -16.0f)) : position, 0.15f);  
@@ -440,7 +391,7 @@ void nite::WindowUI::update(){
 
 	for(int i = 0; i < children.size(); ++i){
 		if(!uninteract){
-			children[i]->updateRelativePosition(position);
+			children[i]->updateRelativePosition(position + scrollOffset);
 			children[i]->updateListeners();
 		}
 		children[i]->beforeUpdate();
@@ -449,18 +400,18 @@ void nite::WindowUI::update(){
 	}
 }
 
-void nite::WindowUI::render(){
+void nite::WindowUI::render(const nite::Vec2 &offset){
 	rerender();
 
 	// Render batch
 	nite::setRenderTarget(renderOnTarget);
 	nite::setDepth(nite::DepthMiddle);
+	if(modal && visible){
+		nite::setColor(0.0f, 0.0f, 0.0f, 0.75f);
+		uiBasicTexture.draw(0.0f, 0.0f, nite::getWidth(), nite::getHeight(), 0.0f, 0.0f, 0.0f);
+	}	
 	float d = 1.0f; // 1.0f - nite::distance(origPosition, position) / 32.0f;
 	nite::setColor(1.0f, 1.0f, 1.0f, d * (generalAlpha / 100.0f));
-	// auto *ref = decoration.draw(origPosition.x, origPosition.y);
-	// if(ref != NULL){
-	// 	ref->color.set(0.0f, 0.0f, 0.0f, 0.1f);
-	// }
 	decoration.draw(origPosition.x, origPosition.y);
 	batch.draw(origPosition.x, origPosition.y);
 }

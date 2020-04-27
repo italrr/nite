@@ -14,17 +14,135 @@ static String getUniqueId(){
     return nite::hashString(nite::toStr(nite::getTicks() + ++id));
 }
 
-
 nite::NavUI::NavUI(){
     current = 0;
     enable = false;
     index = 0;
     split = 0;
     cursor = 0.0f;
-    a = nite::Color(0.86f, 0.84f, 0.12f, 1.0f);
-    b = nite::Color(0.81f, 0.77f, 0.08f, 1.0f);
+    a = nite::Color(0.89f, 0.87f, 0.15f, 1.0f);
+    b = nite::Color(0.83f, 0.79f, 0.10f, 1.0f);
     color = a;
     colorFlip = false;
+}
+
+void nite::NavUI::update(BaseUIComponent *comp){
+    if(comp == NULL){
+        return;
+    }
+
+    auto getSelectedChild = [&](){
+        for(int i = 0; i < comp->children.size(); ++i){
+            if(comp->children[i]->nav.index == index){
+                return comp->children[i];
+            }
+        }
+        return Shared<nite::BaseUIComponent>(NULL);
+    };
+
+    auto solveAutoScroll = [&](){
+        if(!comp->allowOverflow){
+            return;
+        }
+        auto child = getSelectedChild();
+        if(child.get() == NULL){
+            return;
+        }
+        auto space = comp->computeSize();
+        auto area = child->computeSize();
+        auto p = child->position + comp->scrollOffset;
+        if( p.x + area.x * 0.5f <= 0.0f || p.y + area.y * 0.5f <= 0.0f || 
+            p.x - area.x * 0.5f >= space.x || p.y - area.y * 0.5f >= space.y ||
+            p.x - area.x * 0.5f < 0.0f || p.y - area.y * 0.5f < 0.0f || 
+            p.x + area.x * 0.5f > space.x || p.y + area.y * 0.5f > space.y){
+            // TODO: this is going to change to accodomate vinline (instead of left to right, top to bottom)
+            // see commented line below
+            comp->scrollOffset.y = -(child->position.y - area.y * 0.5f) + area.y;
+            //comp->scrollOffset.x = -(child->position.x - area.x * 0.5f);
+            comp->recalculate();
+        }        
+    };
+
+	auto lrpUpd = color.lerpDiscrete(colorFlip ? a : b, colorFlip ? 0.34f : 0.11f);
+
+	if(comp->visible){
+		for(auto &key : comp->keyListeners){
+			if(nite::keyboardPressed(nite::translateKey(key.first))){
+				key.second(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), comp);
+			}
+		}		
+	}
+
+	if(enable && lrpUpd){
+		colorFlip = !colorFlip;
+		comp->recalculate();
+	}
+
+	if(enable && !lrpUpd){
+		comp->recalculate();	
+	}
+
+	if(enable && nite::keyboardPressed(nite::keyLCONTROL)){
+		for(int i = 0; i < comp->children.size(); ++i){
+			if(comp->children[i]->nav.index == index){
+				comp->children[i]->onClick();
+			}
+		}
+	}
+
+	if(enable && nite::keyboardPressed(nite::keyRIGHT)){
+		if(comp->layout->xorient && !comp->layout->yorient || !comp->layout->xorient && comp->layout->yorient){
+			index = index+1 >= comp->children.size() ? index : index + 1;
+		}else
+		if(comp->layout->xorient && comp->layout->yorient && split != 0){
+			index = (index + 1) % split == 0 ? index : index + 1;
+		}		
+        solveAutoScroll();
+		comp->recalculate();
+	}
+
+	if(enable && nite::keyboardPressed(nite::keyLEFT)){
+		if(comp->layout->xorient && !comp->layout->yorient || !comp->layout->xorient && comp->layout->yorient){
+			index = index-1 < 0 ? index : index - 1;
+		}else
+		if(comp->layout->xorient && comp->layout->yorient && split != 0){
+			--index;
+			if(index < 0 || (index + 1) % split == 0){
+				++index;
+			}
+		}		
+        solveAutoScroll();
+		comp->recalculate();
+	}
+
+	if(enable && nite::keyboardPressed(nite::keyDOWN)){
+		if(comp->layout->xorient && !comp->layout->yorient || !comp->layout->xorient && comp->layout->yorient){
+			index = index+1 >= comp->children.size() ? index : index + 1;
+		}else
+		if(comp->layout->xorient && comp->layout->yorient && split != 0){
+			index += split;
+			if(index > comp->children.size()-1){
+				index -= split;
+			}
+		}		
+        solveAutoScroll();
+		comp->recalculate();
+	}	
+
+
+	if(enable && nite::keyboardPressed(nite::keyUP)){
+		if(comp->layout->xorient && !comp->layout->yorient || !comp->layout->xorient && comp->layout->yorient){
+			index = index-1 < 0 ? index : index - 1;
+		}else
+		if(comp->layout->xorient && comp->layout->yorient && split != 0){
+			index -= split;
+			if(index < 0){
+				index += split;
+			}
+		}	      
+        solveAutoScroll();	
+		comp->recalculate();
+	}
 }
 
 nite::PoliVec2::PoliVec2(){
@@ -88,6 +206,11 @@ nite::BaseUIComponent::BaseUIComponent(){
     relSize.set(0.0f);
     flex = 0.0f;
     visible = true;
+    allowOverflow = false;
+    scrollX = false;
+    scrollY = false;
+    scrollOffset.set(0.0f);
+    scrollOffsetTrans.set(0.0f);
     solid = false;
     fillUpType = false;
     layout = std::shared_ptr<nite::LayoutSystemUI>(new nite::Layout::Inline());

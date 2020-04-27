@@ -80,6 +80,7 @@
 			String hex();
 			bool lerp(const Color &v, float Step);
 			bool lerpDiscrete(const Color &v, float Step);
+			bool lerpAbsolute(const Color &v, float step);
 		};
 		const nite::Color White(1.0f, 1.0f ,1.0f);
 		const nite::Color Black(0, 0 ,0);

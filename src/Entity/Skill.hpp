@@ -2,7 +2,7 @@
     #define GAME_SKILL_HPP
 
     #include "../Engine/Tools/Tools.hpp"
-    #include "../HUD/Icon.hpp"
+    #include "../UI/Icon.hpp"
 
     namespace Game {
 

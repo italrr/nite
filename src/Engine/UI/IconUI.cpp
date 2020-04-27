@@ -14,13 +14,13 @@ void nite::IconUI::defaultInit(){
     baseColor.set(1.0f, 1.0f, 1.0f, 0.0f);
     shadowOffset.set(1.0f);
     shadowColor.set(0.0f, 0.0f, 0.0f, 0.0f);    
-    onClickMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &panel){
+    onClickMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *panel){
         return;
     };
-    onHoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &panel){
+    onHoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *panel){
         return;
     };
-    onUnhoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent &panel){
+    onUnhoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *panel){
         return;
     };    
 }
@@ -55,14 +55,14 @@ void nite::IconUI::rerender(){
     }
 
     // Render Children
-    for(int i = 0; i < children.size(); ++i){
-        if(children[i]->position.x < 0 || children[i]->position.y < 0 || !children[i]->visible){
-            continue;
-        }
-        children[i]->beforeRender();
-        children[i]->render();
-        children[i]->afterRender();
-    }
+    // for(int i = 0; i < children.size(); ++i){
+    //     if(children[i]->position.x < 0 || children[i]->position.y < 0 || !children[i]->visible){
+    //         continue;
+    //     }
+    //     children[i]->beforeRender();
+    //     children[i]->render();
+    //     children[i]->afterRender();
+    // }
     batch.end();
     batch.flush();
     // toRerender = false;
@@ -241,10 +241,10 @@ nite::Texture nite::IconUI::getSource(){
 	return source;	
 }
 
-void nite::IconUI::render(){
+void nite::IconUI::render(const nite::Vec2 &offset){
 
     auto cps = computeSize();
-    nite::Vec2 rp = position - cps * 0.5f + margin * 0.5f;
+    nite::Vec2 rp = position - cps * 0.5f + margin * 0.5f + offset;
     // Render batch
     nite::setRenderTarget(renderOnTarget);
     nite::setDepth(nite::DepthMiddle);
@@ -263,15 +263,15 @@ nite::Color nite::IconUI::getBackgroundColor(){
 }
 
 void nite::IconUI::onClick(){
-    this->onClickMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
+    this->onClickMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);
 }
 
 void nite::IconUI::onHover(){
-    this->onHoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
+    this->onHoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);
 }
 
 void nite::IconUI::onUnhover(){
-    this->onUnhoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), *this);
+    this->onUnhoverMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);
 }
 
 void nite::IconUI::setOnHover(nite::ListenerLambda onHover){

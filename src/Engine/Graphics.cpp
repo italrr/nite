@@ -42,14 +42,14 @@ static void readConfigFile(){
 	nite::print("reading data/config.json file");
 	Jzon::Parser parser;
 	Jzon::Node node = parser.parseFile("data/config.json");
-	size = Vec2(node.get("width").toInt(), node.get("height").toInt());
-	bitsPerPixel	= node.get("bpp").toInt();
-	autoResolution = node.get("autoresolution").toBool();
-	enableFullscreen = node.get("fullscreen").toBool();
-	enableVSync	= node.get("vsync").toBool();
-	enableBorderless	= node.get("borderless").toBool();
-	enableResizable	= node.get("resizeable").toBool();
-	targetExcess = node.get("targetexcess").toFloat();
+	size = Vec2(node.get("width").toInt(1280), node.get("height").toInt(720));
+	bitsPerPixel	= node.get("bpp").toInt(32);
+	autoResolution = node.get("autoresolution").toBool(false);
+	enableFullscreen = node.get("fullscreen").toBool(false);
+	enableVSync	= node.get("vsync").toBool(true);
+	enableBorderless	= node.get("borderless").toBool(false);
+	enableResizable	= node.get("resizeable").toBool(false);
+	targetExcess = node.get("targetexcess").toFloat(1.0f);
 }
 
 static nite::Console::Result writeConfigFile(){
@@ -1114,8 +1114,15 @@ void nite::graphicsInit(){
 	const char *n = "LOST IN DUNGEONS";
 
 	Window = SDL_CreateWindow(n, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, size.x, size.y, Flags);
+	
+	if(Window == NULL){
+		nite::print("failed to create window | size "+size.str()+": "+String(SDL_GetError()));
+		nite::exit();
+	}
+	
 	Context = SDL_GL_CreateContext(Window);
 	SDL_GL_MakeCurrent(Window, Context);
+
 	if (glewInit() != GLEW_OK){
 		nite::print("GLEW failed to initialize.");
 		nite::exit();
@@ -1125,9 +1132,9 @@ void nite::graphicsInit(){
 
 	setupOpenGL();
 
-  for(int c = 0; c < RenderTargetNumber; ++c){
-      targets[c].init();
-  }
+	for(int c = 0; c < RenderTargetNumber; ++c){
+		targets[c].init();
+	}
 
 	nite::print("nite engine | OS "+niteCurrentPlatform);
 	nite::print("graphics init "+size.str()+" ("+(enableFullscreen ? String("fullscreen") : String("windowed"))+")");

@@ -7,6 +7,7 @@
 	"layout": "inline",
 	"unmovable": true,
 	"resizeable": false,
+	"modal": true,
     "borderThickness": 2.0,
 	"position": {
 		"x": "!! #gwidth * 0.5 - 196",
@@ -25,6 +26,9 @@
 			"baseColor": {"r": 0.80, "g": 0.80, "b": 0.80, "a": 0.9}			
 		}
 	},
+	"listenOn":{
+		"LSHIFT": "onclick_close"
+	},	
 	"navigate": {
 		"enable": true,
 		"split": 3
@@ -33,17 +37,20 @@
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "STATUS"
+			"text": "STATUS",
+			"onClick": "onclick_status"
 		},
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "EQUIP"
+			"text": "EQUIP",
+			"onClick": "onclick_equip"
 		},
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "INVENTORY"
+			"text": "INVENTORY",
+			"onClick": "onclick_inventory"
 		},
 		{
 			"type": "button"
@@ -53,7 +60,7 @@
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "TBA"
+			"text": "CRAFT"
 		},
 		{
 			"type": "button"

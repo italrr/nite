@@ -33,6 +33,7 @@
         nite::Color borderColor;
         nite::Color titleColor;
         String title;
+        bool modal;
         bool toRerender;
         bool grabbed;
         bool resizeGrab;
@@ -64,6 +65,7 @@
         nite::Color getTitleColor();
         void setPosition(const nite::Vec2 &pos);
         String getTitle();
+        void setModal(bool m);
         nite::Vec2 computeSize();
         void close();
         bool unmovable;
@@ -72,7 +74,7 @@
         void setBorderThickness(float tn);
         void onCreate();
         void update();
-        void render();
+        void render(const nite::Vec2 &offset);
         WindowUI(const String &title);                  
         WindowUI();                  
         void setTitle(const String &tile);
