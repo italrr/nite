@@ -3,6 +3,7 @@
 
     #include "../Engine/UI/UI.hpp"
     #include "../Core/World.hpp"
+    #include "../Entity/Inventory.hpp"
 
     namespace Game {
 
@@ -13,7 +14,7 @@
                 Equip,
                 Inventory,
                 Skills,
-                TBA,
+                Craft,
                 Map,
                 Quest,
                 Codex,
@@ -21,6 +22,11 @@
             };
             static const UInt8 total = 9;
         }
+
+        struct InGameMenuInvCached {
+            Shared<Game::ItemBase> item;
+            Shared<nite::BaseUIComponent> cmp;
+        };
 
         struct Client;
         struct InGameMenu {
@@ -32,7 +38,10 @@
             Game::Client *client;
             void start(Game::Client *client);            
             void stop();
-            void update();            
+            void update();     
+            // Inventory
+            Dict<UInt16, InGameMenuInvCached> invCached; // key is slot id 
+            void invUpdateCached();      
         };
 
     }

@@ -23,7 +23,7 @@
 			"margin": { "vert": 0, "hor": 0},	
 			"fontSize": 10,
 			"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
-			"baseColor": {"r": 0.80, "g": 0.80, "b": 0.80, "a": 0.9}			
+			"baseColor": {"r": 0.93, "g": 0.11, "b": 0.15, "a": 0.9}			
 		}
 	},
 	"listenOn":{

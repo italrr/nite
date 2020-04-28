@@ -111,6 +111,104 @@ static nite::Console::Result cfAddEffectEntity(Vector<String> params){
 }
 static auto cfAddEffectEntityIns = nite::Console::CreateFunction("ent_add_effect", &cfAddEffectEntity, true, true);
 
+
+static nite::Console::Result cfGiveItemEntity(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    auto &sv = core->localSv;    
+
+    if(params.size() < 3){
+        return nite::Console::Result("not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    String entityIdStr = params[0], itemIdStr = params[1], amountStr = params[2];
+    
+    if(!nite::isNumber(entityIdStr)){
+        return nite::Console::Result("'"+entityIdStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+
+    if(!nite::isNumber(itemIdStr)){
+        return nite::Console::Result("'"+itemIdStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    } 
+
+    if(!nite::isNumber(amountStr)){
+        return nite::Console::Result("'"+amountStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }          
+
+    UInt16 entId = nite::toInt(entityIdStr), itemId = nite::toInt(itemIdStr), amount = nite::toInt(amountStr);
+
+    auto it = sv.world.objects.find(entId);
+    if(it == sv.world.objects.end()){
+        return nite::Console::Result("object id '"+entityIdStr+"' doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }   
+    auto &obj = it->second;
+
+    if(obj->objType != Game::ObjectType::Entity){
+        return nite::Console::Result("object id '"+entityIdStr+"' is not an entity", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }    
+    
+    auto ent = static_cast<Game::EntityBase*>(obj.get());
+    // This barely takes into account the amountable property
+    // TODO: fix this
+    // same applies for InventoryStat::add
+    auto item = Game::getItem(itemId, amount);
+
+    if(item.get() == NULL){
+        return nite::Console::Result("item id '"+nite::toStr(itemId)+"' doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+
+    ent->invStat.add(item);
+
+    return nite::Console::Result();
+}
+static auto cfGiveItemEntityIns = nite::Console::CreateFunction("ent_give_item", &cfGiveItemEntity, true, true);
+
+
+
+static nite::Console::Result cfRemoveItemEntity(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    auto &sv = core->localSv;    
+
+    if(params.size() < 3){
+        return nite::Console::Result("not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    String entityIdStr = params[0], itemIdStr = params[1], amountStr = params[2];
+    
+    if(!nite::isNumber(entityIdStr)){
+        return nite::Console::Result("'"+entityIdStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+
+    if(!nite::isNumber(itemIdStr)){
+        return nite::Console::Result("'"+itemIdStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    } 
+
+    if(!nite::isNumber(amountStr)){
+        return nite::Console::Result("'"+amountStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }          
+
+    UInt16 entId = nite::toInt(entityIdStr), itemId = nite::toInt(itemIdStr), amount = nite::toInt(amountStr);
+
+    auto it = sv.world.objects.find(entId);
+    if(it == sv.world.objects.end()){
+        return nite::Console::Result("object id '"+entityIdStr+"' doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }   
+    auto &obj = it->second;
+
+    if(obj->objType != Game::ObjectType::Entity){
+        return nite::Console::Result("object id '"+entityIdStr+"' is not an entity", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }    
+    auto ent = static_cast<Game::EntityBase*>(obj.get());
+    auto item = Game::getItem(itemId, 1);
+    if(item.get() == NULL){
+        return nite::Console::Result("item id '"+nite::toStr(itemId)+"' doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    ent->invStat.remove(itemId, amount);
+    return nite::Console::Result();
+}
+static auto cfRmItemEntityIns = nite::Console::CreateFunction("ent_rm_item", &cfRemoveItemEntity, true, true);
+static auto cfRemoveItemEntityIns = nite::Console::CreateFunction("ent_remove_item", &cfRemoveItemEntity, true, true);
+
+
+
+
 static nite::Console::Result cfKick(Vector<String> params){
     auto core = Game::getGameCoreInstance();
     auto &sv = core->localSv;    

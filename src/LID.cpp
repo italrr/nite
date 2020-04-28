@@ -28,7 +28,7 @@ int main(int argc, char* argv[]){
 	nite::nScript debug("./debug_init.ns");
 	debug.execute();
 
-	// nite::UI::build("data/ui/ingame_menu/inventory_window.json");
+	// nite::UI::build("data/ui/ingame_menu/main.json");
 	while(game.isRunning){			
 		game.update();
 		game.render();

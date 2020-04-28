@@ -225,7 +225,7 @@ void nite::WindowUI::rerender(){
 			children[i]->beforeRender();
 			children[i]->render(usoffset);
 			children[i]->afterRender();
-			if(nav.enable && nav.index == children[i]->nav.index){
+			if(nav.enable && nav.current == children[i]->nav.index){
 				// TODO: move this to an appropriate place
 				static nite::Shader marker("data/shaders/ui/ui_marker_f.glsl", "data/shaders/ui/ui_marker_v.glsl");
 				nite::setColor(nav.a);

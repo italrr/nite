@@ -129,6 +129,8 @@
 
         Dict<String, nite::ListenerLambda> keyListeners;
 
+        void fixNavIndexes();
+
         virtual void apply(const nite::Shader &shader){
             this->shader = shader;
             useShader = true;

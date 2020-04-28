@@ -159,6 +159,7 @@
 			UInt16 add(Shared<Game::ItemBase> &item);
 			UInt16 add(Shared<Game::ItemBase> &item, UInt16 slotId);
 			Shared<Game::ItemBase> get(UInt16 slotId);
+			Shared<Game::ItemBase> getById(UInt16 slotId);
 			bool contains(UInt16 id);
 			bool equip(Shared<Game::ItemBase> &item);
 			bool unequip(UInt16 itemId);

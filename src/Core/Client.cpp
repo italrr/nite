@@ -30,6 +30,9 @@ static nite::Console::Result cfRcon(Vector<String> params){
     if(params.size() == 0){
         return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
     }
+    if(!cl.connected){
+        return nite::Console::Result("you must be connected a server", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
     auto pwd = params[0];
     String hash = nite::hashString(pwd);
     nite::Packet rcon(++cl.svOrder);
@@ -133,7 +136,7 @@ void Game::Client::clear(){
 
 void Game::Client::connect(const String &ip, UInt16 port){
     if(connected){
-        nite::print("[client] disconnect from current server");
+        nite::print("[client] failed to connect: disconnect from current server");
         return;
     }
     auto server = nite::IP_Port(ip, port);

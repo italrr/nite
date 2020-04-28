@@ -33,7 +33,7 @@ void nite::NavUI::update(BaseUIComponent *comp){
 
     auto getSelectedChild = [&](){
         for(int i = 0; i < comp->children.size(); ++i){
-            if(comp->children[i]->nav.index == index){
+            if(comp->children[i]->nav.index == current){
                 return comp->children[i];
             }
         }
@@ -84,7 +84,7 @@ void nite::NavUI::update(BaseUIComponent *comp){
 
 	if(enable && nite::keyboardPressed(nite::keyLCONTROL)){
 		for(int i = 0; i < comp->children.size(); ++i){
-			if(comp->children[i]->nav.index == index){
+			if(comp->children[i]->nav.index == current){
 				comp->children[i]->onClick();
 			}
 		}
@@ -92,10 +92,10 @@ void nite::NavUI::update(BaseUIComponent *comp){
 
 	if(enable && nite::keyboardPressed(nite::keyRIGHT)){
 		if(comp->layout->xorient && !comp->layout->yorient || !comp->layout->xorient && comp->layout->yorient){
-			index = index+1 >= comp->children.size() ? index : index + 1;
+			current = current+1 >= comp->children.size() ? current : current + 1;
 		}else
 		if(comp->layout->xorient && comp->layout->yorient && split != 0){
-			index = (index + 1) % split == 0 ? index : index + 1;
+			current = (current + 1) % split == 0 || (current + 1) > comp->children.size()-1 ? current : current + 1;
 		}		
         solveAutoScroll();
 		comp->recalculate();
@@ -103,12 +103,12 @@ void nite::NavUI::update(BaseUIComponent *comp){
 
 	if(enable && nite::keyboardPressed(nite::keyLEFT)){
 		if(comp->layout->xorient && !comp->layout->yorient || !comp->layout->xorient && comp->layout->yorient){
-			index = index-1 < 0 ? index : index - 1;
+			current = current-1 < 0 ? current : current - 1;
 		}else
 		if(comp->layout->xorient && comp->layout->yorient && split != 0){
-			--index;
-			if(index < 0 || (index + 1) % split == 0){
-				++index;
+			--current;
+			if(current < 0 || (current + 1) % split == 0){
+				++current;
 			}
 		}		
         solveAutoScroll();
@@ -117,12 +117,12 @@ void nite::NavUI::update(BaseUIComponent *comp){
 
 	if(enable && nite::keyboardPressed(nite::keyDOWN)){
 		if(comp->layout->xorient && !comp->layout->yorient || !comp->layout->xorient && comp->layout->yorient){
-			index = index+1 >= comp->children.size() ? index : index + 1;
+			current = index+1 >= comp->children.size() ? current : current + 1;
 		}else
 		if(comp->layout->xorient && comp->layout->yorient && split != 0){
-			index += split;
-			if(index > comp->children.size()-1){
-				index -= split;
+			current += split;
+			if(current > comp->children.size()-1){
+				current -= split;
 			}
 		}		
         solveAutoScroll();
@@ -132,12 +132,12 @@ void nite::NavUI::update(BaseUIComponent *comp){
 
 	if(enable && nite::keyboardPressed(nite::keyUP)){
 		if(comp->layout->xorient && !comp->layout->yorient || !comp->layout->xorient && comp->layout->yorient){
-			index = index-1 < 0 ? index : index - 1;
+			current = index-1 < 0 ? current : current - 1;
 		}else
 		if(comp->layout->xorient && comp->layout->yorient && split != 0){
-			index -= split;
-			if(index < 0){
-				index += split;
+			current -= split;
+			if(current < 0){
+				current += split;
 			}
 		}	      
         solveAutoScroll();	
@@ -276,7 +276,9 @@ bool nite::BaseUIComponent::add(std::shared_ptr<nite::BaseUIComponent> component
 std::shared_ptr<nite::BaseUIComponent> nite::BaseUIComponent::add(Jzon::Node &node){
     auto top = getTopHeadComponent(); // shouldn't be null
     auto cmp = nite::UI::build(node, top->styles); // in this case we're overlooking for listeners and idsLookUp. TODO
-    this->add(cmp);
+    if(cmp.get() != NULL){
+        this->add(cmp);
+    }
     return cmp;
 }
 
@@ -291,6 +293,12 @@ bool nite::BaseUIComponent::remove(int id){
         }
     }
     return false;
+}
+
+void nite::BaseUIComponent::fixNavIndexes(){
+    for(int i = 0; i < children.size(); ++i){
+        children[i]->nav.index = i;
+    }
 }
 
 void nite::BaseUIComponent::destroy(){

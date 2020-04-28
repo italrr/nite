@@ -74,14 +74,14 @@ UInt16 Game::InventoryStat::add(Shared<Game::ItemBase> &item, UInt16 slotId){
 	int _seedIndex = slotId == 0 ?  ++seedIndex : slotId;
 	int finalId = 0;
 	int id = item->id;
-	auto ins = get(_seedIndex); // check if this item is already in the carry
+	auto ins = getById(item->id); // check if this item is already in the carry
 	// if(item->weight * item->qty + owner->complexStat.carry > owner->complexStat.maxCarry){ // too heavy
 	// 	return finalId;
 	// }
-	if(ins.get() == NULL || !item->amnt){
+	if(ins.get() == NULL || !item->amnt){			
 		carry[_seedIndex] = item;	
-		item->slotId = _seedIndex;
-		item->onCarryAdd(owner);
+		item->slotId = _seedIndex;		
+		item->onCarryAdd(owner);	
 		finalId = _seedIndex;
 		owner->complexStat.carry += item->weight;
 		notifyAddItem(owner, item->id, item->slotId, item->qty);
@@ -91,7 +91,9 @@ UInt16 Game::InventoryStat::add(Shared<Game::ItemBase> &item, UInt16 slotId){
 		owner->complexStat.carry += ins->weight * item->qty;
 		notifyAddItem(owner, ins->id, ins->slotId, item->qty);
 	}
-	owner->recalculateStats();
+	if(finalId > 0){
+		owner->recalculateStats();
+	}
 	return finalId;
 }
 
@@ -134,13 +136,27 @@ UInt16 Game::InventoryStat::add(Shared<Game::ItemBase> &item){
 	add(item, 0);
 }
 
+Shared<Game::ItemBase> Game::InventoryStat::getById(UInt16 id){
+	for(auto &item : carry){
+		if(item.second->id == id){
+			return item.second;
+		}
+	}
+	return Shared<Game::ItemBase>(NULL);
+}
+
 Shared<Game::ItemBase> Game::InventoryStat::get(UInt16 slotId){
 	auto it = carry.find(slotId);
 	return it == carry.end() ? Shared<Game::ItemBase>(NULL) : carry[it->first];
 }
 
 bool Game::InventoryStat::contains(UInt16 id){
-    return carry.find(id) != carry.end();
+    for(auto &it : carry){
+		if(it.second->id == id){
+			return true;
+		}
+	}
+	return false;
 }
 
 void Game::InventoryStat::clear(){
@@ -159,20 +175,23 @@ bool Game::InventoryStat::remove(UInt16 id, UInt16 qty){
             if(item.amnt){
                 item.qty -= qty; 
             }
-            if(qty == 0 || item.qty < 0){
+			int origSlot = item.slotId;
+            if(qty == 0 || item.qty <= 0){
                 item.onCarryRemove(owner);
 				owner->complexStat.carry -= item.weight * item.qty;
                 item.slotId = 0;
                 carry.erase(it.first);             
-            }
-			notifyRemoveItem(owner, id, item.slotId, qty);
-			owner->recalculateStats();  			
+			}
+			notifyRemoveItem(owner, id, origSlot, qty);
+			owner->recalculateStats();  
+			return true;			
         }
     }
     return true;
 }
 
 bool Game::InventoryStat::removeBySlotId(UInt16 slotId, UInt16 qty){
+	
 	auto it = carry.find(slotId);
 	if(it == carry.end()){
 		return false;
@@ -181,7 +200,8 @@ bool Game::InventoryStat::removeBySlotId(UInt16 slotId, UInt16 qty){
 	if(item->amnt){
 		item->qty -= qty;
 	}
-	if(qty == 0 || item->qty < 0){
+
+	if(qty == 0 || item->qty <= 0){
 		item->onCarryRemove(owner);
 		owner->complexStat.carry -= item->weight * item->qty;
 		item->slotId = 0;
