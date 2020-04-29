@@ -769,7 +769,8 @@ void Game::Server::game(){
         // TODO: this doesn't actually go here
         auto &ent = *static_cast<Game::EntityBase*>(world.objects[entId].get());
         auto &in = cl.second.input;
-        bool isSpace = in.isKeyPress(Game::Key::SPACE);
+        // bool isSpace = in.isKeyPress(Game::Key::SPACE);
+        bool isSpace = false;
         if(in.isKeyPress(Game::Key::UP) && in.isKeyPress(Game::Key::RIGHT)){
             ent.entityMove(-0.7854f, ent.walkPushRate, isSpace);
         }else

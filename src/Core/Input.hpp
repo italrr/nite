@@ -15,12 +15,12 @@
                 DOWN,
                 RIGHT,
                 LEFT,
-                Z,
-                X,
-                C,
-                A,
-                S,
-                SPACE
+                k1,
+                k2,
+                k3,
+                k4,
+                k5,
+                k6
             };
         }
 
@@ -51,12 +51,12 @@
             { nite::keyDOWN, Key::DOWN },
             { nite::keyLEFT, Key::LEFT },
             { nite::keyRIGHT, Key::RIGHT },
-            { nite::keyZ, Key::Z },
-            { nite::keyX, Key::X },
-            { nite::keyC, Key::C },
-            { nite::keyA, Key::A },
-            { nite::keyS, Key::S },
-            { nite::keySPACE, Key::SPACE }
+            { nite::key1, Key::k1 },
+            { nite::key2, Key::k2 },
+            { nite::key3, Key::k3 },
+            { nite::key4, Key::k4 },
+            { nite::key5, Key::k5 },
+            { nite::key6, Key::k6 }
         };
 
         struct Input {
@@ -79,9 +79,9 @@
             InputSimulator(){
                 this->keys = {
                     {Key::UP, PressType::Released },    {Key::DOWN, PressType::Released },  {Key::RIGHT, PressType::Released },
-                    {Key::LEFT, PressType::Released },  {Key::Z, PressType::Released },     {Key::X, PressType::Released },
-                    {Key::C, PressType::Released },     {Key::A, PressType::Released },     {Key::S, PressType::Released },
-                    {Key::SPACE, PressType::Released }
+                    {Key::LEFT, PressType::Released },  {Key::k1, PressType::Released },     {Key::k2, PressType::Released },
+                    {Key::k3, PressType::Released },     {Key::k4, PressType::Released },     {Key::k5, PressType::Released },
+                    {Key::k6, PressType::Released }
                 };
                 nextKey = nite::getTicks();
             }

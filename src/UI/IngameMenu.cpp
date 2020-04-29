@@ -8,7 +8,13 @@ static String IGMMainPath = "data/ui/ingame_menu/main.json";
 static String IGMSubsPath[Game::MenuType::total] = {
     "data/ui/ingame_menu/status_window.json.json",
     "data/ui/ingame_menu/equip_window.json",
-    "data/ui/ingame_menu/inventory_window.json"
+    "data/ui/ingame_menu/inventory_window.json",
+    "data/ui/ingame_menu/skills_window.json",
+    "data/ui/ingame_menu/craft_window.json",
+    "data/ui/ingame_menu/map_window.json",
+    "data/ui/ingame_menu/quest_window.json",
+    "data/ui/ingame_menu/codex_window.json",
+    "data/ui/ingame_menu/interact_window.json"
 };
 
 Game::InGameMenu::InGameMenu(){
@@ -21,7 +27,7 @@ Game::InGameMenu::InGameMenu(){
 }
 
 void Game::InGameMenu::hideAllSubs(){
-    for(int i = 0; i < 3; ++i){
+    for(int i = 0; i < MenuType::total; ++i){
         subs[i]->setVisible(false);
     }    
 }
@@ -46,6 +52,36 @@ void Game::InGameMenu::start(Game::Client *client){
         invUpdateCached();
     }; 
 
+    listeners["onclick_skills"] = [&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        subs[MenuType::Skills]->setVisible(true);
+        main->setVisible(false);
+    };
+
+    listeners["onclick_craft"] = [&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        subs[MenuType::Craft]->setVisible(true);
+        main->setVisible(false);
+    };
+
+    listeners["onclick_map"] = [&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        subs[MenuType::Map]->setVisible(true);
+        main->setVisible(false);
+    };    
+
+    listeners["onclick_quest"] = [&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        subs[MenuType::Quest]->setVisible(true);
+        main->setVisible(false);
+    };
+
+    listeners["onclick_codex"] = [&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        subs[MenuType::Codex]->setVisible(true);
+        main->setVisible(false);
+    };
+
+    listeners["onclick_interact"] = [&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        subs[MenuType::Interact]->setVisible(true);
+        main->setVisible(false);
+    };
+
     listeners["onclick_goback"] = [&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
         component->setVisible(false);
         main->setVisible(true);
@@ -62,7 +98,7 @@ void Game::InGameMenu::start(Game::Client *client){
         win->setVisible(open);
     }
     // start subs
-    for(int i = 0; i < 3; ++i){
+    for(int i = 0; i < MenuType::total; ++i){
         auto win = nite::UI::build(IGMSubsPath[i], listeners);
         subs[i] = win;
         if(auto ref = dynamic_cast<nite::WindowUI*>(win.get())){

@@ -34,7 +34,7 @@
                 this->objType = ObjectType::Entity;
 
             }
-            Game::Actionable actionables[5]; // z x c a s keys
+            Game::Actionable actionables[6]; // 1 2 3 4 5 6 keys
             UInt8 faceDirection;
             String name;
             float walkPushRate;

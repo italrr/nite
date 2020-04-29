@@ -91,25 +91,29 @@
 					"backgroundColor": { "a": 0.0 },
 					"children": [
 						{
-							"id": "actionable_z",
+							"id": "actionable_k1",
 							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
-							"id": "actionable_x",
+							"id": "actionable_k2",
 							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
-							"id": "actionable_c",
+							"id": "actionable_k3",
 							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
-							"id": "actionable_a",
+							"id": "actionable_k4",
 							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
-							"id": "actionable_s",
+							"id": "actionable_k5",
 							"import": "data/ui/hud/actionbar_object.json"
-						}																														
+						},
+						{
+							"id": "actionable_k6",
+							"import": "data/ui/hud/actionbar_object.json"
+						}						
 					]
 				}
 			]

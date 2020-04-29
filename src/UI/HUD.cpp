@@ -90,14 +90,20 @@ void Game::HUD::updateValues(){
         }
     }       
 
-    auto updateActionable = [&](Shared<nite::BaseUIComponent> cmp, int indx, String letter){
-        if(cmp.get() == NULL || ent->actionables[indx].type == Game::ActionableType::None){
+    auto updateActionable = [&](Shared<nite::BaseUIComponent> cmp, int indx, const String &letter){
+        if(cmp.get() == NULL){
+            return;
+        }
+        auto textcmp = cmp->getComponentByType("text");        
+        if(auto text = dynamic_cast<nite::TextUI*>(textcmp.get())){
+            text->setText(letter);
+        }        
+        if(ent->actionables[indx].type == Game::ActionableType::None){
             return;
         }
         auto iconcmp = cmp->getComponentByType("icon");
-        auto textcmp = cmp->getComponentByType("text");
         if(auto icon = dynamic_cast<nite::IconUI*>(iconcmp.get())){
-            auto act = ent->actionables[indx];
+            auto &act = ent->actionables[indx];
             switch(act.type){
                 case Game::ActionableType::Skill: {
                     int skId = ent->actionables[indx].id;
@@ -111,23 +117,27 @@ void Game::HUD::updateValues(){
                 } break ;          
             }
         }
-        if(auto text = dynamic_cast<nite::TextUI*>(textcmp.get())){
-            text->setText(letter);
-        }
 
     };
 
  
-    auto actZPanel = this->main->getComponentById("actionable_z");
-    updateActionable(actZPanel, 0, "Z");
-    auto actXPanel = this->main->getComponentById("actionable_x");
-    updateActionable(actXPanel, 1, "X");
-    auto actCPanel = this->main->getComponentById("actionable_c");
-    updateActionable(actCPanel, 2, "C");
-    auto actAPanel = this->main->getComponentById("actionable_a");
-    updateActionable(actAPanel, 3, "A");
-    auto actSPanel = this->main->getComponentById("actionable_s");
-    updateActionable(actSPanel, 4, "S");
+    auto actK1Panel = this->main->getComponentById("actionable_k1");
+    updateActionable(actK1Panel, 0, "1");
+    
+    auto actK2Panel = this->main->getComponentById("actionable_k2");
+    updateActionable(actK2Panel, 1, "2");
+    
+    auto actK3Panel = this->main->getComponentById("actionable_k3");
+    updateActionable(actK3Panel, 2, "3");
+    
+    auto actK4Panel = this->main->getComponentById("actionable_k4");
+    updateActionable(actK4Panel, 3, "4");
+    
+    auto actK5Panel = this->main->getComponentById("actionable_k5");
+    updateActionable(actK5Panel, 4, "5");
+    
+    auto actK6Panel = this->main->getComponentById("actionable_k6");
+    updateActionable(actK6Panel, 5, "6");    
 
     auto &effs = ent->effectStat.effects;
     auto statusPanel = this->main->getComponentById("hud_eff_column");

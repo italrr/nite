@@ -14,7 +14,7 @@
 		"y": "!! #gheight * 0.5 - 196"
 	},
 	"listenOn":{
-		"LSHIFT": "onclick_goback"
+		"E": "onclick_goback"
 	},
 	"backgroundColor": {"r": 0.08, "g": 0.08, "b": 0.08, "a": 1.0},
 	"borderColor": {"r": 0.02, "g": 0.02, "b": 0.02, "a": 1.0 },

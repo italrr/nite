@@ -643,6 +643,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         if(borderPattern != "" && nite::fileExists(borderPattern)){
             ref->setCornerPattern(nite::Texture(borderPattern, nite::Color(0.0f, 0.0f, 0.0f, 1.0f)));
         }
+        auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "W", base);
+        ref->onClickAnalogueKey = nite::translateKey(clickAnalogue);
         ref->resizeable = resizeable;
         ref->unmovable = unmovable;
         ref->setModal(modal);
@@ -885,6 +887,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto id = _parseString("id", node, style, base->literalId, base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto userShader = _parseShader("shader", node, style, base);
+        auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "W", base);
         _parseOverflow("overflow", node, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);
@@ -896,7 +899,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         ref->setId(id);    
         ref->setMargin(margin);
         ref->setPadding(padding);        
-        ref->setOnUnhover(onUnhoverMethod);        
+        ref->setOnUnhover(onUnhoverMethod);   
+        ref->onClickAnalogueKey = nite::translateKey(clickAnalogue);             
         if(node.has("flex") && flex > 0.0f){
             ref->setFlex(flex);
         }else{

@@ -27,7 +27,7 @@
 		}
 	},
 	"listenOn":{
-		"LSHIFT": "onclick_close"
+		"E": "onclick_close"
 	},	
 	"navigate": {
 		"enable": true,
@@ -55,32 +55,38 @@
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "SKILLS"
+			"text": "SKILLS",
+			"onClick": "onclick_skills"
 		},
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "CRAFT"
+			"text": "CRAFT",
+			"onClick": "onclick_craft"
 		},
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "MAP"
+			"text": "MAP",
+			"onClick": "onclick_map"
 		},	
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "QUEST"
+			"text": "QUEST",
+			"onClick": "onclick_quest"
 		},
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "CODEX"
+			"text": "CODEX",
+			"onClick": "onclick_codex"
 		},
 		{
 			"type": "button"
 			"style": "menubutton",
-			"text": "INTERACT"
+			"text": "INTERACT",
+			"onClick": "onclick_interact"
 		}		
 	]
 }

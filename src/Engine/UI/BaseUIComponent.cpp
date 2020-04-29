@@ -82,7 +82,7 @@ void nite::NavUI::update(BaseUIComponent *comp){
 		comp->recalculate();	
 	}
 
-	if(enable && nite::keyboardPressed(nite::keyLCONTROL)){
+	if(enable && nite::keyboardPressed(comp->onClickAnalogueKey)){
 		for(int i = 0; i < comp->children.size(); ++i){
 			if(comp->children[i]->nav.index == current){
 				comp->children[i]->onClick();
@@ -212,6 +212,7 @@ nite::BaseUIComponent::BaseUIComponent(){
     scrollOffset.set(0.0f);
     scrollOffsetTrans.set(0.0f);
     solid = false;
+    onClickAnalogueKey = nite::keyW;
     fillUpType = false;
     layout = std::shared_ptr<nite::LayoutSystemUI>(new nite::Layout::Inline());
     headComponent = NULL;

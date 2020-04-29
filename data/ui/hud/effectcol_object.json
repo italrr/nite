@@ -3,11 +3,7 @@
 	"layout": "vbox",
 	"width": 48,
 	"height": 64,
-	"backgroundColor": {"r": 0.97, "g": 0.09, "b": 0.15, "a": 1.0},	
-	"shader": {
-		"frag": "data/shaders/ui/actionbar_object_f.glsl",
-		"vert": "data/shaders/ui/actionbar_object_v.glsl",
-	},	
+	"backgroundColor": {"r": 0.97, "g": 0.09, "b": 0.15, "a": 1.0},		
 	"margin": {"vert": 8},
 	"children": [
 		{
@@ -47,7 +43,7 @@
 					"type": "text",
 					"text": "text",
 					"textColor": {"r": 0.0, "g": 0.0, "b": 1.0, "a": 1.0},
-					"fontSize": 6.5
+					"fontSize": 7
 				},
 				{
 					"type": "panel",

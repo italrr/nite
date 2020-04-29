@@ -126,6 +126,7 @@
         bool allowOverflow;
         nite::Vec2 scrollOffset;
         nite::Vec2 scrollOffsetTrans;
+        int onClickAnalogueKey;
 
         Dict<String, nite::ListenerLambda> keyListeners;
 

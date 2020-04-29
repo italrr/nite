@@ -861,21 +861,24 @@ void Game::Client::game(){
         auto ent = static_cast<Game::EntityBase*>(it->second.get());
         Game::Actionable *act = NULL;
         switch(gk){
-            case Game::Key::Z: {
+            case Game::Key::k1: {
                 act = &ent->actionables[0];
             }
-            case Game::Key::X: {
+            case Game::Key::k2: {
                 act = &ent->actionables[1];
             }
-            case Game::Key::C: {
+            case Game::Key::k3: {
                 act = &ent->actionables[2];
             }
-            case Game::Key::A: {
+            case Game::Key::k4: {
                 act = &ent->actionables[3];
             }   
-            case Game::Key::S: {
+            case Game::Key::k5: {
                 act = &ent->actionables[4];
-            }                           
+            }  
+            case Game::Key::k6: {
+                act = &ent->actionables[5];
+            }                                     
         }
         if(act == NULL){
             break;

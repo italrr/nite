@@ -3,11 +3,7 @@
 	"layout": "vbox",
 	"width": 64,
 	"height": 92,
-	"backgroundColor": {"r": 0.97, "g": 0.09, "b": 0.15, "a": 1.0},	
-	"shader": {
-		"frag": "data/shaders/ui/actionbar_object_f.glsl",
-		"vert": "data/shaders/ui/actionbar_object_v.glsl",
-	},	
+	"backgroundColor": {"r": 0.93, "g": 0.11, "b": 0.15, "a": 1.0},	
 	"margin": {"hor": 16},
 	"children": [
 		{
