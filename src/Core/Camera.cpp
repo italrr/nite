@@ -1,8 +1,8 @@
 #include "Camera.hpp"
-#include "Engine/Graphics.hpp"
-#include "Engine/Console.hpp"
-#include "Engine/Input.hpp"
-#include "Engine/View.hpp"
+#include "../Engine/Graphics.hpp"
+#include "../Engine/Console.hpp"
+#include "../Engine/Input.hpp"
+#include "../Engine/View.hpp"
 static bool cameraFreeroam = false;
 static nite::Console::CreateProxy cpAnDatTo("cl_camera_freeroam", nite::Console::ProxyType::Bool, sizeof(bool), &cameraFreeroam);
 

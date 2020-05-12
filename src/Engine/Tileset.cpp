@@ -9,6 +9,10 @@
 #include "Texture.hpp"
 #include "Tileset.hpp"
 
+// OBSOLETE
+// TO BE REMOVED
+
+
 nite::Tileset::Tileset(){
   loaded = false;
   lastViewPosition.set(0.0);
@@ -197,7 +201,7 @@ void nite::Tileset::load(const String &path){
     merged.depth = merged.depth / _layers.size();
 
     // sort it (possible violation of strict-weak-ordering)
-    // TODO: Fix this, Italo  ^ lol
+    // TODO: Fix this
     std::sort(merged.data.begin(), merged.data.end(), [] (const nite::TileLayerSingle &a, const nite::TileLayerSingle &b){
       return a.inMapCoors.y < b.inMapCoors.y || (a.inMapCoors.y == b.inMapCoors.y && a.tileIndex > b.tileIndex);
     });

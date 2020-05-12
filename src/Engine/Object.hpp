@@ -44,8 +44,8 @@
 		};
 
 		struct PhysicsObject : public nite::BaseObject {
-			int id;
-			World *container;						
+			UInt16 id;
+			nite::World *container;						
 			nite::Vec2 position;
 			nite::Vec2 speed;
 			nite::Vec2 size;

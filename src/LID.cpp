@@ -1,7 +1,11 @@
+#include <memory>
 
 #include "Engine/nScript.hpp"
+#include "Engine/View.hpp"
 
 #include "Game.hpp"
+
+#include "RING/RING.hpp"
 
 int main(int argc, char* argv[]){
 	Vector<String> params;
@@ -21,15 +25,11 @@ int main(int argc, char* argv[]){
 		game.localSv.preinit();
 		game.localSv.setupGame("Pacifier's corner", 4, 1);
 	}	
-
 	game.client.setup("pepper"+nite::toStr(nite::randomInt(25, 50)));
-
-
 	nite::nScript debug("./debug_init.ns");
 	debug.execute();
 
-	// nite::UI::build("data/ui/ingame_menu/main.json");
-	while(game.isRunning){			
+	while(game.isRunning){
 		game.update();
 		game.render();
 	}

@@ -1,10 +1,13 @@
 #ifndef GAME_CLIENT_HPP
     #define GAME_CLIENT_HPP
     
+    #include "../Engine/Map.hpp"
+
     #include "Network.hpp"   
     #include "Object.hpp"
     #include "Input.hpp"
     #include "World.hpp"
+    #include "Camera.hpp"
     #include "../UI/HUD.hpp"
     #include "../UI/Icon.hpp"
     #include "../UI/IngameMenu.hpp"
@@ -31,6 +34,7 @@
             Game::InGameMenu igmenu;
             Dict<UInt64, Game::ClClient> clients;
             Game::NetWorld world;
+            Shared<nite::Map> map;
             nite::IP_Port sv;
             UInt64 clientId;
             UInt64 serverId;

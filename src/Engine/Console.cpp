@@ -102,9 +102,9 @@ static nite::Console::Result cfBind(Vector<String> params){
 }
 static auto cfBindIns = nite::Console::CreateFunction("bind", &cfBind);  
 
-nite::Console::CreateProxy pShowLineNumber("cl_consoleln", nite::Console::ProxyType::Int, sizeof(int), &showLineNumber);
-nite::Console::CreateProxy pOpened("console_op", nite::Console::ProxyType::Bool, sizeof(bool), &opened);
-nite::Console::CreateProxy pShowPredictionNumber("cl_consolepreln", nite::Console::ProxyType::Int, sizeof(int), &showPredictionNumber);
+nite::Console::CreateProxy pShowLineNumber("console_ln", nite::Console::ProxyType::Int, sizeof(int), &showLineNumber);
+nite::Console::CreateProxy pOpened("console_open", nite::Console::ProxyType::Bool, sizeof(bool), &opened);
+nite::Console::CreateProxy pShowPredictionNumber("consolepre_ln", nite::Console::ProxyType::Int, sizeof(int), &showPredictionNumber);
 
 void nite::Console::end(){
     proxies->clear();
@@ -201,9 +201,9 @@ void nite::Console::render(){
     static const int fs = 12 * nite::getGeneralScale();
     static nite::Texture tex("data/sprite/empty.png");
     static nite::Font font(nite::DefaultFontPath, fs, 1.5f);
-    static const auto lh = font.getHeight() + 2;
-    static const float cheight = lh * (showLineNumber + 1);
-    static const nite::Vec2 offPosition(0.0f, -cheight);
+    auto lh = font.getHeight() + 2;
+    float cheight = lh * (showLineNumber + 1);
+    nite::Vec2 offPosition(0.0f, -cheight);
     position.lerpAbsolute(opened ? nite::Vec2(0.0f) : offPosition, 0.42f);
     if(position.y == offPosition.y){
         return;

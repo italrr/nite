@@ -19,9 +19,11 @@
             struct Result {
                 String msg;
                 nite::Color color;
+                int val;
                 Result(){
                     msg = "";
                     color = nite::Color(1.0f, 1.0f, 1.0f, 1.0f);
+                    val = 0;
                 }
                 Result(const String &msg, const nite::Color &color){
                     this->msg = msg;

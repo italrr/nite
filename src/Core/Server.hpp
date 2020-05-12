@@ -4,10 +4,11 @@
     #include "Network.hpp"
     #include "Object.hpp"
     #include "World.hpp"
-    #include "../RING/Map.hpp"
     #include "Input.hpp"
     #include "../Entity/Effect.hpp"
     #include "../Entity/Inventory.hpp"
+
+    #include "../RING/RING.hpp"
     
     namespace Game {
 
@@ -67,7 +68,7 @@
             UInt64 physicsUpdate;
             UInt64 lastPlayerInfoSent;
             Dict<UInt64, UInt16> players;
-            Vector<Shared<Game::RING::Map>> maps;
+            Vector<Shared<nite::Map>> maps;
             Server();
             ~Server();
             void setState(unsigned state);

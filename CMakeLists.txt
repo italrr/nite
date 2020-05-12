@@ -198,6 +198,7 @@ set (nite_src
 		src/Engine/Texture.cpp
 		src/Engine/Font.cpp
 		src/Engine/Animation.cpp
+		src/Engine/Map.cpp
 		src/Engine/World.cpp
 		src/Engine/World.cpp
 		src/Engine/Object.cpp
@@ -221,8 +222,8 @@ set(src_files
 	src/RING/RING.cpp
 	src/RING/Search.cpp
 	src/RING/Blueprint.cpp
-	src/RING/Map.cpp
 	# Core #
+	src/Core/Camera.cpp
 	src/Core/Server.cpp
 	src/Core/Client.cpp
 	src/Core/Network.cpp
@@ -241,8 +242,6 @@ set(src_files
 	src/UI/Icon.cpp
 	src/UI/IngameMenu.cpp
 	# GENERAL #
-	src/Camera.cpp
-	src/Map.cpp
 	src/AI/AI.cpp
 	src/Game.cpp
 )

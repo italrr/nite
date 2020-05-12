@@ -2,7 +2,7 @@
 	#define NITE_TYPES_HPP
 
 	#include <vector>
-	#include <map>
+	#include <unordered_map>
 	#include <string>
 	#include <memory>
 	#include <functional>
@@ -11,9 +11,9 @@
 	#define Lambda	std::function
 	#define String	std::string
 	#define Vector 	std::vector
-	#define Dict	std::map
+	#define Dict	std::unordered_map
 
-	#define Int8 		int8_t
+	#define Int8 	int8_t
 	#define UInt8 	uint8_t
 
 	#define Int16 	int16_t
@@ -126,8 +126,11 @@
 			Vec2 operator-(const Vec2 &v);
 			void set(const Vec2 &v);
 			void set(float X, float Y);
+			// lerp uses game ticks and engine ticks
 			bool lerp(const Vec2 &v, float step);
+			// lerpDiscrete uses only engine ticks, so if the game slows down, lerpDiscrete is unaffected
 			bool lerpDiscrete(const Vec2 &v, float step);
+			// lerpAbsolute doesn't use any ticks for interpolation, meaning any slowdowns will directly affect the transitions
 			bool lerpAbsolute(const Vec2 &v, float step);
 			String str();
 			operator String();

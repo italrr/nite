@@ -44,7 +44,6 @@
         struct Server;
         struct Net;
         struct NetObject : nite::PhysicsObject {
-            UInt16 id;
             UInt8 objType;
             UInt16 sigId;
             Game::NetWorld *container;

@@ -322,6 +322,9 @@ void Game::Server::dropClient(UInt64 uid, String reason){
         nite::print("[server] cannot drop client "+nite::toStr(uid)+": it's not connected");
         return;
     }
+    if(cl->entityId != 0){
+        destroy(cl->entityId); // destroy player's entity
+    }
     nite::Packet drop(++cl->lastSentOrder);
     drop.setHeader(Game::PacketType::SV_CLIENT_DROP);
     drop.write(reason);
@@ -393,10 +396,13 @@ void Game::Server::clear(){
     tilesets.clear();
     world.clear();
     setState(Game::ServerState::Off);
-
     if(debugging && debug.get() != NULL){
         static_cast<nite::WindowUI*>(debug.get())->close();
     }    
+    for(int i = 0; i < maps.size(); ++i){
+        maps[i]->unload();
+    }
+    maps.clear();
 }
 
 void Game::Server::update(){
@@ -919,10 +925,8 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
     // build maps
     for(int i = 0; i < maps; ++i){
         Shared<Game::RING::Blueprint> bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
-        Shared<Game::RING::Map> map = Shared<Game::RING::Map>(new Game::RING::Map());
         bp->generate(35, 35);
-        map->build(bp, src, 3);
-        this->maps.push_back(map);
+        this->maps.push_back(Game::RING::generateMap(bp, src, 3));
     }
     listen(name, maxClients, nite::NetworkDefaultPort);
 }

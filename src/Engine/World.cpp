@@ -37,7 +37,7 @@ void nite::World::remove(int objectId){
 		}
 		removeQueue.push_back(objectId);
 	}else{
-		nite::print("Unable to remove object id '"+nite::toStr(objectId)+"': It doesn't exist.");
+		nite::print("failed to remove object id '"+nite::toStr(objectId)+"': it doesn't exist.");
 	}
 }
 

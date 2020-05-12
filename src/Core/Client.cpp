@@ -126,6 +126,7 @@ void Game::Client::clear(){
     serverId = 0;
     entityId = 0;
     connected = false;
+    map = Shared<nite::Map>(NULL);
     sock.close();
     clients.clear();
     world.clear();
@@ -917,6 +918,9 @@ void Game::Client::render(){
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     nite::setRenderTarget(nite::RenderTargetGame);
     nite::setDepth(nite::DepthMiddle);
+    if(map != NULL){
+        map->render(0, 0, 0, 0); // TODO implement viewport using camera
+    }
     for(auto &obj : world.objects){
         obj.second->draw();
     }

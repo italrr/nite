@@ -6,3 +6,4 @@ bind F4 "connect 127.0.0.1"
 bind F5 "shader_reload"
 bind F6 "ent_give_item {cl_whoami entity} 2 10"
 bind F7 "ent_remove_item {cl_whoami entity} 2 10"
+cl_cam_freeroam true
