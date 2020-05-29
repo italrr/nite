@@ -199,7 +199,7 @@ void nite::Console::add(const String &input, bool print){
 
 void nite::Console::render(){
     static const int fs = 12 * nite::getGeneralScale();
-    static nite::Texture tex("data/sprite/empty.png");
+    static nite::Texture tex("data/texture/empty.png");
     static nite::Font font(nite::DefaultFontPath, fs, 1.5f);
     auto lh = font.getHeight() + 2;
     float cheight = lh * (showLineNumber + 1);

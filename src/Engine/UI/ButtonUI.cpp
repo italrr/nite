@@ -161,7 +161,7 @@ void nite::ButtonUI::setOnUnhover(nite::ListenerLambda onUnhover){
 }
 
 void nite::ButtonUI::render(const nite::Vec2 &offset){
-    static nite::Texture blank("data/sprite/empty.png");
+    static nite::Texture blank("data/texture/empty.png");
     nite::Vec2 p(position.x + offset.x, position.y + offset.y);
     // nite::print(padding);
     auto cs = size + padding;

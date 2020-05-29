@@ -181,7 +181,7 @@ nite::Vec2 nite::IconUI::computeSize(){
 
 void nite::IconUI::onCreate(){
     font.load(defaultFontUI, fontSize * defaultFontRatio, 1.5f); 
-    empty.load("data/sprite/empty.png");
+    empty.load("data/texture/empty.png");
     calculateSize();  
     recalculate();
 }

@@ -58,7 +58,7 @@ void Game::NavMap::build(Vector<Shared<nite::PhysicsObject>> &locals, nite::Vec2
 void Game::NavMap::draw(float x, float y){
 	// for debugging only
 	nite::setDepth(nite::DepthTop);
-	static nite::Texture tex("data/sprite/empty.png");
+	static nite::Texture tex("data/texture/empty.png");
 	nite::setRenderTarget(nite::RenderTargetGame);
 	float ga = 0.85f;
 	nite::setColor(0.0f, 0.0f, 0.0f, 1.0f);

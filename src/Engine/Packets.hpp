@@ -5,8 +5,10 @@
 
 		static const size_t NetworkHeaderSize = sizeof(UInt16);
 		static const size_t NetworkOrderSize = sizeof(UInt32);
-		static const size_t NetworkMaxPacketSize = NetworkHeaderSize + NetworkOrderSize + 1024 * 2; //  2 kilobytes + 2 bytes for the header + 4 bytes for packet order
+		static const size_t NetworkPacketSize = 1024 * 5;
+		static const size_t NetworkMaxPacketSize = NetworkHeaderSize + NetworkOrderSize + NetworkPacketSize;
 
+		// Normal Packet
 		struct Packet {
 				size_t index;
 				size_t maxSize;
@@ -30,9 +32,5 @@
 				nite::Packet& operator= (const nite::Packet &other);
 
 		};
-
-		// struct SmallPacket : Packet {
-		// 	char data[64];
-		// };
 	}
 #endif

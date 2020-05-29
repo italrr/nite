@@ -155,7 +155,7 @@ void Game::RING::Blueprint::generate(){
 }
 
 void Game::RING::Blueprint::generateMinimap(){
-    static nite::Texture tex("data/sprite/empty.png");
+    static nite::Texture tex("data/texture/empty.png");
     auto offset = nite::Vec2(0.0f);
     float scale = 16.0f;    
     minimap.init(width * scale, height * scale);

@@ -4,6 +4,7 @@
 #include "Input.hpp"
 #include "Console.hpp"
 #include "UI/UI.hpp"
+#include "Network.hpp"
 
 //#include "nite.h"
 //#include "View.h"

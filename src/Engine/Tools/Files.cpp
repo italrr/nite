@@ -57,6 +57,14 @@ String nite::getFormat(const String &filename){
 	return "";
 }
 
+bool nite::removeFile(const String &path){
+	if(!nite::fileExists(path)){
+		return false;
+	}
+	remove(path.c_str());
+	return true;
+}
+
 /*
 ================
 Find files/directories with/out full path and recursively or not

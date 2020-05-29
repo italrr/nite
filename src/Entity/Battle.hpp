@@ -28,7 +28,7 @@
 		struct DamageInfo {
 			Shared<Game::NetObject> owner;
 			Shared<Game::NetObject> receiver;
-			Shared<Game::EquipItem> weap; // weapon used to deal the dmg. for magic without staff can be null
+			Shared<Game::EquipItem> weap; // weapon used to deal the dmg. it can be null
 			UInt8 dmgtype;
 			Int32 amnt;
 			bool truedmg;

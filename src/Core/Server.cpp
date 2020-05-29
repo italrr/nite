@@ -412,7 +412,7 @@ void Game::Server::update(){
     nite::IP_Port sender;
     nite::Packet handler;
     if(sock.recv(sender, handler)){
-        UInt64 netId = sender.address+sender.port+sock.getSock();
+        UInt64 netId = sender.address+sender.port+sock.sock;
         auto client = this->getClient(netId);
         bool isLast = client && handler.getOrder() > client->lastRecvOrder;
         if(client && isLast){
@@ -600,7 +600,8 @@ void Game::Server::update(){
                 handler.read(cmd);
                 auto result = nite::Console::interpret(cmd, false, true, client->role == Game::SvClientRole::Admin);
                 sendRemoteCmdMsg(client->clientId, result.msg, result.color);
-            } break;              
+            } break;  
+
         }
     }
 

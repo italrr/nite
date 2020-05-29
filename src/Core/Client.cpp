@@ -171,7 +171,7 @@ void Game::Client::connect(){
 void Game::Client::setup(const String &nickname){
     this->nickname = nickname;
     this->init = true;
-    this->icons.load(nite::Texture("data/ui/icons/test_icons.png"), nite::Vec2(32.0f));
+    this->icons.load(nite::Texture("data/texture/icons/test_icons.png"), nite::Vec2(32.0f));
 }
 
 void Game::Client::disconnect(){
@@ -209,7 +209,7 @@ void Game::Client::update(){
     nite::Packet handler;
     nite::IP_Port sender;
     if(sock.recv(sender, handler)){
-        UInt64 netId = sender.address + sender.port + sock.getSock();
+        UInt64 netId = sender.address + sender.port + sock.sock;
         bool isSv = netId == this->serverId && state != Game::NetState::Disconnected;
         bool isLast = isSv && handler.getOrder() > rcvOrder;
         if(isSv && isLast){
@@ -805,7 +805,7 @@ void Game::Client::update(){
                 nite::print("Restarting...");
                 world.objects.clear(); // manually clear world (might be dangerous?)
                 // **TODO** 
-            } break;                      
+            } break;    
             /* 
                 UNKNOWN
             */

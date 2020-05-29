@@ -45,16 +45,15 @@
 	================
 	*/
 	namespace nite {
-		namespace TM {
-			const unsigned D 		= 0;
-			const unsigned M 		= 1;
-			const unsigned Y 		= 2;
-			const unsigned H 		= 3;
-			const unsigned MI 		= 4;
-			const unsigned S 		= 5;
-			const unsigned All 		= 6;
-			const unsigned A 		= 6;
-		}
+		enum TM : int {
+			DAY = 0,
+			MONTH,
+			YEAR,
+			HOURS,
+			MINUTES,
+			SECONDS,
+			ALL
+		};
 		String secondsToText(long long unsigned secs);
 		String getTime(unsigned time);
 		String getTimestamp();
@@ -175,6 +174,7 @@
 		String formatRemove(String filename);
 		bool fileFind(const String &path, unsigned Type, String Format, bool R, bool FP, Vector<String> &List);
 		size_t fileSize(const String &path);
+		bool removeFile(const String &path);
 	}
 	/*
 	================

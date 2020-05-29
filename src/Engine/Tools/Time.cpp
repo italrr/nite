@@ -52,9 +52,9 @@ Get the current timestamp:
 ================
 */
 String nite::getTimestamp(){
-	String Timestamp = nite::getTime(nite::TM::H)+":";
-	Timestamp += nite::getTime(nite::TM::MI)+":";
-	Timestamp += nite::getTime(nite::TM::S);
+	String Timestamp = nite::getTime(nite::TM::HOURS)+":";
+	Timestamp += nite::getTime(nite::TM::MINUTES)+":";
+	Timestamp += nite::getTime(nite::TM::SECONDS);
 	return Timestamp;
 }
 
@@ -70,24 +70,24 @@ String nite::getTime(unsigned timeType){
     tm * ptm= localtime(&currentTime);
 
 	switch (timeType){
-		case nite::TM::D:
+		case nite::TM::DAY:
 			return toStr(ptm->tm_mday);
 		break;
-		case nite::TM::M:
+		case nite::TM::MONTH:
 			return toStr(ptm->tm_mon);
-		case nite::TM::Y:
+		case nite::TM::YEAR:
 			return toStr(ptm->tm_year);
 		break;
-		case nite::TM::H:
+		case nite::TM::HOURS:
 			return toStr(ptm->tm_hour);
 		break;
-		case nite::TM::MI:
+		case nite::TM::MINUTES:
 			return toStr(ptm->tm_min);
 		break;
-		case nite::TM::S:
+		case nite::TM::SECONDS:
 			return toStr(ptm->tm_sec);
 		break;
-		case nite::TM::All:
+		case nite::TM::ALL:
 			return nite::strRemoveEndline(ctime(&currentTime));
 		break;
 	}

@@ -17,13 +17,13 @@
 		},
 		"actionable_bar": {
 			"iconSize": {"hor": 32, "vert": 32},
-			"source": "data/ui/icons/test_icons.png",
+			"source": "data/texture/icons/test_icons.png",
 			"width": 64,
 			"height": 64
 		},
 		"effect_col": {
 			"iconSize": {"hor": 32, "vert": 32},
-			"source": "data/ui/icons/test_icons.png",
+			"source": "data/texture/icons/test_icons.png",
 			"width": 48,
 			"height": 48
 		}

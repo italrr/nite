@@ -3,6 +3,7 @@
 #include "../Engine/Tools/hashids.hpp"
 
 Game::Net::Net(){
+    lastInitTfId = 0;
     setState(Game::NetState::Disconnected);
     clock.set(nite::getTicks());
 }
@@ -20,7 +21,7 @@ Game::PersisentDelivey& Game::Net::persSend(nite::IP_Port &client, nite::Packet 
     if(!init){
         nite::print("persend when net is not init");
     }    
-    UInt64 netId = client.address + client.port + sock.getSock();
+    UInt64 netId = client.address + client.port + sock.sock;
     dropPersForHeader(netId, packet.getHeader()); // remove older versions of this packet
     Game::PersisentDelivey pd;
     pd.retryInterval = retryInterval;

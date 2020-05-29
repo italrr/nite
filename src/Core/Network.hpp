@@ -1,6 +1,7 @@
 #ifndef GAME_NETWORK_HPP
     #define GAME_NETWORK_HPP
     
+    #include <stdio.h>
     #include "../Engine/Network.hpp" 
     #include "../Engine/Tools/Tools.hpp"
 
@@ -69,21 +70,21 @@
             }
         };
 
-
         struct Net {
             Game::RemoteClock clock;
             Vector<Game::PersisentDelivey> deliveries;
             unsigned state;
             UInt64 lastState;
             bool init;
+            UInt16 lastInitTfId;
             nite::UDPSocket sock;
             Net();
             void setState(unsigned state);
             Game::PersisentDelivey& persSend(nite::IP_Port &client, nite::Packet &packet);
             Game::PersisentDelivey& persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries);  
+            void updateDeliveries();
             void dropPersFor(UInt64 netId);
             void dropPersForHeader(UInt64 netId, UInt16 header);
-            void updateDeliveries();       
             void ack(nite::Packet &packet);
             void sendAck(nite::IP_Port &client, UInt32 ackId, UInt32 order);
             void bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda, nite::SmallPacket packet);
@@ -375,21 +376,21 @@
                     CUSTOM PAYLOAD
                 }
             */  
-            SV_ADD_ITEM,
+            SV_ADD_ITEM, // ACK
             /*
                 UINT16 ENTID
                 UINT16 ITEMID
                 UINT16 SLOTID
                 UINT16 AMNT
             */
-            SV_REMOVE_ITEM,
+            SV_REMOVE_ITEM, // ACK
             /*
                 UINT16 ENTID
                 UINT16 ITEMID
                 UINT16 SLOTID
                 UINT16 AMNT
             */ 
-            SV_UPDATE_ENTITY_ALL_STAT,
+            SV_UPDATE_ENTITY_ALL_STAT, // ACK
             /*
                 UINT16 ENTID
                 {
@@ -398,44 +399,43 @@
                     sizeof(ComplexCStat)
                 }
             */           
-            SV_UPDATE_ENTITY_BASE_STAT,
+            SV_UPDATE_ENTITY_BASE_STAT, // ACK
             /*
                 UINT16 ENTID
                 {
                     sizeof(BaseStat)
                 }
             */
-            SV_UPDATE_ENTITY_HEALTH_STAT,
+            SV_UPDATE_ENTITY_HEALTH_STAT, // ACK
             /*
                 UINT16 ENTID
                 {
                     sizeof(HealthStat)
                 }
             */                                           
-            SV_UPDATE_ENTITY_COMPLEX_STAT,
+            SV_UPDATE_ENTITY_COMPLEX_STAT, // ACK
             /*
                 UINT16 ENTID
                 {
                     sizeof(ComplexStat)
                 }
             */ 
-            SV_NOTIFY_ENTITY_DEATH,
+            SV_NOTIFY_ENTITY_DEATH, // ACK
             /*
                 UINT16 ENTID
                 {
                     sizeof(HealthStat)
                 }
-            */  
-            SV_NOTIFY_ENTITY_REVIVE,
+            */
+            SV_NOTIFY_ENTITY_REVIVE, // ACK
             /*
                 UINT16 ENTID
                 {
                     sizeof(HealthStat)
                 }
             */ 
-           SV_SET_GAME_OVER,   
-           SV_SET_GAME_RESTART,                 
-
+            SV_SET_GAME_OVER,  // ACK
+            SV_SET_GAME_RESTART,  // ACK 
         };
 
 

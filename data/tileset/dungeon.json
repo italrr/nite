@@ -2,7 +2,7 @@
 	"name": "Dungeon",
 	"description": "Simple Dungeon",
 	"transparency":"#ffffff",
-	"source": "data/tileset/dungeon.png",
+	"source": "data/texture/tileset/dungeon.png",
 	"sourceWidth": 4096,
 	"sourceHeight": 4096,
 	"margin": 0,

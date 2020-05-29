@@ -54,7 +54,7 @@ bool nite::nScript::execute(const String &path){
 
 bool nite::nScript::execute(){
     if(!loaded){
-        nite::Console::add("can't run nScript. There's nothing loaded.", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+        nite::Console::add("can't run nScript. there's nothing loaded.", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
         return false;
     }
     nite::Console::add("about to run '"+path+"'", nite::Color(0.80f, 0.80f, 0.22f, 1.0f));

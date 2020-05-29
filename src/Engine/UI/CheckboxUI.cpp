@@ -90,7 +90,7 @@ nite::Vec2 nite::CheckboxUI::computeSize(){
 }
 
 void nite::CheckboxUI::render(const nite::Vec2 &offset){
-    static nite::Texture blank("data/sprite/empty.png");
+    static nite::Texture blank("data/texture/empty.png");
     nite::Vec2 p(position.x + offset.x, position.y + offset.y);
     float boxdim = font.getHeight();
     auto cs = size + padding;

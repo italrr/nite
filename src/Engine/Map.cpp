@@ -196,7 +196,7 @@ bool nite::Map::setup(int n, const nite::Vec2 &size, const nite::Vec2 &tileSize,
         layer->generate(size.x, size.y, -1, i, "", nite::Texture());
         layers.push_back(layer);
     }
-    empty.load("data/sprite/empty.png"); 
+    empty.load("data/texture/empty.png"); 
     return true;
 }
 

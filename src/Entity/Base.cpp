@@ -69,7 +69,7 @@ void Game::EntityBase::printInfo(){
 }
 
 void Game::EntityBase::draw(){
-    static nite::Texture blank("data/sprite/empty.png");
+    static nite::Texture blank("data/texture/empty.png");
     nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setColor(0.0f, 0.0f, 1.0f, 1.0f);
 	nite::setDepth(nite::DepthMiddle);

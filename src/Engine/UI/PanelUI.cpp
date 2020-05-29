@@ -109,7 +109,7 @@ nite::Vec2 nite::PanelUI::computeSize(){
 }
 
 void nite::PanelUI::onCreate(){
-    uiBasicTexture.load("data/sprite/empty.png");
+    uiBasicTexture.load("data/texture/empty.png");
     recalculate();
 }
 

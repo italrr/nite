@@ -1144,6 +1144,7 @@ void nite::graphicsInit(){
 void nite::graphicsEnd(){
 	nite::print("graphics end");
 	nite::Console::end();
+	nite::FileTransfer::end();
 	nite::socketEnd();
 	SDL_DestroyWindow(Window);
 	SDL_GL_DeleteContext(Context);

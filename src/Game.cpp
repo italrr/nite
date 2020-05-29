@@ -27,7 +27,7 @@ static nite::Console::Result cfMapLoad(Vector<String> params){
 	}
 	String path = params[0];
 	if(instance->client.connected){
-		return nite::Console::Result("you cannot load up a map while on a game. disconnect first", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		instance->client.disconnect("disconnected by user");
 	}
 	auto map = Shared<nite::Map>(new nite::Map());
 	map->load(path);
@@ -36,6 +36,34 @@ static nite::Console::Result cfMapLoad(Vector<String> params){
 	return nite::Console::Result();
 }
 static auto cfMapLoadIns = nite::Console::CreateFunction("map_load", &cfMapLoad); 
+
+
+static nite::Console::Result cfMapReadInfo(Vector<String> params){
+	if(params.size() < 1){
+		return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	}
+	String path = params[0];
+	if(!nite::fileExists(path)){
+		return nite::Console::Result("failed to read map file '"+path+"': it doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	}
+
+	Jzon::Parser parser;
+	auto obj = parser.parseFile(path);
+	if(!obj.isValid()){
+		return nite::Console::Result("failed to read map file '"+path+"': "+parser.getError(), nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	}
+
+	String title = obj.get("title").toString("undefined");
+	String author = obj.get("author").toString("undefined");
+	String version = obj.get("version").toString("undefined");
+	String hash = nite::hashFile(path);
+	nite::print("map file '"+path+"':");
+	nite::print("title: '"+title+"' | author: '"+author+"' | version: '"+version+"'");
+	nite::print("md5: '"+hash+"' | size: "+nite::toStr(nite::fileSize(path))+" bytes");
+	return nite::Console::Result();
+}
+static auto cfMapReadInfoIns = nite::Console::CreateFunction("map_read_info", &cfMapReadInfo); 
+
 
 
 static nite::Console::Result cfRINGGenerateMap(Vector<String> params){
@@ -67,17 +95,6 @@ static nite::Console::Result cfRINGGenerateMap(Vector<String> params){
 
 }
 static auto cfRINGGenerateMapIns = nite::Console::CreateFunction("ring_generate_map", &cfRINGGenerateMap); 
-
-
-static nite::Console::Result cfClSwitchMode(Vector<String> params){
-	// static auto game = Game::getGameCoreInstance();
-	if(params.size() < 1){
-		return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-	}
-
-	return nite::Console::Result();
-}
-static auto cfClSwitchModeIns = nite::Console::CreateFunction("cl_mode_switch", &cfClSwitchMode); 
 
 void Game::GameCore::start(){
 	instance = this;

@@ -735,7 +735,13 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     }
     
     // generate map
-    map->title = "RING_"+nite::hashString(nite::toStr(nite::getTicks()));
+    String createdDate = nite::getTime(nite::TM::ALL);
+    for(int i = 0; i < createdDate.length(); ++i){
+        if(createdDate[i] == ' '){
+            createdDate[i] = '-';
+        }
+    }
+    map->title = "RING_"+createdDate+"_"+nite::hashString(nite::toStr(nite::getTicks()));
     map->author = "RING:none@none.com";
     map->version = "0.0.0";
     map->startCell.index = (bp->start % bp->width) * scale + (bp->start / bp->width) * scale;
