@@ -56,7 +56,7 @@
 			struct IndexedFile {
 				String path;
 				String hash;
-				size_t size;
+				UInt32 size;
 			};			
 
 			struct UDPClient;
@@ -79,6 +79,7 @@
 					callback = [](const nite::FileTransfer::IndexedFile &file){
 						
 					};
+					ping();
 				}
 				// these got too long jeez (I dont like doing this, but this situation is an emergency)
 				void init(	const nite::FileTransfer::IndexedFile &file, const nite::IP_Port &ip, bool sender,
@@ -103,6 +104,7 @@
 					if(file != NULL){
 						return;
 					}
+					ping();
 					file = fopen(indexed.path.c_str(), this->sender ? "rb" : "wb");
 				}
 				void write(char *buffer, UInt32 size){
@@ -116,6 +118,9 @@
 					ping();
 					index += size;		
 					fread(buffer, size, 1, file);
+				}
+				void seek(UInt32 index){
+					fseek(file, index, SEEK_SET); 
 				}
 				void close(){
 					if(file != NULL){
@@ -142,7 +147,8 @@
 				void request(	const nite::IP_Port &client,
 								const String &hash,
 								const String &output,
-								const std::function<void(const IndexedFile &file)> &callback = [](IndexedFile file){ return; });
+								const std::function<void(const IndexedFile &file)> &callback = [](IndexedFile file){ return; },
+								bool overwrite = true);
 			};	
 
 			void end();		

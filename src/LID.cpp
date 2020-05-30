@@ -36,9 +36,11 @@ int main(int argc, char* argv[]){
 	receiver.listen(nite::NetworkDefaultFileTransferPort + 1);
 	while(game.isRunning){	
 		if(nite::keyboardPressed(nite::keyF1)){
-			receiver.request(nite::IP_Port("127.0.0.1", nite::NetworkDefaultFileTransferPort), "4aec2d931e5c57f763ebbcbd9ca9f793", "./yes.json", [](const nite::FileTransfer::IndexedFile &file){
-				nite::print("finished '"+file.path+"'");
-			});	
+			for(int i = 0; i < 100; ++i){
+				receiver.request(nite::IP_Port("127.0.0.1", nite::NetworkDefaultFileTransferPort), "4aec2d931e5c57f763ebbcbd9ca9f793", "./tmp/yes"+nite::toStr(i)+".json", [&](const nite::FileTransfer::IndexedFile &file){
+					nite::print("finished "+nite::toStr(i)+" '"+file.path+"'");
+				});					
+			}
 		}
 		game.update();
 		game.render();

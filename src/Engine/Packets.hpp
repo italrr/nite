@@ -5,7 +5,7 @@
 
 		static const size_t NetworkHeaderSize = sizeof(UInt16);
 		static const size_t NetworkOrderSize = sizeof(UInt32);
-		static const size_t NetworkPacketSize = 1024 * 5;
+		static const size_t NetworkPacketSize = 1024 * 10;
 		static const size_t NetworkMaxPacketSize = NetworkHeaderSize + NetworkOrderSize + NetworkPacketSize;
 
 		// Normal Packet

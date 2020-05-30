@@ -138,6 +138,10 @@ size_t nite::UDPSocket::send(const IP_Port &dest, char *data, size_t size){
 	if (!opened){
 		return false;
 	}
+	// handicap for testing
+	// if(nite::randomInt(1, 3) == 1){
+	// 	return 0;
+	// }
 	sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(dest.port);
@@ -159,7 +163,7 @@ size_t nite::UDPSocket::recv(IP_Port &sender, char *buffer){
 	ssize_t s = recvfrom(sock, buffer, NetworkMaxPacketSize, 0, (sockaddr*)&from, &as); // TODO: add proper error handling
 	sender.address = from.sin_addr.s_addr;
 	sender.port = ntohs(from.sin_port);
-	// TODO: pass ip to sender
+	sender.ip = inet_ntoa(from.sin_addr);
 	if(s > 0){
 		Sx += s;
 	}
@@ -182,17 +186,18 @@ static String generateTFId(){
 	pthread_mutex_lock(&ftSessionMutex[0]); 
 	static hashidsxx::Hashids hash("NITE_FT_SALT_"+nite::toStr(nite::getTicks()));
 	static int seed = nite::randomInt(25, 75);
-	String fid = hash.encode({++seed, nite::randomInt(25, 99)}); // i know, this might be random enough though
+	String fid = hash.encode({++seed, nite::randomInt(25, 99)}); // i know... this might be random enough though
 	pthread_mutex_unlock(&ftSessionMutex[0]);
 	return fid;
 }
-static String initFTSession(	const nite::FileTransfer::IndexedFile &file,
+static String initFTSession(const nite::FileTransfer::IndexedFile &file,
 							const nite::IP_Port &ip, bool sender,
 							nite::FileTransfer::UDPClient *client,
 							const std::function<void(const nite::FileTransfer::IndexedFile &file)> &callback,
 							String pid = ""){
 	pthread_mutex_lock(&ftSessionMutex[1]); 
 	if(client->sessions.find(pid) != client->sessions.end()){
+		pthread_mutex_unlock(&ftSessionMutex[1]);
 		return pid;
 	}
 	String id = pid.length() == 0 ? generateTFId() : pid;
@@ -200,18 +205,19 @@ static String initFTSession(	const nite::FileTransfer::IndexedFile &file,
 	session.id = id;
 	session.init(file, ip, sender, client, callback);
 	session.open();
-	session.ping();
 	client->sessions[id] = session;
-	nite::print("FT "+String(sender ? "sending" : "receiving")+" file '"+file.hash+"' "+(sender ? "to" : "from")+" "+String(ip)+"...");
+	nite::print("FT "+id+" "+String(sender ? "sending" : "receiving")+" file '"+file.hash+"' "+(sender ? "to" : "from")+" "+String(ip)+"...");
 	pthread_mutex_unlock(&ftSessionMutex[1]);
 	return id;
 }
 static void killFTSession(const String &id, nite::FileTransfer::UDPClient *client, const String &reason = ""){
 	pthread_mutex_lock(&ftSessionMutex[1]); 
 	auto it = client->sessions.find(id);
+	auto &ref = it->second;
 	if(it != client->sessions.end()){
 		client->sessions[it->first].close();
-		nite::print("FT cancelled file '"+it->second.indexed.hash+"' "+(it->second.sender ? "to" : "from")+" "+String(it->second.ip)+": "+reason);
+		nite::print("FT "+ref.id+" cancelled file '"+ref.indexed.hash+"' "+(ref.sender ? "to" : "from")+" "+String(ref.ip)+": "+reason);
+		it->second.callback(it->second.indexed);
 		client->sessions.erase(it->first);
 	}
 	pthread_mutex_unlock(&ftSessionMutex[1]);
@@ -221,13 +227,14 @@ static void finishFTSession(const String &id, nite::FileTransfer::UDPClient *cli
 	auto it = client->sessions.find(id);
 	if(it != client->sessions.end()){
 		it->second.close();
-		if(!it->second.sender){
-			bool checksumpass = false;
-			String check = nite::hashFile(it->second.indexed.path);
-			checksumpass = check == it->second.indexed.hash;
-			nite::print("FT finished file '"+it->second.indexed.hash+"' "+(it->second.sender ? "to" : "from")+" "+String(it->second.ip)+" saved as '"+it->second.indexed.path+"': checksum match: "+nite::toStr((bool)checksumpass));
-			client->sessions.erase(it->first);
+		auto &ref = it->second;
+		if(!ref.sender){
+			String check = nite::hashFile(ref.indexed.path);
+			bool chksm = check == ref.indexed.hash;
+			nite::print("FT "+ref.id+" finished file '"+ref.indexed.hash+"' "+(ref.sender ? "to" : "from")+" "+String(ref.ip)+" saved as '"+ref.indexed.path+"': checksum match: "+(chksm ? "true" : "false"));
 		}
+		it->second.callback(it->second.indexed);
+		client->sessions.erase(it->first);
 	}
 	pthread_mutex_unlock(&ftSessionMutex[1]);
 }
@@ -243,8 +250,8 @@ static void *__FTListeningThread(void *vargp){
 	auto client = static_cast<nite::FileTransfer::UDPClient*>(vargp);
 	if(!client->sock.opened){
 		client->sock.open(client->port);
-		client->sock.setNonBlocking(false);
 	}
+	client->sock.setNonBlocking(true);
 	nite::print("FT listening on "+nite::toStr(client->port));
 	while(true){
 		nite::IP_Port who;
@@ -260,18 +267,20 @@ static void *__FTListeningThread(void *vargp){
 			pthread_mutex_unlock(&ftSessionMutex[1]);			
 			return found;
 		};
-		auto sendChunk = [&](const String &id, const nite::IP_Port &who, char *buffer, UInt32 size){
+		auto sendChunk = [&](const String &id, const nite::IP_Port &who, char *buffer, UInt32 size, UInt32 fromIndex){
 			nite::Packet chunk;
 			chunk.setHeader(nite::FileTransfer::FTHeader::CHUNK);						
 			chunk.write(id);
 			chunk.write(&size, sizeof(size));
+			chunk.write(&fromIndex, sizeof(fromIndex));
 			chunk.write(buffer, size);
 			client->sock.send(who, chunk);
 		};		
-		auto sendAccept = [&](const String &id, const nite::IP_Port &who){
+		auto sendAccept = [&](const String &id, const nite::IP_Port &who, UInt32 fsize){
 			nite::Packet accepted;
 			accepted.setHeader(nite::FileTransfer::FTHeader::ACCEPT);					
 			accepted.write(id);
+			accepted.write(&fsize, sizeof(fsize));
 			client->sock.send(who, accepted);
 		};
 		auto sendCancel= [&](const nite::IP_Port &who, const String &hash, const String &reason){
@@ -301,6 +310,7 @@ static void *__FTListeningThread(void *vargp){
 			request.write(id);
 			client->sock.send(who, request);
 		};
+		// TODO: for security, implement a whitelist for clients 
 		if(n > 0){
 			switch(handler.getHeader()){
 				case nite::FileTransfer::FTHeader::REQUEST: {
@@ -314,15 +324,25 @@ static void *__FTListeningThread(void *vargp){
 						handler.read(id);
 						auto &indexed = it->second;
 						initFTSession(indexed, who, true, client, [](const nite::FileTransfer::IndexedFile &file){return;}, id);
-						sendAccept(id, who);
+						sendAccept(id, who, indexed.size);
 					}
 				} break;				
 				case nite::FileTransfer::FTHeader::ACCEPT: {
 					String id;
+					UInt32 fsize;
 					handler.read(id);
+					handler.read(&fsize, sizeof(fsize));
 					nite::Packet ok;
 					UInt32 initInd = 0;
 					sendOK(who, id, initInd);
+					bool isSesh = isSession(id);
+					pthread_mutex_lock(&ftSessionMutex[1]);
+					auto it = client->sessions.find(id);
+					if(isSesh){
+						it->second.indexed.size = fsize;						
+						it->second.ping();
+					}
+					pthread_mutex_unlock(&ftSessionMutex[1]);
 				} break;
 				case nite::FileTransfer::FTHeader::OK: {
 					String id;
@@ -333,20 +353,27 @@ static void *__FTListeningThread(void *vargp){
 					if(found){
 						pthread_mutex_lock(&ftSessionMutex[1]);
 						auto it = client->sessions.find(id);
-						// if received index is not equal to the local one, ignore it (out of order packet)
-						if(index == it->second.index){
-							if(it->second.index != it->second.indexed.size){						
-								UInt32 n = nite::NetworkPacketSize - id.length() - sizeof(index) - 1;
-								UInt32 size = it->second.index + n > it->second.indexed.size ? it->second.indexed.size - it->second.index : n;
-								char buffer[size];
-								it->second.read(buffer, size);
-								sendChunk(id, who, buffer, size);
-								pthread_mutex_unlock(&ftSessionMutex[1]);
-							}else{
-								sendDone(who, id);
-								pthread_mutex_unlock(&ftSessionMutex[1]);
-								finishFTSession(id, client);
-							}							
+						auto &ref = it->second;
+						ref.ping();
+						bool done = false;
+						if(index != ref.index){
+							ref.index = index;
+							ref.seek(ref.index); 
+						}
+						if(ref.index == ref.indexed.size){
+							sendDone(who, id);
+							done = true;
+						}else	
+						if(ref.index != ref.indexed.size){						
+							UInt32 n = nite::NetworkPacketSize - id.length() - sizeof(index) - sizeof(index) - 1;
+							UInt32 size = ref.index + n > ref.indexed.size ? ref.indexed.size - ref.index : n;
+							char buffer[size];
+							ref.read(buffer, size);
+							sendChunk(id, who, buffer, size, index);
+						}							
+						pthread_mutex_unlock(&ftSessionMutex[1]);
+						if(done){
+							finishFTSession(id, client);
 						}
 					}				
 				} break;				
@@ -360,18 +387,30 @@ static void *__FTListeningThread(void *vargp){
 				case nite::FileTransfer::FTHeader::CHUNK: {
 					String id;
 					UInt32 size;
+					UInt32 fromIndex;
 					handler.read(id);
 					handler.read(&size, sizeof(size));
+					handler.read(&fromIndex, sizeof(fromIndex));
 					char buffer[size];
 					handler.read(buffer, size);
 					bool found = isSession(id);
 					if(found){
+						bool done = false;
 						pthread_mutex_lock(&ftSessionMutex[1]);
 						auto it = client->sessions.find(id);
-						// write buffer to file
-						it->second.write(buffer, size);
-						sendOK(who, id, it->second.index);
+						auto &ref = it->second;
+						ref.ping();
+						if(fromIndex == ref.index){
+							ref.write(buffer, size);
+							done = ref.index == ref.indexed.size;
+						}
 						pthread_mutex_unlock(&ftSessionMutex[1]);
+						if(done){						
+							finishFTSession(id, client);
+							sendDone(who, id);
+						}else{
+							sendOK(who, id, ref.index);
+						}						
 					}					
 				} break;
 				case nite::FileTransfer::FTHeader::DONE: {
@@ -379,28 +418,44 @@ static void *__FTListeningThread(void *vargp){
 					handler.read(id);
 					bool found = isSession(id);
 					if(found){
+						pthread_mutex_lock(&ftSessionMutex[1]);
+						auto it = client->sessions.find(id);
+						auto &ref = it->second;
+						if(ref.index != ref.indexed.size){
+							sendOK(who, id, ref.index);
+							break;
+						}
+						pthread_mutex_unlock(&ftSessionMutex[1]);
 						finishFTSession(id, client);
+						sendDone(who, id);
+					}else{
+						sendDone(who, id);
 					}
 				} break;												
 			}
 		}
 		Vector<String> timeoutQueue;
+		int amnt = 0;
 		pthread_mutex_lock(&ftSessionMutex[1]);
 		for(auto &it : client->sessions){
+			++amnt;
 			auto &se = it.second;
-			if(se.getLastPing() > 500){
+			if(se.getLastPing() > 1000 && se.getLastPing() < 60*1000){
 				// request never reached server. try again
 				if(!se.sender && se.index == 0){
 					sendRequest(se.ip, se.id, se.indexed.hash);
-				}
+				}else
 				// chunk never arrived, send ok to request it again
 				if(!se.sender && se.index > 0){
 					sendOK(se.ip, se.id, se.index);
 				}				
-				
+				// server is done, send done to client just in case
+				if(se.sender && se.index == se.indexed.size){
+					sendDone(se.ip, se.id);
+				}
 			}
 			// timeout, kill it
-			if(se.getLastPing() > 10000){
+			if(se.getLastPing() > 60*1000){
 				sendCancel(se.ip, se.indexed.hash, "timeout");
 				timeoutQueue.push_back(se.id);
 			}
@@ -409,7 +464,7 @@ static void *__FTListeningThread(void *vargp){
 		for(int i = 0; i < timeoutQueue.size(); ++i){
 			killFTSession(timeoutQueue[i], client, "timeout");
 		}
-		if(nite::getTicks()-initTime < 10){
+		if(amnt == 0){
 			nite::sleep(16);
 		}
 	}
@@ -439,7 +494,6 @@ static void spawnListener(nite::FileTransfer::UDPClient *client){
 }
 
 void nite::FileTransfer::end(){
-	Vector<String> sessionsQueue;
 	Vector<nite::FileTransfer::UDPClient*> listenersQueue;
 	for(auto &it : listenings){
 		listenersQueue.push_back(it.client);
@@ -502,7 +556,7 @@ void nite::FileTransfer::UDPClient::listen(UInt16 port){
 }
 
 void nite::FileTransfer::UDPClient::clear(){
-	stop(0);
+	stop("");
 	if(listening){
 		killListener(this);
 	}
@@ -511,22 +565,36 @@ void nite::FileTransfer::UDPClient::clear(){
 
 void nite::FileTransfer::UDPClient::stop(const String &id){
 	if(id == ""){
+		Vector<String> toDelete;
+		pthread_mutex_lock(&ftSessionMutex[1]);
 		for(auto it : sessions){
-			killFTSession(it.second.id, this);
+			toDelete.push_back(it.second.id);
 		}
-		sessions.clear();
+		pthread_mutex_unlock(&ftSessionMutex[1]);
+		for(int i = 0; i < toDelete.size(); ++i){
+			killFTSession(toDelete[i], this, "cancelled by client");
+		}
 	}else{
-		killFTSession(id, this);
+		killFTSession(id, this, "cancelled by client");
 	}
 }
 
 void nite::FileTransfer::UDPClient::request(	const nite::IP_Port &client,
 												const String &hash, 
 												const String &output, 
-												const std::function<void(const IndexedFile &file)> &callback){
+												const std::function<void(const IndexedFile &file)> &callback,
+												bool overwrite){
 	if(!sock.opened){
 		nite::print("failed to request file '"+hash+"' from server: socket is not open. run listen() first");
 		return;
+	}
+	if(nite::fileExists(output)){
+		if(overwrite){
+			nite::removeFile(output);
+		}else{
+			nite::print("cannot request FT to output to '"+output+"': it already exists and overwritting is not allowed");
+			return;
+		}
 	}
 	auto file = FileTransfer::IndexedFile();
 	file.path = output;
