@@ -128,11 +128,18 @@ void Game::Client::clear(){
     connected = false;
     map = Shared<nite::Map>(NULL);
     sock.close();
+    ft.clear();
     clients.clear();
     world.clear();
     deliveries.clear();
     hud.stop();
-    setState(Game::NetState::Disconnected); 
+    setState(Game::NetState::Disconnected);
+    // clear downloaded folder
+    Vector<String> cleanMaps;
+    nite::fileFind("./data/map/downloaded/", nite::Find::File, ".json", false, true, cleanMaps);
+    for(int i = 0; i < cleanMaps.size(); ++i){
+        nite::removeFile(cleanMaps[i]);
+    }         
 }
 
 void Game::Client::connect(const String &ip, UInt16 port){
@@ -150,6 +157,8 @@ void Game::Client::connect(const String &ip, UInt16 port){
         nite::print("[client] failed to open UDP Socket. cannot connect to "+this->sv.str());
         return;
     }
+    ft.listen(nite::NetworkDefaultFileTransferPort + nite::randomInt(1, 200));
+    ft.indexDir("./data/map/");
     nite::Console::pipeServerSideExecs(&pipeServerSideCmds);
     lastPacketTimeout = nite::getTicks();
     sock.setNonBlocking(true);
@@ -197,8 +206,7 @@ void Game::Client::sendChatMsg(const String &msg){
     nite::Packet pack(++svOrder);
     pack.setHeader(Game::PacketType::SV_CHAT_MESSAGE);
     pack.write(&clientId, sizeof(UInt64));
-    pack.write(msg);
-    persSend(sv, pack, 1500, 4);
+    pack.write(msg);persSend(sv, pack, 1500, 4);
 }
 
 void Game::Client::update(){
@@ -793,7 +801,7 @@ void Game::Client::update(){
             case Game::PacketType::SV_SET_GAME_OVER: {
                 if(!isSv){ break; }  
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
-                nite::print("Game Over!");
+                nite::print("game over!");
                 // **TODO** 
             } break;                                      
             /*
@@ -802,10 +810,60 @@ void Game::Client::update(){
             case Game::PacketType::SV_SET_GAME_RESTART: {
                 if(!isSv){ break; }  
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
-                nite::print("Restarting...");
+                nite::print("restarting...");
                 world.objects.clear(); // manually clear world (might be dangerous?)
                 // **TODO** 
             } break;    
+            /*
+                SV_AWAIT_CLIENT_LOAD
+            */ 
+            case Game::PacketType::SV_AWAIT_CLIENT_LOAD: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                String hash;
+                handler.read(hash);
+                auto it = ft.indexed.find(hash);
+                // TODO: handle other resources like tilesources and the actual bitmap
+                if(it == ft.indexed.end()){
+                    auto me = this;
+                    auto who = nite::IP_Port(this->sv.ip, nite::NetworkDefaultFileTransferPort);
+                    String output = "./data/map/downloaded/"+hash+".json";
+                    nite::print("downloading map from server...");
+                    ft.request(who, hash, output, [me](const nite::FileTransfer::IndexedFile &file, bool success){
+                        if(!success){
+                            nite::print("map file is corrupted");
+                            nite::removeFile(file.path);
+                            // TODO: retry when it arrives corrupted
+                            nite::AsyncTask::spawn([me](nite::AsyncTask::Context &ctx){
+                                nite::Packet ready(++me->sentOrder);
+                                ready.setHeader(Game::PacketType::SV_CLIENT_LOAD_READY);
+                                me->persSend(me->sv, ready, 1000, -1);
+                                ctx.stop();
+                            }, 100);
+                            return;
+                        }
+                        nite::print("downloaded map '"+file.path+"'. about to load it");
+                        nite::SmallPacket payload;
+                        payload.write(&file, sizeof(file));
+                        nite::AsyncTask::spawn([me](nite::AsyncTask::Context &ctx){
+                            nite::FileTransfer::IndexedFile file;
+                            ctx.payload.read(&file, sizeof(file));
+                            nite::Packet ready(++me->sentOrder);
+                            ready.setHeader(Game::PacketType::SV_CLIENT_LOAD_READY);
+                            me->persSend(me->sv, ready, 1000, -1);
+                            auto map = Shared<nite::Map>(new nite::Map());
+                            map->load(file.path);
+                            me->map = map;
+                            ctx.stop();
+                        }, 100, payload);
+                    });
+                }else{
+                    map->load(it->second.path);
+                    nite::Packet ready(++this->sentOrder);
+                    ready.setHeader(Game::PacketType::SV_CLIENT_LOAD_READY);
+                    this->persSend(this->sv, ready, 1000, -1);
+                }
+            } break;              
             /* 
                 UNKNOWN
             */

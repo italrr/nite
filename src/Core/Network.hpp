@@ -78,6 +78,7 @@
             bool init;
             UInt16 lastInitTfId;
             nite::UDPSocket sock;
+            nite::FileTransfer::UDPClient ft;
             Net();
             void setState(unsigned state);
             Game::PersisentDelivey& persSend(nite::IP_Port &client, nite::Packet &packet);
@@ -144,6 +145,16 @@
                 STRING REASON (OPTIONAL)
             */     
             
+            SV_AWAIT_CLIENT_LOAD,  // ACK
+            /*
+                STRING MAPHASH
+            */ 
+
+            SV_CLIENT_LOAD_READY, // ACK
+            /*
+                STRING MAPHASH
+            */
+
             SV_REMOTE_CMD_MSG, // ACK
             /*
                 STRING MSG

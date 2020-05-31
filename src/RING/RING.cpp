@@ -741,7 +741,9 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
             createdDate[i] = '-';
         }
     }
-    map->title = "RING_"+createdDate+"_"+nite::hashString(nite::toStr(nite::getTicks()));
+    String uuid = nite::hashString(nite::toStr(nite::getTicks()));
+    map->title = "RING_"+createdDate+"_"+uuid;
+    map->hash = nite::hashString(uuid);
     map->author = "RING:none@none.com";
     map->version = "0.0.0";
     map->startCell.index = (bp->start % bp->width) * scale + (bp->start / bp->width) * scale;
@@ -809,6 +811,7 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     // _lrj(0, width, table);
 
     // delete table;
+    
     nite::print("built map: size "+nite::toStr(width)+"x"+nite::toStr(height)+"("+nite::toStr(size)+") | masks: "+nite::toStr(map->masks.size())+" | time: "+nite::toStr(nite::getTicks() - initTime)+" msecs");
     return map;
 }

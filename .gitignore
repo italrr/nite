@@ -1,6 +1,7 @@
 CMakeFiles/
 *.a
 CMakeCache.txt
+data/map/generated/
 .codelite/
 .vscode/
 cmake_install.cmake

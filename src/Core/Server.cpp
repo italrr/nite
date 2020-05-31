@@ -269,13 +269,15 @@ void Game::Server::listen(const String &name, UInt8 maxClients, UInt16 port){
         return;
     }
     sock.setNonBlocking(true);
+    ft.listen(nite::NetworkDefaultFileTransferPort);
+    ft.indexDir("./data/map/");
     nite::print("[server] started server '"+name+"' | max clients "+nite::toStr(this->maxClients)+" | listening at "+nite::toStr(port));
     nite::print("[server] waiting for clients...");
     this->init = true;
     setState(Game::ServerState::Idle);
 
     if(debugging){
-        debug = nite::UI::build("./debug_window.json");
+        debug = nite::UI::build("./data/ui/debug_window.json");
         auto json = Jzon::object();
         json.add("type", "text");
         json.add("fontColor", "#000000");
@@ -389,6 +391,7 @@ void Game::Server::clear(){
     this->init = false;
     physicsUpdate = nite::getTicks();
     sock.close();
+    ft.clear();
     deliveries.clear();
     clients.clear();
     players.clear();
@@ -403,6 +406,12 @@ void Game::Server::clear(){
         maps[i]->unload();
     }
     maps.clear();
+    // clear generated folder
+    Vector<String> cleanMaps;
+    nite::fileFind("./data/map/generated/", nite::Find::File, ".json", false, true, cleanMaps);
+    for(int i = 0; i < cleanMaps.size(); ++i){
+        nite::removeFile(cleanMaps[i]);
+    }      
 }
 
 void Game::Server::update(){
@@ -511,14 +520,20 @@ void Game::Server::update(){
                     accepted.setHeader(Game::PacketType::SV_CONNECT_ACCEPT);
                     accepted.write(&netId, sizeof(UInt64));
                     accepted.write(this->name);
-                    persSend(clients[netId].cl, accepted);
                     nite::SmallPacket netIdPack;
                     netIdPack.write(&netId, sizeof(UInt64));
                     nite::print("[server] accepted clientId "+nite::toStr(netId)+" | nickname '"+nick+"'");
                     if(clients.size() > 0 && state == Game::ServerState::Idle){
-                        nite::print("[server] game starting in 5 seconds...");
+                        nite::print("[server] awaiting for client to load...");
                         setState(Game::ServerState::Waiting);
                     }
+                    persSend(clients[netId].cl, accepted);
+                    bindOnAckFor(Game::PacketType::SV_CONNECT_ACCEPT, [&](nite::SmallPacket &payload, nite::IP_Port &cl){
+                        nite::Packet await(++clients[netId].svOrder);
+                        await.setHeader(Game::PacketType::SV_AWAIT_CLIENT_LOAD);
+                        await.write(maps[currentMap]->hash);
+                        persSend(cl, await, 1000, -1);
+                    });
                     // notify clients someone joined
                     nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
                         nite::Packet notify;
@@ -528,7 +543,7 @@ void Game::Server::update(){
                         notify.setHeader(Game::PacketType::SV_CLIENT_JOIN);
                         notify.write(&cl.clientId, sizeof(UInt64));
                         notify.write(cl.nickname);
-                        persSendAll(notify, 750, -1);     
+                        persSendAll(notify, 1000, -1);     
                         sendPlayerList(uid);
                         ct.stop();                   
                     }), 100, netIdPack);
@@ -601,6 +616,16 @@ void Game::Server::update(){
                 auto result = nite::Console::interpret(cmd, false, true, client->role == Game::SvClientRole::Admin);
                 sendRemoteCmdMsg(client->clientId, result.msg, result.color);
             } break;  
+            /*
+                SV_CHAT_MESSAGE
+            */             
+            case Game::PacketType::SV_CLIENT_LOAD_READY: {
+                if(!client){
+                    break;
+                }
+                sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
+                client->ready = true;
+            } break;             
 
         }
     }
@@ -669,7 +694,7 @@ void Game::Server::update(){
     updateDeliveries();
 }
 
-void Game::Server::sendAll(nite::Packet packet){
+void Game::Server::sendAll(nite::Packet &packet){
     if(!init){
         return;
     }    
@@ -680,7 +705,7 @@ void Game::Server::sendAll(nite::Packet packet){
     }
 }
 
-void Game::Server::persSendAll(nite::Packet packet, UInt64 timeout, int retries){
+void Game::Server::persSendAll(nite::Packet &packet, UInt64 timeout, int retries){
     if(!init){
         return;
     }    
@@ -719,9 +744,17 @@ void Game::Server::game(){
         text->setText(composed);
     }    
 
-    // someone joined, let's start the game
-    if(nite::getTicks()-lastState > 5000 && state == Game::ServerState::Waiting){
-        start();
+    // players joined. wait for them to be ready and then start the game
+    if(nite::getTicks()-lastState > 5*1000 && state == Game::ServerState::Waiting){
+        int n = 0;
+        for(auto &cl : clients){
+            if(cl.second.ready){
+                ++n;
+            }
+        }
+        if(nite::getTicks()-lastState > 30 * 1000 && n > 1 || n == clients.size()){ // game is going to start in 30 seconds regardless when there's at least one client ready
+            start();
+        }
     }
 
     // everyone left
@@ -920,15 +953,25 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
     }
     if(maxClients <= 0){
         maxClients = 4;
-    }
+    }  
     nite::print("[server] setting up game for "+nite::toStr(maxClients)+" player(s) | "+nite::toStr(maps)+" map(s)");
     Game::RING::TileSource src("data/tileset/dungeon.json");
     // build maps
     for(int i = 0; i < maps; ++i){
-        Shared<Game::RING::Blueprint> bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
+        auto bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
         bp->generate(35, 35);
-        this->maps.push_back(Game::RING::generateMap(bp, src, 3));
+        auto map = Game::RING::generateMap(bp, src, 3);
+        String fname = "./data/map/generated/"+map->hash+".json";
+        map->exportToJson(fname);
+        auto indexed = ft.indexFile(fname);
+        if(indexed == NULL){
+            nite::print("failed to index recently generated map file: drive full maybe?");
+            continue;
+        }
+        map->hash = indexed->hash; // we'll replace the temporary hash generated by ring with the actual hash of the file
+        this->maps.push_back(map);
     }
+    currentMap = 0;
     listen(name, maxClients, nite::NetworkDefaultPort);
 }
 
@@ -1252,7 +1295,7 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
         nite::print("cannot spawn undefined object");
         return Shared<Game::NetObject>(NULL);
     }    
-    obj->sv = this; // we guarantee entities will have its sv ref as long as is running on a a server
+    obj->sv = this; // we guarantee entities will have its sv ref as long as they're running on a server
     obj->net = this;
     auto id = this->world.add(obj);
     nite::Packet crt;

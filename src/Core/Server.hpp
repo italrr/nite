@@ -23,7 +23,7 @@
         enum ServerState: UInt32 {
             Off = 0,
             Idle,
-            Waiting,      // waiting for players to join
+            Waiting,      // waiting for players to load the game (may include download the map from server)
             InGame,
             GameOver,
             ShuttingDown
@@ -44,12 +44,14 @@
             UInt64 lastPing;    
             UInt64 lastPacketTimeout;
             UInt64 lastState;
+            bool ready;
             SvClient(){
                 role = Game::SvClientRole::Player;
                 lastRecvOrder = 0;
                 lastSentOrder = 1;
                 svOrder = 0;
                 entityId = 0;
+                ready = false;
             }
         };
 
@@ -69,6 +71,7 @@
             UInt64 lastPlayerInfoSent;
             Dict<UInt64, UInt16> players;
             Vector<Shared<nite::Map>> maps;
+            int currentMap;
             Server();
             ~Server();
             void setState(unsigned state);
@@ -79,8 +82,8 @@
             Game::SvClient *getClient(UInt64 uid);
             Game::SvClient *getClientByIp(nite::IP_Port &ip);
             Game::SvClient *getClientByEntityId(UInt16 entityId);
-            void persSendAll(nite::Packet packet, UInt64 timeout, int retries);
-            void sendAll(nite::Packet packet);
+            void persSendAll(nite::Packet &packet, UInt64 timeout, int retries);
+            void sendAll(nite::Packet &packet);
             void broadcast(const String &message);
             void sendRemoteCmdMsg(UInt64 uid, const String &msg, const nite::Color &color);
             void preinit();

@@ -21,27 +21,16 @@ int main(int argc, char* argv[]){
 	Game::GameCore game;
 	game.start();
 
-	// if(runserver){
-	// 	game.localSv.preinit();
-	// 	game.localSv.setupGame("Pacifier's corner", 4, 1);
-	// }	
-	// game.client.setup("pepper"+nite::toStr(nite::randomInt(100, 999)));
-	// nite::nScript debug("./debug_init.ns");
-	// debug.execute();
+	if(runserver){
+		game.localSv.preinit();
+		game.localSv.setupGame("Pacifier's corner", 4, 1);
+	}	
+	game.client.setup("pepper"+nite::toStr(nite::randomInt(100, 999)));
+	nite::nScript debug("./debug_init.ns");
+	debug.execute();
 
-	nite::FileTransfer::UDPClient sender;
-	sender.listen(nite::NetworkDefaultFileTransferPort);
-	sender.indexDir("data/map/");
-	nite::FileTransfer::UDPClient receiver;
-	receiver.listen(nite::NetworkDefaultFileTransferPort + 1);
 	while(game.isRunning){	
-		if(nite::keyboardPressed(nite::keyF1)){
-			for(int i = 0; i < 100; ++i){
-				receiver.request(nite::IP_Port("127.0.0.1", nite::NetworkDefaultFileTransferPort), "4aec2d931e5c57f763ebbcbd9ca9f793", "./tmp/yes"+nite::toStr(i)+".json", [&](const nite::FileTransfer::IndexedFile &file){
-					nite::print("finished "+nite::toStr(i)+" '"+file.path+"'");
-				});					
-			}
-		}
+
 		game.update();
 		game.render();
 	}

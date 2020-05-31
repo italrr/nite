@@ -200,11 +200,11 @@
 	TODO: add some threading-safety?
 	================
 	*/	
-	#define NITE_SMALLPACKET_SIZE 24
+	#define NITE_SMALLPACKET_SIZE 64
 	namespace nite {
 		struct SmallPacket {
 			size_t index;
-			char data[NITE_SMALLPACKET_SIZE];
+			char *data;
 			SmallPacket();
 			~SmallPacket();				
 			void copy(const nite::SmallPacket &other);

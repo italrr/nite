@@ -14,6 +14,7 @@
 		struct IP_Port {
 			IP_Port();
 			IP_Port(const String &ip, UInt16 port);
+			IP_Port(const nite::IP_Port &ip, UInt16 nport);
 			String ip;
 			UInt16 port;
 			Int32 address;
@@ -59,6 +60,8 @@
 				UInt32 size;
 			};			
 
+			typedef std::function<void(const nite::FileTransfer::IndexedFile &file, bool success)> FTCallback;
+
 			struct UDPClient;
 			struct FTSession {
 				FILE *file;
@@ -71,12 +74,14 @@
 				UInt64 lastPing;
 				UInt64 initTime;
 				char buffer[nite::NetworkPacketSize];
-				std::function<void(const nite::FileTransfer::IndexedFile &file)> callback;
+				nite::FileTransfer::FTCallback callback;
 				String id;
+				UInt64 lastResend;
 				FTSession(){
 					index = 0;
 					file = NULL;
-					callback = [](const nite::FileTransfer::IndexedFile &file){
+					lastResend = nite::getTicks();
+					callback = [](const nite::FileTransfer::IndexedFile &file, bool success){
 						
 					};
 					ping();
@@ -84,7 +89,7 @@
 				// these got too long jeez (I dont like doing this, but this situation is an emergency)
 				void init(	const nite::FileTransfer::IndexedFile &file, const nite::IP_Port &ip, bool sender,
 							nite::FileTransfer::UDPClient *client,
-							const std::function<void(const nite::FileTransfer::IndexedFile &file)> &callback){
+							const nite::FileTransfer::FTCallback &callback){
 					this->indexed = file;
 					this->ip = ip;
 					this->callback = callback;
@@ -140,14 +145,14 @@
 				~UDPClient();
 				UDPClient();
 				void indexDir(const String &path);
-				void indexFile(const String &file);
+				IndexedFile *indexFile(const String &file);
 				void listen(UInt16 port);
 				void stop(const String &id = "");
 				void clear();
 				void request(	const nite::IP_Port &client,
 								const String &hash,
 								const String &output,
-								const std::function<void(const IndexedFile &file)> &callback = [](IndexedFile file){ return; },
+								const nite::FileTransfer::FTCallback &callback = [](const IndexedFile &file, bool success){ return; },
 								bool overwrite = true);
 			};	
 

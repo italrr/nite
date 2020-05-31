@@ -4,14 +4,24 @@
 
 
 nite::SmallPacket::SmallPacket(){
+	this->data = NULL;
 	clear();
 }
 
 nite::SmallPacket::~SmallPacket(){
-
+	if(this->data != NULL){
+		remove(this->data);
+	}
 }
 
-void nite::SmallPacket::copy(const nite::SmallPacket &other){ 
+void nite::SmallPacket::copy(const nite::SmallPacket &other){
+	if(this->data == NULL){
+		this->data = (char*)malloc(NITE_SMALLPACKET_SIZE);
+	}
+	if(other.data == NULL){
+		clear();
+		return;
+	}
 	memcpy(this->data, other.data, NITE_SMALLPACKET_SIZE);
 	reset();
 }
@@ -21,7 +31,9 @@ nite::SmallPacket& nite::SmallPacket::operator= (const nite::SmallPacket &other)
 }
 
 void nite::SmallPacket::clear(){
-	memset(data, '0', NITE_SMALLPACKET_SIZE);
+	if(this->data != NULL){
+		this->data = (char*)malloc(NITE_SMALLPACKET_SIZE);
+	}
 	index = 0; 
 }
 
@@ -34,6 +46,9 @@ void nite::SmallPacket::setIndex(size_t index){
 }
 
 bool nite::SmallPacket::write(const String str){
+	if(this->data == NULL){
+		this->data = (char*)malloc(NITE_SMALLPACKET_SIZE);
+	}	
 	if((index >= NITE_SMALLPACKET_SIZE) || (index + str.length() + 1 > NITE_SMALLPACKET_SIZE)){
 		nite::print("failed to write to SmallPacket: too big");
 		return false;
@@ -45,6 +60,9 @@ bool nite::SmallPacket::write(const String str){
 }
 
 bool nite::SmallPacket::read(String &str){
+	if(this->data == NULL){
+		this->data = (char*)malloc(NITE_SMALLPACKET_SIZE);
+	}	
 	if(index >= NITE_SMALLPACKET_SIZE){
 		return false;
 	}
@@ -62,6 +80,9 @@ bool nite::SmallPacket::read(String &str){
 }
 
 bool nite::SmallPacket::write(const void *data, size_t size){
+	if(this->data == NULL){
+		this->data = (char*)malloc(NITE_SMALLPACKET_SIZE);
+	}	
 	if((index >= NITE_SMALLPACKET_SIZE) || (index + size > NITE_SMALLPACKET_SIZE)){
 		nite::print("failed to write to packet: too big");
 		return false;
@@ -72,6 +93,9 @@ bool nite::SmallPacket::write(const void *data, size_t size){
 }
 
 bool nite::SmallPacket::read(void *data, size_t size){
+	if(this->data == NULL){
+		this->data = (char*)malloc(NITE_SMALLPACKET_SIZE);
+	}	
 	if((index >= NITE_SMALLPACKET_SIZE) || (index + size > NITE_SMALLPACKET_SIZE)){
 		return false;
 	}
