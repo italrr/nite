@@ -51,10 +51,7 @@ Get .anything from input
 */
 String nite::getFormat(const String &filename){
 	int k = filename.rfind(".");
-	if(k != -1){
-		return nite::subStr(filename, k, filename.length()-1);
-	}
-	return "";
+	return k != -1 ? nite::subStr(filename, k, filename.length()-1) : "";
 }
 
 bool nite::removeFile(const String &path){

@@ -85,12 +85,14 @@ bool nite::Map::load(const String &path){
     setup(0, size, tileSize, margin, spacing);
     // sources
     auto sourcesNode = file.get("source");
-    // TODO: in the future we'll be using some sort of resource manager
-    // which is going to keep track of local resource files like tilesets 
-    // right now e'll be using the referenced path in the map file
+    auto indexer = nite::getIndexer();
     for(auto &src : sourcesNode){
         String hash = src.first;
-        String path = src.second.get("filename").toString();
+        auto file = indexer->get(hash);
+        String path = "";
+        if(file != NULL){
+            path = file->path;
+        }
         nite::Vec2 bsize;
         readVec2Obj(src.second.get("size"), bsize);
         if(!nite::fileExists(path)){
@@ -319,7 +321,6 @@ bool nite::Map::exportToJson(const String &path, bool allowOverwrite){
     Jzon::Node sourcesObj = Jzon::object();
     for(auto &src : sources){
         Jzon::Node srcObj = Jzon::object();
-        srcObj.add("filename", src.second.filename);
         srcObj.add("size", buildVec2Obj(src.second.bsize.x, src.second.bsize.y)); // size of the bitmap itself
         sourcesObj.add(src.first, srcObj);
     }

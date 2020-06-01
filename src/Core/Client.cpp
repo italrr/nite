@@ -158,7 +158,6 @@ void Game::Client::connect(const String &ip, UInt16 port){
         return;
     }
     ft.listen(nite::NetworkDefaultFileTransferPort + nite::randomInt(1, 200));
-    ft.indexDir("./data/map/");
     nite::Console::pipeServerSideExecs(&pipeServerSideCmds);
     lastPacketTimeout = nite::getTicks();
     sock.setNonBlocking(true);
@@ -489,6 +488,7 @@ void Game::Client::update(){
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 handler.read(&this->entityId, sizeof(UInt16));
                 this->hud.setFollow(this->entityId);
+                this->camera.follow(this->entityId);
             } break;       
                         
             /*
@@ -822,14 +822,15 @@ void Game::Client::update(){
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 String hash;
                 handler.read(hash);
-                auto it = ft.indexed.find(hash);
+                auto indexer = nite::getIndexer();
+                auto ifile = indexer->get(hash);
                 // TODO: handle other resources like tilesources and the actual bitmap
-                if(it == ft.indexed.end()){
+                if(ifile == NULL){
                     auto me = this;
                     auto who = nite::IP_Port(this->sv.ip, nite::NetworkDefaultFileTransferPort);
                     String output = "./data/map/downloaded/"+hash+".json";
                     nite::print("downloading map from server...");
-                    ft.request(who, hash, output, [me](const nite::FileTransfer::IndexedFile &file, bool success){
+                    ft.request(who, hash, output, [me](const nite::IndexedFile &file, bool success){
                         if(!success){
                             nite::print("map file is corrupted");
                             nite::removeFile(file.path);
@@ -846,7 +847,7 @@ void Game::Client::update(){
                         nite::SmallPacket payload;
                         payload.write(&file, sizeof(file));
                         nite::AsyncTask::spawn([me](nite::AsyncTask::Context &ctx){
-                            nite::FileTransfer::IndexedFile file;
+                            nite::IndexedFile file;
                             ctx.payload.read(&file, sizeof(file));
                             nite::Packet ready(++me->sentOrder);
                             ready.setHeader(Game::PacketType::SV_CLIENT_LOAD_READY);
@@ -858,7 +859,9 @@ void Game::Client::update(){
                         }, 100, payload);
                     });
                 }else{
-                    map->load(it->second.path);
+                    auto map = Shared<nite::Map>(new nite::Map());
+                    map->load(ifile->path);
+                    this->map = map;
                     nite::Packet ready(++this->sentOrder);
                     ready.setHeader(Game::PacketType::SV_CLIENT_LOAD_READY);
                     this->persSend(this->sv, ready, 1000, -1);
@@ -899,15 +902,13 @@ void Game::Client::update(){
 void Game::Client::onStart(){
     hud.start(this);
     igmenu.start(this);
-
+    camera.start(this);
 }
 
 void Game::Client::game(){
     input.update(igmenu.open);
     hud.update();
     igmenu.update();
-
-    nite::setZoom(nite::RenderTargetGame, igmenu.open ? 0.70f : 0.90f);
 
     // local input
     for(auto key : this->input.mapping){
@@ -970,6 +971,7 @@ void Game::Client::game(){
     } 
     // TODO: update objs anim
     world.update();
+    camera.update();
 }
 
 void Game::Client::render(){

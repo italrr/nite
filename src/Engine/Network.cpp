@@ -194,7 +194,7 @@ static String generateTFId(){
 	pthread_mutex_unlock(&ftSessionMutex[0]);
 	return fid;
 }
-static String initFTSession(const nite::FileTransfer::IndexedFile &file,
+static String initFTSession(const nite::IndexedFile &file,
 							const nite::IP_Port &ip, bool sender,
 							nite::FileTransfer::UDPClient *client,
 							const nite::FileTransfer::FTCallback &callback,
@@ -322,13 +322,13 @@ static void *__FTListeningThread(void *vargp){
 					String id;
 					handler.read(hash);
 					handler.read(id);
-					auto it = client->indexed.find(hash);
-					if(it == client->indexed.end()){
+					auto indexer = nite::getIndexer();
+					auto ifile = indexer->get(hash);
+					if(ifile == NULL){
 						sendCancel(who, id, "not found");
 					}else{
-						auto &indexed = it->second;
-						initFTSession(indexed, who, true, client, [](const nite::FileTransfer::IndexedFile &file, bool success){return;}, id);
-						sendAccept(who, id, indexed.size);
+						initFTSession(*ifile, who, true, client, [](const nite::IndexedFile &file, bool success){return;}, id);
+						sendAccept(who, id, ifile->size);
 					}
 				} break;				
 				case nite::FileTransfer::FTHeader::ACCEPT: {
@@ -519,40 +519,6 @@ nite::FileTransfer::UDPClient::~UDPClient(){
 	clear();
 }
 
-nite::FileTransfer::IndexedFile *nite::FileTransfer::UDPClient::indexFile(const String &file){
-	if(!nite::fileExists(file)){
-		nite::print("failed to index file '"+file+"': it doesn't exist");
-		return NULL;
-	}
-	String hash = nite::hashFile(file);
-	if(indexed.find(hash) != indexed.end()){
-		nite::print("file '"+file+"'('"+hash+"') is already indexed");
-		return NULL;
-	}
-	IndexedFile indexed;
-	indexed.path = file;
-	indexed.hash = hash;
-	indexed.size = nite::fileSize(file);
-	this->indexed[hash] = indexed;
-	return &this->indexed[hash];
-}
-
-void nite::FileTransfer::UDPClient::indexDir(const String &path){
-	Vector<String> files;
-	nite::fileFind(path, nite::Find::File, "", false, false, files);
-	int n = 0;
-	for(int i = 0; i < files.size(); ++i){
-		String rp = path + "/" + files[i];
-		IndexedFile file;
-		file.path = rp;
-		file.hash = nite::hashFile(rp);
-		file.size = nite::fileSize(rp);
-		this->indexed[file.hash] = file;
-		++n;
-	}
-	nite::print("indexed '"+path+"': found "+nite::toStr(n)+" file(s)");
-}
-
 void nite::FileTransfer::UDPClient::listen(UInt16 port){
 	if(listening){
 		nite::print("FT client is already listening at "+nite::toStr(this->port)+": stop it first");
@@ -604,14 +570,11 @@ void nite::FileTransfer::UDPClient::request(	const nite::IP_Port &client,
 			return;
 		}
 	}
-	auto file = FileTransfer::IndexedFile();
-	file.path = output;
-	file.hash = hash;
-	file.size = 0;
-	indexed[hash] = file;
+	auto indexer = nite::getIndexer();
+	auto file = indexer->indexGhostfile(output, hash);
 	nite::Packet request;
 	request.setHeader(FTHeader::REQUEST);
-	auto id = initFTSession(file, client, false, this, callback);
+	auto id = initFTSession(*file, client, false, this, callback);
 	request.write(hash);
 	request.write(id);
 	sock.send(client, request);

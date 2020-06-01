@@ -7,7 +7,7 @@
 
     namespace Game {
 
-        static const UInt8 InputMaxFrameBuffer = 7; // record 4 frames(ticks) worth of inputs (starts from 0)
+        static const UInt8 InputMaxFrameBuffer = 1; // record 4 frames(ticks) worth of inputs (starts from 0)
     
         namespace Key {
             enum Key : UInt8 {

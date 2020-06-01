@@ -7,11 +7,12 @@
 
 		struct Client;
 		struct Camera {
-			int followId;
+			UInt16 followId;
+			Game::Client *client;
 			void update();
 			void update(nite::Vec2 &v, float mu);
 			void update(nite::Vec2 &v);
-			void follow(int id);
+			void follow(UInt16 id);
 			void start(Game::Client *client);
 			Camera();
 		};

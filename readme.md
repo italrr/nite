@@ -64,6 +64,7 @@ This game is loosely inspired by another older project of the original author: [
 - Object / world simulation (`nite::World`, `Game::NetWorld`, `nite::Object`, `Game::NetObj`)
 - Shader support
 - Network support (UDP socket support, plus some abstraction for packets)
+- File Transfer support through UDP
 - Integrated basic tools (File reading, Hashing, Math, AsyncTask, etc)
 - JSON support
 - Camera support (Entity follow, shake-screen, tilt/rotations, Zoom-in and out)

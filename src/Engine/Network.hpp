@@ -3,6 +3,7 @@
 
 	#include "Tools/Tools.hpp"
 	#include "Packets.hpp"
+	#include "Indexer.hpp"
 
 	namespace nite {
 		static const UInt16 NetworkDefaultPort = 14101; 
@@ -52,22 +53,16 @@
 				OK,
 				CHUNK,
 				DONE
-			};
-
-			struct IndexedFile {
-				String path;
-				String hash;
-				UInt32 size;
 			};			
 
-			typedef std::function<void(const nite::FileTransfer::IndexedFile &file, bool success)> FTCallback;
+			typedef std::function<void(const nite::IndexedFile &file, bool success)> FTCallback;
 
 			struct UDPClient;
 			struct FTSession {
 				FILE *file;
 				nite::FileTransfer::UDPClient *client;
 				nite::IP_Port ip;
-				nite::FileTransfer::IndexedFile indexed;
+				nite::IndexedFile indexed;
 				UInt32 index;
 				UInt32 lastAdd;
 				bool sender;
@@ -81,13 +76,13 @@
 					index = 0;
 					file = NULL;
 					lastResend = nite::getTicks();
-					callback = [](const nite::FileTransfer::IndexedFile &file, bool success){
+					callback = [](const nite::IndexedFile &file, bool success){
 						
 					};
 					ping();
 				}
 				// these got too long jeez (I dont like doing this, but this situation is an emergency)
-				void init(	const nite::FileTransfer::IndexedFile &file, const nite::IP_Port &ip, bool sender,
+				void init(	const nite::IndexedFile &file, const nite::IP_Port &ip, bool sender,
 							nite::FileTransfer::UDPClient *client,
 							const nite::FileTransfer::FTCallback &callback){
 					this->indexed = file;
@@ -141,11 +136,8 @@
 				nite::UDPSocket sock;
 				bool listening;
 				UInt16 port;
-				Dict<String, FileTransfer::IndexedFile> indexed;
 				~UDPClient();
 				UDPClient();
-				void indexDir(const String &path);
-				IndexedFile *indexFile(const String &file);
 				void listen(UInt16 port);
 				void stop(const String &id = "");
 				void clear();

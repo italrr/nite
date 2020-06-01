@@ -40,9 +40,8 @@ SPEC:
         "x": 0,
         "y": 0
     },    
-    "source": [ // source defines the different tilesets used to build/     render the map. also the lowest level will be the default one unless specified otherwise by the layer
+    "source": [ // source defines the different tilesets used to build/render the map. also the lowest level will be the default one unless specified otherwise by the layer
         "hash": { // md5 hash of the actual tileset
-            "filename": "", // relative to the binary or absolute
             "size": {
                 "x": 1000, // in pixels
                 "y": 1000

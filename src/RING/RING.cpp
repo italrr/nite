@@ -728,7 +728,7 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
             }
             allWalls[i] = temp.mapping[isMatch.key];
         }
-        // everything that is a "path" or an inner wall gets to have a floor using ignoresForFloor for exceptions
+        // anything that is a "path" or an inner wall gets to have a floor using ignoresForFloor for exceptions
         if(mirror[i] == Game::RING::CellType::Path || (isMatch.key.length() > 0 && !temp.isIgnoredForFLoors(isMatch.key))){ 
             floor[i] = temp.mapping[temp.getFloorVariant(*bp)];
         }        
@@ -739,6 +739,9 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     for(int i = 0; i < createdDate.length(); ++i){
         if(createdDate[i] == ' '){
             createdDate[i] = '-';
+        }
+        if(createdDate[i] == ':'){
+            createdDate[i] = '_';
         }
     }
     String uuid = nite::hashString(nite::toStr(nite::getTicks()));

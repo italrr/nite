@@ -31,6 +31,7 @@
             Game::IconManager icons;
             Game::Input input;
             Game::HUD hud;
+            Game::Camera camera;
             Game::InGameMenu igmenu;
             Dict<UInt64, Game::ClClient> clients;
             Game::NetWorld world;

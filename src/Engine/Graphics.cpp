@@ -1057,6 +1057,11 @@ void nite::graphicsInit(){
 		 gameExit();
 	}
 	nite::socketInit();
+    auto indexer = nite::getIndexer();
+	// index sounds
+    indexer->indexDir("./data/map/");
+    indexer->indexDir("./data/tileset/");
+    indexer->indexDir("./data/texture/tileset/");
 	signal(SIGINT, ctrlC);
 
 	int Flags = SDL_WINDOW_OPENGL;
@@ -1111,7 +1116,7 @@ void nite::graphicsInit(){
 		size.set(displayWidth, displayHeight);
 	}
 
-	const char *n = "LOST IN DUNGEONS";
+	const char *n = "RID";
 
 	Window = SDL_CreateWindow(n, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, size.x, size.y, Flags);
 	

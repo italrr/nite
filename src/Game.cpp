@@ -122,7 +122,6 @@ void Game::GameCore::onEnd(){
 }
 
 void Game::GameCore::update(){
-	nite::setZoom(nite::RenderTargetGame, 0.75f);
 	nite::viewUpdate();
 	nite::inputUpdate();
 	this->client.update();
