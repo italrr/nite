@@ -571,7 +571,7 @@ void nite::FileTransfer::UDPClient::request(	const nite::IP_Port &client,
 		}
 	}
 	auto indexer = nite::getIndexer();
-	auto file = indexer->indexGhostfile(output, hash);
+	auto file = indexer->indexGhostFile(output, hash);
 	nite::Packet request;
 	request.setHeader(FTHeader::REQUEST);
 	auto id = initFTSession(*file, client, false, this, callback);

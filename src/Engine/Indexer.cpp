@@ -102,7 +102,7 @@ nite::IndexedFile *nite::Indexer::indexFile(const String &file){
 	return &this->indexed[hash];
 }
 
-nite::IndexedFile *nite::Indexer::indexGhostfile(const String &path, const String &hash){
+nite::IndexedFile *nite::Indexer::indexGhostFile(const String &path, const String &hash){
    	nite::IndexedFile indexed;
 	indexed.path = path;
     indexed.hash = hash;

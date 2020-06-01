@@ -24,7 +24,7 @@
             Indexer();
             bool indexDir(const String &path);
             nite::IndexedFile *indexFile(const String &file);
-            nite::IndexedFile *indexGhostfile(const String &path, const String &hash);
+            nite::IndexedFile *indexGhostFile(const String &path, const String &hash);
             nite::IndexedFile *get(const String &hash);
         };
 
