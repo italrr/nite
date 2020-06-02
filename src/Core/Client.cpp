@@ -137,8 +137,10 @@ void Game::Client::clear(){
     // clear downloaded folder
     Vector<String> cleanMaps;
     nite::fileFind("./data/map/downloaded/", nite::Find::File, ".json", false, true, cleanMaps);
+    auto indexer = nite::getIndexer();
     for(int i = 0; i < cleanMaps.size(); ++i){
         nite::removeFile(cleanMaps[i]);
+        indexer->removeByPath(cleanMaps[i]);
     }         
 }
 
@@ -834,6 +836,8 @@ void Game::Client::update(){
                         if(!success){
                             nite::print("map file is corrupted");
                             nite::removeFile(file.path);
+                            auto indexer = nite::getIndexer();
+                            indexer->removeByPath(file.path);
                             // TODO: retry when it arrives corrupted
                             nite::AsyncTask::spawn([me](nite::AsyncTask::Context &ctx){
                                 nite::Packet ready(++me->sentOrder);

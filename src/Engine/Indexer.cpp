@@ -123,6 +123,31 @@ nite::IndexedFile *nite::Indexer::get(const String &hash){
     return &it->second;
 }
 
+
+bool nite::Indexer::removeByPath(const String &path){
+    pthread_mutex_lock(&mutex); 
+    for(auto &it : indexed){
+        if(it.second.path == path){
+            indexed.erase(it.first);
+            pthread_mutex_unlock(&mutex); 
+            return true;
+        }
+    }
+    pthread_mutex_unlock(&mutex); 
+    return false;
+}
+
+bool nite::Indexer::removeByHash(const String &hash){
+    pthread_mutex_lock(&mutex); 
+    auto it = indexed.find(hash);
+    if(it == indexed.end()){
+        return false;
+    }
+    indexed.erase(hash);
+    pthread_mutex_unlock(&mutex); 
+    return true;
+}
+
 nite::Indexer *nite::getIndexer(){
     return &indexer;
 }

@@ -408,8 +408,10 @@ void Game::Server::clear(){
     // clear generated folder
     Vector<String> cleanMaps;
     nite::fileFind("./data/map/generated/", nite::Find::File, ".json", false, true, cleanMaps);
+    auto indexer = nite::getIndexer();
     for(int i = 0; i < cleanMaps.size(); ++i){
         nite::removeFile(cleanMaps[i]);
+        indexer->removeByPath(cleanMaps[i]);
     }      
 }
 
