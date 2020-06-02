@@ -54,6 +54,7 @@
                 container = NULL;
                 sv = NULL;
                 net = NULL;
+                objType = Game::ObjectType::Base;
             }
 
 
