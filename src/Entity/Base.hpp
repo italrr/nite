@@ -3,6 +3,7 @@
 
     #include "../Core/Object.hpp"
     #include "Stat.hpp"
+    #include "Anim.hpp"
 
     namespace Game {
 
@@ -32,10 +33,10 @@
                 this->invStat.owner = this;
                 this->lastUpdateStats = nite::getTicks();
                 this->objType = ObjectType::Entity;
-
             }
             Game::Actionable actionables[6]; // 1 2 3 4 5 6 keys
             UInt8 faceDirection;
+            Game::Anim anim;
             String name;
             float walkPushRate;
             bool dead;
@@ -43,6 +44,7 @@
             void onCreate();
             void draw();
             void entityMove(float angle, float mod, bool holdStance);
+            void loadAnim();
             void entityStep();
             void printInfo();
             bool damage(const Game::DamageInfo &dmg);

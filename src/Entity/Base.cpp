@@ -69,15 +69,17 @@ void Game::EntityBase::printInfo(){
 }
 
 void Game::EntityBase::draw(){
-    static nite::Texture blank("data/texture/empty.png");
+	UInt8 anims[3] = {AnimType::BOT_STANDING, AnimType::MID_STANDING, AnimType::TOP_NEUTRAL};
+	UInt8 sframes[3] = {0, 0, 0};
+	anim.setState(anims, sframes);	
+
     nite::setRenderTarget(nite::RenderTargetGame);
-	nite::setColor(0.0f, 0.0f, 1.0f, 1.0f);
+	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	nite::setDepth(nite::DepthMiddle);
-    blank.draw(position.x, position.y, size.x, size.y, 0.5f, 0.5f, 0.0f);
+	auto ref = anim.batch.draw(position.x, position.y, anim.frameSize.x, anim.frameSize.y, 0.5f, 0.5f, 0.0f);	
 }
 
 void Game::EntityBase::entityStep(){
-	
 	if(healthStat.health == 0){
 		healthStat.dead = true;
 		notifyEntityDeath(this);
@@ -125,6 +127,14 @@ void Game::EntityBase::recalculateStats(){
 		sv->persSendAll(notify, 750, -1);
 	}
 		
+}
+
+void Game::EntityBase::loadAnim(){
+	anim.load("data/anim/anim_humanoid.json");
+	// server cannot load textures (headless doesnt' run opengl)
+	if(sv == NULL){
+		anim.anim.load(anim.source.path, anim.transparency);
+	}
 }
 
 bool Game::EntityBase::damage(const Game::DamageInfo &dmg){

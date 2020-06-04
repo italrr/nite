@@ -23,17 +23,14 @@ void nite::Animation::load(const String &path, const nite::Color &transparency){
 }
 
 void nite::Animation::clear(){
-	animations.clear();
 	texture.unload();
 }
 
 void nite::Animation::load(const String &path){
-	animations.clear();
 	texture.load(path);
 }
 
 void nite::Animation::set(const nite::Texture &tex){
-	animations.clear();
 	texture = tex;
 }
 
@@ -122,13 +119,17 @@ nite::RenderableTextureT * nite::Animation::draw(unsigned anim,const nite::Vec2 
 }
 
 nite::RenderableTextureT * nite::Animation::draw(unsigned anim,const nite::Vec2 &P, const nite::Vec2 &S, const nite::Vec2 &orig, float angle){
-	if(anim >= animations.size()) return NULL;
+	if(anim >= animations.size()){
+		return NULL;
+	}
 	texture.setRegion(animations[anim].index[getFrame(anim)], animations[anim].frameSize);
 	return texture.draw(P, S, orig, angle);
 }
 
 nite::RenderableTextureT * nite::Animation::draw(unsigned anim,float x, float y, float w, float h, float origX, float origY, float angle){
-	if(anim >= animations.size()) return NULL;
+	if(anim >= animations.size()){
+		return NULL;
+	}
 	texture.setRegion(animations[anim].index[getFrame(anim)], animations[anim].frameSize);
 	return texture.draw(x, y, w, h, origX, origY, angle);
 }
@@ -138,11 +139,11 @@ unsigned nite::Animation::add(float x, float y, float w, float h, unsigned n, fl
 } 
 
 unsigned nite::Animation::add(const nite::Vec2 &ss, const Jzon::Node &node){
-	nite::Vec2 index(node.get("index").get("x").toFloat(), node.get("index").get("y").toFloat());
+	nite::Vec2 index(node.get("x").toFloat(), node.get("y").toFloat());
 	int n = node.get("n").toInt();
-	bool reversed = node.get("reversed").toBool();
-	bool vertical = node.get("vertical").toBool();
-	float speed = node.get("speed").toFloat();
+	bool reversed = node.get("reverse").toBool(false);
+	bool vertical = node.get("vert").toBool(false);
+	float speed = node.get("spd").toFloat();
 	return add(ss.x * index.x, ss.y * index.y, ss.x, ss.y, n, speed, vertical, reversed);
 }
 

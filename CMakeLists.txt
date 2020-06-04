@@ -232,6 +232,7 @@ set(src_files
 	src/Core/World.cpp
 	src/Core/Input.cpp
 	# Entity #
+	src/Entity/Anim.cpp
 	src/Entity/Inventory.cpp
 	src/Entity/Base.cpp
 	src/Entity/Battle.cpp

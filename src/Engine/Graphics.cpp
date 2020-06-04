@@ -1058,10 +1058,10 @@ void nite::graphicsInit(){
 	}
 	nite::socketInit();
     auto indexer = nite::getIndexer();
-	// index sounds
     indexer->indexDir("./data/map/");
     indexer->indexDir("./data/tileset/");
     indexer->indexDir("./data/texture/tileset/");
+	indexer->indexDir("./data/texture/overworld/");
 	signal(SIGINT, ctrlC);
 
 	int Flags = SDL_WINDOW_OPENGL;

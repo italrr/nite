@@ -34,6 +34,9 @@ void nite::IndexedFile::autotag(){
     if(format == ".png" || format == ".jpg" || format == ".jpeg" || format == "bmp"){
         tags.push_back("image");
     }
+    if(format == "mp3" || format == "wav" || format == "ogg" || format == "flac"){
+        tags.push_back("sound");
+    }
     if(format == ".json"){
         tags.push_back("json");
     }
@@ -47,6 +50,9 @@ void nite::IndexedFile::autotag(){
     if(path.find("data/texture/tileset/") != -1 && isIt("image")){
         tags.push_back("tileset");
     }    
+    if(path.find("data/texture/overworld/") != -1 && isIt("image")){
+        tags.push_back("spritesheet");
+    }        
     if(path.find("data/map/") != -1 && isIt("json")){
         tags.push_back("map");
     }   
@@ -54,6 +60,12 @@ void nite::IndexedFile::autotag(){
         tags.push_back("generated");
         tags.push_back("ring");
     }      
+    if(path.find("data/bgm/") != -1 && isIt("sound")){
+        tags.push_back("bgm");
+    }    
+    if(path.find("data/sfx/") != -1 && isIt("sound")){
+        tags.push_back("sfx");
+    }        
 }
 
 bool nite::IndexedFile::isIt(const String &tag){

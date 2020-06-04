@@ -486,11 +486,11 @@ nite::RenderableTextureT * nite::Texture::draw(float x, float y, float w, float 
 	nite::RenderableTextureT *obj = new nite::RenderableTextureT();
 	obj->size.x			= w;
 	obj->size.y 		= h;
-	obj->position.x = x;
-	obj->position.y = y;
+	obj->position.x 	= x;
+	obj->position.y 	= y;
 	obj->objectId		= objectId;
-	obj->origin.x 	= w*origX*scale.x;
-	obj->origin.y 	= h*origY*scale.y;
+	obj->origin.x 		= w*origX*scale.x;
+	obj->origin.y 		= h*origY*scale.y;
 	obj->angle 			= angle;
 	obj->smooth 		= smooth;
 	obj->function		= &drawTexture;

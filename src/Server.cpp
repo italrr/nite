@@ -24,6 +24,12 @@ int main(int argc, char* argv[]){
 	Game::DBLoadEffect("data/db/effects.json");
 	Game::DBLoadInventory("data/db/items.json");
 
+    auto indexer = nite::getIndexer();
+    indexer->indexDir("./data/map/");
+    indexer->indexDir("./data/tileset/");
+    indexer->indexDir("./data/texture/tileset/");
+	indexer->indexDir("./data/texture/overworld/");
+
     int opt;
     UInt16 maxPlayers = 4;
     UInt16 port = nite::NetworkDefaultPort;

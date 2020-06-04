@@ -1,0 +1,47 @@
+{
+	"frameSize": {
+		"width": 128,
+		"height": 192
+	},
+	"transparency": "#ffffff",
+	"source": "d346b3da8e75ca2243c9751b0ce7e7eb",
+	"filename": "humanoid_sheet.png",
+	"frames": {
+		"bot_walking": {
+			"x": 0,
+			"y": 0,
+			"n": 2,
+			"spd": 0.08
+		},
+		"bot_standing": {
+			"x": 0,
+			"y": 1,
+			"n": 1,
+			"spd": 0.08
+		},
+		"mid_melee_noweap": {
+			"x": 0,
+			"y": 2,
+			"n": 2,
+			"spd": 0.08
+		},
+		"mid_standing": {
+			"x": 0,
+			"y": 3,
+			"n": 1,
+			"spd": 0.08
+		},
+		"mid_parry_noweap": {
+			"x": 0,
+			"y": 4,
+			"n": 1,
+			"spd": 0.08
+		},
+		"top_neutral": {
+			"x": 0,
+			"y": 5,
+			"n": 1,
+			"spd": 0.08
+		}
+	}
+}

@@ -1342,6 +1342,7 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
     player->position.y = cm->startCell.y + nite::randomInt(-50, 50);
     spawn(obj);
     client->second.entityId = obj->id;
+    // static_cast<Game::EntityBase*>(obj.get())->loadAnim();
     players[uid] = obj->id;
     nite::print("[server] created player entity with id "+nite::toStr(obj->id)+" | for client id "+nite::toStr(uid)+"("+client->second.nickname+")");
     player->printInfo(); // for debugging

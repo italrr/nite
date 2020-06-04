@@ -398,6 +398,9 @@ void Game::Client::update(){
                 obj->net = this;
                 obj->readInitialState(handler);
                 world.objects[id] = obj;
+                if(obj->objType == ObjectType::Entity){
+                    static_cast<Game::EntityBase*>(obj.get())->loadAnim();
+                }
                 nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+Game::ObjectSig::name(sigId)+" at "+nite::Vec2(x, y).str());
             } break;
             /*
@@ -975,7 +978,7 @@ void Game::Client::game(){
     } 
     // TODO: update objs anim
     world.update();
-    camera.update();
+    camera.update();   
 }
 
 void Game::Client::render(){
