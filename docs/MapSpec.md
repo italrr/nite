@@ -6,11 +6,11 @@ Map system allows for maps to be fragmented in different files and/or JSON nodes
 Another feature of this map system is the ability to stream chunks of a map at a time, allowing for massive maps. We might consider storing the data in a binary format for easy look ups while
 streaming.
 
-We'll be targeting to be able to host maps of up to 10000x10000 (1,000,000 cells)
+We'll be targeting to be able to host maps of up to 10000x10000 (10,000,0000 cells)
 
 Some of these are not mandatory allowing full flexibility
-```
 SPEC:
+```
 {
     "title": "",
     "author": "", // FORMAT: "Name:Email"
