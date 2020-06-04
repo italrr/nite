@@ -4,6 +4,7 @@
     #include "../Engine/Object.hpp"
     #include "../Engine/Packets.hpp"
 
+
     namespace Game {
 
         namespace ObjectType {
@@ -46,6 +47,8 @@
         struct NetObject : nite::PhysicsObject {
             UInt8 objType;
             UInt16 sigId;
+            nite::Vec2 lerpPosition; // client side position interpolation
+            nite::Vec2 lerpSpeed;
             Game::NetWorld *container;
             Game::Server *sv;
             Game::Net *net;
@@ -57,6 +60,14 @@
                 objType = Game::ObjectType::Base;
             }
 
+            void setPosition(const nite::Vec2 &p){
+                this->position.set(p);
+                this->lerpPosition.set(p);
+            }
+
+            void setPosition(float x, float y){
+                setPosition(nite::Vec2(x, y));
+            }
 
             // the idea behind these is that we'll be updating
             // specific things from entities/objects but they'll read and prove it themselves

@@ -207,7 +207,8 @@ void Game::Client::sendChatMsg(const String &msg){
     nite::Packet pack(++svOrder);
     pack.setHeader(Game::PacketType::SV_CHAT_MESSAGE);
     pack.write(&clientId, sizeof(UInt64));
-    pack.write(msg);persSend(sv, pack, 1500, 4);
+    pack.write(msg);
+    persSend(sv, pack, 1500, 4);
 }
 
 void Game::Client::update(){
@@ -435,13 +436,20 @@ void Game::Client::update(){
                     handler.read(&sy, sizeof(float));                    
                     auto it = world.objects.find(id);
                     if(it != world.objects.end()){
-                        it->second->position.set(x, y);
-                        it->second->speed.set(sx, sy);
+                        auto obj = it->second;
+                        obj->lerpPosition.set(x, y);
+                        if(nite::abs(obj->position.x - x) > ClientRepositionThreshold.x){
+                            obj->setPosition(x, obj->position.y);
+                        }
+                        if(nite::abs(obj->position.y - y) > ClientRepositionThreshold.y){
+                            obj->setPosition(obj->position.x, y);
+                        }                        
+                        obj->lerpSpeed.set(sx, sy);
                     }
                 }
             } break;  
             /*
-                SV_UPDATE_WORLD_SIMULATION_PROPS
+                SV_UPDATE_WORLD_SIMULATION_PROPS (properties)
             */
             case Game::PacketType::SV_UPDATE_WORLD_SIMULATION_PROPS: {
                 if(!isSv){ break; }  
@@ -976,6 +984,11 @@ void Game::Client::game(){
         }
         sock.send(this->sv, pack);
     } 
+    // client-side interpolation for position smoothing-out (lag)
+    for(auto &obj : world.objects){
+        obj.second->position.lerpDiscrete(obj.second->lerpPosition, Game::ClientPositionInterp);
+        obj.second->speed.lerpDiscrete(obj.second->lerpSpeed, Game::ClientSpeedInterp);
+    }    
     // TODO: update objs anim
     world.update();
     camera.update();   

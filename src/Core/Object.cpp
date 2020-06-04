@@ -10,7 +10,7 @@ Shared<Game::NetObject> Game::createNetObject(UInt16 id, UInt16 sig, float x, fl
     switch(sig){
         case Game::ObjectSig::Player: {
             auto player = Shared<Game::NetObject>(new EntityBase()); // TODO: replace for player
-            player->position.set(x, y);
+            player->setPosition(x, y);
             player->id = id;
             return player;
         } break;

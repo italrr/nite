@@ -9,6 +9,7 @@ streaming.
 We'll be targeting to be able to host maps of up to 10000x10000 (1,000,000 cells)
 
 Some of these are not mandatory allowing full flexibility
+```
 SPEC:
 {
     "title": "",
@@ -92,6 +93,6 @@ SPEC:
         }
     ]
 }
-
+```
 TODO:
 - Conversion from Tiled JSON maps to nite's on the fly (allowing for fragment-mapping)

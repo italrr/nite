@@ -1338,8 +1338,9 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
     player->setupStat(lv);
     player->sigId = Game::ObjectSig::Player;
     auto &cm = maps[currentMap]; 
-    player->position.x = cm->startCell.x + nite::randomInt(-50, 50);
-    player->position.y = cm->startCell.y + nite::randomInt(-50, 50);
+    float startx = cm->startCell.x + nite::randomInt(-50, 50);
+    float starty = cm->startCell.y + nite::randomInt(-50, 50);
+    player->setPosition(startx, starty);
     spawn(obj);
     client->second.entityId = obj->id;
     // static_cast<Game::EntityBase*>(obj.get())->loadAnim();

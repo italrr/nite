@@ -17,7 +17,9 @@
         static const UInt64 ClientTimeout = 1000 * 10; // TODO: inc this for release
         static const UInt64 ConnectingTimeout = 1000 * 3;
         static const UInt64 UpdatePhysicsTimeout = 32; // every 32 msecs a snapshot is sent
-
+        static const float ClientPositionInterp = 0.18f;
+        static const float ClientSpeedInterp = 0.18f;
+        static const nite::Vec2 ClientRepositionThreshold = nite::Vec2(22.5f);
         static const UInt32 CLIENT_VERSION = 0x0; // TODO: This is temporary
 
        /*
