@@ -98,3 +98,7 @@ SPEC:
 TODO:
 - Conversion from Tiled JSON maps to nite's on the fly (allowing for fragment-mapping)
 - Implement map streaming
+
+
+Some ideas:
+- Propose a binary file of two parts, JSON part describing some basic aspects of the map in human readable format and a completely binary part of the layers(most redundant part of the entire file)
