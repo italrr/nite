@@ -13,6 +13,9 @@ static int getUniqueId(){
 
 static Vector<Shared<nite::AsyncTask::Context>> pool;
 
+
+
+
 void nite::AsyncTask::Context::pause(){
 	if(state == nite::AsyncTask::State::Killed){
 		return;
@@ -118,6 +121,25 @@ void nite::AsyncTask::update(){
 }
 
 void  nite::AsyncTask::end(){
+	pthread_mutex_lock(&asyncTaskMutex);
+	for(int i = 0; i < pool.size(); ++i){
+		auto task = pool[i].get();
+		task->stop();
+	}	
+	pthread_mutex_unlock(&asyncTaskMutex);
+	pthread_mutex_destroy(&asyncTaskMutex);
+	pthread_mutex_destroy(&uniqueIdMutex);	
+}
+
+void  nite::AsyncTask::init(){
+    if(pthread_mutex_init(&asyncTaskMutex, NULL) != 0){ 
+        nite::print("failed to start mutex");
+        nite::exit();
+    }  
+    if(pthread_mutex_init(&uniqueIdMutex, NULL) != 0){ 
+        nite::print("failed to start mutex");
+        nite::exit();
+    } 		
 	pthread_mutex_lock(&asyncTaskMutex);
 	for(int i = 0; i < pool.size(); ++i){
 		auto task = pool[i].get();

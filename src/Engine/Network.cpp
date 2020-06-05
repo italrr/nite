@@ -500,6 +500,23 @@ static void spawnListener(nite::FileTransfer::UDPClient *client){
 	pthread_mutex_unlock(&ftListeningMutex[0]);
 }
 
+void nite::FileTransfer::init(){
+    if(pthread_mutex_init(&ftSessionMutex[0], NULL) != 0){ 
+        nite::print("failed to start mutex");
+        nite::exit();
+    }   
+
+    if(pthread_mutex_init(&ftSessionMutex[1], NULL) != 0){ 
+        nite::print("failed to start mutex");
+        nite::exit();
+    }   
+
+    if(pthread_mutex_init(&ftListeningMutex[0], NULL) != 0){ 
+        nite::print("failed to start mutex");
+        nite::exit();
+    }   			
+}
+
 void nite::FileTransfer::end(){
 	Vector<nite::FileTransfer::UDPClient*> listenersQueue;
 	for(auto &it : listenings){
@@ -508,6 +525,9 @@ void nite::FileTransfer::end(){
 	for(int i = 0; i < listenersQueue.size(); ++i){
 		killListener(listenersQueue[i]);
 	}	
+	pthread_mutex_destroy(&ftSessionMutex[0]);
+	pthread_mutex_destroy(&ftSessionMutex[1]);
+	pthread_mutex_destroy(&ftListeningMutex[0]);
 }
 
 nite::FileTransfer::UDPClient::UDPClient(){

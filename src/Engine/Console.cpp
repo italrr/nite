@@ -67,6 +67,10 @@ static nite::Console::PipeFunction pipeServerSide = NULL;
 static bool _init = false;
 static void _preinit(){
     if(_init) return;
+    if(pthread_mutex_init(&count_mutex, NULL) != 0){ 
+        nite::print("failed to start mutex");
+        nite::exit();
+    }         
     // Zeroing maps 'proxies' and 'functions'
     proxies = new Dict<String, ProxyObject>();
     functions = new Dict<String, FunctionObject>();
@@ -110,6 +114,7 @@ void nite::Console::end(){
     proxies->clear();
     functions->clear();
     binds.clear();
+    pthread_mutex_destroy(&count_mutex);
     delete proxies;
     delete functions;  
 }

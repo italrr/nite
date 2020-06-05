@@ -147,7 +147,7 @@
 								const nite::FileTransfer::FTCallback &callback = [](const IndexedFile &file, bool success){ return; },
 								bool overwrite = true);
 			};	
-
+			void init();
 			void end();		
 		}
 

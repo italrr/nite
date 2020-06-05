@@ -991,6 +991,7 @@ static void gameExit(){
 	nite::AsyncTask::end();	
 	ins->end();	
 	ins->onEnd();	
+	nite::printEnd();
 }
 
 void ctrlC(int s){
@@ -1051,12 +1052,16 @@ bool nite::isGraphicsInit(){
 
 void nite::graphicsInit(){
 	initDelta = nite::getTicks();
+	nite::printInit();
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0){
 		String err = SDL_GetError();
 		nite::print("fatal error: SDL was unable to start: "+err);
 		 gameExit();
 	}
+	nite::AsyncTask::init();
 	nite::socketInit();
+	nite::FileTransfer::init();
+	nite::inderxerInit();
     auto indexer = nite::getIndexer();
     indexer->indexDir("./data/map/");
     indexer->indexDir("./data/tileset/");
@@ -1151,6 +1156,7 @@ void nite::graphicsEnd(){
 	nite::Console::end();
 	nite::FileTransfer::end();
 	nite::socketEnd();
+	nite::indexerEnd();
 	SDL_DestroyWindow(Window);
 	SDL_GL_DeleteContext(Context);
 }

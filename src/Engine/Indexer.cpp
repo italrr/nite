@@ -4,6 +4,16 @@
 static nite::Indexer indexer;
 static pthread_mutex_t mutex; 
 
+void nite::inderxerInit(){
+    if(pthread_mutex_init(&mutex, NULL) != 0){ 
+        nite::print("failed to start mutex");
+        nite::exit();
+    }     
+}
+void nite::indexerEnd(){
+    pthread_mutex_destroy(&mutex);
+}
+
 nite::IndexedFile::IndexedFile(){
     lastRead = nite::getTicks();
 }

@@ -5,6 +5,17 @@
 
 static pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+void nite::printInit(){
+    if(pthread_mutex_init(&count_mutex, NULL) != 0){ 
+        nite::print("failed to start mutex");
+        nite::exit();
+    }  
+}
+
+void nite::printEnd(){
+	pthread_mutex_destroy(&count_mutex);
+}
+
 void nite::print(const String &Message){
 	pthread_mutex_lock(&count_mutex);
 	String Timestamp = nite::getTimestamp();

@@ -26,6 +26,8 @@
 		void print(UInt64 n);
 		void print(Int64 n);
 		//void print(size_t n);
+		void printEnd();
+		void printInit();
 	}
 
 	/*
@@ -259,6 +261,7 @@
 					
 			void update();
 			void end();
+			void init();
 		}
 		
 		

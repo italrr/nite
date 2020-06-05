@@ -31,6 +31,8 @@
         };
 
         nite::Indexer *getIndexer();
+        void inderxerInit();
+        void indexerEnd();
     }
 
 
