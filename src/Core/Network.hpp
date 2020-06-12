@@ -14,7 +14,7 @@
         };      
 
         static const UInt32 RetryTimeOutInterval = 60;  
-        static const UInt64 ClientTimeout = 1000 * 10; // TODO: inc this for release
+        static const UInt64 ClientTimeout = 1000 * 30; // TODO: inc this for release
         static const UInt64 ConnectingTimeout = 1000 * 3;
         static const UInt64 UpdatePhysicsTimeout = 32; // every 32 msecs a snapshot is sent
         static const float ClientPositionInterp = 0.18f;
@@ -366,6 +366,15 @@
                 }                
 
             */  
+            SV_ENTITY_USE_SKILL_ITEM, // ACK
+            /*
+                UINT16 ENTID(USER)
+                UINT8 TYPE
+                UINT32 OBJECTID (skill or slot)
+                UINT16 ENTID(TARGET)    // '0' is none
+                FLOAT XP                // usually same x as user
+                FLOAT YP                // usually same y as user
+            */
             SV_ADD_EFFECT, // ACK
             /*
                 UINT16 ENTID
@@ -403,6 +412,21 @@
                 UINT16 SLOTID
                 UINT16 AMNT
             */ 
+            SV_UPDATE_ENTITY_STANCE_STATE,
+            /*
+                UINT16 ENTID
+                UINT8 FACEDIRECTION
+                0: { // ALWAYS BOT
+                    UINT8 STATE
+                    UINT8 NUMBER
+                }
+                ...
+                1: { // ALWAYS MID
+                    UINT8 STATE
+                    UINT8 NUMBER
+                } 
+               
+            */             
             SV_UPDATE_ENTITY_ALL_STAT, // ACK
             /*
                 UINT16 ENTID
@@ -433,6 +457,14 @@
                     sizeof(ComplexStat)
                 }
             */ 
+            SV_UPDATE_SKILL_STATE, // ACK
+            /*
+                UINT16 ENTID
+                UInt16 SKILLID
+                {
+                    CUSTOM PAYLOAD // Ideally less than 32 bytes
+                }
+            */            
             SV_NOTIFY_ENTITY_DEATH, // ACK
             /*
                 UINT16 ENTID

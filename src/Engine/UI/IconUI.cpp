@@ -40,7 +40,7 @@ void nite::IconUI::rerender(){
             ref->smooth = true;
         }
     }else{
-        empty.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);
+        // empty.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);
     }
 
     if(text.length() > 0){

@@ -59,6 +59,7 @@ struct __ShaderData {
 		glDeleteProgram(program);
 	}
 	bool compile(const String &shaderName, const String &fragSource, const String &vertSource){
+		nite::print("compiling shader...");
 		const char *fragSrc = fragSource.c_str();
 		const char *vertSrc = vertSource.c_str();
 		this->shaderName = shaderName;
@@ -126,6 +127,8 @@ static __ShaderData *getShaderData(const String &hash){
 	return NULL;
 }
 
+// this doesn't work again... jeez
+// this is ass. im gonna have to rework it from scratch
 static nite::Console::Result cfReloadShaders(Vector<String> params){
 	Dict<int, void*> reloads;
 

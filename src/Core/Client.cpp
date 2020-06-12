@@ -1,3 +1,5 @@
+#include "../Engine/Input.hpp"
+#include "../Engine/View.hpp"
 #include "../Engine/Tools/Tools.hpp"
 #include "../Engine/Graphics.hpp"
 #include "../Engine/Console.hpp"
@@ -419,10 +421,39 @@ void Game::Client::update(){
                 }
                 world.objects.erase(obj);
             } break;
+            //
+            /*
+                SV_UPDATE_ENTITY_STANCE_STATE
+            */
+            case Game::PacketType::SV_UPDATE_ENTITY_STANCE_STATE: {
+                // TODO: check for isLast
+                if(!isSv){ break; }  
+                UInt16 entId;
+                UInt8 faceDirection;
+                handler.read(&entId, sizeof(entId));
+                handler.read(&faceDirection, sizeof(faceDirection));
+                auto it = world.objects.find(entId);
+                if(it != world.objects.end()){
+                    auto obj = it->second;
+                    if(obj->objType != ObjectType::Entity){
+                        break;
+                    }
+                    auto ent = static_cast<Game::EntityBase*>(obj.get());
+                    ent->faceDirection = faceDirection;
+                    UInt8 nstate, n;
+                    handler.read(&nstate, sizeof(nstate));
+                    handler.read(&n, sizeof(n)); 
+                    ent->setState(nstate, EntityStateSlot::BOTTOM, n);
+                    handler.read(&nstate, sizeof(nstate));
+                    handler.read(&n, sizeof(n)); 
+                    ent->setState(nstate, EntityStateSlot::MID, n);
+                }
+            } break;              
             /*
                 SV_UPDATE_PHYSICS_OBJECT
             */
             case Game::PacketType::SV_UPDATE_PHYSICS_OBJECT: {
+                // TODO: check for isLast
                 if(!isSv){ break; }  
                 UInt16 amnt;
                 handler.read(&amnt, sizeof(UInt16));
@@ -438,12 +469,13 @@ void Game::Client::update(){
                     if(it != world.objects.end()){
                         auto obj = it->second;
                         obj->lerpPosition.set(x, y);
-                        if(nite::abs(obj->position.x - x) > ClientRepositionThreshold.x){
+                        if(nite::abs(obj->position.x - x) > ClientRepositionThreshold.x * 2){
                             obj->setPosition(x, obj->position.y);
                         }
-                        if(nite::abs(obj->position.y - y) > ClientRepositionThreshold.y){
+                        if(nite::abs(obj->position.y - y) > ClientRepositionThreshold.y * 2){
                             obj->setPosition(obj->position.x, y);
                         }                        
+                        // obj->speed.set(sx, sy);
                         obj->lerpSpeed.set(sx, sy);
                     }
                 }
@@ -514,9 +546,9 @@ void Game::Client::update(){
                 UInt8 amnt;
                 handler.read(&entId, sizeof(UInt16));
                 handler.read(&amnt, sizeof(UInt8));
-                auto it = world.objects.find(entityId);
-                if(it == world.objects.end()){
-                    nite::print("[client] fail SV_SET_ENTITY_SKILLS: entity id doesn't exist");
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] fail SV_SET_ENTITY_SKILLS: entity id '"+nite::toStr(entId)+"' doesn't exist");
                     break;
                 }
                 for(int i = 0; i < amnt; ++i){
@@ -529,7 +561,6 @@ void Game::Client::update(){
                         nite::print("[client] warn SV_SET_ENTITY_SKILLS: skill id "+nite::toStr(skId)+" doesn't exist");
                         continue;
                     }
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get());
                     ent->skillStat.add(sk);
                 }
             } break; 
@@ -544,17 +575,16 @@ void Game::Client::update(){
                 handler.read(&entId, sizeof(UInt16));
                 handler.read(&skId, sizeof(UInt16));
                 handler.read(&lv, sizeof(UInt8));
-                auto it = world.objects.find(entityId);
-                if(it == world.objects.end()){
-                    nite::print("[client] fail SV_ADD_ENTITY_SKILL: entity id doesn't exist");
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] fail SV_ADD_ENTITY_SKILL: entity id '"+nite::toStr(entId)+"' doesn't exist");
                     break;
                 }      
-                auto sk = getSkill(skId, 0);
+                auto sk = getSkill(skId, lv);
                 if(sk.get() == NULL){
                     nite::print("[client] warn SV_ADD_ENTITY_SKILL: skill id "+nite::toStr(skId)+" doesn't exist");
                     break;
                 }
-                auto ent = static_cast<Game::EntityBase*>(it->second.get());
                 ent->skillStat.add(sk);                          
             } break;            
             /*
@@ -567,19 +597,18 @@ void Game::Client::update(){
                 UInt8 amnt;
                 handler.read(&entId, sizeof(UInt16));
                 handler.read(&amnt, sizeof(UInt8));
-                auto it = world.objects.find(entityId);
-                if(it == world.objects.end()){
-                    nite::print("[client] fail SV_REMOVE_ENTITY_SKILLS: entity id doesn't exist");
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] fail SV_REMOVE_ENTITY_SKILLS: entity id '"+nite::toStr(entId)+"' doesn't exist");
                     break;
                 }
                 for(int i = 0; i < amnt; ++i){
                     UInt16 skId;
                     handler.read(&skId, sizeof(UInt16));
-                    if(getSkill(skId, 0).get() == NULL){
+                    if(ent->skillStat.get(skId) == NULL){
                         nite::print("[client] fail SV_REMOVE_ENTITY_SKILLS: skill id "+nite::toStr(skId)+" doesn't exist");
                         continue;
                     }
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get()); // ok i know, i repeated it enough (if you don't know what, keep reading the project...)
                     ent->skillStat.remove(skId);
                 }
             } break; 
@@ -592,16 +621,15 @@ void Game::Client::update(){
                 UInt16 entId, skId;
                 handler.read(&entId, sizeof(UInt16));
                 handler.read(&skId, sizeof(UInt16));
-                auto it = world.objects.find(entityId);
-                if(it == world.objects.end()){
-                    nite::print("[client] fail SV_REMOVE_ENTITY_SKILL: entity id doesn't exist");
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] fail SV_REMOVE_ENTITY_SKILL: entity id '"+nite::toStr(entId)+"' doesn't exist");
                     break;
                 }      
-                if(getSkill(skId, 0).get() == NULL){
+                if(ent->skillStat.get(skId) == NULL){
                     nite::print("[client] fail SV_REMOVE_ENTITY_SKILL: skill id "+nite::toStr(skId)+" doesn't exist");
                     break;
                 }
-                auto ent = static_cast<Game::EntityBase*>(it->second.get());
                 ent->skillStat.remove(skId);                          
             } break;            
             /*
@@ -614,13 +642,12 @@ void Game::Client::update(){
                 UInt8 amnt;
                 handler.read(&entId, sizeof(UInt16));
                 handler.read(&amnt, sizeof(UInt8));
-                auto it = world.objects.find(entityId);
-                if(it == world.objects.end()){
-                    nite::print("[client] fail SV_SET_ENTITY_ACTIONABLES: entity id doesn't exist");
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] fail SV_SET_ENTITY_ACTIONABLES: entity id '"+nite::toStr(entId)+"' doesn't exist");
                     break;
                 }
                 for(int i = 0; i < amnt; ++i){
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get()); // yeap
                     handler.read(&ent->actionables[i].type, sizeof(UInt8));
                     handler.read(&ent->actionables[i].id, sizeof(UInt16));
                 }
@@ -824,9 +851,30 @@ void Game::Client::update(){
                 if(!isSv){ break; }  
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 nite::print("restarting...");
-                world.objects.clear(); // manually clear world (might be dangerous?)
+                world.objects.clear(); // manually clear world (TODO: might be dangerous?)
                 // **TODO** 
-            } break;    
+            } break;   
+            /*
+                SV_UPDATE_SKILL_STATE
+            */ 
+            case Game::PacketType::SV_UPDATE_SKILL_STATE: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId, skId;
+                handler.read(&entId, sizeof(entId));
+                handler.read(&skId, sizeof(skId));
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] server sent skill update for unexisting entity id '"+nite::toStr(entId)+"'");
+                    break;
+                }
+                auto sk = ent->skillStat.get(skId);
+                if(sk == NULL){
+                    nite::print("[client] fail to update skill id '"+nite::toStr(skId)+"' from entity id '"+nite::toStr(entId)+"': it doesn't posses this skill");
+                    break;
+                }
+                sk->readUpdate(handler);
+            } break;               
             /*
                 SV_AWAIT_CLIENT_LOAD
             */ 
@@ -931,29 +979,44 @@ void Game::Client::game(){
         auto nk = key.first;
         bool pressed = nite::keyboardPressed(nk);
         if(!pressed || entityId == 0) continue;
-        auto it = world.objects.find(entityId);
-        if(it == world.objects.end()) continue;
-        auto ent = static_cast<Game::EntityBase*>(it->second.get());
+        auto ent = getEntity(this->entityId);
+        if(ent == NULL){
+            continue;
+        }
         Game::Actionable *act = NULL;
+        auto requestUse = [&](UInt8 type, UInt32 id, UInt16 target, float x, float y){
+            nite::Packet use(++this->sentOrder);
+            use.setHeader(Game::PacketType::SV_ENTITY_USE_SKILL_ITEM);
+            use.write(&this->entityId, sizeof(this->entityId));
+            use.write(&type, sizeof(type));
+            use.write(&id, sizeof(id));
+            use.write(&target, sizeof(target));
+            use.write(&x, sizeof(x));
+            use.write(&y, sizeof(y));
+            this->persSend(this->sv, use, 1000, -1);
+        };
         switch(gk){
             case Game::Key::k1: {
                 act = &ent->actionables[0];
-            }
+            } break;
             case Game::Key::k2: {
                 act = &ent->actionables[1];
-            }
+            } break;
             case Game::Key::k3: {
                 act = &ent->actionables[2];
-            }
+            } break;
             case Game::Key::k4: {
                 act = &ent->actionables[3];
-            }   
+            } break;
             case Game::Key::k5: {
                 act = &ent->actionables[4];
-            }  
+            } break;
             case Game::Key::k6: {
                 act = &ent->actionables[5];
-            }                                     
+            } break;    
+            case Game::Key::k7: {
+                act = &ent->actionables[7];
+            } break;                                        
         }
         if(act == NULL){
             break;
@@ -966,7 +1029,14 @@ void Game::Client::game(){
 
             } break;
             case ActionableType::Skill: {
-
+                float x = ent->position.x, y = ent->position.y;
+                auto sk = ent->skillStat.get(act->id);
+                if(sk != NULL && sk->usageType == SkillUsageType::Target){
+                    x = nite::mouseX() + nite::getViewX(nite::RenderTargetGame);
+                    y = nite::mouseY() + nite::getViewY(nite::RenderTargetGame);
+                }
+                // notify server this player wants to use an item/skill
+                requestUse(ActionableType::Skill, act->id, 0, x, y);
             } break;            
         }
     } 
@@ -984,14 +1054,30 @@ void Game::Client::game(){
         }
         sock.send(this->sv, pack);
     } 
-    // client-side interpolation for position smoothing-out (lag)
+    // client-side interpolation for new-position smoothing-out (lag compensation)
+    // might make client to be a few milliseconds behind, which is concerning
+    // we'll have to test this out in the future
     for(auto &obj : world.objects){
-        obj.second->position.lerpDiscrete(obj.second->lerpPosition, Game::ClientPositionInterp);
-        obj.second->speed.lerpDiscrete(obj.second->lerpSpeed, Game::ClientSpeedInterp);
+        obj.second->position.lerpDiscrete(obj.second->lerpPosition, 0.15f);
+        obj.second->speed.lerpDiscrete(obj.second->lerpSpeed, 0.55f);
     }    
     // TODO: update objs anim
     world.update();
     camera.update();   
+}
+
+Game::EntityBase *Game::Client::getEntity(UInt16 id){
+    if(id == 0){
+        return NULL;
+    }    
+    auto obj = this->world.get(id);
+    if(obj.get() == NULL){
+        return NULL;
+    }
+    if(obj->objType != Game::ObjectType::Entity){
+        return NULL;
+    }
+    return static_cast<Game::EntityBase*>(obj.get());
 }
 
 void Game::Client::render(){

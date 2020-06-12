@@ -18,6 +18,7 @@
 			UInt16 add(Shared<Game::NetObject> obj);
 			void remove(UInt16 objectId);
 			void remove(Shared<Game::NetObject> obj);
+			Shared<Game::NetObject> get(UInt16 id);
 			void update();
 			void step();
 			void render();

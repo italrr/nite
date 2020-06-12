@@ -131,8 +131,8 @@
 		const unsigned keyF15 				= 99;
 		const unsigned keyPAUSE				= 100;
 
-		const unsigned butLEFT				= 0;
-		const unsigned butMIDDLE			= 1;
-		const unsigned butRIGHT				= 2;
+		const unsigned butLEFT				= 200;
+		const unsigned butMIDDLE			= 201;
+		const unsigned butRIGHT				= 202;
 	}
 #endif

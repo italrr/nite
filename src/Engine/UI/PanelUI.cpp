@@ -31,14 +31,14 @@ void nite::PanelUI::rerender(){
         }
     }else{  
         auto ref = uiBasicTexture.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);
-        if(ref != NULL && useShader){
-            nite::Uniform uni;
-            uni.add("size", size);
-            uni.add("color", baseColor);
-            uni.add("alpha", baseColor.a);
-            uni.add("thickness", 5.0f);
-            ref->apply(shader, uni);
-        }        
+        // if(ref != NULL && useShader){
+        //     nite::Uniform uni;
+        //     uni.add("size", size);
+        //     uni.add("color", baseColor);
+        //     uni.add("alpha", baseColor.a);
+        //     uni.add("thickness", 5.0f);
+        //     ref->apply(shader, uni);
+        // }        
     }
 
     // Render Children
@@ -158,10 +158,21 @@ void nite::PanelUI::render(const nite::Vec2 &offset){
     nite::setDepth(nite::DepthMiddle);
 
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-    batch.draw(rp.x, rp.y, size.x, size.y, 0.0f, 0.0f, 0.0f);
+    auto ref = batch.draw(rp.x, rp.y, size.x, size.y, 0.0f, 0.0f, 0.0f);
+    if(ref != NULL && useShader){
+        nite::Uniform uni = this->uniform; // make a copy
+        uni.add("p_size", size);
+        // if(uni.colors.find("p_color") == uni.colors.end()){
+        //     uni.add("p_color", nite::Color(1.0f, 1.0f, 1.0f));
+        // }
+        ref->apply(shader, uni);
+    }      
 }
 
 void nite::PanelUI::setBackgroundColor(const nite::Color &color){
+    if(baseColor == color){
+        return;
+    }
     baseColor.set(color);
     recalculate();  
 }

@@ -62,11 +62,36 @@ void Game::Skill::parse(Jzon::Node &obj){
     staminaCost = obj.get("staminaCost").toInt(0);
     family = obj.get("family").toInt(0);
     range = obj.get("range").toInt(1);
-    delay = obj.get("delay").toInt(1000);
-    adelay = obj.get("adelay").toInt(100);
+    cooldown = obj.get("cooldown").toInt(1000);
+    castDelay = obj.get("castDelay").toInt(100);
+    usageType = obj.get("usageType").toInt(Game::SkillUsageType::Self);
     minUseLv = obj.get("minUseLv").toInt(1);
     skPointsPerLv = obj.get("skPointsPerLv").toInt(1);
     baseDmg = obj.get("baseDmg").toInt(0);
+}
+
+bool Game::Skill::isReady(Game::EntityBase *who){
+    Int64 cd = (cooldown - cooldown * who->complexStat.cooldownRedRate);
+    if(cd < 0){
+        cd = cooldown;
+    }
+    return nite::getTicks() - lastUse > cd;
+}
+
+void Game::Skill::writeUpdate(nite::Packet &packet){
+    packet.write(&lastUse, sizeof(lastUse));
+}
+
+UInt64 Game::Skill::getCooldown(EntityBase *who){
+    Int64 cd = (cooldown - cooldown * who->complexStat.cooldownRedRate);
+    if(cd < 0){
+        cd = cooldown;
+    }    
+    return cd;
+}
+
+void Game::Skill::readUpdate(nite::Packet &packet){
+    packet.read(&lastUse, sizeof(lastUse));
 }
 
 Shared<Game::Skill> Game::getSkill(UInt16 id, UInt8 lv){
@@ -126,6 +151,14 @@ bool Game::SkillStat::contains(UInt16 id){
     return skills.find(id) != skills.end();
 }
 
+Game::Skill *Game::SkillStat::get(UInt16 id){
+    auto it = skills.find(id);
+    if(it == skills.end()){
+        return NULL;
+    }
+    return it->second.get();
+}
+
 bool Game::SkillStat::lvUp(UInt16 id){
     if(contains(id)){
         return false;
@@ -142,34 +175,46 @@ bool Game::SkillStat::lvUp(UInt16 id){
 /*
     SK_BA_Attack
 */
-void Game::Skills::BA_Attack::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
+bool Game::Skills::BA_Attack::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
+    if(!isReady(who)){
+        return false;
+    }
     this->lastUse = nite::getTicks();
+    if(who == NULL){
+        return false;
+    }
+    who->setState(EntityState::MELEE_NOWEAP, EntityStateSlot::MID, 0);
+    return true;
 }
 
 /*
     SK_BA_Bash
 */
-void Game::Skills::BA_Bash::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
+bool Game::Skills::BA_Bash::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
+    return true;
 }
 
 /*
     SK_BA_Dodge
 */
-void Game::Skills::BA_Dodge::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
+bool Game::Skills::BA_Dodge::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
+    return true;
 }
 
 /*
     SK_BA_Parry
 */
-void Game::Skills::BA_Parry::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
+bool Game::Skills::BA_Parry::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
+    return true;
 }
 
 /*
     SK_BA_FIRST_AID
 */
-void Game::Skills::BA_FIRST_AID::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
+bool Game::Skills::BA_FIRST_AID::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
+    return true;
 }

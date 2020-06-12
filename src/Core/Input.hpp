@@ -7,7 +7,7 @@
 
     namespace Game {
 
-        static const UInt8 InputMaxFrameBuffer = 1; // record 4 frames(ticks) worth of inputs (starts from 0)
+        static const UInt8 InputMaxFrameBuffer = 1;
     
         namespace Key {
             enum Key : UInt8 {
@@ -20,7 +20,8 @@
                 k3,
                 k4,
                 k5,
-                k6
+                k6,
+                k7
             };
         }
 
@@ -56,7 +57,8 @@
             { nite::key3, Key::k3 },
             { nite::key4, Key::k4 },
             { nite::key5, Key::k5 },
-            { nite::key6, Key::k6 }
+            { nite::key6, Key::k6 },
+            { nite::key7, Key::k7 }
         };
 
         struct Input {
@@ -81,7 +83,7 @@
                     {Key::UP, PressType::Released },    {Key::DOWN, PressType::Released },  {Key::RIGHT, PressType::Released },
                     {Key::LEFT, PressType::Released },  {Key::k1, PressType::Released },     {Key::k2, PressType::Released },
                     {Key::k3, PressType::Released },     {Key::k4, PressType::Released },     {Key::k5, PressType::Released },
-                    {Key::k6, PressType::Released }
+                    {Key::k6, PressType::Released }, {Key::k7, PressType::Released }
                 };
                 nextKey = nite::getTicks();
             }

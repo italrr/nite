@@ -11,37 +11,39 @@
 			"x": 0,
 			"y": 0,
 			"n": 2,
-			"spd": 0.08
+			"spd": 250
 		},
 		"bot_standing": {
 			"x": 0,
 			"y": 1,
 			"n": 1,
-			"spd": 0.08
+			"spd": 0
 		},
 		"mid_melee_noweap": {
 			"x": 0,
 			"y": 2,
 			"n": 2,
-			"spd": 0.08
+			"spd": 120,
+			"kf": 1
 		},
 		"mid_standing": {
 			"x": 0,
 			"y": 3,
 			"n": 1,
-			"spd": 0.08
+			"spd": 0
 		},
 		"mid_parry_noweap": {
 			"x": 0,
 			"y": 4,
 			"n": 1,
-			"spd": 0.08
+			"spd": 0,
+			"kf": 0
 		},
 		"top_neutral": {
 			"x": 0,
 			"y": 5,
 			"n": 1,
-			"spd": 0.08
+			"spd": 0
 		}
 	}
 }

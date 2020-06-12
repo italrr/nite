@@ -132,6 +132,7 @@
 			float precsRate;
 			float persuasionRate;
 			float charmRate;
+			float cooldownRedRate;
 			ComplexStat();
 		};
 
@@ -152,9 +153,11 @@
 			void recalculateBaseStats();
 			void recalculateHealthStats();
 			void recalculateComplexStats();
+			void normalizeComplexStats();
             Int32 addBaseStat(UInt8 type, GAME_STAT_TYPE amnt);
             virtual void recalculateStats();
 			void resetBaseStat(UInt8 type);
+			virtual void resetComplexStats();
 			void fullHeal();
 			void heal(UInt32 hp, UInt32 mana, UInt32 stamina);
 			bool lvUp();       

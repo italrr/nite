@@ -180,13 +180,6 @@ static void handleOpenGLError(){
 	handleOpenGLError("");
 }
 
-nite::Uniform::~Uniform(){
-	shaderName.clear();
-	floats.clear();
-	integers.clear();
-	vectors.clear();
-}
-
 void nite::Uniform::clear(){
 	shaderName.clear();
 	floats.clear();

@@ -52,6 +52,7 @@
             bool connected;
             Client();
             ~Client();
+            Game::EntityBase *getEntity(UInt16 id);
             void disconnect(const String &reason);
             void disconnect();
             void connect(const String &ip, UInt16 port);

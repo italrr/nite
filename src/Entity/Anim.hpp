@@ -7,21 +7,30 @@
 
     namespace Game {
 
-
         namespace AnimType {
             enum AnimType : UInt8 {
+                UNDEFINED,
                 // BOT
                 BOT_WALKING = 1,
                 BOT_STANDING,
+                BOT_JUMPING,
                 // MID
                 MID_MELEE_NOWEAP,
-                MID_STANDING,
                 MID_PARRY_NOWEAP,
+                MID_STANDING,
+                MID_SHOOTING_HANDGUN,
+                MID_SHOOTING_BOW,
+                MID_HOLDING_BOW,
+                MID_HOLDING_HANDGUN,
+                MID_HOLDING_SWORD,
+                MID_HOLDING_KNIFE, // works for kunai too
+                MID_WAVING_KNIFE,
+                MID_CASTING,
+                MID_WAVING_SWORD,
                 // TOP
-                TOP_NEUTRAL,
-
-                UNDEFINED
+                TOP_NEUTRAL
             };
+            static const UInt8 total = 15;
             static UInt8 getType(const String &name){
                 if(name == "bot_walking"){
                     return AnimType::BOT_WALKING;
@@ -52,7 +61,8 @@
             UInt16 x;
             UInt16 y;
             UInt8 type;
-            float spd;
+            UInt64 spd;
+            UInt8 keyframe;
         };
 
         namespace AnimPart {
@@ -70,6 +80,7 @@
             nite::Animation anim;
             nite::Batch batch;
             Dict<UInt8, Game::AnimFrame> frames;
+            Game::AnimFrame *getAnim(UInt8 anim);
             bool load(const String &path);
             nite::IndexedFile source;
             nite::Color transparency;

@@ -63,8 +63,8 @@ void nite::Animation::setManualClicking(unsigned anim, bool set){
 
 void nite::Animation::setFrame(unsigned anim, int frame){
 	if(anim >= animations.size()) return;
-	nite::AnimationDescriptor &A = animations[anim];
-	A.manualFrame = frame;
+	nite::AnimationDescriptor &an = animations[anim];
+	an.manualFrame = frame;
 }
 
 int nite::Animation::getFrameNumber(unsigned anim){

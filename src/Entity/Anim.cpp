@@ -39,7 +39,8 @@ bool Game::Anim::load(const String &path){
         frame.type = AnimType::getType(fnode.first);
         frame.x = fnode.second.get("x").toInt(0);
         frame.y = fnode.second.get("y").toInt(0);
-        frame.spd = fnode.second.get("spd").toFloat(0.0f);
+        frame.spd = fnode.second.get("spd").toInt(0);
+        frame.keyframe = fnode.second.get("kf").toInt(0);
         frame.id = this->anim.add(frame.x * frameSize.x, frame.y * frameSize.y, frameSize.x, frameSize.y, frame.n, frame.spd, false, false);
         this->anim.setManualClicking(frame.id, true);
         this->frames[frame.type] = frame;
@@ -65,9 +66,17 @@ void Game::Anim::setState(UInt8 anims[AnimPart::total], UInt8 sframes[AnimPart::
             continue;
         }
         auto &frame = it->second;
-        anim.setFrame(frame.id, sframes[i]);
+        anim.setFrame(frame.id, sframes[i] % frame.n);
         auto ref = anim.draw(frame.id, 0.0f, 0.0f, frameSize.x, frameSize.y, 0.0f, 0.0f, 0.0f);
     }    
     batch.end();
     batch.flush();
+}
+
+Game::AnimFrame *Game::Anim::getAnim(UInt8 anim){
+    auto it = this->frames.find(anim);
+    if(it != this->frames.end()){
+        return &it->second;
+    }
+    return NULL;
 }

@@ -618,7 +618,7 @@ void Game::Server::update(){
                 sendRemoteCmdMsg(client->clientId, result.msg, result.color);
             } break;  
             /*
-                SV_CHAT_MESSAGE
+                SV_CLIENT_LOAD_READY
             */             
             case Game::PacketType::SV_CLIENT_LOAD_READY: {
                 if(!client){
@@ -627,7 +627,39 @@ void Game::Server::update(){
                 sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
                 client->ready = true;
             } break;             
-
+            /*
+                SV_ENTITY_USE_SKILL_ITEM
+            */             
+            case Game::PacketType::SV_ENTITY_USE_SKILL_ITEM: {
+                if(!client){
+                    break;
+                }
+                sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
+                UInt16 userId, targetId;                
+                UInt8 type;
+                UInt32 id;
+                float x, y;
+                handler.read(&userId, sizeof(userId));
+                handler.read(&type, sizeof(type));
+                handler.read(&id, sizeof(id));
+                handler.read(&targetId, sizeof(targetId));
+                handler.read(&x, sizeof(x));
+                handler.read(&y, sizeof(y));
+                auto user = this->getEntity(userId);
+                if(user == NULL){
+                    nite::print("[server] failed to invokeUse for entity id '"+nite::toStr(userId)+"': doesn't exist");
+                    break;
+                }
+                switch(type){
+                    case ActionableType::Skill:
+                    case ActionableType::Item: {
+                        user->invokeUse(targetId, type, id, x, y);
+                    } break;
+                    default: {
+                        nite::print("[server] entity id '"+nite::toStr(userId)+"' invoked usage of undefined type '"+nite::toStr(type)+"'");
+                    } break;
+                }
+            } break; 
         }
     }
 
@@ -694,6 +726,21 @@ void Game::Server::update(){
     game();
     updateDeliveries();
 }
+
+Game::EntityBase *Game::Server::getEntity(UInt16 id){
+    if(id == 0){
+        return NULL;
+    }
+    auto obj = this->world.get(id);
+    if(obj.get() == NULL){
+        return NULL;
+    }
+    if(obj->objType != Game::ObjectType::Entity){
+        return NULL;
+    }
+    return static_cast<Game::EntityBase*>(obj.get());
+}
+
 
 void Game::Server::sendAll(nite::Packet &packet){
     if(!init){
@@ -1335,7 +1382,7 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
     }
     auto obj = Shared<Game::NetObject>(new Game::EntityBase()); // ideally we should create this using createNetObject
     auto player = static_cast<EntityBase*>(obj.get());
-    player->setupStat(lv);
+    player->setupStat(1);
     player->sigId = Game::ObjectSig::Player;
     auto &cm = maps[currentMap]; 
     float startx = cm->startCell.x + nite::randomInt(-50, 50);
@@ -1343,11 +1390,12 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
     player->setPosition(startx, starty);
     spawn(obj);
     client->second.entityId = obj->id;
-    // static_cast<Game::EntityBase*>(obj.get())->loadAnim();
+    static_cast<Game::EntityBase*>(obj.get())->loadAnim();
     players[uid] = obj->id;
     nite::print("[server] created player entity with id "+nite::toStr(obj->id)+" | for client id "+nite::toStr(uid)+"("+client->second.nickname+")");
-    player->printInfo(); // for debugging
 
+    // testing stats
+    // static_cast<Game::EntityBase*>(obj.get())->addBaseStat(BaseStatType::Agility, 100);
     // testing effects
     auto effect = getEffect(Game::EffectList::EF_HEAL);
     auto efHeal = static_cast<Game::Effects::EffHeal*>(effect.get());
@@ -1355,6 +1403,7 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
 
     this->addEffect(obj->id, effect);
 
+    player->printInfo(); // for debugging
     return obj;
 }
 

@@ -49,6 +49,14 @@ void Game::NetWorld::remove(Shared<Game::NetObject> obj){
 	this->remove(obj->id);
 }
 
+Shared<Game::NetObject> Game::NetWorld::get(UInt16 id){
+	auto it = objects.find(id);
+	if(it == objects.end()){
+		return Shared<Game::NetObject>(NULL);
+	}
+	return it->second;
+}
+
 void Game::NetWorld::step(){
   for (auto& it : objects){
 		auto current = it.second;
@@ -119,7 +127,7 @@ void Game::NetWorld::update(){
 		}
 		current->collided = false;
 		updateObjectPhysics(it.second, current->speed.x, current->speed.y);
-		current->speed.lerp(Vec2(0.0f), nite::getDelta() * 0.067f * current->friction * current->relativeTimescale * this->timescale);
+		current->speed.lerpDiscrete(Vec2(0.0f), nite::getDelta() * 0.067f * current->friction * current->relativeTimescale * this->timescale);
 		if(current->position != p){
 			this->updateQueue.push_back(current->id);
 		}		

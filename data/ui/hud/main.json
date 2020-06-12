@@ -18,8 +18,8 @@
 		"actionable_bar": {
 			"iconSize": {"hor": 32, "vert": 32},
 			"source": "data/texture/icons/test_icons.png",
-			"width": 64,
-			"height": 64
+			"width": 48,
+			"height": 48
 		},
 		"effect_col": {
 			"iconSize": {"hor": 32, "vert": 32},
@@ -82,7 +82,7 @@
 			"type": "panel",
 			"layout": "hbox",
 			"width": "!! #gwidth + 0.0",
-			"height": 92,
+			"height": 69,
 			"children": [
 				{
 					"type": "panel",
@@ -111,7 +111,16 @@
 							"import": "data/ui/hud/actionbar_object.json"
 						},
 						{
+							"type": "panel",
+							"layout": "hbox",
+							"flex": 1
+						},
+						{
 							"id": "actionable_k6",
+							"import": "data/ui/hud/actionbar_object.json"
+						},
+						{
+							"id": "actionable_k7",
 							"import": "data/ui/hud/actionbar_object.json"
 						}						
 					]

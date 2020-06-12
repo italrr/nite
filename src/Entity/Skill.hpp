@@ -42,6 +42,11 @@
             AoE // area of effect
         };
 
+        enum SkillUsageType : UInt8 {
+            Self = 0,
+            Target
+        };
+
         struct EntityBase;
         struct Skill {
             String name;
@@ -53,24 +58,30 @@
             UInt8 maxLv;
             UInt16 manaCost;
             UInt16 staminaCost;
+            UInt8 usageType;
             UInt8 family; // mastery type id
             UInt16 range; // 1 unit is "32 radial pixels"
-            UInt64 delay; // cast delay (milliseconds)
+            // UInt64 delay; // cast delay (milliseconds)
             UInt64 lastUse;
-            UInt64 afterLastUse;
-            UInt64 adelay; // after cast delay
+            UInt64 castDelay;
+            UInt64 cooldown; // after cast delay
             UInt16 minUseLv;
             UInt16 skPointsPerLv; // how many skill points cost one level
             int iconId;
             UInt16 baseDmg;
             Skill(){
                 id = 0;
+                lastUse = 0;
             }
 			virtual void onRecalculateStat(EntityBase *owner){}             
             virtual void passive(Game::EntityBase *who) {}
             virtual void beforeUse(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
             virtual void afterUse(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
-            virtual void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
+            virtual bool use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
+            virtual bool isReady(EntityBase *who);
+            virtual UInt64 getCooldown(EntityBase *who);
+            virtual void writeUpdate(nite::Packet &packet);
+            virtual void readUpdate(nite::Packet &packet);
             virtual void buildDesc(EntityBase *owner){
                 this->desc = "None";
             }           
@@ -145,6 +156,7 @@
             EntityBase *owner;
             Dict<UInt16, Shared<Game::Skill>> skills;
             bool add(Shared<Game::Skill> &sk);
+            Game::Skill *get(UInt16 id);
             bool remove(UInt16 id);
             bool contains(UInt16 id);
             bool lvUp(UInt16 id);
@@ -159,23 +171,23 @@
             // BASE [BA] 
             struct BA_Attack : Skill {
                 BA_Attack(){ this->id = Game::SkillList::BA_ATTACK; }
-                void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
+                bool use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };
             struct BA_Bash : Skill {
                 BA_Bash(){ this->id = Game::SkillList::BA_BASH; }
-                void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
+                bool use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };
             struct BA_Dodge : Skill {
                 BA_Dodge(){ this->id = Game::SkillList::BA_DODGE; }
-                void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
+                bool use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };             
             struct BA_Parry : Skill {
                 BA_Parry(){ this->id = Game::SkillList::BA_PARRY; }
-                void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
+                bool use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };         
             struct BA_FIRST_AID : Skill {
                 BA_FIRST_AID(){ this->id = Game::SkillList::BA_FIRST_AID; }
-                void use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
+                bool use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };               
 
 

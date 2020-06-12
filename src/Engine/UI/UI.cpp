@@ -628,13 +628,13 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto borderPattern = _parseString("borderPattern", node, NULL, "", base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto position = _parsePosition(node, NULL, nite::Vec2(0.0f, 0.0f), base);    
-        auto userShader = _parseShader("shader", node, NULL, base);
+        // auto userShader = _parseShader("shader", node, NULL, base);
         _parseOverflow("overflow", node, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);
-        if(userShader.success){
-            base->apply(nite::Shader(userShader.frag, userShader.vert));
-        }
+        // if(userShader.success){
+        //     base->apply(nite::Shader(userShader.frag, userShader.vert));
+        // }
         auto id = _parseString("id", node, NULL, ref->literalId, base);
         ref->setId(id);  
         if(backgroundImage != "" && nite::fileExists(backgroundImage)){
@@ -677,12 +677,12 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
-        auto userShader = _parseShader("shader", node, style, base);
+        // auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);
-        if(userShader.success){
-            base->apply(nite::Shader(userShader.frag, userShader.vert));
-        }        
+        // if(userShader.success){
+        //     base->apply(nite::Shader(userShader.frag, userShader.vert));
+        // }        
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
         }          
@@ -725,12 +725,12 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base);  
         auto id = _parseString("id", node, style, base->literalId, base);
         auto font = _parseString("font", node, style, "", base); 
-        auto userShader = _parseShader("shader", node, style, base);
+        // auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);
-        if(userShader.success){
-            base->apply(nite::Shader(userShader.frag, userShader.vert));
-        }         
+        // if(userShader.success){
+        //     base->apply(nite::Shader(userShader.frag, userShader.vert));
+        // }         
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
         }               
@@ -775,12 +775,12 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto id = _parseString("id", node, style, base->literalId, base);
         auto font = _parseString("font", node, style, "", base); 
-        auto userShader = _parseShader("shader", node, style, base);
+        // auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);
-        if(userShader.success){
-            base->apply(nite::Shader(userShader.frag, userShader.vert));
-        }         
+        // if(userShader.success){
+        //     base->apply(nite::Shader(userShader.frag, userShader.vert));
+        // }         
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
         }           
@@ -833,12 +833,12 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto font = _parseString("font", node, style, "", base); 
         auto shadowOffset = _parseDimensions("shadowOffset", node, style, ref->getShadowOffset(), base); 
         auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base); 
-        auto userShader = _parseShader("shader", node, style, base);
+        // auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);
-        if(userShader.success){
-            base->apply(nite::Shader(userShader.frag, userShader.vert));
-        }                 
+        // if(userShader.success){
+        //     base->apply(nite::Shader(userShader.frag, userShader.vert));
+        // }                 
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
         }           
@@ -886,16 +886,16 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
-        auto userShader = _parseShader("shader", node, style, base);
+        // auto userShader = _parseShader("shader", node, style, base);
         auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "W", base);
         _parseOverflow("overflow", node, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);
-        if(userShader.success){
-            nite::Shader shader;
-            shader.load(userShader.frag, userShader.vert);
-            base->apply(shader);
-        }         
+        // if(userShader.success){
+        //     nite::Shader shader;
+        //     shader.load(userShader.frag, userShader.vert);
+        //     base->apply(shader);
+        // }         
         ref->setId(id);    
         ref->setMargin(margin);
         ref->setPadding(padding);        

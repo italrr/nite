@@ -43,7 +43,6 @@
 				void add(String name, int n);
 				void remove(String name);
 				void clear();
-				~Uniform();
 		};
 		class Shader;
 		struct Program {

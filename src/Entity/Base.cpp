@@ -26,6 +26,10 @@ void Game::EntityBase::entityMove(float angle, float mod, bool holdStance){
 	}
 	// isWalking = true;
 	// walkingTimeout = nite::getTicks();
+	if(state[EntityStateSlot::BOTTOM] != EntityState::WALKING){
+		setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
+	}
+	isWalking = true;
 	move(angle, mod + 0.25f * complexStat.walkRate);
 }
 
@@ -69,21 +73,169 @@ void Game::EntityBase::printInfo(){
 }
 
 void Game::EntityBase::draw(){
-	UInt8 anims[3] = {AnimType::BOT_STANDING, AnimType::MID_STANDING, AnimType::TOP_NEUTRAL};
-	UInt8 sframes[3] = {0, 0, 0};
-	anim.setState(anims, sframes);	
+	UInt8 bot = EntityState::stateToAnimType[state[EntityStateSlot::BOTTOM]][EntityStateSlot::BOTTOM];
+	UInt8 mid = EntityState::stateToAnimType[state[EntityStateSlot::MID]][EntityStateSlot::MID];
+	UInt8 anims[AnimPart::total] = {bot, mid, AnimType::TOP_NEUTRAL};
+	UInt8 numbs[AnimPart::total] = {stNum[EntityStateSlot::BOTTOM], stNum[EntityStateSlot::MID], 0};
+	anim.setState(anims, numbs);
 
     nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	nite::setDepth(nite::DepthMiddle);
-	auto ref = anim.batch.draw(position.x, position.y, anim.frameSize.x, anim.frameSize.y, 0.5f, 0.5f, 0.0f);	
+	float reversed = faceDirection == EntityFacing::Left ? -1.0f : 1.0f;
+	auto ref = anim.batch.draw(position.x, position.y, anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);	
 }
 
 void Game::EntityBase::entityStep(){
-	if(healthStat.health == 0){
+	if(healthStat.health == 0 && !healthStat.dead){
 		healthStat.dead = true;
 		notifyEntityDeath(this);
 		onDeath();
+	}
+	updateStance();
+}
+
+void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n){
+	if(nstate > EntityState::total || slot > EntityStateSlot::total){
+		return;
+	}
+	auto nanim = anim.getAnim(EntityState::stateToAnimType[nstate][slot]);
+	if(nanim != NULL && nanim->n > 0 && n > nanim->n){
+		n = n % nanim->n;
+	}
+	bool update = false;
+	if(state[slot] != nstate || stNum[slot] != n){
+		update = true;
+	}
+	state[slot] = nstate;
+	lastStateTime[slot] = nite::getTicks();	
+	stNum[slot] = n;
+	// issue anim update to clients
+	if(update && sv != NULL){
+		nite::Packet stance;
+		stance.setHeader(Game::PacketType::SV_UPDATE_ENTITY_STANCE_STATE);
+		stance.write(&this->id, sizeof(this->id));
+		stance.write(&faceDirection, sizeof(faceDirection));
+		stance.write(&state[EntityStateSlot::BOTTOM], sizeof(UInt8));
+		stance.write(&stNum[EntityStateSlot::BOTTOM], sizeof(UInt8));
+		stance.write(&state[EntityStateSlot::MID], sizeof(UInt8));
+		stance.write(&stNum[EntityStateSlot::MID], sizeof(UInt8));
+		// TODO: filter by whether this entity is actually in the clients view
+		sv->sendAll(stance);
+	}
+}
+
+void Game::EntityBase::throwMelee(float x, float y){
+	// setState(EntityState::MELEE_NOWEAP, EntityStateSlot::MID, 0);
+}
+
+void Game::EntityBase::updateStance(){
+	// this is for humanoid basically
+	for(int i = 0; i < EntityStateSlot::total; ++i){
+		auto &part = i;
+		switch(state[i]){
+            case EntityState::IDLE: {
+			} break;
+            case EntityState::WALKING: {
+				if(part != EntityStateSlot::BOTTOM){
+					break;
+				}
+				auto canim = this->anim.getAnim(EntityState::stateToAnimType[EntityState::WALKING][EntityStateSlot::BOTTOM]);
+				if(canim == NULL){
+					break;
+				}
+				UInt64 walkRateDiff = complexStat.walkRate * 8;
+				UInt64 walkAnimTime = canim->spd - (walkRateDiff > walkAnimTime ? ((UInt64)canim->spd*0.05f) : walkRateDiff);
+				UInt64 currentTime = nite::getTicks()-lastStateTime[EntityStateSlot::BOTTOM];
+				if(!isWalking && currentTime > walkAnimTime){
+					setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);
+				}else
+				if(currentTime > walkAnimTime){
+					setState(EntityState::WALKING, EntityStateSlot::BOTTOM, stNum[EntityStateSlot::BOTTOM] + 1);
+				}
+			} break;
+			case EntityState::JUMPING: {
+			} break; 
+			case EntityState::SHOOTING_HANDGUN: {
+			} break;
+			case EntityState::SHOOTING_BOW: {
+			} break;
+			case EntityState::IDLE_HANDGUN: {
+			} break;
+			case EntityState::IDLE_BOW: {
+			} break;
+			case EntityState::IDLE_SWORD: {
+			} break;
+            case EntityState::IDLE_KNIFE: {
+			} break;
+            case EntityState::WAVING_KNIFE: {
+			} break;
+			case EntityState::WAVING_SWORD: {
+			} break;
+            case EntityState::MELEE_NOWEAP: {
+				if(part != EntityStateSlot::MID){
+					break;
+				}		
+				auto canim = this->anim.getAnim(EntityState::stateToAnimType[EntityState::MELEE_NOWEAP][EntityStateSlot::MID]);		
+				switch(stNum[EntityStateSlot::MID]){
+					case 0:{
+						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > canim->spd){
+							setState(EntityState::MELEE_NOWEAP, EntityStateSlot::MID, stNum[EntityStateSlot::MID] + 1);
+						}
+					} break;
+					case 1: {
+						throwMelee(0.0f, 0.0f);
+						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 200){ // 200 hard coded for now
+							setState(EntityState::IDLE_FIST, EntityStateSlot::MID, 0);
+						}						
+					} break;					
+				}
+			} break;
+			case EntityState::IDLE_FIST: {
+				if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 1500){
+					setState(EntityState::IDLE, EntityStateSlot::MID, 0);
+				}	
+			} break;
+			case EntityState::CASTING: {
+			} break;                
+		}		
+	}
+	isWalking = false;
+}
+
+void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x, float y){
+	if(this->sv == NULL){
+		return;
+	}
+	auto target = this->sv->getEntity(targetId);
+	switch(type){
+		case ActionableType::Skill: {
+			auto sendSkillState = [&](Game::Skill *sk){
+				auto cl = sv->getClientByEntityId(this->id);
+				if(cl == NULL){
+					return;
+				}
+				nite::Packet update(++cl->svOrder);
+				update.setHeader(Game::PacketType::SV_UPDATE_SKILL_STATE);
+				update.write(&this->id, sizeof(UInt16));
+				update.write(&sk->id, sizeof(UInt16));
+				sk->writeUpdate(update);
+				sv->persSend(cl->cl, update, 1000, -1);
+			};
+			auto sk = skillStat.get(id);
+			if(sk->isReady(this)){ 
+				if(sk->castDelay == 0){
+					if(sk->use(this, target, nite::Vec2(x, y))){
+						sendSkillState(sk);
+					}
+				}else{
+					// TODO: set ent to cast
+				}
+			}
+		} break;
+		case ActionableType::Item: {
+			nite::print("USE ITEM TODO");
+		} break;		
 	}
 }
 
@@ -94,6 +246,8 @@ void Game::EntityBase::recalculateStats(){
 	}
 
 	baseStat.resetAdd();
+	resetComplexStats();
+	
 
 	// recalculate effects-given stats
 	auto &eff = effectStat.effects;
@@ -116,7 +270,10 @@ void Game::EntityBase::recalculateStats(){
 	// recalculate local stats
 	recalculateBaseStats();
 	recalculateHealthStats();
-	recalculateComplexStats();		
+	recalculateComplexStats();	
+
+	// normalize in case of overflows
+	normalizeComplexStats();	
 
 	// server-side only (notify client owner)
 	if(sv != NULL){ 

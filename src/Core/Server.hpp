@@ -82,6 +82,7 @@
             Game::SvClient *getClient(UInt64 uid);
             Game::SvClient *getClientByIp(nite::IP_Port &ip);
             Game::SvClient *getClientByEntityId(UInt16 entityId);
+            Game::EntityBase *getEntity(UInt16 id);
             void persSendAll(nite::Packet &packet, UInt64 timeout, int retries);
             void sendAll(nite::Packet &packet);
             void broadcast(const String &message);

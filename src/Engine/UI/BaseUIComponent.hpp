@@ -120,6 +120,7 @@
         Dict<String, Shared<nite::BaseUIComponent>> idsLookUp;
         Dict<String, Jzon::Node> styles;
         nite::Shader shader;
+        nite::Uniform uniform;
         bool useShader;
         bool scrollX;
         bool scrollY;
@@ -132,8 +133,9 @@
 
         void fixNavIndexes();
 
-        virtual void apply(const nite::Shader &shader){
+        virtual void apply(const nite::Shader &shader, const nite::Uniform &uni){
             this->shader = shader;
+            this->uniform = uni;
             useShader = true;
         }
 
@@ -177,6 +179,9 @@
         }
 
         void setVisible(bool v){
+            if(visible == v){
+                return;
+            }
             this->visible = v;
             recalculate();
         }

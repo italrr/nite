@@ -26,6 +26,7 @@ void Game::HUD::start(Game::Client *client){
            this->resetValues();
         });
     }
+    actShader.load("./data/shaders/ui_cooldown_effect_f.glsl", "./data/shaders/ui_cooldown_effect_v.glsl");
 }
 
 void Game::HUD::resetValues(){
@@ -49,7 +50,7 @@ void Game::HUD::setFollow(UInt16 followId){
 
 void Game::HUD::update(){
 
-    if(nite::getTicks()-lastCheck > 125){
+    if(nite::getTicks()-lastCheck > 32){
         updateValues();
         lastCheck = nite::getTicks();
     }
@@ -59,12 +60,11 @@ void Game::HUD::updateValues(){
     if(this->followId == 0){ // an entity id can never be 0
         return;
     }
-    auto it = client->world.objects.find(followId) ;
-    if(it == client->world.objects.end()){
+    auto ent = client->getEntity(followId);
+    if(ent == NULL){
         this->main->setVisible(false);
         return;
     }
-    Game::EntityBase *ent = static_cast<Game::EntityBase*>(it->second.get()); 
     
     // HP
     auto hpText = this->main->getComponentById("hud_hp_text");
@@ -90,10 +90,8 @@ void Game::HUD::updateValues(){
         }
     }       
 
-    auto updateActionable = [&](Shared<nite::BaseUIComponent> cmp, int indx, const String &letter){
-        if(cmp.get() == NULL){
-            return;
-        }
+    auto updateActionable = [&](Game::ActionableHUDObject &actObj, int indx, const String &letter){
+        auto &cmp = actObj.cmp;
         auto textcmp = cmp->getComponentByType("text");        
         if(auto text = dynamic_cast<nite::TextUI*>(textcmp.get())){
             text->setText(letter);
@@ -107,9 +105,27 @@ void Game::HUD::updateValues(){
             switch(act.type){
                 case Game::ActionableType::Skill: {
                     int skId = ent->actionables[indx].id;
-                    if(ent->skillStat.contains(skId)){
-                        auto sk = ent->skillStat.skills[skId];
+                    auto sk = ent->skillStat.get(skId);
+                    if(sk != NULL && ent->net){
                         icon->setIndex(sk->iconId);
+                        float &p = actObj.recharge;
+                        float &a = actObj.alpha;
+                        float k = 0.0f;
+                        if(sk->getCooldown(ent) > 0.0f){
+                            double a = (double)(ent->net->clock.time - sk->lastUse);
+                            double b = (double)sk->getCooldown(ent);
+                            k = a >= b ? 100.0f : (a / b) * 100.0f;
+                            // nite::lerpDiscrete(p, k, 0.30f);                   
+                        }
+                        if(nite::lerpDiscrete(a, k > 99.0f ? 100.0f : 92.0f, 0.45f) && p == k){
+                            break;
+                        }
+                        p = k;                         
+                        nite::Uniform uni;
+                        uni.add("p_total", p / 100.0f);
+                        uni.add("p_alpha", a / 100.0f);
+                        cmp->apply(actShader, uni);  
+                        cmp->recalculate();                    
                     }
                 } break ;
                 case Game::ActionableType::Item: {
@@ -119,25 +135,20 @@ void Game::HUD::updateValues(){
         }
 
     };
-
- 
-    auto actK1Panel = this->main->getComponentById("actionable_k1");
-    updateActionable(actK1Panel, 0, "1");
     
-    auto actK2Panel = this->main->getComponentById("actionable_k2");
-    updateActionable(actK2Panel, 1, "2");
-    
-    auto actK3Panel = this->main->getComponentById("actionable_k3");
-    updateActionable(actK3Panel, 2, "3");
-    
-    auto actK4Panel = this->main->getComponentById("actionable_k4");
-    updateActionable(actK4Panel, 3, "4");
-    
-    auto actK5Panel = this->main->getComponentById("actionable_k5");
-    updateActionable(actK5Panel, 4, "5");
-    
-    auto actK6Panel = this->main->getComponentById("actionable_k6");
-    updateActionable(actK6Panel, 5, "6");    
+    bool populate = actionables.size() == 0;
+    for(int i = 0; i < Game::EntityActionables; ++i){
+        auto actPanel = this->main->getComponentById("actionable_k"+nite::toStr(i+1));
+        if(actPanel.get() == NULL){
+            continue;
+        }
+        if(populate){
+            Game::ActionableHUDObject obj;
+            obj.cmp = actPanel;
+            actionables.push_back(obj);
+        }        
+        updateActionable(actionables[i], i, nite::toStr(i + 1));
+    }
 
     auto &effs = ent->effectStat.effects;
     auto statusPanel = this->main->getComponentById("hud_eff_column");

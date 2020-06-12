@@ -1,7 +1,7 @@
 #include "Stat.hpp"
 
 Game::ComplexStat::ComplexStat() {
-	maxCarry = 25;
+	maxCarry = 1000;
 	walkRate = 0.25f;
 	atk = 0;
 	magicAtk = 0;
@@ -12,6 +12,7 @@ Game::ComplexStat::ComplexStat() {
 	precsRate = 0;
 	persuasionRate = 0;
 	charmRate = 0;
+	cooldownRedRate = 0.0f;
 }
 
 Game::BaseStat::BaseStat(){
@@ -33,6 +34,21 @@ void Game::BaseStat::resetAdd(){
 	lukAdd = 0;
 	intelAdd = 0;
 	charmAdd = 0;
+}
+
+void Game::Stat::resetComplexStats(){
+	complexStat.maxCarry = 0.0f;
+	complexStat.atk = 0.0f;
+	complexStat.magicAtk = 0.0f;
+	complexStat.def = 0.0f;
+	complexStat.magicDef = 0.0f;
+	complexStat.walkRate = 0.0f;
+	complexStat.critRate = 0.0f;
+	complexStat.precsRate = 0.0f;
+	complexStat.atkRate = 0.0f;
+	complexStat.persuasionRate = 0.0f;
+	complexStat.charmRate = 0.0f;
+	complexStat.cooldownRedRate = 0.0f;
 }
 
 void Game::Stat::recalculateBaseStats(){
@@ -58,17 +74,24 @@ void Game::Stat::recalculateComplexStats(){
 	if(healthStat.dead){
 		return;
 	}	
-	complexStat.maxCarry = 1000 + nite::ceil(baseStat.strAdd * GAME_STAT_BASE_SCALE * 150.0f + baseStat.enduAdd * GAME_STAT_BASE_SCALE * 65.0f);
-	complexStat.atk = nite::ceil(baseStat.strAdd * 8.5f + baseStat.enduAdd * 1.2f);
-	complexStat.magicAtk = nite::ceil(baseStat.intelAdd * 8.5f);
-	complexStat.def = nite::ceil(baseStat.enduAdd * 5.8f + healthStat.lv * 0.7f);
-	complexStat.magicDef = nite::ceil(baseStat.intelAdd * 4.5f + baseStat.enduAdd * 1.2f);		
-	complexStat.walkRate = nite::ceil(0.18f * baseStat.agiAdd); // TODO: take weight into account
-	complexStat.critRate = (float)baseStat.lukAdd / (float)GAME_MAX_STAT;
-	complexStat.precsRate = baseStat.dexAdd * 1.25f;
-	complexStat.atkRate = baseStat.agiAdd * (3.85f + healthStat.lv * 0.15f) + baseStat.dexAdd * (1.1f + healthStat.lv * 0.1f);
-	complexStat.persuasionRate = nite::ceil(0.45f * healthStat.lv + baseStat.charmAdd * 5.96f + baseStat.intelAdd * 2.25f);
-	complexStat.charmRate = nite::ceil(0.5f * healthStat.lv + baseStat.charmAdd * 5.96f);
+	complexStat.maxCarry += 1000 + nite::ceil(baseStat.strAdd * GAME_STAT_BASE_SCALE * 150.0f + baseStat.enduAdd * GAME_STAT_BASE_SCALE * 65.0f);
+	complexStat.atk += nite::ceil(baseStat.strAdd * 8.5f + baseStat.enduAdd * 1.2f);
+	complexStat.magicAtk += nite::ceil(baseStat.intelAdd * 8.5f);
+	complexStat.def += nite::ceil(baseStat.enduAdd * 5.8f + healthStat.lv * 0.7f);
+	complexStat.magicDef += nite::ceil(baseStat.intelAdd * 4.5f + baseStat.enduAdd * 1.2f);		
+	complexStat.walkRate += nite::ceil(0.18f * baseStat.agiAdd); // TODO: take weight into account
+	complexStat.critRate += (float)baseStat.lukAdd / (float)GAME_MAX_STAT;
+	complexStat.precsRate += baseStat.dexAdd * 1.25f;
+	complexStat.atkRate += baseStat.agiAdd * (3.85f + healthStat.lv * 0.15f) + baseStat.dexAdd * (1.1f + healthStat.lv * 0.1f);
+	complexStat.persuasionRate += nite::ceil(0.45f * healthStat.lv + baseStat.charmAdd * 5.96f + baseStat.intelAdd * 2.25f);
+	complexStat.charmRate += nite::ceil(0.5f * healthStat.lv + baseStat.charmAdd * 5.96f);
+	complexStat.cooldownRedRate += 0.0f;
+}
+
+void Game::Stat::normalizeComplexStats(){
+	if(complexStat.cooldownRedRate > 1.0f){
+		complexStat.cooldownRedRate = 1.0f;
+	}
 }
 
 Int32 Game::Stat::addBaseStat(UInt8 type, GAME_STAT_TYPE amnt){
