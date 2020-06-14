@@ -62,6 +62,10 @@ void Game::Effect::parse(Jzon::Node &obj){
     color = nite::Color(obj.get("color").toString());
 }
 
+String Game::Effect::getStatus(Game::EntityBase *owner){
+    return nite::toStr((owner->net->clock.time-(started+this->duration))/1000)+ "s";
+}
+
 bool Game::EffectStat::add(Shared<Game::Effect> eff){
     eff->start(owner);
     eff->insId = getUniqueId();

@@ -31,8 +31,8 @@ void Game::Input::update(bool ignore){
     for(auto key : this->mapping){
         auto gk = key.second;
         auto nk = key.first;
-        bool pressed = !ignore && nite::keyboardPressed(nk);
-        bool released = !ignore && nite::keyboardReleased(nk);
+        bool pressed = !ignore && (nk > 200 ? nite::mousePressed(nk) : nite::keyboardPressed(nk));
+        bool released = !ignore && (nk > 200 ? nite::mouseReleased(nk) : nite::keyboardReleased(nk));
         if(!pressed && !released){
             continue;
         }

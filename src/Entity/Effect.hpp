@@ -89,9 +89,7 @@
                 
             }
 
-            virtual String getStatus(Game::EntityBase *owner){
-                return nite::toStr((nite::getTicks()-(started+this->duration))/1000)+ "s";
-            }
+            virtual String getStatus(Game::EntityBase *owner);
             
             virtual void onStart(Game::EntityBase *owner){
 

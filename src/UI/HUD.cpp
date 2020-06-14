@@ -12,6 +12,7 @@ Game::HUD::HUD(){
     this->followId = 0;
     this->main = Shared<nite::BaseUIComponent>(NULL);
     this->lastCheck = nite::getTicks();
+    effects.reserve(100);
 }
 
 void Game::HUD::start(Game::Client *client){
@@ -26,7 +27,8 @@ void Game::HUD::start(Game::Client *client){
            this->resetValues();
         });
     }
-    actShader.load("./data/shaders/ui_cooldown_effect_f.glsl", "./data/shaders/ui_cooldown_effect_v.glsl");
+    actShader.load("./data/shaders/ui_actionableobj_cooldown_f.glsl", "./data/shaders/ui_actionableobj_cooldown_v.glsl");
+    efShader.load("./data/shaders/ui_effectcol_transition_f.glsl", "./data/shaders/ui_effectcol_transition_v.glsl");
 }
 
 void Game::HUD::resetValues(){
@@ -110,11 +112,11 @@ void Game::HUD::updateValues(){
                         icon->setIndex(sk->iconId);
                         float &p = actObj.recharge;
                         float &a = actObj.alpha;
-                        float k = 0.0f;
+                        float k = 100.0f;
                         if(sk->getCooldown(ent) > 0.0f){
                             double a = (double)(ent->net->clock.time - sk->lastUse);
                             double b = (double)sk->getCooldown(ent);
-                            k = a >= b ? 100.0f : (a / b) * 100.0f;
+                            k = a >= b ? 100.0f : (a / b) * 100.0;
                             // nite::lerpDiscrete(p, k, 0.30f);                   
                         }
                         if(nite::lerpDiscrete(a, k > 99.0f ? 100.0f : 92.0f, 0.45f) && p == k){
@@ -147,62 +149,112 @@ void Game::HUD::updateValues(){
             obj.cmp = actPanel;
             actionables.push_back(obj);
         }        
-        updateActionable(actionables[i], i, nite::toStr(i + 1));
+        String letter = nite::toStr(i + 1);
+        // this is hacky
+        if(i == 5){
+            letter = "M1";
+        }
+        if(i == 6){
+            letter = "M2";
+        }
+        updateActionable(actionables[i], i, letter);
     }
 
     auto &effs = ent->effectStat.effects;
     auto statusPanel = this->main->getComponentById("hud_eff_column");
+    
+    auto getEfHUDObj = [&](UInt16 insId){
+        for(int i = 0; i < effects.size(); ++i){
+            if(effects[i].insId == insId){
+                return &effects[i];
+            }
+        }
+        return (EffectHUDObject*)NULL;
+    };
 
+    auto getEntEf = [&](UInt16 insId){
+        auto it = effs.find(insId);
+        if(it != effs.end()){
+            return it->second.get();
+        }
+        return (Game::Effect*)NULL;
+    };
+
+    auto addEfHUDObj = [&](Game::Effect *ef){
+        EffectHUDObject efhudobj;
+        Jzon::Node json = Jzon::object();
+        json.add("import", "data/ui/hud/effectcol_object.json");
+        auto efpnl = statusPanel->add(json);
+        auto panel = static_cast<nite::PanelUI*>(efpnl.get());
+        // panel->setBackgroundColor(ef->color);
+        auto iconcmp = efpnl->getComponentByType("icon");
+        auto textcmp = efpnl->getComponentByType("text");                    
+        if(auto icon = dynamic_cast<nite::IconUI*>(iconcmp.get())){
+            icon->setIndex(ef->iconId);
+        }
+        if(auto text = dynamic_cast<nite::TextUI*>(textcmp.get())){
+            text->setText(ef->getStatus(ent));
+        }             
+        efhudobj.efId = ef->type;
+        efhudobj.insId = ef->insId;
+        efhudobj.cmp = efpnl;
+        efhudobj.color = ef->color;
+        efhudobj.cmpId = efpnl->id;
+        this->effects.push_back(efhudobj);
+    };
+
+    auto updateEfHUDObj = [&](EffectHUDObject *hudobj, Game::Effect *ef){
+        if(ef != NULL){
+            auto iconcmp = hudobj->cmp->getComponentByType("icon");
+            auto textcmp = hudobj->cmp->getComponentByType("text");
+            if(auto icon = dynamic_cast<nite::IconUI*>(iconcmp.get())){
+                icon->setIndex(ef->iconId);
+            }
+            if(auto text = dynamic_cast<nite::TextUI*>(textcmp.get())){
+                text->setText(ef->getStatus(ent));
+            }
+            float t = ((double)(ent->net->clock.time-ef->started) / (double)ef->duration) * 100.0f;
+            nite::lerpDiscrete(hudobj->runtime, t, 0.5f);
+        }
+        nite::lerpDiscrete(hudobj->alpha, hudobj->done ? 0.0f : 100.0f, 0.55f);
+        nite::Uniform uni;
+        uni.add("p_total", hudobj->runtime / 100.0f);
+        uni.add("p_alpha", hudobj->alpha / 100.0f);
+        uni.add("p_borderthick", 2.0f);
+        uni.add("p_bordercolor", hudobj->color);
+        hudobj->cmp->apply(efShader, uni);  
+        hudobj->cmp->recalculate();           
+    };
+
+    // add it
+    for(auto &entEf : effs){
+        auto hudEf = getEfHUDObj(entEf.second->insId);
+        if(hudEf == NULL){
+            addEfHUDObj(entEf.second.get());
+            continue;
+        }
+    }
+    // update it
+    for(int i = 0; i < effects.size(); ++i){
+        auto entEf = getEntEf(effects[i].insId);
+        updateEfHUDObj(&effects[i], entEf);
+    }
     // remove
-    for(auto &ef : lastEffectList){
-        auto it = effs.find(ef.first);
+    for(int i = 0; i < effects.size(); ++i){
+        auto it = effs.find(effects[i].insId);
         if(it == effs.end()){
-            statusPanel->remove(ef.second->id);
-            lastEffectList.erase(ef.first);
+            auto &ef = effects[i];
+            ef.done = true;
+            if(ef.alpha > 0.0f){
+                continue;
+            }
+            statusPanel->remove(ef.cmpId);
+            effects.erase(effects.begin() + i);
+            // restart loop
+            i = 0; 
+            continue; 
         }
     }
-
-    // add
-    for(auto &ef : effs){
-        auto it = lastEffectList.find(ef.second->insId);
-        if(it == lastEffectList.end()){
-
-            Jzon::Node json = Jzon::object();
-            json.add("import", "data/ui/hud/effectcol_object.json");
-
-            auto efpnl = statusPanel->add(json);
-
-
-            auto panel = static_cast<nite::PanelUI*>(efpnl.get());
-            panel->setBackgroundColor(ef.second->color);
-
-
-            auto iconcmp = efpnl->getComponentByType("icon");
-            auto textcmp = efpnl->getComponentByType("text");                    
-            if(auto icon = dynamic_cast<nite::IconUI*>(iconcmp.get())){
-                icon->setIndex(ef.second->iconId);
-            }
-            if(auto text = dynamic_cast<nite::TextUI*>(textcmp.get())){
-                text->setText(ef.second->getStatus(ent));
-            }             
-            lastEffectList[ef.second->insId] = efpnl;
-        }
-    }
-
-    // update
-    for(auto &ef : effs){
-        auto it = lastEffectList.find(ef.second->insId);
-        if(it != lastEffectList.end() && it->second->children.size() > 0){
-            auto iconcmp = it->second->getComponentByType("icon");
-            auto textcmp = it->second->getComponentByType("text");
-            if(auto icon = dynamic_cast<nite::IconUI*>(iconcmp.get())){
-                icon->setIndex(ef.second->iconId);
-            }
-            if(auto text = dynamic_cast<nite::TextUI*>(textcmp.get())){
-                text->setText(ef.second->getStatus(ent));
-            }
-        }
-    }    
 
     
     

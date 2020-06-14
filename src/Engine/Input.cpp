@@ -81,6 +81,7 @@ int nite::translateKey(String key){
 	if(key == "F5"){return nite::keyF5;} else if(key == "F6"){return nite::keyF6;} else if(key == "F7"){return nite::keyF7;} else if(key == "F8"){return nite::keyF8;} else if(key == "F9"){return nite::keyF9;} else
 	if(key == "F10"){return nite::keyF10;} else if(key == "F11"){return nite::keyF11;} else if(key == "F12"){return nite::keyF12;} else if(key == "F14"){return nite::keyF14;} else if(key == "F14"){return nite::keyF14;} else
 	if(key == "F15"){return nite::keyF15;} else if(key == "PAUSE"){return nite::keyPAUSE;}else
+	if(key == "M1"){ return nite::butLEFT; } else if(key == "M2"){ return nite::butRIGHT; } else
 	return -1;
 }
 
@@ -231,11 +232,11 @@ static bool isbuttonStateReleased[niteButtonsn];
 static unsigned getButton(unsigned Button){
 	switch(Button){
 		case SDL_BUTTON_LEFT:
-			return butLEFT;
+			return butLEFT - 201;
 		case SDL_BUTTON_MIDDLE:
-			return butMIDDLE;
+			return butMIDDLE - 201;
 		case SDL_BUTTON_RIGHT:
-			return butRIGHT;
+			return butRIGHT - 201;
 		default:
 			return niteButtonsn-1;
 		break;
@@ -244,11 +245,13 @@ static unsigned getButton(unsigned Button){
 
 
 bool nite::mouseCheck(unsigned Button){
+	Button -= 201;
 	return (Button >= niteButtonsn ? 0 : buttonState[Button]);
 }
 
 
 bool nite::mousePressed(unsigned Button){
+	Button -= 201;
 	if (Button >= niteButtonsn){
 		return 0;
 	}
@@ -276,6 +279,7 @@ bool nite::mousePressed(unsigned Button){
 }
 
 bool nite::mouseReleased(unsigned Button){
+	Button -= 201;
 	if (Button >= niteKeysn){
 		return 0;
 	}

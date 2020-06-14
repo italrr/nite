@@ -18,14 +18,31 @@
             }
         };
 
+        struct EffectHUDObject {
+            UInt16 insId;
+            UInt16 efId;
+            int cmpId;
+            float runtime;
+            float alpha;
+            bool done;
+            nite::Color color;
+            Shared<nite::BaseUIComponent> cmp;
+            EffectHUDObject(){
+                runtime = 100.0f;
+                alpha = 0.0f;
+                done = false;
+            }
+        };
+
         struct HUD {
-            Dict<UInt16, Shared<nite::BaseUIComponent>> lastEffectList;
+            Vector<EffectHUDObject> effects;
             UInt64 lastCheck;
             HUD();
             Vector<Game::ActionableHUDObject> actionables;
             Shared<nite::BaseUIComponent> main;
             UInt16 followId;
             nite::Shader actShader;
+            nite::Shader efShader;
             Game::Client *client;
             void start(Game::Client *client);
             void setFollow(UInt16 followId);

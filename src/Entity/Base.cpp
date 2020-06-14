@@ -223,7 +223,7 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 				sv->persSend(cl->cl, update, 1000, -1);
 			};
 			auto sk = skillStat.get(id);
-			if(sk->isReady(this)){ 
+			if(sk != NULL && sk->isReady(this)){ 
 				if(sk->castDelay == 0){
 					if(sk->use(this, target, nite::Vec2(x, y))){
 						sendSkillState(sk);

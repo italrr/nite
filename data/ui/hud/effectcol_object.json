@@ -2,8 +2,8 @@
 	"type":"panel",
 	"layout": "vbox",
 	"width": 48,
-	"height": 64,
-	"backgroundColor": {"r": 0.97, "g": 0.09, "b": 0.15, "a": 1.0},		
+	"height": 69,
+	"backgroundColor": {"r": 0.21, "g": 0.205, "b": 0.236, "a": 1.0},
 	"margin": {"vert": 8},
 	"children": [
 		{
@@ -32,7 +32,7 @@
 			"type": "panel",
 			"layout": "hbox",
 			"width": 48,
-			"height": 16,
+			"height": 21,
 			"children": [
 				{
 					"type": "panel",
@@ -43,7 +43,7 @@
 					"type": "text",
 					"text": "text",
 					"textColor": {"r": 0.0, "g": 0.0, "b": 1.0, "a": 1.0},
-					"fontSize": 7
+					"fontSize": 10
 				},
 				{
 					"type": "panel",

@@ -48,7 +48,7 @@
         };
     }
 
-    static const String defaultFontUI = "data/font/monaco.ttf";
+    static const String defaultFontUI = "data/font/SpaceMono-Regular.ttf";
     static const float defaultFontRatio = 1.5f;
     static const float componentTranslationSpeed = 0.25f;
 

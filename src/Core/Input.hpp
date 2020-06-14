@@ -48,17 +48,17 @@
         };
 
         static const Dict<unsigned, UInt8> InputDefaultMapping = { 
-            { nite::keyUP, Key::UP },
-            { nite::keyDOWN, Key::DOWN },
-            { nite::keyLEFT, Key::LEFT },
-            { nite::keyRIGHT, Key::RIGHT },
+            { nite::keyW, Key::UP },
+            { nite::keyS, Key::DOWN },
+            { nite::keyA, Key::LEFT },
+            { nite::keyD, Key::RIGHT },
             { nite::key1, Key::k1 },
             { nite::key2, Key::k2 },
             { nite::key3, Key::k3 },
             { nite::key4, Key::k4 },
             { nite::key5, Key::k5 },
-            { nite::key6, Key::k6 },
-            { nite::key7, Key::k7 }
+            { nite::butLEFT, Key::k6 },
+            { nite::butRIGHT, Key::k7 }
         };
 
         struct Input {

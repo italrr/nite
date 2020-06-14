@@ -91,6 +91,19 @@
 					"backgroundColor": { "a": 0.0 },
 					"children": [
 						{
+							"id": "actionable_k6",
+							"import": "data/ui/hud/actionbar_object.json"
+						},
+						{
+							"id": "actionable_k7",
+							"import": "data/ui/hud/actionbar_object.json"
+						},
+						{
+							"type": "panel",
+							"layout": "hbox",
+							"flex": 1
+						},						
+						{
 							"id": "actionable_k1",
 							"import": "data/ui/hud/actionbar_object.json"
 						},
@@ -114,14 +127,6 @@
 							"type": "panel",
 							"layout": "hbox",
 							"flex": 1
-						},
-						{
-							"id": "actionable_k6",
-							"import": "data/ui/hud/actionbar_object.json"
-						},
-						{
-							"id": "actionable_k7",
-							"import": "data/ui/hud/actionbar_object.json"
 						}						
 					]
 				}

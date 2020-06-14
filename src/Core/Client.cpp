@@ -648,8 +648,14 @@ void Game::Client::update(){
                     break;
                 }
                 for(int i = 0; i < amnt; ++i){
-                    handler.read(&ent->actionables[i].type, sizeof(UInt8));
-                    handler.read(&ent->actionables[i].id, sizeof(UInt16));
+                    UInt8 slot;
+                    handler.read(&slot, sizeof(slot));
+                    if(slot > Game::EntityActionables){
+                        slot = 0;
+                        nite::print("[client] fail SV_SET_ENTITY_ACTIONABLES: offset slot");
+                    }
+                    handler.read(&ent->actionables[slot].type, sizeof(UInt8));
+                    handler.read(&ent->actionables[slot].id, sizeof(UInt32));
                 }
             } break;  
             /*
@@ -906,7 +912,7 @@ void Game::Client::update(){
                             }, 100);
                             return;
                         }
-                        nite::print("downloaded map '"+file.path+"'. about to load it");
+                        nite::print("[client] downloaded map '"+file.path+"'. about to load it");
                         nite::SmallPacket payload;
                         payload.write(&file, sizeof(file));
                         nite::AsyncTask::spawn([me](nite::AsyncTask::Context &ctx){
@@ -972,12 +978,11 @@ void Game::Client::game(){
     input.update(igmenu.open);
     hud.update();
     igmenu.update();
-
     // local input
     for(auto key : this->input.mapping){
         auto gk = key.second;
         auto nk = key.first;
-        bool pressed = nite::keyboardPressed(nk);
+        bool pressed = (nk > 200 ? nite::mousePressed(nk) : nite::keyboardPressed(nk));
         if(!pressed || entityId == 0) continue;
         auto ent = getEntity(this->entityId);
         if(ent == NULL){
@@ -1026,7 +1031,7 @@ void Game::Client::game(){
                 nite::print("Used none");
             } break;
             case ActionableType::Item: {
-
+                nite::print("Used Item");
             } break;
             case ActionableType::Skill: {
                 float x = ent->position.x, y = ent->position.y;

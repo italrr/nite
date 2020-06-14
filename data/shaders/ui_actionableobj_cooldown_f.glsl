@@ -15,6 +15,5 @@ void main() {
 		gl_FragColor.b = dot(tex, vec3(.272, .272, .272));
 	}else{
 		gl_FragColor = vec4(tex.rgb, alpha);
-	}
-	
+	}	
 }

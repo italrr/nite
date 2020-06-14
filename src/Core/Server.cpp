@@ -953,16 +953,17 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
                     packet.setHeader(Game::PacketType::SV_SET_ENTITY_ACTIONABLES);
                     packet.write(&ent->id, sizeof(UInt16));
                     packet.write(&skamnt, sizeof(UInt8));
-                    auto writeSkill = [&](UInt16 skilId){
+                    auto writeSkill = [&](UInt32 skilId, UInt8 slot){
                         static const UInt8 sktype = Game::ActionableType::Skill;
+                        packet.write(&slot, sizeof(slot));
                         packet.write(&sktype, sizeof(UInt8));
-                        packet.write(&skilId, sizeof(UInt16));
+                        packet.write(&skilId, sizeof(UInt32));
                     };
-                    writeSkill(Game::SkillList::BA_ATTACK);
-                    writeSkill(Game::SkillList::BA_BASH);
-                    writeSkill(Game::SkillList::BA_DODGE);
-                    writeSkill(Game::SkillList::BA_PARRY);
-                    writeSkill(Game::SkillList::BA_FIRST_AID);
+                    writeSkill(Game::SkillList::BA_ATTACK, 5);
+                    writeSkill(Game::SkillList::BA_PARRY, 6);
+                    writeSkill(Game::SkillList::BA_BASH, 0);
+                    writeSkill(Game::SkillList::BA_DODGE, 1);
+                    writeSkill(Game::SkillList::BA_FIRST_AID, 2);
                     persSend(cl->cl, packet, 750, -1);
                 });                    
             });             
