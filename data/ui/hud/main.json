@@ -122,11 +122,6 @@
 						{
 							"id": "actionable_k5",
 							"import": "data/ui/hud/actionbar_object.json"
-						},
-						{
-							"type": "panel",
-							"layout": "hbox",
-							"flex": 1
 						}						
 					]
 				}

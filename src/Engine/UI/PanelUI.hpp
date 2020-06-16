@@ -9,8 +9,7 @@
 
   namespace nite {  
 
-    class PanelUI : public nite::BaseUIComponent {
-      private:
+    struct PanelUI : public nite::BaseUIComponent {
         nite::Texture uiBasicTexture;
         nite::Texture uiBackgroundImage;
         nite::Batch batch;
@@ -24,8 +23,7 @@
         nite::ListenerLambda onClickMethod;
         nite::ListenerLambda onHoverMethod;
         nite::ListenerLambda onUnhoverMethod;                                              
-        void recalculateFromHead();
-      public: 
+        void recalculateFromHead(); 
         void setBackgroundImage(const nite::Texture &bgi);
         nite::Texture getBackgroundImage();      
         void setOnUnhover(nite::ListenerLambda onUnhover);                  

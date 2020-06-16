@@ -44,6 +44,12 @@
                 if(name == "mid_standing"){
                     return AnimType::MID_STANDING;
                 }else
+                if(name == "mid_standing"){
+                    return AnimType::MID_STANDING;
+                }else            
+                if(name == "mid_casting"){
+                    return AnimType::MID_CASTING;
+                }else                      
                 if(name == "mid_parry_noweap"){
                     return AnimType::MID_PARRY_NOWEAP;
                 }else

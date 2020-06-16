@@ -4,7 +4,7 @@
 		"height": 192
 	},
 	"transparency": "#ffffff",
-	"source": "d346b3da8e75ca2243c9751b0ce7e7eb",
+	"source": "3fafb8ea3751d7c2ce7a9568ac6624c7",
 	"filename": "humanoid_sheet.png",
 	"frames": {
 		"bot_walking": {
@@ -39,9 +39,16 @@
 			"spd": 0,
 			"kf": 0
 		},
-		"top_neutral": {
+		"mid_casting": {
 			"x": 0,
 			"y": 5,
+			"n": 1,
+			"spd": 0,
+			"kf": 0
+		},		
+		"top_neutral": {
+			"x": 0,
+			"y": 6,
 			"n": 1,
 			"spd": 0
 		}

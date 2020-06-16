@@ -3,6 +3,8 @@ uniform float p_total;
 uniform vec2 p_size;
 uniform float p_alpha;
 uniform vec3 p_color; 
+uniform vec3 p_bordercolor; 
+uniform float p_borderthick;
 
 void main() {
 	vec4 tex = texture2D(image, gl_TexCoord[0].st);
@@ -16,4 +18,10 @@ void main() {
 	}else{
 		gl_FragColor = vec4(tex.rgb, alpha);
 	}	
+
+	if(	tc.y * p_size.y < p_borderthick || tc.y * p_size.y > p_size.y - p_borderthick ||
+		tc.x * p_size.x < p_borderthick || tc.x * p_size.x > p_size.x - p_borderthick ){
+		gl_FragColor = vec4(p_bordercolor, alpha);
+	}	
+		
 }

@@ -89,6 +89,7 @@ void Game::InGameMenu::start(Game::Client *client){
 
     listeners["onclick_close"] = [&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
         main->setVisible(false);
+        hideAllSubs();
         open = false;
     };  
         
@@ -108,7 +109,7 @@ void Game::InGameMenu::start(Game::Client *client){
 }
 
 void Game::InGameMenu::update(){
-    if(nite::keyboardPressed(nite::keyENTER) && !nite::Console::isOpen()){
+    if(nite::keyboardPressed(nite::keyE) && !nite::Console::isOpen()){
         open = !open;
         if(!open){
             hideAllSubs();

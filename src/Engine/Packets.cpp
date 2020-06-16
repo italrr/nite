@@ -37,6 +37,7 @@ void nite::Packet::clear(){
 	memset(data, '0', nite::NetworkMaxPacketSize);
 	index = nite::NetworkHeaderSize + nite::NetworkOrderSize; // starts from the send byte mark
 	maxSize = index;
+	setOrder(0);
 }
 
 void nite::Packet::setHeader(UInt16 header){

@@ -684,8 +684,8 @@ void Game::Server::update(){
     }
 
     // ping
-    for(auto cl : clients){
-        auto &client = clients[cl.first];
+    for(auto &cl : clients){
+        auto &client = cl.second;
         if(nite::getTicks()-client.lastPing > 1000){
             client.lastPing = nite::getTicks();
             nite::Packet ping(++client.lastSentOrder);
@@ -708,7 +708,7 @@ void Game::Server::update(){
             phys.write(&amnt, sizeof(UInt16));
             // TODO: scope it for visible areas only            
             for(int i = 0; i < queue.size(); ++i){
-                auto &obj  = world.objects[queue[i]];
+                auto &obj = world.objects[queue[i]];
                 phys.write(&obj->id, sizeof(UInt16));
                 phys.write(&obj->position.x, sizeof(float));
                 phys.write(&obj->position.y, sizeof(float));
@@ -746,7 +746,7 @@ void Game::Server::sendAll(nite::Packet &packet){
     if(!init){
         return;
     }    
-    for(auto cl : clients){
+    for(auto &cl : clients){
         nite::Packet cpy = packet;
         cpy.setOrder(++cl.second.lastSentOrder);
         sock.send(cl.second.cl, cpy);
@@ -757,7 +757,7 @@ void Game::Server::persSendAll(nite::Packet &packet, UInt64 timeout, int retries
     if(!init){
         return;
     }    
-    for(auto cl : clients){
+    for(auto &cl : clients){
         nite::Packet cpy = packet;
         cpy.setOrder(++cl.second.svOrder); // pers expect ack
         persSend(cl.second.cl, cpy, timeout, retries);

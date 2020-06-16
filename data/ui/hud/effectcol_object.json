@@ -5,6 +5,7 @@
 	"height": 69,
 	"backgroundColor": {"r": 0.21, "g": 0.205, "b": 0.236, "a": 1.0},
 	"margin": {"vert": 8},
+	"snapInterpRate": 0.20,
 	"children": [
 		{
 			"type": "panel",

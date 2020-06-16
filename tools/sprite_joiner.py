@@ -2,7 +2,7 @@ from PIL import Image, ImageDraw
 
 rel_path = "data/texture/overworld/humanoid_sliced"
 framesize = [128, 192]
-cells = [5, 6]
+cells = [5, 7]
 filename = "player_sheet.png"
 imgsize = [framesize[0] * cells[0], framesize[1] * cells[1]]
 
@@ -28,9 +28,14 @@ mid_parry = [
 	"mid_hand2hand_parry.png"
 ]
 
+mid_casting = [
+	"mid_cast.png"
+]
+
 top_neutral = [
 	"top_neutral.png"
 ]
+
 
 list = [
 	bot_walk,
@@ -38,6 +43,7 @@ list = [
 	mid_punching,
 	mid_standing,
 	mid_parry,
+	mid_casting,
 	top_neutral,
 ]
 

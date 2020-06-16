@@ -29,6 +29,22 @@ void Game::HUD::start(Game::Client *client){
     }
     actShader.load("./data/shaders/ui_actionableobj_cooldown_f.glsl", "./data/shaders/ui_actionableobj_cooldown_v.glsl");
     efShader.load("./data/shaders/ui_effectcol_transition_f.glsl", "./data/shaders/ui_effectcol_transition_v.glsl");
+    // apply shader to actionables
+    for(int i = 0; i < Game::EntityActionables; ++i){
+        auto actPanel = this->main->getComponentById("actionable_k"+nite::toStr(i+1));
+        if(actPanel.get() == NULL){
+            continue;
+        }
+        nite::Uniform uni;
+        uni.add("p_total", 1.0f);
+        uni.add("p_alpha", 1.0f);
+        uni.add("p_borderthick", 2.0f);
+        uni.add("p_bordercolor", nite::Color(0.86f, 0.14, 0.08f));                        
+        actPanel->apply(actShader, uni);  
+        actPanel->recalculate();    
+    }
+
+     
 }
 
 void Game::HUD::resetValues(){
@@ -52,7 +68,7 @@ void Game::HUD::setFollow(UInt16 followId){
 
 void Game::HUD::update(){
 
-    if(nite::getTicks()-lastCheck > 32){
+    if(nite::getTicks()-lastCheck > 0){
         updateValues();
         lastCheck = nite::getTicks();
     }
@@ -119,13 +135,15 @@ void Game::HUD::updateValues(){
                             k = a >= b ? 100.0f : (a / b) * 100.0;
                             // nite::lerpDiscrete(p, k, 0.30f);                   
                         }
-                        if(nite::lerpDiscrete(a, k > 99.0f ? 100.0f : 92.0f, 0.45f) && p == k){
+                        if(nite::lerpDiscrete(a, k >= 100.0f ? 100.0f : 92.0f, 0.45f) && p == k){
                             break;
                         }
                         p = k;                         
                         nite::Uniform uni;
                         uni.add("p_total", p / 100.0f);
                         uni.add("p_alpha", a / 100.0f);
+                        uni.add("p_borderthick", 2.0f);
+                        uni.add("p_bordercolor", nite::Color(0.86f, 0.14, 0.08f));                        
                         cmp->apply(actShader, uni);  
                         cmp->recalculate();                    
                     }
@@ -216,7 +234,7 @@ void Game::HUD::updateValues(){
             float t = ((double)(ent->net->clock.time-ef->started) / (double)ef->duration) * 100.0f;
             nite::lerpDiscrete(hudobj->runtime, t, 0.5f);
         }
-        nite::lerpDiscrete(hudobj->alpha, hudobj->done ? 0.0f : 100.0f, 0.55f);
+        nite::lerpDiscrete(hudobj->alpha, hudobj->done ? 0.0f : 100.0f, 0.30f);
         nite::Uniform uni;
         uni.add("p_total", hudobj->runtime / 100.0f);
         uni.add("p_alpha", hudobj->alpha / 100.0f);

@@ -50,7 +50,7 @@
 
     static const String defaultFontUI = "data/font/SpaceMono-Regular.ttf";
     static const float defaultFontRatio = 1.5f;
-    static const float componentTranslationSpeed = 0.25f;
+    static const float componentTranslationSpeed = 1.0f;
 
     struct PoliVec2 : nite::Vec2 {
         bool useAbs;
@@ -102,6 +102,7 @@
         nite::Color baseColor;
         nite::UIMaster *currentMaster;
         nite::NavUI nav;
+        float snapInterpRate;
         int zdepth;
         String literalId;
         bool fillUpType;
@@ -210,6 +211,11 @@
 
         BaseUIComponent();
 
+        void setSnapInterpRate(float rate){
+            this->snapInterpRate = rate;
+            recalculate();
+        }
+
         void setFlex(float flex){
             this->flex = flex;
             recalculate();
@@ -278,6 +284,7 @@
 
         void preinit(){
             uiCreatedTimeout = nite::getTicks();
+            realPosition.set(computeSize() * 0.5f);
         }
 
         void setMargin(const nite::Vec2 &size){

@@ -210,6 +210,7 @@ nite::BaseUIComponent::BaseUIComponent(){
     scrollX = false;
     scrollY = false;
     scrollOffset.set(0.0f);
+    realPosition.set(0.0f);
     scrollOffsetTrans.set(0.0f);
     solid = false;
     onClickAnalogueKey = nite::keyW;
@@ -221,6 +222,7 @@ nite::BaseUIComponent::BaseUIComponent(){
     uninteract = false;
     useShader = false;
     literalId = getUniqueId();
+    snapInterpRate = componentTranslationSpeed;
 }
 
 void nite::BaseUIComponent::updateListeners(){

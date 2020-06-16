@@ -1,10 +1,8 @@
 {
 	"nirigliss": {
 		"title": "Nirigliss",
-		"desc": "According to the local stories, Nirigliss is curse that turn its hosts into vicious monsters with deep guttural voices. These monsters sometimes speak in an unknown toungue.",
+		"desc": "According to the local stories, Nirigliss is a curse that turns its hosts into vicious monsters with deep guttural voices. These monsters sometimes speak in an unknown toungue.",
 		"offensive": "Nirigliss hosts are very aggressive and very, very fast. They are able to rush into their victims with inhuman velocity and finese in matter of seconds. Rumors say these creatures burn their victims by merely sighting them with their blood eyected red eyes.",
-		"passive": "It is said when a Nirigliss host dies, you must burn all the bodies in near proximity, otherwise
-		there's a high chance they'll come to life behaving exactly the same as the dead host."
 		"image": ""
 	}
 }

@@ -95,7 +95,7 @@
 	},
 	"6": {
 		"name": "First Aid",
-		"desc": "Heals up to 20% of HP over 30 seconds. Doesn't work with >50% of current HP",
+		"desc": "Heals up to 20% of HP over 30 seconds. Doesn't work with >70% of current HP",
 		"reqs": [],
 		"iconId": 70,
 		"type": 0,

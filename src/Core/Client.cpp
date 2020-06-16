@@ -951,7 +951,7 @@ void Game::Client::update(){
         clear();
         return;
     }
-    // // ping
+    // ping
     if(nite::getTicks()-lastPing > 500){
         lastPing = nite::getTicks();
         nite::Packet ping(++sentOrder);
@@ -1020,7 +1020,7 @@ void Game::Client::game(){
                 act = &ent->actionables[5];
             } break;    
             case Game::Key::k7: {
-                act = &ent->actionables[7];
+                act = &ent->actionables[6];
             } break;                                        
         }
         if(act == NULL){

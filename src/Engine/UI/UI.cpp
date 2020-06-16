@@ -644,7 +644,9 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
             ref->setCornerPattern(nite::Texture(borderPattern, nite::Color(0.0f, 0.0f, 0.0f, 1.0f)));
         }
         auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "W", base);
-        ref->onClickAnalogueKey = nite::translateKey(clickAnalogue);
+        auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
+        ref->onClickAnalogueKey = nite::translateKey(clickAnalogue);        
+        ref->setSnapInterpRate(snapInterpRate);        
         ref->resizeable = resizeable;
         ref->unmovable = unmovable;
         ref->setModal(modal);
@@ -685,7 +687,9 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         // }        
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
-        }          
+        }
+        auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
+        ref->setSnapInterpRate(snapInterpRate);                  
         ref->setId(id);
         ref->setMargin(margin);
         ref->setPadding(padding);    
@@ -733,7 +737,9 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         // }         
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
-        }               
+        }  
+        auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
+        ref->setSnapInterpRate(snapInterpRate);                     
         ref->setId(id);       
         ref->setShadowColor(shadowColor);
         ref->setShadowOffset(shadowOffset);    
@@ -783,7 +789,9 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         // }         
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
-        }           
+        }      
+        auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
+        ref->setSnapInterpRate(snapInterpRate);             
         ref->setId(id);    
         ref->setMargin(margin);
         ref->setPadding(padding);        
@@ -842,6 +850,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         if(font != "" && nite::fileExists(font)){
             ref->setFont(nite::Font(font,  fontSize));
         }           
+        auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
+        ref->setSnapInterpRate(snapInterpRate);
         ref->setShadowColor(shadowColor);
         ref->setShadowOffset(shadowOffset);           
         ref->setFontSize(fontSize);    
@@ -888,6 +898,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         // auto userShader = _parseShader("shader", node, style, base);
         auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "W", base);
+        auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
+        ref->setSnapInterpRate(snapInterpRate);        
         _parseOverflow("overflow", node, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);

@@ -1,0 +1,11 @@
+{
+	"type": "panel",
+	"layout": "hbox",
+	"backgroundColor": {"r": 0.40, "g": 0.40, "b": 0.40, "a": 0.9},
+	"children": [
+		{
+			"type": "text",
+			"text": "SKILL!!!"
+		}
+	]
+}

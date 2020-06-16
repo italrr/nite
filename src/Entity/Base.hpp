@@ -4,7 +4,7 @@
     #include "../Core/Object.hpp"
     #include "Stat.hpp"
     #include "Anim.hpp"
-
+    #include "../Engine/UI/PanelUI.hpp"
     namespace Game {
 
         namespace ActionableType {
@@ -72,17 +72,32 @@
             };
         }
 
+        struct EntityCasting {
+            UInt16 target;
+            UInt16 id;
+            UInt8 type;
+            UInt64 startTime;
+            UInt64 time;
+            nite::Vec2 p;
+            EntityCasting(){
+                startTime = nite::getTicks();
+            }
+        };
+
         struct EntityBase : Game::NetObject, Game::Stat {
             EntityBase(){
                 this->isWalking = false;
+                this->isCasting = false;
                 this->effectStat.owner = this;
                 this->skillStat.owner = this;
                 this->invStat.owner = this;
                 this->lastUpdateStats = nite::getTicks();
                 this->objType = ObjectType::Entity;
+                this->currentCasting = Shared<Game::EntityCasting>(NULL);
                 setState(EntityState::IDLE, EntityStateSlot::MID, 0);
                 setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);
             }
+            Shared<Game::EntityCasting> currentCasting;
             UInt8 state[EntityStateSlot::total];
             UInt8 stNum[EntityStateSlot::total];
             UInt64 lastStateTime[EntityStateSlot::total];
@@ -91,13 +106,16 @@
             UInt8 faceDirection;
             Game::Anim anim;
             bool isWalking;
+            bool isCasting;
             String name;
             float walkPushRate;
             bool dead;
+            Shared<nite::BaseUIComponent> castingMsg;
             void throwMelee(float x, float y); // time recommended to be not more than 100ms
 			void kill();
             void onCreate();
             void draw();
+            void solveCasting();
             void entityMove(float angle, float mod, bool holdStance);
             void loadAnim();
             void entityStep();

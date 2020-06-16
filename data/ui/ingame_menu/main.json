@@ -22,16 +22,12 @@
 			"padding": { "vert": 0, "hor": 0},
 			"margin": { "vert": 0, "hor": 0},	
 			"fontSize": 10,
-			"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.9},
-			"baseColor": {"r": 0.93, "g": 0.11, "b": 0.15, "a": 0.9}			
+			"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
+			"baseColor": {"r": 0.25, "g": 0.25, "b": 0.25, "a": 0.9}			
 		}
 	},
 	"listenOn":{
 		"E": "onclick_close"
-	},	
-	"navigate": {
-		"enable": true,
-		"split": 3
 	},
 	"children": [
 		{

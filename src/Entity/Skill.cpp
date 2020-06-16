@@ -192,6 +192,7 @@ bool Game::Skills::BA_Attack::use(Game::EntityBase *who, Game::EntityBase *to, c
 */
 bool Game::Skills::BA_Bash::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
+    nite::print("bash");
     return true;
 }
 
@@ -200,6 +201,7 @@ bool Game::Skills::BA_Bash::use(Game::EntityBase *who, Game::EntityBase *to, con
 */
 bool Game::Skills::BA_Dodge::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
+    nite::print("dodge");
     return true;
 }
 
@@ -208,6 +210,7 @@ bool Game::Skills::BA_Dodge::use(Game::EntityBase *who, Game::EntityBase *to, co
 */
 bool Game::Skills::BA_Parry::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
+    nite::print("parry");
     return true;
 }
 
@@ -216,5 +219,6 @@ bool Game::Skills::BA_Parry::use(Game::EntityBase *who, Game::EntityBase *to, co
 */
 bool Game::Skills::BA_FIRST_AID::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
     this->lastUse = nite::getTicks();
+    nite::print("first aid");
     return true;
 }

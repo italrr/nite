@@ -1,5 +1,6 @@
 #include "../Engine/Graphics.hpp"
 #include "../Engine/Texture.hpp"
+#include "../Engine/UI/UI.hpp"
 
 #include "../Core/Network.hpp"
 #include "../Core/Server.hpp"
@@ -50,7 +51,10 @@ void Game::EntityBase::onCreate(){
     healthStat.dead = false;
     size.set(128, 184);
     walkPushRate = 5.0f;
-    name = "Base Entity Type";    
+    name = "Base Entity Type";  
+	castingMsg = nite::UI::build("data/ui/overworld/entity_casting_messagebox.json");
+	castingMsg->recalculate();
+	castingMsg->setVisible(false);
 }
 
 void Game::EntityBase::printInfo(){
@@ -83,7 +87,32 @@ void Game::EntityBase::draw(){
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	nite::setDepth(nite::DepthMiddle);
 	float reversed = faceDirection == EntityFacing::Left ? -1.0f : 1.0f;
-	auto ref = anim.batch.draw(position.x, position.y, anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);	
+	auto ref = anim.batch.draw(position.x, position.y, anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);
+
+
+	if(state[EntityStateSlot::MID] == EntityState::CASTING && castingMsg.get() != NULL){
+		if(!castingMsg->visible){
+			castingMsg->setVisible(true);
+		}		
+		auto self = static_cast<nite::PanelUI*>(castingMsg.get());
+		auto renderPanel = [self](const nite::Vec2 &offset){
+			auto cps = self->computeSize();
+			nite::Vec2 rp = self->position - cps * 0.5f + self->margin * 0.5f + offset; // offset
+			// Render batch
+			nite::setRenderTarget(self->renderOnTarget);
+			nite::setDepth(nite::DepthMiddle);
+
+			nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+			auto ref = self->batch.draw(rp.x, rp.y, self->size.x, self->size.y, 0.0f, 0.0f, 0.0f);
+		};
+		renderPanel(position);
+	}
+	if(state[EntityStateSlot::MID] != EntityState::CASTING && castingMsg.get() != NULL){
+		if(castingMsg->visible){
+			castingMsg->setVisible(false);
+		}
+	}
+	
 }
 
 void Game::EntityBase::entityStep(){
@@ -93,6 +122,7 @@ void Game::EntityBase::entityStep(){
 		onDeath();
 	}
 	updateStance();
+	solveCasting();
 }
 
 void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n){
@@ -197,6 +227,9 @@ void Game::EntityBase::updateStance(){
 				}	
 			} break;
 			case EntityState::CASTING: {
+				if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 500 && !isCasting){
+					setState(EntityState::IDLE, EntityStateSlot::MID, 0);
+				}
 			} break;                
 		}		
 	}
@@ -204,32 +237,23 @@ void Game::EntityBase::updateStance(){
 }
 
 void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x, float y){
-	if(this->sv == NULL){
+	if(this->sv == NULL || currentCasting.get() != NULL){
 		return;
 	}
-	auto target = this->sv->getEntity(targetId);
 	switch(type){
 		case ActionableType::Skill: {
-			auto sendSkillState = [&](Game::Skill *sk){
-				auto cl = sv->getClientByEntityId(this->id);
-				if(cl == NULL){
-					return;
-				}
-				nite::Packet update(++cl->svOrder);
-				update.setHeader(Game::PacketType::SV_UPDATE_SKILL_STATE);
-				update.write(&this->id, sizeof(UInt16));
-				update.write(&sk->id, sizeof(UInt16));
-				sk->writeUpdate(update);
-				sv->persSend(cl->cl, update, 1000, -1);
-			};
 			auto sk = skillStat.get(id);
 			if(sk != NULL && sk->isReady(this)){ 
-				if(sk->castDelay == 0){
-					if(sk->use(this, target, nite::Vec2(x, y))){
-						sendSkillState(sk);
-					}
-				}else{
-					// TODO: set ent to cast
+				currentCasting = Shared<Game::EntityCasting>(new Game::EntityCasting());
+				currentCasting->id = id;
+				currentCasting->type = type;
+				currentCasting->p.set(x, y);
+				currentCasting->target = targetId;
+				currentCasting->startTime = nite::getTicks();
+				currentCasting->time = sk->castDelay;
+				if(sk->castDelay > 0){
+					setState(EntityState::CASTING, EntityStateSlot::MID, 0);
+					isCasting = true;
 				}
 			}
 		} break;
@@ -237,6 +261,42 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 			nite::print("USE ITEM TODO");
 		} break;		
 	}
+	solveCasting();
+}
+
+void Game::EntityBase::solveCasting(){
+	if(this->sv == NULL || currentCasting.get() == NULL){
+		return;
+	}
+	if(nite::getTicks()-currentCasting->startTime < currentCasting->time){
+		return;
+	}
+	auto sendSkillState = [&](Game::Skill *sk){
+		auto cl = sv->getClientByEntityId(this->id);
+		if(cl == NULL){
+			return;
+		}
+		nite::Packet update(++cl->svOrder);
+		update.setHeader(Game::PacketType::SV_UPDATE_SKILL_STATE);
+		update.write(&this->id, sizeof(UInt16));
+		update.write(&sk->id, sizeof(UInt16));
+		sk->writeUpdate(update);
+		sv->persSend(cl->cl, update, 1000, -1);
+	};
+	auto target = this->sv->getEntity(currentCasting->target);
+	switch(currentCasting->type){
+		case ActionableType::Item: {
+
+		} break;
+		case ActionableType::Skill: {
+			auto sk = skillStat.get(currentCasting->id);
+			if(sk->use(this, target, nite::Vec2(currentCasting->p.x, currentCasting->p.y))){
+				sendSkillState(sk);
+			}
+		} break;		
+	}
+	isCasting = false;
+	currentCasting = Shared<Game::EntityCasting>(NULL);
 }
 
 void Game::EntityBase::recalculateStats(){
@@ -277,11 +337,15 @@ void Game::EntityBase::recalculateStats(){
 
 	// server-side only (notify client owner)
 	if(sv != NULL){ 
-		nite::Packet notify;
+		auto cl = sv->getClientByEntityId(this->id);
+		if(cl == NULL){
+			return;
+		}
+		nite::Packet notify(++cl->svOrder);
 		notify.setHeader(Game::PacketType::SV_UPDATE_ENTITY_ALL_STAT);
 		notify.write(&id, sizeof(id));
 		writeAllStatState(notify);
-		sv->persSendAll(notify, 750, -1);
+		sv->persSend(cl->cl, notify, 750, -1);
 	}
 		
 }

@@ -114,9 +114,9 @@ void nite::PanelUI::onCreate(){
 }
 
 void nite::PanelUI::update(){
-    // if(!realPosition.lerpDiscrete(position, componentTranslationSpeed)){
-    //     recalculate();    
-    // }    
+    if(!realPosition.lerpDiscrete(position, this->snapInterpRate)){
+        recalculate();    
+    }    
 
     nav.update(this);
 
@@ -152,7 +152,7 @@ nite::Texture nite::PanelUI::getBackgroundImage(){
 void nite::PanelUI::render(const nite::Vec2 &offset){
 
     auto cps = computeSize();
-    nite::Vec2 rp = position - cps * 0.5f + margin * 0.5f + offset; 
+    nite::Vec2 rp = realPosition - cps * 0.5f + margin * 0.5f + offset; 
     // Render batch
     nite::setRenderTarget(renderOnTarget);
     nite::setDepth(nite::DepthMiddle);
