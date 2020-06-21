@@ -33,7 +33,14 @@ void Game::Input::update(bool ignore){
         auto nk = key.first;
         bool pressed = !ignore && (nk > 200 ? nite::mousePressed(nk) : nite::keyboardPressed(nk));
         bool released = !ignore && (nk > 200 ? nite::mouseReleased(nk) : nite::keyboardReleased(nk));
-        if(!pressed && !released){
+        bool check = !ignore && (nk > 200 ? nite::mouseCheck(nk) : nite::keyboardCheck(nk));
+        UInt8 cst = check ? Game::PressType::Pressed : Game::PressType::Released;
+        bool toswitch = false;
+        if(states.find(gk) != states.end() && cst != states[gk]){
+            states[gk] = cst;
+            toswitch = true;
+        }
+        if(!pressed && !released && !toswitch){
             continue;
         }
         if(!capturing){
@@ -44,7 +51,7 @@ void Game::Input::update(bool ignore){
         Game::InputFrameBuffer in;
         in.lastStroke = nite::getTicks();
         in.key = gk;
-        in.type = pressed ? Game::PressType::Pressed : Game::PressType::Released;
+        in.type = cst;
         buffer.push_back(in);
     }
 }

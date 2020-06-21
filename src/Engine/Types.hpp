@@ -78,8 +78,8 @@
 			operator String();
 			String str();
 			String hex();
-			bool lerp(const Color &v, float Step);
-			bool lerpDiscrete(const Color &v, float Step);
+			bool cInterp(const Color &v, float Step);
+			bool cInterpDiscrete(const Color &v, float Step);
 		};
 		const nite::Color White(1.0f, 1.0f ,1.0f);
 		const nite::Color Black(0, 0 ,0);
@@ -126,12 +126,14 @@
 			Vec2 operator-(const Vec2 &v);
 			void set(const Vec2 &v);
 			void set(float X, float Y);
-			// lerp uses game ticks and engine ticks
-			bool lerp(const Vec2 &v, float step);
-			// lerpDiscrete uses only engine ticks, so if the game slows down, lerpDiscrete is unaffected
+			// cInterp uses game ticks and engine ticks
+			bool cInterp(const Vec2 &v, float step);
+			// cInterpDiscrete uses only engine ticks, so if the game slows down, cInterpDiscrete is unaffected
+			bool cInterpDiscrete(const Vec2 &v, float step);
+			// cInterpAbsolute doesn't use any ticks for interpolation, meaning any slowdowns will directly affect the transitions
+			bool cInterpAbsolute(const Vec2 &v, float step);
+
 			bool lerpDiscrete(const Vec2 &v, float step);
-			// lerpAbsolute doesn't use any ticks for interpolation, meaning any slowdowns will directly affect the transitions
-			bool lerpAbsolute(const Vec2 &v, float step);
 			String str();
 			operator String();
 		};

@@ -63,7 +63,7 @@ void nite::NavUI::update(BaseUIComponent *comp){
         }        
     };
 
-	auto lrpUpd = color.lerpDiscrete(colorFlip ? a : b, colorFlip ? 0.34f : 0.11f);
+	auto lrpUpd = color.cInterpDiscrete(colorFlip ? a : b, colorFlip ? 0.34f : 0.11f);
 
 	if(comp->visible){
 		for(auto &key : comp->keyListeners){
@@ -215,7 +215,7 @@ nite::BaseUIComponent::BaseUIComponent(){
     solid = false;
     onClickAnalogueKey = nite::keyW;
     fillUpType = false;
-    layout = std::shared_ptr<nite::LayoutSystemUI>(new nite::Layout::Inline());
+    layout = std::shared_ptr<nite::LayoutSystemUI>(new nite::Layout::HBox());
     headComponent = NULL;
     renderOnTarget = nite::RenderTargetUI;
     isHovered = false;

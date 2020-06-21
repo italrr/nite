@@ -330,7 +330,7 @@ struct RenderTarget {
 		if(Zoom < minZoom) Zoom = minZoom;
 	}
 	float setZoom(float Z, float mu){
-		nite::lerpDiscrete(realZoom, Z * 100.0f, mu);
+		nite::cInterpDiscrete(realZoom, Z * 100.0f, mu);
 		if(realZoom < minZoom){
 			realZoom = minZoom;
 		}
@@ -803,8 +803,8 @@ nite::Vec2 nite::getRenderOffset(){
 
 static void drawTarget(RenderTarget &target){
 	//Game::Instance *g = Game::Get();
-	nite::lerp(target.realZoom, target.Zoom, 0.10f);
-	nite::lerp(target.realAngle, target.angle, 0.15f);
+	nite::cInterp(target.realZoom, target.Zoom, 0.10f);
+	nite::cInterp(target.realAngle, target.angle, 0.15f);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_TEXTURE_2D);
 	glPushMatrix();

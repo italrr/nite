@@ -149,9 +149,12 @@
 		float distance(const Vec2 &P, const Vec2 &Q);
 		float distance(float x1, float y1, float x2, float y2);
 		float fractional (float number);
-		bool lerp(float &x1, float x2, float Step);
-		bool lerpDiscrete(float &x1, float x2, float Step);
-		bool lerpAbsolute(float &y1, float y2, float Step);
+		// lerp
+		bool lerpDiscrete(float &x1, float x2, float step);
+		// c-cInterp
+		bool cInterp(float &x1, float x2, float Step);
+		bool cInterpDiscrete(float &x1, float x2, float Step);
+		bool cInterpAbsolute(float &y1, float y2, float Step);
 		float distancePointToLine(const nite::Vec2 &Point, const nite::Vec2 &P1, const nite::Vec2 &P2);
 		bool isPointInRegion(const nite::Vec2 &P, const nite::Vec2 &RP, const nite::Vec2 &RQ);
 	}

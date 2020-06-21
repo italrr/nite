@@ -107,7 +107,7 @@ void nite::CheckboxUI::render(const nite::Vec2 &offset){
 
 void nite::CheckboxUI::update(){
     // animations
-    // if(!realPosition.lerpDiscrete(position, componentTranslationSpeed)){
+    // if(!realPosition.cInterpDiscrete(position, componentTranslationSpeed)){
     //     recalculate();    
     // }
 }

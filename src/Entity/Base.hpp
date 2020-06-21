@@ -84,6 +84,19 @@
             }
         };
 
+        struct Gfx_CastingBall {
+            nite::Vec2 pos;
+            nite::Vec2 rPos;
+            nite::Texture tex;
+            float z;
+            float rZ;
+            nite::Shader shader;
+            float alpha;
+            float step;
+            void init(const nite::Vec2 &p);
+            void draw(const nite::Vec2 &p);
+        };
+
         struct EntityBase : Game::NetObject, Game::Stat {
             EntityBase(){
                 this->isWalking = false;
@@ -110,6 +123,8 @@
             String name;
             float walkPushRate;
             bool dead;
+            float castingMsgAlpha;
+            Gfx_CastingBall castingBall;
             Shared<nite::BaseUIComponent> castingMsg;
             void throwMelee(float x, float y); // time recommended to be not more than 100ms
 			void kill();

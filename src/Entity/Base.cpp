@@ -50,11 +50,9 @@ void Game::EntityBase::onCreate(){
     mass = 2.8f;
     healthStat.dead = false;
     size.set(128, 184);
-    walkPushRate = 5.0f;
+	//* 0.75f
+    walkPushRate = 6.5f;
     name = "Base Entity Type";  
-	castingMsg = nite::UI::build("data/ui/overworld/entity_casting_messagebox.json");
-	castingMsg->recalculate();
-	castingMsg->setVisible(false);
 }
 
 void Game::EntityBase::printInfo(){
@@ -85,35 +83,93 @@ void Game::EntityBase::draw(){
 
     nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-	nite::setDepth(nite::DepthMiddle);
+	int bodyDepth = -position.y - anim.bodyDepthOffset;
+	nite::setDepth(bodyDepth);
 	float reversed = faceDirection == EntityFacing::Left ? -1.0f : 1.0f;
-	auto ref = anim.batch.draw(position.x, position.y, anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);
+	auto ref = anim.batch.draw(position.x, position.y - anim.bodyDepthOffset * (1.0f/3.0f), anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);
 
-
-	if(state[EntityStateSlot::MID] == EntityState::CASTING && castingMsg.get() != NULL){
+	bool castingSt = state[EntityStateSlot::MID] == EntityState::CASTING && castingMsg.get() != NULL;
+	nite::cInterpDiscrete(castingMsgAlpha, castingSt ? 100.0f : 0.0f, 0.30f);
+	if(castingMsgAlpha > 0.0f){
 		if(!castingMsg->visible){
 			castingMsg->setVisible(true);
 		}		
 		auto self = static_cast<nite::PanelUI*>(castingMsg.get());
-		auto renderPanel = [self](const nite::Vec2 &offset){
+		auto renderPanel = [&](const nite::Vec2 &offset){
+			if(currentCasting.get() != NULL){
+				auto sk = skillStat.get(currentCasting->id);
+				if(sk != NULL){
+					auto cmp = self->getComponentByType("text");
+					if(cmp.get() != NULL && cmp->type == "text"){
+						static_cast<nite::TextUI*>(cmp.get())->setText(nite::toUpper(sk->name));
+					}
+				}
+			}			
+			self->recalculate();
 			auto cps = self->computeSize();
-			nite::Vec2 rp = self->position - cps * 0.5f + self->margin * 0.5f + offset; // offset
-			// Render batch
-			nite::setRenderTarget(self->renderOnTarget);
-			nite::setDepth(nite::DepthMiddle);
+			nite::Vec2 rp = self->margin * 0.5f + offset; // offset
 
-			nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-			auto ref = self->batch.draw(rp.x, rp.y, self->size.x, self->size.y, 0.0f, 0.0f, 0.0f);
+			// rp = rp + nite::Vec2(nite::randomInt(-2, 2), nite::randomInt(-2, 2));
+			float an = 0.0f;
+
+			// Render batch
+			nite::setRenderTarget(nite::RenderTargetGame);
+			nite::setDepth(bodyDepth);
+
+			nite::setColor(1.0f, 1.0f, 1.0f, castingMsgAlpha / 100.0f);
+
+			auto ref = self->batch.draw(rp.x, rp.y, self->size.x, self->size.y, 0.5f, 0.5f, an);
+			// static nite::Shader dummy("data/shaders/ui_ovw_channelingmsg_f.glsl", "data/shaders/ui_ovw_channelingmsg_v.glsl");
+			// if(ref != NULL){
+			// 	nite::Uniform uni;
+			// 	uni.add("p_size", self->size);
+			// 	uni.add("p_alpha", 1.0f);
+			// 	uni.add("p_cshade", nite::Color(0.90f, 0.10f, 0.10f));
+			// 	uni.add("p_cshade", nite::Color(1.0f, 1.0f, 1.0f));
+			// 	ref->apply(dummy, uni);
+			// }
 		};
-		renderPanel(position);
+		renderPanel(position + nite::Vec2(0.0f, -size.y * 0.55f));
 	}
 	if(state[EntityStateSlot::MID] != EntityState::CASTING && castingMsg.get() != NULL){
 		if(castingMsg->visible){
 			castingMsg->setVisible(false);
 		}
 	}
-	
+
+	nite::cInterpDiscrete(castingBall.alpha, castingSt ? 100.f : 0.0f, 0.35f);
+	if(castingBall.alpha > 0.0f){
+		castingBall.draw(position + nite::Vec2(0.0f, -0.35f * size.y)); // TODO: load head position from json
+	}
+	nite::setDepth(nite::DepthMiddle);
 }
+
+void Game::Gfx_CastingBall::draw(const nite::Vec2 &p){
+	step += 1 * nite::getDelta();
+	// nite::setRenderTarget(nite::RenderTargetGame);
+	// nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);	
+	// float r = 32.0f;
+	// for(int i = 0; i < 3; ++i){
+	// 	int _an = step + i * 120;
+	// 	float an = nite::toRadians(_an);
+	// 	float _x = nite::cos(an) * r;
+	// 	float _y = nite::sin(an) * r;
+	// 	// nite::setDepth(p.y + nite::arctan(_y, _x) * r * 1000);
+	// 	_y -= ((_an % 360) / 360.0f) * 8.0f;
+	// 	tex.draw(p.x + _x, p.y + _y, 24, 24, 0.5f, 0.5f, 0.0f);
+	// }
+}
+
+void Game::Gfx_CastingBall::init(const nite::Vec2 &p){
+	pos = p;
+	step = 0;
+	rPos = p;
+	rZ = 0.0f;
+	z = 0.0f;
+	alpha = 0.0f;
+	tex.load("data/texture/gfx/casting_ball.png", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+}
+
 
 void Game::EntityBase::entityStep(){
 	if(healthStat.health == 0 && !healthStat.dead){
@@ -255,6 +311,20 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 					setState(EntityState::CASTING, EntityStateSlot::MID, 0);
 					isCasting = true;
 				}
+				auto cl = sv->getClientByEntityId(this->id);
+				if(cl != NULL){
+					nite::Packet update(++cl->svOrder);
+					update.setHeader(Game::PacketType::SV_UPDATE_ENTITY_SET_CASTING_STATE);
+					update.write(&this->id, sizeof(this->id));
+					update.write(&id, sizeof(id));
+					update.write(&type, sizeof(type));
+					update.write(&targetId, sizeof(targetId));
+					update.write(&currentCasting->startTime, sizeof(currentCasting->startTime));
+					update.write(&sk->castDelay, sizeof(sk->castDelay));
+					update.write(&x, sizeof(x));
+					update.write(&y, sizeof(y));					
+					sv->persSend(cl->cl, update, 1000, -1);
+				}
 			}
 		} break;
 		case ActionableType::Item: {
@@ -355,6 +425,11 @@ void Game::EntityBase::loadAnim(){
 	// server cannot load textures (headless doesnt' run opengl)
 	if(sv == NULL){
 		anim.anim.load(anim.source.path, anim.transparency);
+		castingMsg = nite::UI::build("data/ui/overworld/entity_casting_messagebox.json");
+		castingMsg->onCreate();
+		castingMsg->setVisible(false);
+		castingMsgAlpha = 0.0f;
+		castingBall.init(position);		
 	}
 }
 

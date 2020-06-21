@@ -58,14 +58,14 @@ void nite::PhysicsObject::push(float angle, float force){
 	speed.y += y;
 }
 
-bool nite::PhysicsObject::isCollidingWith(Shared<nite::PhysicsObject> other){
+bool nite::PhysicsObject::isCollidingWith(nite::PhysicsObject *other){
 	return ((position.x + size.x * 0.5 > other->position.x-other->size.x * 0.5 &&
 	position.x - size.x * 0.5 < other->position.x+other->size.x * 0.5) &&
 	(position.y + size.y * 0.5 > other->position.y-other->size.y * 0.5 &&
 	position.y - size.y * 0.5 < other->position.y+other->size.y * 0.5));
 }
 
-float nite::PhysicsObject::getDistance(Shared<nite::PhysicsObject> other){
+float nite::PhysicsObject::getDistance(nite::PhysicsObject *other){
 	//return (other->position.x - position.x) * (other->position.x - position.x) + (other->position.y - position.y) * (other->position.y - position.y);
 	return nite::sqrt((other->position.x - position.x) * (other->position.x - position.x) + (other->position.y - position.y) * (other->position.y - position.y));
 }
@@ -75,11 +75,11 @@ static inline float veryFastDistance(float x, float y){
 }
 
 bool nite::PhysicsObject::isCollidingWithSomething(){
-	return isCollidingWithExcept(Vector<Shared<nite::PhysicsObject>>());
+	return isCollidingWithExcept(Vector<nite::PhysicsObject*>());
 }
 
-bool nite::PhysicsObject::isCollidingWithExcept(const Vector<Shared<nite::PhysicsObject>> &ignores){
-	auto isInIgnores = [&](Shared<nite::PhysicsObject> ref){
+bool nite::PhysicsObject::isCollidingWithExcept(const Vector<nite::PhysicsObject*> &ignores){
+	auto isInIgnores = [&](nite::PhysicsObject *ref){
 		for(int i = 0; i < ignores.size(); ++i){
 			if(ignores[i] == ref){
 				return true;
@@ -89,7 +89,7 @@ bool nite::PhysicsObject::isCollidingWithExcept(const Vector<Shared<nite::Physic
 	};
 	if(container == NULL) return false;
 	for (auto& it : container->objects){		
-		auto obj = it.second;
+		auto obj = it.second.get();
 		if(obj->id == this->id) continue;
 		if(!obj->solid) continue;
 		if(isInIgnores(obj)) continue;

@@ -1,11 +1,26 @@
 {
 	"type": "panel",
 	"layout": "hbox",
-	"backgroundColor": {"r": 0.40, "g": 0.40, "b": 0.40, "a": 0.9},
+	"width": 340,
+	"height": 46,
+	"backgroundColor": {"r": 0.713, "g": 0.77, "b": 0.77, "a": 0.0},
 	"children": [
 		{
+			"type": "panel",
+			"layout": "hbox",
+			"flex": 1
+		},
+		{
+			"id": "text_box",
 			"type": "text",
-			"text": "SKILL!!!"
+			"fontSize": 15,
+			"text": "CHANNELING",
+			"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0}
+		},
+		{
+			"type": "panel",
+			"layout": "hbox",
+			"flex": 1
 		}
 	]
 }

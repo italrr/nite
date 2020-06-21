@@ -64,6 +64,7 @@
         struct Input {
             Dict<unsigned, UInt8> mapping; // nite key -> game key
             Vector<InputFrameBuffer> buffer;
+            Dict<UInt8, UInt8> states;
             int lastFrame;
             UInt64 lastStroke;
             bool capturing;

@@ -27,6 +27,7 @@ bool Game::Anim::load(const String &path){
         nite::print(errmsg+"source file is not a spritesheet");
         return false;
     }
+    this->bodyDepthOffset = node.get("bodyDepthOffset").toFloat(0.0f);
     this->source = *ifile;
     if(!node.has("frames") || node.has("frames") && !node.get("frames").isObject()){
         nite::print(errmsg+"'frames' was not found or it's not an object");

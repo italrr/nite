@@ -49,9 +49,12 @@
             UInt32 svOrder;
             UInt32 rcvOrder;
             UInt32 sentOrder;
+            Vector<Game::NetObject*> localMasks;
             bool connected;
             Client();
             ~Client();
+            void setCurrentMap(Shared<nite::Map> &map);
+            void clearWorldColMaks();
             Game::EntityBase *getEntity(UInt16 id);
             void disconnect(const String &reason);
             void disconnect();

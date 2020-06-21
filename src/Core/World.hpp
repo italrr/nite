@@ -14,10 +14,10 @@
 			bool debugPhysics;
 			void clear();
 			bool exists(UInt16 id);
-			void updateObjectPhysics(Shared<nite::PhysicsObject> obj, float x, float y);
-			UInt16 add(Shared<Game::NetObject> obj);
+			void updateObjectPhysics(Game::NetObject *obj, float x, float y);
+			UInt16 add(Shared<Game::NetObject> &obj);
 			void remove(UInt16 objectId);
-			void remove(Shared<Game::NetObject> obj);
+			void remove(Game::NetObject *obj);
 			Shared<Game::NetObject> get(UInt16 id);
 			void update();
 			void step();

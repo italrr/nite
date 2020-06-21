@@ -70,8 +70,9 @@ void Game::RemoteClock::update(){
 }
 
 void Game::RemoteClock::set(UInt64 time){
+    this->delta = this->time - time;
     this->time = time;
-    lastTick = nite::getTicks();
+    this->lastTick = nite::getTicks();
 }
 
 void Game::Net::dropPersFor(UInt64 netId){

@@ -50,7 +50,7 @@ void nite::PanelUI::rerender(){
         if(children[i]->position.x < 0 || children[i]->position.y < 0 || !children[i]->visible){
             continue;
         }
-        scrollOffsetTrans.lerpDiscrete(scrollOffset, 0.004f);
+        scrollOffsetTrans.cInterpDiscrete(scrollOffset, 0.004f);
         auto usoffset = scrollX || scrollY ? scrollOffsetTrans : nite::Vec2(0.0f);
         children[i]->beforeRender();
         children[i]->render(usoffset);
@@ -114,7 +114,7 @@ void nite::PanelUI::onCreate(){
 }
 
 void nite::PanelUI::update(){
-    if(!realPosition.lerpDiscrete(position, this->snapInterpRate)){
+    if(!realPosition.cInterpDiscrete(position, this->snapInterpRate)){
         recalculate();    
     }    
 

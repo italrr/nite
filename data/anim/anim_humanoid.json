@@ -3,6 +3,7 @@
 		"width": 128,
 		"height": 192
 	},
+	"bodyDepthOffset": 70.0,
 	"transparency": "#ffffff",
 	"source": "3fafb8ea3751d7c2ce7a9568ac6624c7",
 	"filename": "humanoid_sheet.png",

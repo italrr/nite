@@ -69,7 +69,7 @@ void Game::Camera::update(nite::Vec2 &v, float mu){
 	nite::setView(true, nite::RenderTargetGame);
 	nite::Vec2 p = nite::getView(nite::RenderTargetGame);
 	nite::Vec2 k = v - nite::getSize() * 0.5f;
-	p.lerp(k, mu);
+	p.cInterp(k, mu);
 	setViewPosition(p, nite::RenderTargetGame);
 }
 

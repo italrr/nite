@@ -187,7 +187,7 @@ void nite::IconUI::onCreate(){
 }
 
 void nite::IconUI::update(){
-    // if(!realPosition.lerpDiscrete(position, componentTranslationSpeed)){
+    // if(!realPosition.cInterpDiscrete(position, componentTranslationSpeed)){
     //     recalculate();    
     // }    
     nite::Vec2 p = position - computeSize() * 0.5f;

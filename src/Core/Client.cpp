@@ -132,6 +132,7 @@ void Game::Client::clear(){
     sock.close();
     ft.clear();
     clients.clear();
+    clearWorldColMaks();
     world.clear();
     deliveries.clear();
     hud.stop();
@@ -470,13 +471,20 @@ void Game::Client::update(){
                         auto obj = it->second;
                         obj->lerpPosition.set(x, y);
                         if(nite::abs(obj->position.x - x) > ClientRepositionThreshold.x * 2){
-                            obj->setPosition(x, obj->position.y);
+                            // obj->setPosition(x, obj->position.y);
                         }
                         if(nite::abs(obj->position.y - y) > ClientRepositionThreshold.y * 2){
-                            obj->setPosition(obj->position.x, y);
+                            // obj->setPosition(obj->position.x, y);
                         }                        
-                        // obj->speed.set(sx, sy);
                         obj->lerpSpeed.set(sx, sy);
+                        // if(sx == 0.0f){
+                        //     obj->speed.x = 0.0f;
+                        //     obj->position.x = x;
+                        // }
+                        // if(sy == 0.0f){
+                        //     obj->speed.y = 0.0f;
+                        //     obj->position.y = y;
+                        // }                        
                     }
                 }
             } break;  
@@ -930,12 +938,44 @@ void Game::Client::update(){
                 }else{
                     auto map = Shared<nite::Map>(new nite::Map());
                     map->load(ifile->path);
-                    this->map = map;
+                    setCurrentMap(map);
                     nite::Packet ready(++this->sentOrder);
                     ready.setHeader(Game::PacketType::SV_CLIENT_LOAD_READY);
                     this->persSend(this->sv, ready, 1000, -1);
                 }
-            } break;              
+            } break;  
+            /*
+                SV_UPDATE_ENTITY_SET_CASTING_STATE
+            */ 
+            case Game::PacketType::SV_UPDATE_ENTITY_SET_CASTING_STATE: {
+                if(!isSv){ break; }  
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId, target;
+                UInt32 id;
+                UInt8 type;
+                UInt64 startTime, time;
+                float x, y;
+                handler.read(&entId, sizeof(entId));
+                handler.read(&id, sizeof(id));
+                handler.read(&type, sizeof(type));
+                handler.read(&target, sizeof(target));
+                handler.read(&startTime, sizeof(startTime));
+                handler.read(&time, sizeof(time));
+                handler.read(&x, sizeof(x));
+                handler.read(&y, sizeof(y));
+                auto ent = getEntity(entId);
+                if(ent != NULL){
+                    if(ent->currentCasting.get() == NULL){
+                        ent->currentCasting = Shared<Game::EntityCasting>(new Game::EntityCasting());
+                    }
+                    ent->currentCasting->id = id;
+                    ent->currentCasting->type = type;
+                    ent->currentCasting->target = target;
+                    ent->currentCasting->time = time;
+                    ent->currentCasting->startTime = startTime;
+                    ent->currentCasting->p.set(x,y);
+                }
+            } break;                         
             /* 
                 UNKNOWN
             */
@@ -1062,9 +1102,14 @@ void Game::Client::game(){
     // client-side interpolation for new-position smoothing-out (lag compensation)
     // might make client to be a few milliseconds behind, which is concerning
     // we'll have to test this out in the future
+    
     for(auto &obj : world.objects){
-        obj.second->position.lerpDiscrete(obj.second->lerpPosition, 0.15f);
-        obj.second->speed.lerpDiscrete(obj.second->lerpSpeed, 0.55f);
+        if(obj.second->unmovable){
+            continue;
+        }
+        obj.second->position.lerpDiscrete(obj.second->lerpPosition, 0.1f);
+        
+        obj.second->speed.lerpDiscrete(obj.second->lerpSpeed, 0.8f);
     }    
     // TODO: update objs anim
     world.update();
@@ -1097,3 +1142,25 @@ void Game::Client::render(){
     }
 }
 
+void Game::Client::setCurrentMap(Shared<nite::Map> &m){
+    clearWorldColMaks(); 
+    for(int i = 0; i < m->masks.size(); ++i){
+        auto &mask = m->masks[i];
+        auto obj = Shared<Game::NetObject>(new Game::NetObject());
+        obj->position = mask.position;
+        obj->size = mask.size;
+        obj->solid = true;
+        obj->unmovable = true;
+        this->world.add(obj);
+        localMasks.push_back(obj.get());
+    }
+    this->map = m;
+    nite::print("[client] current cmasks: "+nite::toStr(this->world.objects.size()));
+}
+
+void Game::Client::clearWorldColMaks(){
+    for(int i = 0; i < localMasks.size(); ++i){
+        this->world.remove(localMasks[i]->id);
+    }
+    localMasks.clear();
+}

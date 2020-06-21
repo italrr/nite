@@ -83,6 +83,9 @@
             Game::SvClient *getClientByIp(nite::IP_Port &ip);
             Game::SvClient *getClientByEntityId(UInt16 entityId);
             Game::EntityBase *getEntity(UInt16 id);
+            Vector<Game::NetObject*> localMasks;
+            void clearWorldColMaks();
+            void setCurrentMap(unsigned cm);
             void persSendAll(nite::Packet &packet, UInt64 timeout, int retries);
             void sendAll(nite::Packet &packet);
             void broadcast(const String &message);

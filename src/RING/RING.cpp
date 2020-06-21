@@ -746,7 +746,7 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     }
     String uuid = nite::hashString(nite::toStr(nite::getTicks()));
     map->title = "RING_"+createdDate+"_"+uuid;
-    map->hash = nite::hashString(uuid);
+    map->hash = uuid;
     map->author = "RING:none@none.com";
     map->version = "0.0.0";
     map->startCell.index = (bp->start % bp->width) * scale + (bp->start / bp->width) * scale;

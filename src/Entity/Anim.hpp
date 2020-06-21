@@ -85,6 +85,7 @@
             nite::Vec2 frameSize;
             nite::Animation anim;
             nite::Batch batch;
+            float bodyDepthOffset;
             Dict<UInt8, Game::AnimFrame> frames;
             Game::AnimFrame *getAnim(UInt8 anim);
             bool load(const String &path);

@@ -209,7 +209,7 @@ void nite::Console::render(){
     auto lh = font.getHeight() + 2;
     float cheight = lh * (showLineNumber + 1);
     nite::Vec2 offPosition(0.0f, -cheight);
-    position.lerpAbsolute(opened ? nite::Vec2(0.0f) : offPosition, 0.42f);
+    position.cInterpAbsolute(opened ? nite::Vec2(0.0f) : offPosition, 0.42f);
     if(position.y == offPosition.y){
         return;
     }
@@ -232,7 +232,7 @@ void nite::Console::render(){
     float tw = font.getWidth(tusr);
     static float pointerA = 100.0f;
     static bool pointerAC = true;
-    if(nite::lerpAbsolute(pointerA, pointerAC ? 0.0f : 100.0f, 0.10f)){
+    if(nite::cInterpAbsolute(pointerA, pointerAC ? 0.0f : 100.0f, 0.10f)){
         pointerAC = !pointerAC;
     }
     nite::setColor(1.0f, 1.0f, 1.0f, pointerA / 100.0f);

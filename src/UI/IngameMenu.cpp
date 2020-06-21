@@ -88,9 +88,7 @@ void Game::InGameMenu::start(Game::Client *client){
     };     
 
     listeners["onclick_close"] = [&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        main->setVisible(false);
         hideAllSubs();
-        open = false;
     };  
         
     this->client = client;

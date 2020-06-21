@@ -192,7 +192,7 @@ void nite::TextUI::render(const nite::Vec2 &offset){
 }
 
 void nite::TextUI::update(){
-    // if(!realPosition.lerpDiscrete(position, componentTranslationSpeed)){
+    // if(!realPosition.cInterpDiscrete(position, componentTranslationSpeed)){
     // // recalculate();    
     // }   
 }

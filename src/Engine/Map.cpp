@@ -119,7 +119,7 @@ bool nite::Map::load(const String &path){
     for(int i = 0; i < layerNode.getCount(); ++i){
         auto node = layerNode.get(i);
         String srcHash = node.get("source").toString("missing");
-        bool dynamicY = node.get("dynamic").toBool(false);
+        bool dynamicY = node.get("dynamicY").toBool(false);
         int depth = node.get("depth").toInt(i);
         String type = node.get("type").toString("general");
         if(sources.find(srcHash) == sources.end()){
@@ -409,7 +409,7 @@ void nite::Map::render(int x, int y, float wviewport, float hviewport){
             // bool inRegion = nite::isPointInRegion(mrp, nite::Vec2(inx, iny), nite::Vec2(inx, iny) + nite::Vec2(128.0f));
             bool inRegion = false;
             // if(inRegion && nite::mousePressed(nite::butLEFT)){
-            //     std::cout << (String)stored[i] << std::endl;
+            //     std  ::cout << (String)stored[i] << std::endl;
             // }
 
             // if(grid[i] <= 0){

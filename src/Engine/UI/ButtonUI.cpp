@@ -216,10 +216,10 @@ void nite::ButtonUI::setBorderThickness(const nite::Vec2 &bt){
 }
 
 void nite::ButtonUI::update(){
-    // if(!realPosition.lerpDiscrete(position, componentTranslationSpeed)){
+    // if(!realPosition.cInterpDiscrete(position, componentTranslationSpeed)){
     //     recalculate();    
     // }
-    if(!nite::lerp(currentPressOffset, buttonState == 2 ? pressOffset : 0.0f, 0.70f)){
+    if(!nite::cInterp(currentPressOffset, buttonState == 2 ? pressOffset : 0.0f, 0.70f)){
         recalculate();
     }
     if(buttonState != 0){

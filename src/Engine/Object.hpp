@@ -59,11 +59,11 @@
 			PhysicsObject();
 			void push(float angle, float force);
 			void move(float angle, float mod);
-			bool isCollidingWith(Shared<nite::PhysicsObject> other);
+			bool isCollidingWith(nite::PhysicsObject *other);
 			bool isCollidingWithSomething();
-			bool isCollidingWithExcept(const Vector<Shared<nite::PhysicsObject>> &ignores);
-			float getDistance(Shared<nite::PhysicsObject> other);
-			virtual void onCollision(Shared<nite::PhysicsObject> obj){
+			bool isCollidingWithExcept(const Vector<nite::PhysicsObject*> &ignores);
+			float getDistance(nite::PhysicsObject *other);
+			virtual void onCollision(nite::PhysicsObject *obj){
 
 			}
 		};

@@ -59,17 +59,17 @@ void nite::World::updateObjectPhysics(Shared<nite::PhysicsObject> obj, float x, 
 		obj->position.x += x * this->timescale * obj->relativeTimescale * nite::getDelta() * nite::getTimescale() * 0.067f;
 		if(obj->solid){
 			for (auto& it : this->objects){
-				auto obj = it.second;
-				if(obj->id == obj->id) continue;				
-				if(!obj->solid) continue;
-				if(obj->isCollidingWith(obj)){
-					obj->onCollision(obj);
+				auto _obj = it.second;
+				if(obj->id == _obj->id) continue;				
+				if(!_obj->solid) continue;
+				if(_obj->isCollidingWith(obj.get())){
+					obj->onCollision(obj.get());
 					obj->collided = true;
 					if(x > 0.0f){
-						obj->position.x = obj->position.x - obj->size.x * 0.5f - obj->size.x * 0.5f - 1.0f;
+						obj->position.x = _obj->position.x - _obj->size.x * 0.5f - obj->size.x * 0.5f - 1.0f;
 					}
 					if(x < 0.0f){
-						obj->position.x = obj->position.x + obj->size.x * 0.5f + obj->size.x * 0.5f + 1.0f;
+						obj->position.x = _obj->position.x + _obj->size.x * 0.5f + obj->size.x * 0.5f + 1.0f;
 					}
 					x = 0.0f;
 					break;
@@ -81,17 +81,17 @@ void nite::World::updateObjectPhysics(Shared<nite::PhysicsObject> obj, float x, 
 		obj->position.y += y * this->timescale * obj->relativeTimescale * nite::getDelta() * nite::getTimescale() * 0.067f;
 		if(obj->solid){
 			for (auto& it : this->objects){	
-				auto obj = it.second;		
-				if(obj->id == obj->id) continue;
-				if(!obj->solid) continue;
-				if(obj->isCollidingWith(obj)){
-					obj->onCollision(obj);
+				auto _obj = it.second;		
+				if(obj->id == _obj->id) continue;
+				if(!_obj->solid) continue;
+				if(_obj->isCollidingWith(obj.get())){
+					obj->onCollision(obj.get());
 					obj->collided = true;
 					if(y > 0.0f){
-						obj->position.y = obj->position.y - obj->size.y/2.0f - obj->size.y/2.0f - 1.0f;
+						obj->position.y = _obj->position.y - _obj->size.y/2.0f - obj->size.y/2.0f - 1.0f;
 					}
 					if(y < 0.0f){
-						obj->position.y = obj->position.y + obj->size.y/2.0f + obj->size.y/2.0f + 1.0f;
+						obj->position.y = _obj->position.y + _obj->size.y/2.0f + obj->size.y/2.0f + 1.0f;
 					}
 					y = 0.0f;
 					break;
@@ -114,7 +114,7 @@ void nite::World::update(){
 		}
 		current->collided = false;
 		updateObjectPhysics(it.second, current->speed.x, current->speed.y);
-		current->speed.lerp(Vec2(0.0f), nite::getDelta() * 0.067f * current->friction * current->relativeTimescale * this->timescale);
+		current->speed.cInterpDiscrete(Vec2(0.0f), nite::getDelta() * 0.067f * current->friction * current->relativeTimescale * this->timescale);
 	}
 	// clean up
 	for(int i = 0; i < removeQueue.size(); ++i){

@@ -65,6 +65,7 @@
         struct RemoteClock {
             UInt64 time;
             UInt64 lastTick;
+            UInt64 delta;
             void update();
             void set(UInt64 time);
             RemoteClock(){
@@ -428,7 +429,18 @@
                     UINT8 NUMBER
                 } 
                
-            */             
+            */     
+            SV_UPDATE_ENTITY_SET_CASTING_STATE, // ACK
+            /*
+                UINT16 ENTID
+                UINT32 ID
+                UINT8 TYPE
+                UINT16 TARGET
+                UINT64 STARTTIME
+                UINT64 TIME
+                FLOAT X
+                FLOAT Y
+            */                      
             SV_UPDATE_ENTITY_ALL_STAT, // ACK
             /*
                 UINT16 ENTID

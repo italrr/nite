@@ -51,7 +51,7 @@
 		"family": 0,
 		"range": 2,
 		"cooldown": 2500,
-		"castDelay": 400,
+		"castDelay": 100,
 		"minUseLv": 1,
 		"skPointsPerLv": 1,
 		"baseDmg": 8

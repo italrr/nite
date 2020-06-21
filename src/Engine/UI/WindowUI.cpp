@@ -220,7 +220,7 @@ void nite::WindowUI::rerender(){
 			if(children[i]->position.x < 0 || children[i]->position.y < 0 || !children[i]->visible){
 				continue;
 			}
-			scrollOffsetTrans.lerpDiscrete(scrollOffset, 0.004f);
+			scrollOffsetTrans.cInterpDiscrete(scrollOffset, 0.004f);
 			auto usoffset = scrollX || scrollY ? scrollOffsetTrans : nite::Vec2(0.0f);
 			children[i]->beforeRender();
 			children[i]->render(usoffset);
@@ -284,15 +284,15 @@ void nite::WindowUI::update(){
 	nav.update(this);
 
   	// origPosition.set(toDestroy ? (position - nite::Vec2(0.0f, -16.0f)) : position);      
-	// origPosition.lerp(toDestroy ? (position - nite::Vec2(0.0f, -16.0f)) : position, 0.15f);  
+	// origPosition.cInterp(toDestroy ? (position - nite::Vec2(0.0f, -16.0f)) : position, 0.15f);  
 	
-	if(!borderColor.lerpDiscrete(grabbed ? leftBorderColor * 1.5f : leftBorderColor, 0.08f)){
+	if(!borderColor.cInterpDiscrete(grabbed ? leftBorderColor * 1.5f : leftBorderColor, 0.08f)){
 		// recalculate();
 		rerenderDecoration();
 	}
 	
 	if(toDestroy){
-		if(nite::lerpDiscrete(generalAlpha, 0.0f, 0.15f)){
+		if(nite::cInterpDiscrete(generalAlpha, 0.0f, 0.15f)){
 			destroy();
 			return;
 		}

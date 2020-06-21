@@ -127,29 +127,29 @@ void nite::Color::to1(){
 	a /= 100.0f;
 }
 
-bool nite::Color::lerpDiscrete(const Color &f, float Step){
+bool nite::Color::cInterpDiscrete(const Color &f, float Step){
 	if(*this == f) return true;
 	auto copy = f;
 	copy.to100();
 	this->to100();
-	nite::lerpDiscrete(r, copy.r, Step);
-	nite::lerpDiscrete(g, copy.g, Step);
-	nite::lerpDiscrete(b, copy.b, Step);
-	nite::lerpDiscrete(a, copy.a, Step);
+	nite::cInterpDiscrete(r, copy.r, Step);
+	nite::cInterpDiscrete(g, copy.g, Step);
+	nite::cInterpDiscrete(b, copy.b, Step);
+	nite::cInterpDiscrete(a, copy.a, Step);
 	this->to1();	
 	rectify();
 	return false;
 }
 
-bool nite::Color::lerp(const Color &f, float Step){
+bool nite::Color::cInterp(const Color &f, float Step){
 	if(*this == f) return true;
 	auto copy = f;
 	copy.to100();
 	this->to100();
-	nite::lerp(r, copy.r, Step);
-	nite::lerp(g, copy.g, Step);
-	nite::lerp(b, copy.b, Step);
-	nite::lerp(a, copy.a, Step);
+	nite::cInterp(r, copy.r, Step);
+	nite::cInterp(g, copy.g, Step);
+	nite::cInterp(b, copy.b, Step);
+	nite::cInterp(a, copy.a, Step);
 	this->to1();	
 	rectify();
 	return false;
@@ -452,10 +452,24 @@ bool nite::Vec2::operator==(const nite::Vec2 &v){
 	return x == v.x && y == v.y;
 }
 
-bool nite::Vec2::lerp(const Vec2 &v, float step){
+bool nite::Vec2::cInterp(const Vec2 &v, float step){
 	if (x == v.x && y == v.y) return true;
-	nite::lerp(x, v.x, step);
-	nite::lerp(y, v.y, step);
+	nite::cInterp(x, v.x, step);
+	nite::cInterp(y, v.y, step);
+	return false;
+}
+
+bool nite::Vec2::cInterpDiscrete(const Vec2 &v, float step){
+	if (x == v.x && y == v.y) return true;
+	nite::cInterpDiscrete(x, v.x, step);
+	nite::cInterpDiscrete(y, v.y, step);
+	return false;
+}
+
+bool nite::Vec2::cInterpAbsolute(const Vec2 &v, float step){
+	if (x == v.x && y == v.y) return true;
+	nite::cInterpAbsolute(x, v.x, step);
+	nite::cInterpAbsolute(y, v.y, step);
 	return false;
 }
 
@@ -463,13 +477,6 @@ bool nite::Vec2::lerpDiscrete(const Vec2 &v, float step){
 	if (x == v.x && y == v.y) return true;
 	nite::lerpDiscrete(x, v.x, step);
 	nite::lerpDiscrete(y, v.y, step);
-	return false;
-}
-
-bool nite::Vec2::lerpAbsolute(const Vec2 &v, float step){
-	if (x == v.x && y == v.y) return true;
-	nite::lerpAbsolute(x, v.x, step);
-	nite::lerpAbsolute(y, v.y, step);
 	return false;
 }
 
