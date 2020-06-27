@@ -28,7 +28,7 @@
             Int32 y;
             Int32 index;
             Int32 val;
-            // some pre-computed values
+            // some pre-computed values (not mandatory for things like routing)
             Int32 vx; // (valuex,valuey) in-texture coors (from source)
             Int32 vy;
             Int32 imx; // (in-map-x, in-map-y) in-map coors
@@ -37,6 +37,12 @@
                 vx = 0;
                 vy = 0;
             }
+        };
+
+        struct MapRoute {
+            Vector<nite::MapCell> route;
+            UInt32 start;
+            UInt32 end;
         };
 
         struct MapTilesetSource {
@@ -90,6 +96,8 @@
             // TODO: in the future we most likely will adapt this to use trees/chunks to improve performance
             Vector<nite::MapLayer*> layers; 
             Vector<nite::MapWallMask> masks;
+            
+            // Vector
             Map();
             ~Map();
             // load will also load the fragments 

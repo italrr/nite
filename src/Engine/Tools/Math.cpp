@@ -128,7 +128,9 @@ bool nite::lerpDiscrete(float &x1, float x2, float step){
 	if(step > 1.0f){
 		step = 1.0f;
 	}	
-	x1 = x1 + (1.0f - nite::pow(1.0f - step, nite::getDelta() * 0.077f)) * (x2 - x1);	
+	float f = (1.0f - nite::pow(1.0f - step, nite::getDelta() * 0.077f));
+	// x1 = x1 + f * (x2 - x1);	
+	x1 = (x1 * (1.0 - f)) + (x2 * f);
 	return false;
 }
 

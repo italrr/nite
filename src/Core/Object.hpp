@@ -52,18 +52,18 @@
             Game::NetWorld *container;
             Game::Server *sv;
             Game::Net *net;
-
+            Int32 quadrant;
+            void updateQuadrant();
+            void clearQuadrant();
             NetObject(){
                 container = NULL;
                 sv = NULL;
+                quadrant = -1;
                 net = NULL;
                 objType = Game::ObjectType::Base;
             }
 
-            void setPosition(const nite::Vec2 &p){
-                this->position.set(p);
-                this->lerpPosition.set(p);
-            }
+            void setPosition(const nite::Vec2 &p);
 
             void setPosition(float x, float y){
                 setPosition(nite::Vec2(x, y));
@@ -72,7 +72,7 @@
             // the idea behind these is that we'll be updating
             // specific things from entities/objects but they'll read and prove it themselves
             // we should every entity with the changeForSync flag to be true
-
+            void destroy();
             bool readyForSync;
             // we'll be fetching the initial values to be sync'd
             virtual void writeInitialState(nite::Packet &packet){

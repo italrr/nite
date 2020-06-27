@@ -51,7 +51,7 @@
 			nite::Vec2 size;
 			float friction;
 			float mass;
-			void destroy();
+			virtual void destroy();
 			float relativeTimescale;
 			bool solid;
 			bool unmovable;

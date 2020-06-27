@@ -197,6 +197,7 @@ set (nite_src
 		src/Engine/Shapes.cpp
 		src/Engine/Texture.cpp
 		src/Engine/Font.cpp
+		src/Engine/Particles.cpp
 		src/Engine/Animation.cpp
 		src/Engine/Indexer.cpp
 		src/Engine/Map.cpp

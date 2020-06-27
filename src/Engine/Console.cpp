@@ -106,9 +106,34 @@ static nite::Console::Result cfBind(Vector<String> params){
 }
 static auto cfBindIns = nite::Console::CreateFunction("bind", &cfBind);  
 
+static nite::Console::Result cfMNot(Vector<String> params){
+	if(params.size() < 1){
+		return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	}
+	if(params[0] != "true" && params[0] != "false"){
+		return nite::Console::Result("m_not: '"+params[0]+"' is an invalid operand", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	}
+	return nite::Console::Result(params[0] == "true" ? "false" : "true", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+}
+static auto cfMNotIns = nite::Console::CreateFunction("m_not", &cfMNot); 
+
+
+static nite::Console::Result cfTFlip(Vector<String> params){
+	if(params.size() < 1){
+		return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	}
+    return nite::Console::interpret(params[0]+" ${m_not ${"+params[0]+"}}", false, false, false, true);
+}
+static auto cfTFlipIns = nite::Console::CreateFunction("t_flip", &cfTFlip); 
+
 nite::Console::CreateProxy pShowLineNumber("console_ln", nite::Console::ProxyType::Int, sizeof(int), &showLineNumber);
 nite::Console::CreateProxy pOpened("console_open", nite::Console::ProxyType::Bool, sizeof(bool), &opened);
 nite::Console::CreateProxy pShowPredictionNumber("consolepre_ln", nite::Console::ProxyType::Int, sizeof(int), &showPredictionNumber);
+
+static const bool CONSOLE_CONST_TRUE = true;
+static const bool CONSOLE_CONST_FALSE = false;
+nite::Console::CreateProxy pConsoleConstantTrue("true", nite::Console::ProxyType::Bool, sizeof(bool), (bool*)&CONSOLE_CONST_TRUE);
+nite::Console::CreateProxy pConsoleConstantFalse("false", nite::Console::ProxyType::Bool, sizeof(bool), (bool*)&CONSOLE_CONST_FALSE);
 
 void nite::Console::end(){
     proxies->clear();
@@ -456,8 +481,8 @@ nite::Console::Result nite::Console::interpret(const String &command, bool remot
 
     // eval interporlations
     for(int i = 1; i < tokens.size(); ++i){
-        if(!(tokens[i][0] == '{' && tokens[i][tokens[i].length()-1] == '}')) continue;
-        tokens[i] = nite::Console::interpret(tokens[i].substr(1, tokens[i].length() - 2), false, false, false, true).msg;
+        if(!(tokens[i][0] == '$' && tokens[i][1] == '{' && tokens[i][tokens[i].length()-1] == '}')) continue;
+        tokens[i] = nite::Console::interpret(tokens[i].substr(2, tokens[i].length() - 3), false, false, false, true).msg;
     }
     
     String composed = imperative; // after interpolations

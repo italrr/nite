@@ -401,6 +401,7 @@ void Game::Client::update(){
                 obj->onCreate();
                 obj->net = this;
                 obj->readInitialState(handler);
+                obj->container = &world;
                 world.objects[id] = obj;
                 if(obj->objType == ObjectType::Entity){
                     static_cast<Game::EntityBase*>(obj.get())->loadAnim();
@@ -421,6 +422,7 @@ void Game::Client::update(){
                     break;
                 }
                 world.objects.erase(obj);
+                obj->second->destroy();
             } break;
             //
             /*
@@ -471,10 +473,10 @@ void Game::Client::update(){
                         auto obj = it->second;
                         obj->lerpPosition.set(x, y);
                         if(nite::abs(obj->position.x - x) > ClientRepositionThreshold.x * 2){
-                            // obj->setPosition(x, obj->position.y);
+                            obj->setPosition(x, obj->position.y);
                         }
                         if(nite::abs(obj->position.y - y) > ClientRepositionThreshold.y * 2){
-                            // obj->setPosition(obj->position.x, y);
+                            obj->setPosition(obj->position.x, y);
                         }                        
                         obj->lerpSpeed.set(sx, sy);
                         // if(sx == 0.0f){
@@ -1108,7 +1110,7 @@ void Game::Client::game(){
             continue;
         }
         obj.second->position.lerpDiscrete(obj.second->lerpPosition, 0.1f);
-        
+        obj.second->updateQuadrant();
         obj.second->speed.lerpDiscrete(obj.second->lerpSpeed, 0.8f);
     }    
     // TODO: update objs anim
@@ -1154,6 +1156,8 @@ void Game::Client::setCurrentMap(Shared<nite::Map> &m){
         this->world.add(obj);
         localMasks.push_back(obj.get());
     }
+    nite::Vec2 ws = m->size * m->tileSize;
+    this->world.setSize(ws.x, ws.y, 16);
     this->map = m;
     nite::print("[client] current cmasks: "+nite::toStr(this->world.objects.size()));
 }

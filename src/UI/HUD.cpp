@@ -133,9 +133,9 @@ void Game::HUD::updateValues(){
                             double a = (double)(ent->net->clock.time - sk->lastUse);
                             double b = (double)sk->getCooldown(ent);
                             k = a >= b ? 100.0f : (a / b) * 100.0;
-                            // nite::cInterpDiscrete(p, k, 0.30f);                   
+                            // nite::lerpDiscrete(p, k, 0.30f);                   
                         }
-                        if(nite::cInterpDiscrete(a, k >= 100.0f ? 100.0f : 92.0f, 0.45f) && p == k){
+                        if(nite::lerpDiscrete(a, k >= 100.0f ? 100.0f : 92.0f, 0.45f) && p == k){
                             break;
                         }
                         p = k;                         
@@ -232,9 +232,9 @@ void Game::HUD::updateValues(){
                 text->setText(ef->getStatus(ent));
             }
             float t = ((double)(ent->net->clock.time-ef->started) / (double)ef->duration) * 100.0f;
-            nite::cInterpDiscrete(hudobj->runtime, t, 0.5f);
+            nite::lerpDiscrete(hudobj->runtime, t, 0.5f);
         }
-        nite::cInterpDiscrete(hudobj->alpha, hudobj->done ? 0.0f : 100.0f, 0.30f);
+        nite::lerpDiscrete(hudobj->alpha, hudobj->done ? 0.0f : 100.0f, 0.30f);
         nite::Uniform uni;
         uni.add("p_total", hudobj->runtime / 100.0f);
         uni.add("p_alpha", hudobj->alpha / 100.0f);

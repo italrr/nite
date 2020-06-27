@@ -81,7 +81,7 @@ static nite::Console::Result cfRINGGenerateMap(Vector<String> params){
 	int x = nite::toInt(params[0]);
 	int y = nite::toInt(params[1]);
 	if(instance->client.connected){
-		return nite::Console::Result("you cannot generate a map while on a game. disconnect first", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+		return nite::Console::Result("you cannot generate a map while in a game. disconnect first", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}	
 	instance->client.clear();
 	// TODO: allow to provide blueprint specs, tilesource and scale

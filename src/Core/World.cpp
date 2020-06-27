@@ -1,3 +1,4 @@
+#include <string.h>
 
 #include "../Engine/Shapes.hpp"
 #include "../Engine/Tools/Tools.hpp"
@@ -5,14 +6,76 @@
 #include "World.hpp"
 #include "Network.hpp"
 
+
 static UInt16 generateId(){
 	static UInt16 seed = nite::randomInt(25, 50);
 	return ++seed; // networld ids are never to be 0. so a response with 0 means error
 }
 
+void Game::NetWorld::setSize(int w, int h, int unitsize){
+	if(w <= 0 || h <= 0 || unitsize <= 0){
+		return;
+	}
+	if(cells != NULL){
+		delete cells;
+	}
+	this->cusize = unitsize;
+	this->cwidth = w / this->cusize;
+	this->cheight = h / this->cusize;
+	this->ctotal = this->cwidth * this->cheight;
+	this->cells = new Game::NetObject*[this->cwidth * this->cheight];
+	for(int i = 0; i < this->ctotal; ++i){
+		this->cells[i] = NULL;
+	}
+	nite::print("set world size "+nite::toStr(w)+"x"+nite::toStr(h)+"("+nite::toStr(unitsize)+") | cells "+nite::toStr(this->ctotal));
+}
+#include "../Engine/Texture.hpp"
+Vector<Game::NetObject*> Game::NetWorld::getQuadrant(int x, int y, int w, int h){
+	Vector<Game::NetObject*> quadrant;
+	if(cells == NULL){
+		return quadrant;
+	}
+	x = x / cusize;
+	y = y / cusize;
+	w = w / cusize;
+	h = h / cusize;
+	int tx = x + w;
+	if(tx >= cwidth){
+		tx = tx % cwidth;
+	}
+	int ty = y + h;
+	if(ty >= cheight){
+		ty = cheight - 1;
+	}
+	// static nite::Texture empty("data/texture/empty.png");
+	for(int _x = x; _x < tx; ++_x){
+		for(int _y = y; _y < ty; ++_y){
+			auto c = cells[_x + _y * cwidth];
+			// nite::setRenderTarget(nite::RenderTargetGame);
+			// nite::setDepth(nite::DepthTop);
+			// nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
+			if(c != NULL){
+				// continue;
+				// nite::setColor(1.0f, 1.0f, 0.0f, 1.0f);
+				quadrant.push_back(c);
+			}
+			// empty.draw(_x * 16, _y * 16, 16, 16, 0.0f, 0.0f, 0.0f);			
+			
+		}
+	}
+	return quadrant;
+}
+
+Game::NetWorld::~NetWorld(){
+	if(cells != NULL){
+		delete cells;
+	}
+}
+
 Game::NetWorld::NetWorld(){
 	timescale = 1.0f;
 	debugPhysics = false;
+	cells = NULL;
 	objects.reserve(5000);
 }
 
@@ -66,13 +129,18 @@ void Game::NetWorld::step(){
 }
 
 void Game::NetWorld::updateObjectPhysics(Game::NetObject *obj, float x, float y){
-	if(obj->unmovable) return;	
+	if(obj->unmovable) return;
+	nite::Vec2 origp = obj->position;
+	
+	Vector<Game::NetObject*> nearObjs;
+	if(obj->sv != NULL)
+		nearObjs = getQuadrant(obj->position.x - 1024 * 0.5f,  obj->position.y - 1024 * 0.5f, 1024, 1024);
 	if(x != 0){
 		float xdiff = x * this->timescale * obj->relativeTimescale * nite::getDelta() * nite::getTimescale() * 0.067f;
 		obj->position.x += xdiff;	
 		if(obj->solid){
-			for (auto& it : this->objects){
-				auto _obj = it.second;
+			for(int i = 0; i < nearObjs.size(); ++i){
+				auto _obj = nearObjs[i];
 				if(obj->id == _obj->id) continue;				
 				if(!_obj->solid) continue;			
 				if(_obj->isCollidingWith(obj)){
@@ -94,8 +162,8 @@ void Game::NetWorld::updateObjectPhysics(Game::NetObject *obj, float x, float y)
 		float ydiff = y * this->timescale * obj->relativeTimescale * nite::getDelta() * nite::getTimescale() * 0.067f;
 		obj->position.y += y * this->timescale * obj->relativeTimescale * nite::getDelta() * nite::getTimescale() * 0.067f;
 		if(obj->solid){
-			for (auto& it : this->objects){	
-				auto _obj = it.second;		
+			for(int i = 0; i < nearObjs.size(); ++i){
+				auto _obj = nearObjs[i];
 				if(obj->id == _obj->id) continue;
 				if(!_obj->solid) continue;
 				if(_obj->isCollidingWith(obj)){
@@ -112,7 +180,11 @@ void Game::NetWorld::updateObjectPhysics(Game::NetObject *obj, float x, float y)
 				}
 			}
 		}
-	}	
+	}
+	if(origp.x != obj->position.x || origp.y != obj->position.y){
+		obj->updateQuadrant();
+	}
+		
 }
 
 void Game::NetWorld::update(){

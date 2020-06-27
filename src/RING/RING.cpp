@@ -758,20 +758,6 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     map->add(dynamicY, 2, temp.sourcePath, "dynamicY", true); // dynamicY is usually walls
     
     // now, create masks...
-    // Vector<nite::MapWallMask> chunksTemp;
-    
-    // // prepare table (remember to delete at the end!)
-    // auto _ptable = [](int w, int h, Vector<nite::MapWallMask> &wallMask){
-    //     auto total = w*h;
-    //     size_t tsize = sizeof(nite::MapWallMask);
-    //     char *buffer = (char*)malloc(total * tsize);
-    //     memset(buffer, 0, total * tsize);
-    //     for(int i = 0; i < wallMask.size(); ++i){
-    //         memcpy(buffer + wallMask[i].index * tsize, &wallMask[i], tsize);
-    //     }
-    //     return buffer;
-    // };
-
 
     for(int i = 0; i < size; ++i){
         if(mirror[i] != Game::RING::CellType::Wall){
@@ -792,6 +778,13 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
         map->masks.push_back(mask);
         // chunksTemp.push_back(mask);
     }
+
+
+    // generate navegation paths
+    auto generateNav = [&](){
+
+    };
+
 
     // auto table = _ptable(width, height, chunksTemp);
 

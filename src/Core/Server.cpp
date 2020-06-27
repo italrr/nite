@@ -1044,6 +1044,8 @@ void Game::Server::setCurrentMap(unsigned cm){
         this->world.add(obj);
         localMasks.push_back(obj.get());
     }
+    nite::Vec2 ws = m->size * m->tileSize;
+    this->world.setSize(ws.x, ws.y, 16);
     nite::print("current cmasks: "+nite::toStr(this->world.objects.size()));
 }
 
@@ -1376,6 +1378,7 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
     }    
     obj->sv = this; // we guarantee entities will have its sv ref as long as they're running on a server
     obj->net = this;
+    obj->container = &world;
     auto id = this->world.add(obj);
     nite::Packet crt;
     crt.setHeader(Game::PacketType::SV_CREATE_OBJECT);
@@ -1399,6 +1402,7 @@ bool Game::Server::destroy(UInt32 id){
     des.write(&id, sizeof(UInt32));
     obj->destroy();
     obj->sv = NULL;
+    obj->container = NULL;
     persSendAll(des, 1000, -1);    
     return true;
 }

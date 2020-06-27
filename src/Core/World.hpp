@@ -5,6 +5,7 @@
 	#include "Object.hpp"
 
 	namespace Game {
+
 		struct NetWorld {
 			std::unordered_map<UInt16, Shared<Game::NetObject>> objects;	
 			Vector<UInt16> updateQueue;	
@@ -22,6 +23,16 @@
 			void update();
 			void step();
 			void render();
+
+			
+			Game::NetObject **cells; 
+			int ctotal;
+			int cwidth;
+			int cheight;
+			int cusize;
+			void setSize(int w, int h, int unitsize);
+			Vector<Game::NetObject*> getQuadrant(int x, int y, int w, int h);
+			~NetWorld();
 		};
 	}
 

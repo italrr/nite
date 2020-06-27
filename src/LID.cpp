@@ -6,6 +6,8 @@
 #include "Game.hpp"
 
 #include "RING/RING.hpp"
+#include "Engine/Particles.hpp"
+#include "Engine/Graphics.hpp"
 
 int main(int argc, char* argv[]){
 	Vector<String> params;
@@ -29,9 +31,11 @@ int main(int argc, char* argv[]){
 	nite::nScript debug("./debug_init.ns");
 	debug.execute();
 
-	while(game.isRunning){	
 
+
+	while(game.isRunning){	
 		game.update();
+
 		game.render();
 	}
 	game.onEnd();
