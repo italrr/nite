@@ -16,6 +16,46 @@ static nite::Console::CreateProxy cpRenBatches("ren_texturebatches", nite::Conso
 static nite::Console::CreateProxy cpRenTextures("ren_textures", nite::Console::ProxyType::Bool, sizeof(bool), &renTextureSingles);
 
 
+bool nite::TextureCellBatch::setSize(int w, int h, float wp, float hp){
+	if(w <= 0 || h <= 0){
+		return false;
+	}	
+	clear();
+	this->w = w;
+	this->h = h;
+	this->size.set(wp, hp);
+	this->total = this->w * this->h;
+	size_t objSize = sizeof(TextureRegionSingle);
+	this->cells = (char*)malloc(this->total * objSize);
+	memset(this->cells, 0, objSize * this->total);
+	return true;
+}
+
+bool nite::TextureCellBatch::add(int index, nite::TextureRegionSingle *src){
+	if(cells == NULL || index < 0 || index > total){
+		return false;
+	}
+	size_t objSize = sizeof(TextureRegionSingle);
+	memcpy(cells + index * objSize, src, objSize);
+}
+
+void nite::TextureCellBatch::clear(){
+	if(cells == NULL){
+		return;
+	}
+	delete cells;
+	cells = NULL;
+}
+
+nite::TextureCellBatch::TextureCellBatch(){
+	cells = NULL;
+}
+
+nite::TextureCellBatch::~TextureCellBatch(){
+	clear();
+}
+
+
 struct textureT {
 	GLuint texture;
 	bool empty;
@@ -24,7 +64,7 @@ struct textureT {
 	int Height;
 	int Channels;
 	bool stick;
-  String filename;
+  	String filename;
 	Vector<nite::Texture*> owners;
 	void clear(){
 		if(texture == 0) return;
@@ -334,28 +374,28 @@ static inline bool isClippingOut(float x, float y, float w, float h, float origX
 static void drawTextureBatch(nite::Renderable *object){
 	if(!renTextureBatches) return;
 	flushFont();
-	nite::RenderableTextureBatchT &obj = *(nite::RenderableTextureBatchT*)object;
-	nite::TextureRegionBatch &batch = *(nite::TextureRegionBatch*)obj.batch;
-	GLuint currentBind = textureList[obj.objectId].texture;
+	auto obj = static_cast<nite::RenderableTextureBatchT*>(object);
+	auto batch = static_cast<nite::TextureCellBatch*>(obj->batch);
+	GLuint currentBind = textureList[obj->objectId].texture;
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_TEXTURE_2D);
 	glPushMatrix();
-	nite::Vec2 offset = obj.target == nite::RenderTargetDummy ? nite::Vec2(0.0f) : nite::getRenderOffset();
-	float dxp = nite::round(batch.position.x - nite::getViewX(obj.target) + offset.x);
-	float dyp = nite::round(batch.position.y - nite::getViewY(obj.target) + offset.y);
+	nite::Vec2 offset = obj->target == nite::RenderTargetDummy ? nite::Vec2(0.0f) : nite::getRenderOffset();
+	float dxp = nite::round(obj->position.x - nite::getViewX(obj->target) + offset.x);
+	float dyp = nite::round(obj->position.y - nite::getViewY(obj->target) + offset.y);
 	glTranslatef(dxp, dyp, 0.0f);
 	glRotatef(0.0f, 0.0, 0.0, 1.0);
 
 	if(currentBind != lastBind) // avoid re-binding the last texture.(an optimization, supposedly)
 		glBindTexture(GL_TEXTURE_2D, currentBind);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, obj.smooth ? GL_LINEAR : GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, obj.smooth ? GL_LINEAR : GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, obj->smooth ? GL_LINEAR : GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, obj->smooth ? GL_LINEAR : GL_NEAREST);
 
-	for(int i = 0; i < obj.programs.size(); ++i){
-		glUseProgram(obj.programs[i]->id);
-		for(const auto& Uniform : obj.programs[i]->uniforms.colors){
-			int tex = glGetUniformLocation(obj.programs[i]->id, Uniform.first.c_str());
+	for(int i = 0; i < obj->programs.size(); ++i){
+		glUseProgram(obj->programs[i]->id);
+		for(const auto& Uniform : obj->programs[i]->uniforms.colors){
+			int tex = glGetUniformLocation(obj->programs[i]->id, Uniform.first.c_str());
 			if(tex != -1){
 				float v[3];
 				v[0] = Uniform.second.r;
@@ -363,70 +403,83 @@ static void drawTextureBatch(nite::Renderable *object){
 				v[2] = Uniform.second.b;
 				glUniform3fv(tex, 1, v);
 			}else{
-				if(!obj.programs[i]->ref->faulty){
-					nite::print("'"+obj.programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
-					obj.programs[i]->ref->faulty = true;
+				if(!obj->programs[i]->ref->faulty){
+					nite::print("'"+obj->programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
+					obj->programs[i]->ref->faulty = true;
 				}
 			}
 		}			
-		for(const auto& Uniform : obj.programs[i]->uniforms.integers){
-			int tex = glGetUniformLocation(obj.programs[i]->id, Uniform.first.c_str());
+		for(const auto& Uniform : obj->programs[i]->uniforms.integers){
+			int tex = glGetUniformLocation(obj->programs[i]->id, Uniform.first.c_str());
 			if(tex != -1){
 				glUniform1i(tex, Uniform.second);
 			}else{
-				if(!obj.programs[i]->ref->faulty){
-					nite::print("'"+obj.programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
-					obj.programs[i]->ref->faulty = true;
+				if(!obj->programs[i]->ref->faulty){
+					nite::print("'"+obj->programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
+					obj->programs[i]->ref->faulty = true;
 				}
 			}
 		}
-		for(const auto& Uniform : obj.programs[i]->uniforms.floats){
-			int tex = glGetUniformLocation(obj.programs[i]->id, Uniform.first.c_str());
+		for(const auto& Uniform : obj->programs[i]->uniforms.floats){
+			int tex = glGetUniformLocation(obj->programs[i]->id, Uniform.first.c_str());
 			if(tex != -1){
 				glUniform1f(tex, Uniform.second);
 			}else{
-				if(!obj.programs[i]->ref->faulty){
-					nite::print("'"+obj.programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
-					obj.programs[i]->ref->faulty = true;
+				if(!obj->programs[i]->ref->faulty){
+					nite::print("'"+obj->programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
+					obj->programs[i]->ref->faulty = true;
 				}
 			}
 		}
-		for(const auto& Uniform : obj.programs[i]->uniforms.vectors){
-			int tex = glGetUniformLocation(obj.programs[i]->id, Uniform.first.c_str());
+		for(const auto& Uniform : obj->programs[i]->uniforms.vectors){
+			int tex = glGetUniformLocation(obj->programs[i]->id, Uniform.first.c_str());
 			if(tex != -1){
 				float v[2];
 				v[0] = Uniform.second.x;
 				v[1] = Uniform.second.y;
 				glUniform2fv(tex, 1, v);
 			}else{
-				if(!obj.programs[i]->ref->faulty){
-					nite::print("'"+obj.programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
-					obj.programs[i]->ref->faulty = true;
+				if(!obj->programs[i]->ref->faulty){
+					nite::print("'"+obj->programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
+					obj->programs[i]->ref->faulty = true;
 				}
 			}
 		}
 	}
 
+	size_t objSize = sizeof(nite::TextureRegionSingle);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	for(int i = 0; i < batch.regions.size(); ++i){
-		nite::TextureRegionSingle &si = batch.regions[i];
-		if(isClippingOut(si.inDrawCoors.x + batch.position.x, si.inDrawCoors.y + batch.position.y, batch.size.x, batch.size.y, 0.0f, 0.0f)) continue;
-		glVertexPointer(2, GL_FLOAT, 0, si.box);
-		glTexCoordPointer(2, GL_FLOAT, 0, si.texBox);
-		glDrawArrays(GL_QUADS, 0, 4);
-	}
+	for(int _x = 0; _x < obj->vpw; ++_x){
+		if(batch->cells == NULL){
+			break;
+		}
+		for(int _y = 0; _y < obj->vph; ++_y){
+			int rx = obj->vpx + _x;
+			int ry = obj->vpy + _y;
+			int ind = rx + ry * batch->w;
+			if(ind < 0 || ind >= batch->total){
+				continue;
+			}
+			nite::TextureRegionSingle *single = (nite::TextureRegionSingle*)(batch->cells + ind * objSize);
+			if(isClippingOut(single->inDrawCoors.x + obj->x, single->inDrawCoors.y + obj->y, batch->size.x, batch->size.y, 0.0f, 0.0f)) continue;
+			glVertexPointer(2, GL_FLOAT, 0, single->box);
+			glTexCoordPointer(2, GL_FLOAT, 0, single->texBox);
+			glDrawArrays(GL_QUADS, 0, 4);
+		}
+	}	
+	
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
 	glUseProgram(0);
-	for(int i = 0; i < obj.programs.size(); ++i){
-		delete obj.programs[i];
+	for(int i = 0; i < obj->programs.size(); ++i){
+		delete obj->programs[i];
 	}
 	lastBind = currentBind;
-	obj.programs.clear();
+	obj->programs.clear();
 }
 
 nite::Texture& nite::Texture::operator= (const nite::Texture &other){
@@ -469,13 +522,19 @@ void nite::Texture::setRegion(const nite::Rect &R){
 	region.set(R);
 }
 
-nite::RenderableTextureBatchT *nite::Texture::draw(nite::TextureRegionBatch *batch, float x, float y){
+nite::RenderableTextureBatchT *nite::Texture::drawCellBatch(nite::TextureCellBatch *batch, float x, float y, float vpx, float vpy, float vpw, float vph){
 	if(objectId <= -1 || batch == NULL) return NULL;
 	nite::RenderableTextureBatchT *obj = new nite::RenderableTextureBatchT();
 	obj->objectId = objectId;
 	obj->smooth	= smooth;
-	obj->function	= &drawTextureBatch;
+	obj->function = &drawTextureBatch;
 	obj->batch = batch;
+	obj->x = x;
+	obj->y = y;
+	obj->vpx = vpx;
+	obj->vpy = vpy;
+	obj->vpw = vpw;
+	obj->vph = vph;	
 	nite::addRenderList((nite::Renderable*)obj);
 	return obj;
 }

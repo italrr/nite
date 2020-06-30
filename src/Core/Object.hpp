@@ -53,6 +53,7 @@
             Game::Server *sv;
             Game::Net *net;
             Int32 quadrant;
+            nite::Vec2 lqPos; // last valid quadrant position
             void updateQuadrant();
             void clearQuadrant();
             NetObject(){

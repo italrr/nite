@@ -10,11 +10,17 @@
 			nite::Vec2 inDrawCoors;
 		};
 
-		struct TextureRegionBatch {
-			nite::Vec2 position;
-			nite::Vec2 size;
+		struct TextureCellBatch {
+			nite::Vec2 size; // in pixels
 			int depth;
-			Vector<nite::TextureRegionSingle> regions;
+			char *cells;
+			int total;
+			int w, h;
+			bool setSize(int w, int h, float wp, float hp); // in units!
+			void clear();
+			bool add(int index, nite::TextureRegionSingle *src);
+			TextureCellBatch();
+			~TextureCellBatch();
 		};
 
 		struct RenderableTextureT : public nite::Renderable {
@@ -26,17 +32,17 @@
 			int objectId;
 			bool smooth;
 			nite::Vec2 scale;
-			bool repeat; // otherwise stretch. stretch  is by default
-			nite::TextureRegionBatch *batch;
+			bool repeat; // otherwise stretch. stretch is by default
 			RenderableTextureT(){
 				repeat = true;
 			}
 		};
 
 		struct RenderableTextureBatchT : public nite::Renderable {
+			int x, y, vpx, vpy, vpw, vph;
 			int objectId;
 			bool smooth;
-			nite::TextureRegionBatch *batch;
+			nite::TextureCellBatch *batch;
 		};
 
 		class Texture {
@@ -49,7 +55,7 @@
 				Texture(const String &path);
 				Texture(const nite::Texture &other);
 				~Texture();
-				nite::RenderableTextureBatchT *draw(nite::TextureRegionBatch *batch, float x, float y);
+				nite::RenderableTextureBatchT *drawCellBatch(nite::TextureCellBatch *batch, float x, float y, float vpx, float vpy, float vpw, float vph);
 				nite::RenderableTextureT *draw(float x, float y);
 				nite::RenderableTextureT *draw(float x, float y, float angle);
 				nite::RenderableTextureT *draw(const nite::Vec2 &P);

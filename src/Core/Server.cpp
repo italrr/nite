@@ -1034,6 +1034,8 @@ void Game::Server::setCurrentMap(unsigned cm){
     clearWorldColMaks();
     this->currentMap = cm;
     auto &m = this->maps[this->currentMap]; 
+    nite::Vec2 ws = m->size * m->tileSize;
+    this->world.setSize(ws.x, ws.y, 16);    
     for(int i = 0; i < m->masks.size(); ++i){
         auto &mask = m->masks[i];
         auto obj = Shared<Game::NetObject>(new Game::NetObject());
@@ -1044,14 +1046,12 @@ void Game::Server::setCurrentMap(unsigned cm){
         this->world.add(obj);
         localMasks.push_back(obj.get());
     }
-    nite::Vec2 ws = m->size * m->tileSize;
-    this->world.setSize(ws.x, ws.y, 16);
     nite::print("current cmasks: "+nite::toStr(this->world.objects.size()));
 }
 
 void Game::Server::clearWorldColMaks(){
     for(int i = 0; i < localMasks.size(); ++i){
-        this->world.remove(localMasks[i]->id);
+        localMasks[i]->destroy();
     }
     localMasks.clear();
 }
@@ -1415,7 +1415,7 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
     }
     auto obj = Shared<Game::NetObject>(new Game::EntityBase()); // ideally we should create this using createNetObject
     auto player = static_cast<EntityBase*>(obj.get());
-    player->setupStat(1);
+    player->setupStat(lv);
     player->sigId = Game::ObjectSig::Player;
     auto &cm = maps[currentMap]; 
     float startx = cm->startCell.x + nite::randomInt(-50, 50);

@@ -35,14 +35,23 @@ void Game::NetObject::setPosition(const nite::Vec2 &p){
 
 void Game::NetObject::updateQuadrant(){
     if(container != NULL && container->cells != NULL){
-        int _x = nite::round(position.x / (float)container->cusize);
-        int _y = nite::round(position.y / (float)container->cusize);
-        UInt16 nq = _x + container->cwidth * _y;
+        int _x = nite::floor((position.x / container->size.x) * container->cwidth);
+        int _y = nite::floor((position.y / container->size.y) * container->cheight);    
+        if(_x < 0 || _x >= container->cwidth){
+            _x = lqPos.x;
+        }
+        if(_y < 0 || _y >= container->cheight){
+            _y = lqPos.y;
+        }        
+        UInt32 nq = _x + container->cwidth * _y;
         if(quadrant != -1 && nq != quadrant && container->cells[quadrant] == this){
             container->cells[quadrant] = NULL;
         }
         quadrant = nq;
-        container->cells[nq] = this;
+        if(nq < container->ctotal){
+            container->cells[nq] = this;
+            lqPos.set(_x, _y); // last valid in-map quadrant position
+        }
     }    
 }
 

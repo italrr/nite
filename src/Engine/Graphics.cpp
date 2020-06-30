@@ -226,6 +226,18 @@ Vec2 nite::getSize(){
 	return size;
 }
 
+unsigned nite::getAdjustedWidth(){
+	return size.x * targetExcess;
+}
+
+unsigned nite::getAdjustedHeight(){
+	return size.y * targetExcess;
+}
+
+nite::Vec2 nite::getAdjustedSize(){
+	return size * nite::Vec2(targetExcess);
+}
+
 void nite::setDepth(int D){
 	depth = D;
 }

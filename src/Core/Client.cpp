@@ -398,11 +398,9 @@ void Game::Client::update(){
                     // TODO: come up with a way to properly handle duplicated ids?
                     break;
                 }
-                obj->onCreate();
                 obj->net = this;
                 obj->readInitialState(handler);
-                obj->container = &world;
-                world.objects[id] = obj;
+                world.add(obj, id);
                 if(obj->objType == ObjectType::Entity){
                     static_cast<Game::EntityBase*>(obj.get())->loadAnim();
                 }
@@ -421,7 +419,6 @@ void Game::Client::update(){
                     nite::print("[client] fail SV_DESTROY_OBJECT: object id "+nite::toStr(id)+" doesn't exist");
                     break;
                 }
-                world.objects.erase(obj);
                 obj->second->destroy();
             } break;
             //
@@ -1137,7 +1134,13 @@ void Game::Client::render(){
     nite::setRenderTarget(nite::RenderTargetGame);
     nite::setDepth(nite::DepthMiddle);
     if(map != NULL){
-        map->render(0, 0, 0, 0); // TODO implement viewport using camera
+        auto pos = nite::getView(nite::RenderTargetGame);
+        auto sizeAdj = nite::getAdjustedSize();
+        auto size = nite::getSize();
+        auto sizeDiff = (sizeAdj - size);
+        auto sizeDiffH = sizeDiff * nite::Vec2(0.5f);
+        // draw tiles within view scope plus targetExcess diff (getAdjustedSize)
+        map->draw(nite::Vec2(0.0f), nite::Rect(pos.x - sizeDiffH.x, pos.y - sizeDiffH.y, nite::getWidth() + sizeDiff.x, nite::getHeight() + sizeDiff.y)); 
     }
     for(auto &obj : world.objects){
         obj.second->draw();
@@ -1146,6 +1149,8 @@ void Game::Client::render(){
 
 void Game::Client::setCurrentMap(Shared<nite::Map> &m){
     clearWorldColMaks(); 
+    nite::Vec2 ws = m->size * m->tileSize;
+    this->world.setSize(ws.x, ws.y, 16);    
     for(int i = 0; i < m->masks.size(); ++i){
         auto &mask = m->masks[i];
         auto obj = Shared<Game::NetObject>(new Game::NetObject());
@@ -1156,15 +1161,13 @@ void Game::Client::setCurrentMap(Shared<nite::Map> &m){
         this->world.add(obj);
         localMasks.push_back(obj.get());
     }
-    nite::Vec2 ws = m->size * m->tileSize;
-    this->world.setSize(ws.x, ws.y, 16);
     this->map = m;
     nite::print("[client] current cmasks: "+nite::toStr(this->world.objects.size()));
 }
 
 void Game::Client::clearWorldColMaks(){
     for(int i = 0; i < localMasks.size(); ++i){
-        this->world.remove(localMasks[i]->id);
+        localMasks[i]->destroy();
     }
     localMasks.clear();
 }

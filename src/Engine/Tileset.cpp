@@ -280,31 +280,31 @@ void nite::Tileset::load(const String &path){
     Vector<TileBatchCompiled> compiled = split(current);
     TileLayerBatchBuffer batch;
     for(int c = 0; c < compiled.size(); ++c){
-      nite::TextureRegionBatch trb;
-      trb.position.set(0.0);
-      trb.size.set(tileSize);
-      trb.depth = compiled[c].depth;
-      for(int j = 0; j < compiled[c].compiled.size(); ++j){
-        trb.regions.push_back(compiled[c].compiled[j]);
-      }
-      batch.batches.push_back(trb);
+      // nite::TextureRegionBatch trb;
+      // trb.position.set(0.0);
+      // trb.size.set(tileSize);
+      // trb.depth = compiled[c].depth;
+      // for(int j = 0; j < compiled[c].compiled.size(); ++j){
+      //   trb.regions.push_back(compiled[c].compiled[j]);
+      // }
+      // batch.batches.push_back(trb);
     }
     tileBaches.push_back(batch);
   }
   nite::print("loaded tileset data from '"+path+"'. Time: "+nite::toStr(nite::getTicks()-startTime)+" msecs.");
 }
 
-nite::Renderable *nite::Tileset::draw(float x, float y){
-  for(int i = 0; i < tileBaches.size(); ++i){
-    for(int c = 0; c < tileBaches[i].batches.size(); ++c){
-      nite::TextureRegionBatch &ref = tileBaches[i].batches[c];
-      nite::setDepth(ref.depth);
-      source.draw(&ref, 0.0f, 0.0f);
-    }
-  }
-  nite::setDepth(nite::DepthMiddle);
-  return NULL;
-}
+// nite::Renderable *nite::Tileset::draw(float x, float y){
+//   for(int i = 0; i < tileBaches.size(); ++i){
+//     // for(int c = 0; c < tileBaches[i].batches.size(); ++c){
+//       // nite::TextureRegionBatch &ref = tileBaches[i].batches[c];
+//       // nite::setDepth(ref.depth);
+//       // source.draw(&ref, 0.0f, 0.0f);
+//     }
+//   }
+//   // nite::setDepth(nite::DepthMiddle);
+//   return NULL;
+// }
 
 nite::Renderable *nite::Tileset::draw(float x, float y, float scaleX, float scaleY){
 

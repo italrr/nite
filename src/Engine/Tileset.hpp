@@ -32,7 +32,7 @@
 		};
 
 		struct TileLayerBatchBuffer {
-			Vector<nite::TextureRegionBatch> batches;
+			// Vector<nite::TextureRegionBatch> batches;
 			int depth;
 		};
 

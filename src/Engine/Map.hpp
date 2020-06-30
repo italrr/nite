@@ -3,6 +3,7 @@
 
     #include "Types.hpp"
     #include "Texture.hpp"
+    #include "Graphics.hpp"
     #include "Object.hpp"
     #include "Indexer.hpp"
 
@@ -28,14 +29,7 @@
             Int32 y;
             Int32 index;
             Int32 val;
-            // some pre-computed values (not mandatory for things like routing)
-            Int32 vx; // (valuex,valuey) in-texture coors (from source)
-            Int32 vy;
-            Int32 imx; // (in-map-x, in-map-y) in-map coors
-            Int32 imy;
             MapCell(){
-                vx = 0;
-                vy = 0;
             }
         };
 
@@ -55,8 +49,9 @@
         };
 
         struct MapLayer {
-            nite::MapCell *cells; // w * h
             nite::Texture src; // proxy to the local copy for actually rendering
+            nite::TextureCellBatch batch;
+            Int32 *cells;
             String srcHash;
             UInt32 total;
             UInt16 w;
@@ -91,9 +86,9 @@
             nite::MapCell startCell;
             nite::MapCell endCell;
             nite::Texture empty;
+            nite::Batch batch;
 
             Dict<String, nite::MapTilesetSource> sources;
-            // TODO: in the future we most likely will adapt this to use trees/chunks to improve performance
             Vector<nite::MapLayer*> layers; 
             Vector<nite::MapWallMask> masks;
             
@@ -111,9 +106,7 @@
 
             bool setup(int n, const nite::Vec2 &size, const nite::Vec2 &tileSize, const nite::Vec2 &margin, const nite::Vec2 &spacing);
             bool add(int *cells, int depth, const String &src, const String &type = "generic", bool dynamicY = false);
-            // viewport and xy are recommended to be at least 25% bigger than the actual view size
-            // to avoid black spots when zooming out
-            void render(int x, int y, float wviewport, float hviewport);
+            void draw(const nite::Vec2 &pos, const nite::Rect &vwp);
             void unload();
             bool exportToJson(const String &path, bool allowOverwrite = true);
         };

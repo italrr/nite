@@ -125,6 +125,9 @@
 		nite::Vec2 getRenderOffset();
 		unsigned getWidth();
 		unsigned getHeight();
+		unsigned getAdjustedWidth();
+		unsigned getAdjustedHeight();
+		nite::Vec2 getAdjustedSize();
 		nite::Vec2 getSize();
 		void setZoom(unsigned T, float Z);
 		void setZoom(unsigned T, float Z, float mu);

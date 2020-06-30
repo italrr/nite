@@ -16,7 +16,7 @@
 			void clear();
 			bool exists(UInt16 id);
 			void updateObjectPhysics(Game::NetObject *obj, float x, float y);
-			UInt16 add(Shared<Game::NetObject> &obj);
+			UInt16 add(Shared<Game::NetObject> &obj, int useId = -1);
 			void remove(UInt16 objectId);
 			void remove(Game::NetObject *obj);
 			Shared<Game::NetObject> get(UInt16 id);
@@ -30,8 +30,9 @@
 			int cwidth;
 			int cheight;
 			int cusize;
+			nite::Vec2 size;
 			void setSize(int w, int h, int unitsize);
-			Vector<Game::NetObject*> getQuadrant(int x, int y, int w, int h);
+			void getQuadrant(int x, int y, int w, int h, Vector<Game::NetObject*> &holder);
 			~NetWorld();
 		};
 	}
