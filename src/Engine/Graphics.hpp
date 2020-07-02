@@ -21,7 +21,7 @@
 
 		#ifdef _WIN32
 			const static String niteCurrentPlatform = "WINDOWS";
-		#elif defined(linux)
+		#elif __linux__
 			const static String niteCurrentPlatform = "LINUX";
 		#else
 			const static String niteCurrentPlatform = "UNSUPPORTED OS";

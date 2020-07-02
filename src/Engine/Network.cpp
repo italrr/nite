@@ -5,13 +5,18 @@
 #include <string.h>
 #include <pthread.h> 
 
+
 #ifdef _WIN32
 	#include <winsock2.h>
 	#include <WS2tcpip.h>
 #else
+#include <stdio.h>
+#include <errno.h>
+	#include <errno.h> 
 	#include <netdb.h>
 	#include <arpa/inet.h>
 	#include <sys/socket.h>
+	#include <sys/types.h> 
 	#include <netinet/in.h>
 	#include <fcntl.h>
 #endif
@@ -92,7 +97,7 @@ nite::UDPSocket::~UDPSocket(){
 
 bool nite::UDPSocket::open(UInt16 port){
 	this->port = port;
-	if((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == INVALID_SOCKET){
+	if((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0){
 		nite::print("failed to create UDP socket"); // TODO: add proper error handling
 		return false;
 	}
@@ -100,7 +105,7 @@ bool nite::UDPSocket::open(UInt16 port){
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = htons(port);
-	if (bind(sock, (const sockaddr*) &addr, sizeof(sockaddr_in)) == SOCKET_ERROR){
+	if (bind(sock, (const sockaddr*) &addr, sizeof(sockaddr_in)) > 0){
  		nite::print("failed to bind UDP socket to port "+nite::toStr(port)); // TODO: add proper error handling
 		close_(sock);
 		return false;
@@ -130,7 +135,7 @@ bool nite::UDPSocket::setNonBlocking(bool m){
 			return true;
 		}
 	#else
-		if (fcntl(socketId, F_SETFL, O_NONBLOCK, m) == -1){
+		if (fcntl(sock, F_SETFL, O_NONBLOCK, m) == -1){
 			nonBlocking = m; // TODO: add proper error handling
 			return true;
 		}

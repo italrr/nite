@@ -1,8 +1,9 @@
-#include "Tools.hpp"
-#include <fstream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-/* see MD5.cpp */
-void CalculateMD5(char *buffer, int length, char *checksum);
+#include "Tools.hpp"
+#include "MD5.hpp"
 
 /*
 ================
@@ -10,9 +11,7 @@ Calculate MD5 from memory
 ================
 */
 String nite::hashMemory(char *Data, size_t size){
-	char Buffer[33];
-	CalculateMD5(Data, size, Buffer);
-	return Buffer;
+	return md5(Data, size);
 }
 
 /*
@@ -21,9 +20,7 @@ Calculate MD5 from string
 ================
 */
 String nite::hashString(const String &str){
-	char Buffer[33];
-	CalculateMD5((char*)str.c_str(), str.size(), Buffer);
-	return Buffer;
+	return md5(str);
 }
 
 /*
@@ -32,19 +29,18 @@ Calculate MD5 from File
 ================
 */
 String nite::hashFile(const String &path){
-	char Buffer[33];
-	char *Data;
-	std::ifstream File;
-	File.open(path.c_str(), std::ios::binary | std::ios::ate);
-	if (!File.is_open()){
-		return "#ERROR";
+	if(!nite::fileExists(path)){
+		nite::print("failed to hash file '"+path+"': it doesn't exist");
+		return "";
 	}
-	size_t size = File.tellg();
-	Data = new char[size];
-	File.seekg(0, std::ios::beg);
-	File.read(Data, size);
-	File.close();
-	CalculateMD5(Data, size, Buffer);
-	delete[] Data;
-	return Buffer;
+	FILE *f = fopen(path.c_str(), "rb");
+	fseek(f, 0, SEEK_END);
+	size_t fsize = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	char *buffer = (char*)malloc(fsize);
+	fread(buffer, fsize, 1, f);
+	fclose(f);
+	String hash = md5(buffer, fsize);
+	free(buffer);
+	return hash;
 }

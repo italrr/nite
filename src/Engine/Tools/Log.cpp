@@ -1,6 +1,7 @@
-#include "Tools.hpp"
 #include <iostream>
 #include <pthread.h>
+
+#include "Tools.hpp"
 #include "../Console.hpp"
 
 static pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;

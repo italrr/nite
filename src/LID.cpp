@@ -31,8 +31,6 @@ int main(int argc, char* argv[]){
 	nite::nScript debug("./debug_init.ns");
 	debug.execute();
 
-
-
 	while(game.isRunning){	
 		game.update();
 
