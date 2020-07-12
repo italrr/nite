@@ -178,6 +178,7 @@ int nite::Audio::play(bool loop, float vol, float pitch){
 	//prop->SetLooping(loop);
 	//SoundMixer::GetMixer()->PlaySoundObject(prop);
 	//soundQueue[indexQueue++] = prop;
+	return -1;
 }
 
 int nite::Audio::play(bool loop){

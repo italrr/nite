@@ -31,7 +31,7 @@
 
         struct SvClient {
             nite::IP_Port cl;
-            Game::InputSimulator input;
+            Game::InputCompacter input;
             String nickname;
             UInt64 clientId;
             UInt16 entityId;

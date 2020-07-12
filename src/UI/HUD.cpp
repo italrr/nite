@@ -263,7 +263,7 @@ void Game::HUD::updateValues(){
         if(it == effs.end()){
             auto &ef = effects[i];
             ef.done = true;
-            if(ef.alpha > 0.0f){
+            if(ef.alpha > 1.0f){
                 continue;
             }
             statusPanel->remove(ef.cmpId);

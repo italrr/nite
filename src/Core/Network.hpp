@@ -19,7 +19,7 @@
         static const UInt64 UpdatePhysicsTimeout = 32; // every 32 msecs a snapshot is sent
         static const float ClientPositionInterp = 0.18f;
         static const float ClientSpeedInterp = 0.18f;
-        static const nite::Vec2 ClientRepositionThreshold = nite::Vec2(22.5f);
+        static const nite::Vec2 ClientRepositionThreshold = nite::Vec2(32.0f);
         static const UInt32 CLIENT_VERSION = 0x0; // TODO: This is temporary
 
        /*
@@ -51,10 +51,22 @@
             nite::IP_Port cl;
             UInt64 lastRetry;
             UInt64 created;
+            bool stale;
+            void markStale(){
+                if(stale){
+                    return;
+                }
+                stale = true;
+                lastStaleTick = nite::getTicks();
+            }
+            UInt64 lastStaleTick;
             // call back mechanic for messages that depend on the delivery of others. chained-deliveries in other words
             std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> onAck;
             nite::SmallPacket onAckPayload;
             PersisentDelivey(){
+                stale = false;
+                lastStaleTick = nite::getTicks();
+                created = nite::getTicks();
                 this->onAck = [](nite::SmallPacket &payload, nite::IP_Port &cl){
                     
                 };
@@ -75,7 +87,7 @@
 
         struct Net {
             Game::RemoteClock clock;
-            Vector<Game::PersisentDelivey> deliveries;
+            Vector<Shared<Game::PersisentDelivey>> deliveries;
             unsigned state;
             UInt64 lastState;
             bool init;
@@ -84,8 +96,8 @@
             nite::FileTransfer::UDPClient ft;
             Net();
             void setState(unsigned state);
-            Game::PersisentDelivey& persSend(nite::IP_Port &client, nite::Packet &packet);
-            Game::PersisentDelivey& persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries);  
+            Shared<Game::PersisentDelivey> persSend(nite::IP_Port &client, nite::Packet &packet);
+            Shared<Game::PersisentDelivey> persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries);  
             void updateDeliveries();
             void dropPersFor(UInt64 netId);
             void dropPersForHeader(UInt64 netId, UInt16 header);
@@ -228,7 +240,7 @@
                 UINT16 ID
             */
             
-            SV_CREATE_BATCH_OBJECT, // ACK
+            SV_CREATE_OBJECT_BATCH, // ACK
             /*
                 UINT16 AMOUNT
                 0: {
@@ -246,7 +258,7 @@
                 }                
             */    
 
-            SV_DESTROY_BATCH_OBJECT, // ACK
+            SV_DESTROY_OBJECT_BATCH, // ACK
             /*
                 UINT16 AMOUNT
                 0: UINT16 ID[0]
@@ -256,18 +268,7 @@
 
              SV_CLIENT_INPUT,
             /*
-                UINT8 AMOUNT
-                0: {
-                    UINT8 KEY
-                    UINT8 TYPE
-                    UINT8 NEXT_KEY_STROKE
-                }
-                ...
-                n: {
-                    UINT8 KEY
-                    UINT8 TYPE
-                    UINT8 NEXT_KEY_STROKE
-                }
+                UINT16 COMPAT
             */    
 
             SV_UPDATE_PHYSICS_OBJECT,
@@ -277,22 +278,23 @@
                     UINT16 ID
                     FLOAT X
                     FLOAT Y
-                    FLOAT SX // SPEED
-                    FLOAT SY
+                    FLOAT XSPEED
+                    FLOAT YSPEED
                 }
                 ...
                 n: {
                     UINT16 ID
                     FLOAT X
                     FLOAT Y
-                    FLOAT SX
-                    FLOAT SY                    
+                    FLOAT XSPEED
+                    FLOAT YSPEED                  
                 }                
             */ 
 
             SV_UPDATE_WORLD_SIMULATION_PROPS, // ACK
             /*
                 FLOAT TIMESCALE
+                UINT16 TICKRATE
             */  
 
             SV_UPDATE_OBJECT_RELATIVE_TIMESCALE, // ACK

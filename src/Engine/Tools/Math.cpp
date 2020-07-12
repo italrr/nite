@@ -11,7 +11,7 @@ float nite::toRadians(float an){
 }
 
 float nite::getSign(float n){
-	return n<0 ? -1 : 1;
+	return n == 0 ? 0 : (n<0 ? -1 : 1);
 }
 
 float nite::toDegrees(float an){
@@ -97,6 +97,9 @@ bool nite::cInterp(float &x1, float x2, float _Step){ // Apply game's delta
 	}
 	float Step = 1.0f - nite::pow(1.0f - _Step, nite::getDelta() * nite::getTimescale() * 0.077f);
 	x1 = (1.0f-Step)*x1 + Step*x2;
+	if(std::isnan(x1)){
+		x1 = x2;
+	}	
 	if(abs(x1-x2)<0.10f) x1 = x2; // TODO: Check this!
 	return false;
 }
@@ -108,6 +111,9 @@ bool nite::cInterpDiscrete(float &x1, float x2, float _Step){
 	}	
 	float Step = 1.0f - nite::pow(1.0f - _Step, nite::getDelta() * 0.077f);
 	x1 = (1.0f-Step)*x1 + Step*x2;
+	if(std::isnan(x1)){
+		x1 = x2;
+	}	
 	// if(abs(x1-x2)<1.0f) x1 = x2;
 	if(abs(x1-x2)<0.10f) x1 = x2; // TODO: Check this!	
 	return false;
@@ -119,18 +125,27 @@ bool nite::cInterpAbsolute(float &x1, float x2, float Step){
 		Step = 1.0f;
 	}	
 	x1 = (1.0f-Step)*x1 + Step*x2;
+	if(std::isnan(x1)){
+		x1 = x2;
+	}	
 	if(abs(x1-x2)<1.0f) x1 = x2;
 	return false;
 }
 
 bool nite::lerpDiscrete(float &x1, float x2, float step){
 	if(x1 == x2) return true;
-	if(step > 1.0f){
+	float cpy = x1;
+	if(step > 1.0f || step <= 0.0f || std::isnan(step)){
 		step = 1.0f;
 	}	
 	float f = (1.0f - nite::pow(1.0f - step, nite::getDelta() * 0.077f));
-	// x1 = x1 + f * (x2 - x1);	
 	x1 = (x1 * (1.0 - f)) + (x2 * f);
+	if(std::isnan(x2)){
+		x2 = 0;
+	}	
+	if(std::isnan(x1)){
+		x1 = x2;
+	}
 	return false;
 }
 

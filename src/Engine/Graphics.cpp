@@ -35,6 +35,9 @@ static bool graphicsInitd = false;
 static SDL_Window *Window;
 static SDL_GLContext Context;
 static float targetExcess = 1.0f;
+static bool cl_showfps = false;
+static UInt64 lastFrameTick;
+static nite::Font debugFont;
 void flushTexture();
 void flushFont();
 
@@ -75,8 +78,10 @@ static nite::Console::Result cfWriteconfig(Vector<String> params){
 static auto cfWriteConfigIns = nite::Console::CreateFunction("write_config", &cfWriteconfig);
 
 static void cfWriteconfigChanged(Vector<String> params){
-  writeConfigFile();
+	SDL_GL_SetSwapInterval(enableVSync ? 1 : 0);
+  	writeConfigFile();
 	nite::print("restart to see changes. type command 'restart'");
+	
 }
 static nite::Console::CreateProxy cpRenWidth("ren_width", nite::Console::ProxyType::Float, sizeof(float), &size.x, &cfWriteconfigChanged);
 static nite::Console::CreateProxy cpRenHeight("ren_height", nite::Console::ProxyType::Float, sizeof(float), &size.y, &cfWriteconfigChanged);
@@ -87,6 +92,7 @@ static nite::Console::CreateProxy cpRenVsync("ren_vsync", nite::Console::ProxyTy
 static nite::Console::CreateProxy cpRenBorderless("ren_borderless", nite::Console::ProxyType::Bool, sizeof(bool), &enableBorderless, &cfWriteconfigChanged);
 static nite::Console::CreateProxy cpRenResizeable("ren_resizeable", nite::Console::ProxyType::Bool, sizeof(bool), &enableResizable, &cfWriteconfigChanged);
 static nite::Console::CreateProxy cpRenTargetExcess("ren_targetexcess", nite::Console::ProxyType::Float, sizeof(float), &targetExcess, &cfWriteconfigChanged);
+static nite::Console::CreateProxy cpClShowFps("cl_showfps", nite::Console::ProxyType::Bool, sizeof(bool), &cl_showfps);
 
 static void setupTarget(){
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -246,7 +252,7 @@ int nite::getDepth(){
 }
 
 unsigned nite::getRenderTargetTextureId(unsigned T){
-
+	return 0;
 }
 
 void nite::setRenderTarget(unsigned T){
@@ -347,6 +353,7 @@ struct RenderTarget {
 			realZoom = minZoom;
 		}
 		Zoom = realZoom;
+		return Zoom;
 	}
 	void setAngle(float A){
 		angle = A;
@@ -597,6 +604,9 @@ void nite::Batch::add(Renderable *object){
 
 void nite::Batch::begin(){
 	if(objectId <= -1) return;
+	if(currentBatch != NULL){
+		nite::print("bad Batch::begin(): check your code, a batch is not closing properly");
+	}
 	currentBatch = this;
 }
 
@@ -781,6 +791,9 @@ RenderableBatch *nite::Batch::draw(float x, float y, float w, float h, float ori
 
 void nite::Batch::flush(){
 	if(objectId <= -1) return;
+	if(currentBatch != NULL){
+		nite::print("bad Batch::flush(): check your code, a batch is not closing properly");
+	}	
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, batches[objectId].framebufferId);
 	setupTarget(size.x, size.y);
 	for(int i = 0; i < objects.size(); ++i){
@@ -953,6 +966,16 @@ void nite::graphicsRender(){
   	currentDelta = nite::getTicks() - initDelta;
 	initDelta = nite::getTicks();
 
+	if(cl_showfps){
+		UInt64 time = nite::getTicks()-lastFrameTick;
+		lastFrameTick = nite::getTicks();
+		String text = "delta "+nite::toStr((size_t)time)+" ms";
+		int w = debugFont.getWidth("delta 1000 ms");
+		nite::setRenderTarget(nite::RenderTargetPosterioriEngine);
+		nite::setColor(time < 16 ? nite::Color(1.0f, 0.0f, 0.0f, 1.0f) : nite::Color(0.0f, 1.0f, 0.0f, 1.0f));
+		debugFont.draw(text, nite::getWidth()-w * 2.0f, 0.0f + debugFont.getHeight());
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0.77, 0.77, 0.77, 1.0);
 	for(int c = 0; c < RenderTargetNumber; ++c){
@@ -1055,8 +1078,12 @@ bool nite::isGraphicsInit(){
 	return graphicsInitd;
 }
 
-void nite::graphicsInit(){
+void nite::updateDelta(){
 	initDelta = nite::getTicks();
+}
+
+void nite::graphicsInit(){
+	nite::updateDelta();
 	nite::printInit();
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0){
 		String err = SDL_GetError();
@@ -1146,14 +1173,14 @@ void nite::graphicsInit(){
 	graphicsInitd = true;
 
 	setupOpenGL();
-
+	SDL_GL_SetSwapInterval(enableVSync ? 1 : 0);
 	for(int c = 0; c < RenderTargetNumber; ++c){
 		targets[c].init();
 	}
 
 	nite::print("nite engine | OS "+niteCurrentPlatform);
 	nite::print("graphics init "+size.str()+" ("+(enableFullscreen ? String("fullscreen") : String("windowed"))+")");
-
+	debugFont.load("data/font/VeraMono.ttf", 18 * nite::getGeneralScale());
 }
 
 void nite::graphicsEnd(){

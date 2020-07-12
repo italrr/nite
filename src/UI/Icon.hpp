@@ -22,8 +22,8 @@
             int total;
             Dict<int, Game::Icon> icons;    
             void load(const nite::Texture &source, nite::Vec2 iconSize);
-            Game::Icon &getIcon(int id);
-            Game::Icon &getIcon(int x, int y);
+            Game::Icon getIcon(int id);
+            Game::Icon getIcon(int x, int y);
         };
 
     }

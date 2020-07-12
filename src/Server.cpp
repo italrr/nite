@@ -38,7 +38,7 @@ int main(int argc, char* argv[]){
     UInt8 mapNumber = 1; // TODO: this is 4, in production
     String name = "LID-Dedi-"+nite::getTimestamp()+"-"+nite::toStr(nite::randomInt(25000, 75000));
     UInt64 timeout = nite::getTicks();
-    static UInt64 ticktime = 1000 / 30; 
+    static UInt64 ticktime = 1000 / 60; 
     auto &sv = game.localSv;
     sv.preinit();
 

@@ -1,9 +1,12 @@
+#include <cmath>
+
 #include "../Engine/Graphics.hpp"
 #include "../Engine/Console.hpp"
 #include "../Engine/Input.hpp"
 #include "../Engine/View.hpp"
 #include "Camera.hpp"
 #include "Client.hpp"
+#include "../Entity/Base.hpp"
 #include "../Game.hpp"
 static bool cameraFreeroam = false;
 static nite::Console::CreateProxy cpAnDatTo("cl_camera_freeroam", nite::Console::ProxyType::Bool, sizeof(bool), &cameraFreeroam);
@@ -70,11 +73,14 @@ void Game::Camera::update(nite::Vec2 &v, float mu){
 	nite::Vec2 p = nite::getView(nite::RenderTargetGame);
 	nite::Vec2 k = v - nite::getSize() * 0.5f;
 	p.lerpDiscrete(k, mu);
+	if(std::isnan(v.x) || std::isnan(v.y)){
+		return;
+	}
 	setViewPosition(p, nite::RenderTargetGame);
 }
 
 void Game::Camera::update(nite::Vec2 &v){
-	update(v, 0.15f);
+	update(v, 0.75f);
 }
 
 void Game::Camera::update(){	
@@ -100,9 +106,9 @@ void Game::Camera::update(){
 		return;
 	}
 	nite::setZoom(nite::RenderTargetGame, client->igmenu.open ? 0.60f : 0.70f);
-	auto it = client->world.objects.find(followId);
-	if(it != client->world.objects.end()){
-		update(it->second->position);
+	auto ent = client->getEntity(followId);
+	if(ent != NULL){
+		update(ent->lerpPosition);
 	}
 }
 

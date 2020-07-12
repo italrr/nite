@@ -136,6 +136,7 @@ void nite::ParticleEmitter::render(float x, float y){
 int nite::ParticleDevice::emit(nite::ParticleEmitter &emitter){
     emitter.initTime = nite::getTicks();
     emitters[++lastId] = emitter;
+    return lastId;
 }
 
 void nite::ParticleDevice::render(float x, float y){

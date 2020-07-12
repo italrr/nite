@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "Object.hpp"
 #include "World.hpp"
 #include "Types.hpp"
@@ -41,32 +43,20 @@ nite::PhysicsObject::PhysicsObject(){
 	position.set(0.0f);
 }
 
-void nite::PhysicsObject::move(float an, float mod){
-	float x = nite::cos(an) * mod;
-	float y = nite::sin(an) * mod;
-	speed.x += x;
-	speed.y += y;
-	if(x < 0 && speed.x < x || x > 0 && speed.x > x) speed.x = x;
-	if(y < 0 && speed.y < y || y > 0 && speed.y > y) speed.y = y;
-}
+// used for self-moving objects
+void nite::PhysicsObject::move(const nite::Vec2 &speed){
+	this->speed = speed;
 
-void nite::PhysicsObject::push(float angle, float force){
-	float _f = (force / mass);
-	float x = nite::cos(angle) * _f;
-	float y = nite::sin(angle) * _f;
-	speed.x += x;
-	speed.y += y;
 }
 
 bool nite::PhysicsObject::isCollidingWith(nite::PhysicsObject *other){
-	return ((position.x + size.x * 0.5 > other->position.x-other->size.x * 0.5 &&
-	position.x - size.x * 0.5 < other->position.x+other->size.x * 0.5) &&
-	(position.y + size.y * 0.5 > other->position.y-other->size.y * 0.5 &&
-	position.y - size.y * 0.5 < other->position.y+other->size.y * 0.5));
+	return ((position.x + size.x > other->position.x &&
+	position.x  < other->position.x + other->size.x) &&
+	(position.y + size.y > other->position.y &&
+	position.y < other->position.y+other->size.y));
 }
 
 float nite::PhysicsObject::getDistance(nite::PhysicsObject *other){
-	//return (other->position.x - position.x) * (other->position.x - position.x) + (other->position.y - position.y) * (other->position.y - position.y);
 	return nite::sqrt((other->position.x - position.x) * (other->position.x - position.x) + (other->position.y - position.y) * (other->position.y - position.y));
 }
 
@@ -84,7 +74,7 @@ bool nite::PhysicsObject::isCollidingWithExcept(const Vector<nite::PhysicsObject
 			if(ignores[i] == ref){
 				return true;
 			}
-		}
+		}	
 		return false;
 	};
 	if(container == NULL) return false;

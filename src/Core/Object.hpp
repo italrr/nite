@@ -44,11 +44,18 @@
         struct NetWorld;
         struct Server;
         struct Net;
+
+        struct PredictFragment {
+            nite::Vec2 pos;
+            UInt32 order;
+        };
+
         struct NetObject : nite::PhysicsObject {
             UInt8 objType;
             UInt16 sigId;
             nite::Vec2 lerpPosition; // client side position interpolation
             nite::Vec2 lerpSpeed;
+            nite::Vec2 nextPosition;
             Game::NetWorld *container;
             Game::Server *sv;
             Game::Net *net;
@@ -56,6 +63,9 @@
             nite::Vec2 lqPos; // last valid quadrant position
             void updateQuadrant();
             void clearQuadrant();
+
+            Vector<Game::PredictFragment> snapshots;
+            
             NetObject(){
                 container = NULL;
                 sv = NULL;
@@ -64,10 +74,11 @@
                 objType = Game::ObjectType::Base;
             }
 
+            void snapPosition();
             void setPosition(const nite::Vec2 &p);
-
             void setPosition(float x, float y){
                 setPosition(nite::Vec2(x, y));
+                updateQuadrant();
             }
 
             // the idea behind these is that we'll be updating

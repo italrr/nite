@@ -75,9 +75,9 @@
             }
 			virtual void onRecalculateStat(EntityBase *owner){}             
             virtual void passive(Game::EntityBase *who) {}
-            virtual void beforeUse(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
-            virtual void afterUse(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
-            virtual bool use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) {}
+            virtual void beforeUse(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) { }
+            virtual void afterUse(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) { }
+            virtual bool use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at) { return true; }
             virtual bool isReady(EntityBase *who);
             virtual UInt64 getCooldown(EntityBase *who);
             virtual void writeUpdate(nite::Packet &packet);

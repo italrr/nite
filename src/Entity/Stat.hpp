@@ -79,6 +79,8 @@
 						return "Intelligence";
 					case Charisma: 
 						return "Charisma";																						
+					default: 
+						return "Undefined";
 				}
 			}
 		}		
@@ -159,8 +161,9 @@
 			void resetBaseStat(UInt8 type);
 			virtual void resetComplexStats();
 			void fullHeal();
-			void heal(UInt32 hp, UInt32 mana, UInt32 stamina);
-			bool lvUp();       
+			bool heal(UInt32 hp, UInt32 mana, UInt32 stamina);
+			bool lvUp();
+			bool lvUp(UInt8 lvs);
             void setupStat(UInt16 lv);
         };
 

@@ -26,9 +26,6 @@ void nite::IndexedFile::refresh(const String &path){
     this->hash = nite::hashFile(path);
     this->size = nite::fileSize(path);
     this->lastRead = nite::getTicks();
-    if(path == "./data/texture/overworld//player_sheet.png"){
-        nite::print(path+" "+hash);
-    }
     autotag();
 }
 

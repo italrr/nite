@@ -31,6 +31,7 @@ void nite::Packet::copy(const Packet &other){
 
 nite::Packet& nite::Packet::operator= (const nite::Packet &other){
 	copy(other);
+	return *this;
 }
 
 void nite::Packet::clear(){

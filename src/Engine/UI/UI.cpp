@@ -157,7 +157,7 @@ static nite::Console::Result cfUIKill(Vector<String> params){
 			return nite::Console::Result("killed '"+win->getTitle()+"' id was: "+nite::toStr(win->id), nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
 		}
 	}
-
+    return nite::Console::Result();
 }
 static auto cfUiKillIns = nite::Console::CreateFunction("ui_kill", &cfUIKill); 
 static auto cfUICloseIns = nite::Console::CreateFunction("ui_close", &cfUIKill); 
@@ -250,6 +250,7 @@ static float expression(const String &input, Shared<nite::BaseUIComponent> &comp
         if(tok == "hheight"){
             return component->getTopHeadComponent()->computeSize().y;
         }        
+        return 0.0f;
     };
     auto parseToken = [&](const String &token){
         if(token.length() == 0) return 0.0f;
@@ -421,6 +422,7 @@ static Shared<nite::LayoutSystemUI> _parseLayout(const Jzon::Node &_node, Jzon::
     if(layout == "inline"){  
         return Shared<nite::LayoutSystemUI>(new nite::Layout::Inline());    
     }
+    return Shared<nite::LayoutSystemUI>(NULL);
 }
 
 static nite::Color _parseColor(const String &name, const Jzon::Node &_node, Jzon::Node *style, const nite::Color &contingency, Shared<nite::BaseUIComponent> &component){
@@ -478,6 +480,7 @@ static nite::Texture _parseImage(const String &name, Jzon::Node &_node, Jzon::No
     if(!node.has(name) || (node.has(name) && node.get(name).isObject())){
         return nite::Texture();
     }
+    return nite::Texture();
 }
 
 struct ShaderPair {

@@ -10,13 +10,19 @@
 			Game::Client client;
 			Game::Server localSv;
 			bool isRunning;
+			pthread_t svThread; 
+			UInt64 svLastTick;
+			UInt64 svTickRate;
+			nite::StepTimer stepGeneralTimer;
+			nite::StepTimer drawGeneralTimer;
+
 			void start();
 			void update();
 			void render();
 			void end();
 			void onEnd();
-			nite::StepTimer stepGeneralTimer;
-			nite::StepTimer drawGeneralTimer;
+			void spawnServerThread();
+			void killServerThread();
 		};
 
 		Game::GameCore *getGameCoreInstance();

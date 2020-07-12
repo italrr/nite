@@ -15,23 +15,40 @@ static void notifyEntityDeath(Game::EntityBase *ent){
     }
 }
 
-void Game::EntityBase::entityMove(float angle, float mod, bool holdStance){ 
+Game::EntityBase::EntityBase(){
+	this->isWalking = false;
+	this->isCasting = false;
+	this->effectStat.owner = this;
+	this->skillStat.owner = this;
+	this->invStat.owner = this;
+	this->lastUpdateStats = nite::getTicks();
+	this->objType = ObjectType::Entity;
+	this->currentCasting = Shared<Game::EntityCasting>(NULL);
+	setState(EntityState::IDLE, EntityStateSlot::MID, 0);
+	setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);
+	walkStepTick = 0;
+}
+
+void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // more like hold direction
 	if(healthStat.dead){
 		return;
 	}
-	if(!holdStance && (nite::toDegrees(angle) <= 45 || nite::toDegrees(angle) >= 315)){
+	if(nite::getTicks()-lastWalkTime < walkPushRate){
+		return;
+	}	
+	if(!holdStance && dir.x > 0){
 		faceDirection = EntityFacing::Right;
 	}
-	if(!holdStance && (nite::toDegrees(angle) >= 135 && nite::toDegrees(angle) <= 225)){
+	if(!holdStance && dir.x < 0){
 		faceDirection = EntityFacing::Left;
 	}
-	// isWalking = true;
-	// walkingTimeout = nite::getTicks();
 	if(state[EntityStateSlot::BOTTOM] != EntityState::WALKING){
 		setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
 	}
+	++walkStepTick;
+	lastWalkTime = nite::getTicks();
 	isWalking = true;
-	move(angle, mod + 0.25f * complexStat.walkRate);
+	move(dir);
 }
 
 void Game::EntityBase::kill(){
@@ -46,19 +63,20 @@ void Game::EntityBase::kill(){
 void Game::EntityBase::onCreate(){
     unmovable = false;
     solid = true;
-    friction = 0.25f; 
+    friction = 0.87f; 
     mass = 2.8f;
     healthStat.dead = false;
-    size.set(128, 184);
-	//* 0.75f
-    walkPushRate = 6.5f;
+    size.set(128, 128);
+    walkPushRate = 200; // one unit every 150 msecs
+	lastWalkTime = nite::getTicks();
     name = "Base Entity Type";  
 }
 
 void Game::EntityBase::printInfo(){
+	String p = this->position.str();
 	#define str nite::toStr
 	String ms = str(GAME_MAX_STAT);
-	nite::print("ID "+str(id)+" | Name: "+name+" | LV "+str(healthStat.lv)+" | Carry "+str(complexStat.maxCarry));
+	nite::print("ID "+str(id)+" | Name: "+name+" | LV "+str(healthStat.lv)+" | Carry "+str(complexStat.maxCarry)+" | Position "+p);
 	nite::print("HP "+str(healthStat.maxHealth)+" | Mana "+str(healthStat.maxMana)+" | Stamina "+str(healthStat.maxStamina)+" | StatPoints "+str(baseStat.statPoints));
 	nite::print("Str "+str(baseStat.strAdd)+"/"+ms+" | Agi "+str(baseStat.agiAdd)+"/"+ms+
 	" | Dex "+str(baseStat.dexAdd)+"/"+ms+" | Endurance "+str(baseStat.enduAdd)+"/"+ms+
@@ -81,12 +99,14 @@ void Game::EntityBase::draw(){
 	UInt8 numbs[AnimPart::total] = {stNum[EntityStateSlot::BOTTOM], stNum[EntityStateSlot::MID], 0};
 	anim.setState(anims, numbs);
 
+	nite::Vec2 rp = lerpPosition + size * 0.5f;
+
     nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-	int bodyDepth = -position.y - anim.bodyDepthOffset;
+	int bodyDepth = -rp.y - anim.bodyDepthOffset;
 	nite::setDepth(bodyDepth);
 	float reversed = faceDirection == EntityFacing::Left ? -1.0f : 1.0f;
-	auto ref = anim.batch.draw(position.x, position.y - anim.bodyDepthOffset * (1.0f/3.0f), anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);
+	auto ref = anim.batch.draw(rp.x, rp.y - anim.bodyDepthOffset * (1.0f/3.0f), anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);
 
 	bool castingSt = state[EntityStateSlot::MID] == EntityState::CASTING && castingMsg.get() != NULL;
 	nite::cInterpDiscrete(castingMsgAlpha, castingSt ? 100.0f : 0.0f, 0.30f);
@@ -129,7 +149,7 @@ void Game::EntityBase::draw(){
 			// 	ref->apply(dummy, uni);
 			// }
 		};
-		renderPanel(position + nite::Vec2(0.0f, -size.y * 0.55f));
+		renderPanel(rp + nite::Vec2(0.0f, -size.y * 0.55f));
 	}
 	if(state[EntityStateSlot::MID] != EntityState::CASTING && castingMsg.get() != NULL){
 		if(castingMsg->visible){
@@ -139,7 +159,7 @@ void Game::EntityBase::draw(){
 
 	nite::cInterpDiscrete(castingBall.alpha, castingSt ? 100.f : 0.0f, 0.35f);
 	if(castingBall.alpha > 0.0f){
-		castingBall.draw(position + nite::Vec2(0.0f, -0.35f * size.y)); // TODO: load head position from json
+		castingBall.draw(rp + nite::Vec2(0.0f, -0.35f * size.y)); // TODO: load head position from json
 	}
 	nite::setDepth(nite::DepthMiddle);
 }
@@ -190,11 +210,12 @@ void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n){
 		n = n % nanim->n;
 	}
 	bool update = false;
-	if(state[slot] != nstate || stNum[slot] != n){
+	if(state[slot] != nstate){
 		update = true;
 	}
 	state[slot] = nstate;
 	lastStateTime[slot] = nite::getTicks();	
+	lastFrameTime[slot] = nite::getTicks();	
 	stNum[slot] = n;
 	// issue anim update to clients
 	if(update && sv != NULL){
@@ -209,6 +230,14 @@ void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n){
 		// TODO: filter by whether this entity is actually in the clients view
 		sv->sendAll(stance);
 	}
+}
+
+void Game::EntityBase::switchFrame(UInt8 slot, UInt8 n){
+	if(slot >= EntityStateSlot::total){
+		return;
+	}
+	lastFrameTime[slot] = nite::getTicks();	
+	stNum[slot] = n;
 }
 
 void Game::EntityBase::throwMelee(float x, float y){
@@ -230,14 +259,12 @@ void Game::EntityBase::updateStance(){
 				if(canim == NULL){
 					break;
 				}
-				UInt64 walkRateDiff = complexStat.walkRate * 8;
-				UInt64 walkAnimTime = canim->spd - (walkRateDiff > walkAnimTime ? ((UInt64)canim->spd*0.05f) : walkRateDiff);
-				UInt64 currentTime = nite::getTicks()-lastStateTime[EntityStateSlot::BOTTOM];
-				if(!isWalking && currentTime > walkAnimTime){
+
+				if(!isWalking && nite::getTicks()-lastFrameTime[EntityStateSlot::BOTTOM] > 250){
 					setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);
 				}else
-				if(currentTime > walkAnimTime){
-					setState(EntityState::WALKING, EntityStateSlot::BOTTOM, stNum[EntityStateSlot::BOTTOM] + 1);
+				if(isWalking){
+					switchFrame(EntityStateSlot::BOTTOM, walkStepTick % 2);
 				}
 			} break;
 			case EntityState::JUMPING: {
@@ -266,7 +293,7 @@ void Game::EntityBase::updateStance(){
 				switch(stNum[EntityStateSlot::MID]){
 					case 0:{
 						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > canim->spd){
-							setState(EntityState::MELEE_NOWEAP, EntityStateSlot::MID, stNum[EntityStateSlot::MID] + 1);
+							switchFrame(EntityStateSlot::MID, stNum[EntityStateSlot::MID] + 1);
 						}
 					} break;
 					case 1: {

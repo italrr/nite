@@ -204,6 +204,23 @@ bool Game::Stat::lvUp(){
 	return true;
 }
 
+bool Game::Stat::lvUp(UInt8 lvs){
+	if(healthStat.dead){
+		return false;
+	}	
+	for(int i = 0; i < lvs; ++i){
+		if(healthStat.lv >= GAME_MAX_LEVEL){
+			break;
+		}		
+		++healthStat.lv;
+		baseStat.statPoints += GAME_STAT_POINTS_PER_LV;
+		healthStat.exp = 0;
+		healthStat.nextExp = nite::ceil((healthStat.lv + 1) * GAME_STAT_BASE_SCALE * 250);
+	}
+	recalculateStats();
+	return true;
+}
+
 void Game::Stat::setupStat(UInt16 lv){
 	healthStat.lv = 0;
 	healthStat.exp = 0;
@@ -225,9 +242,9 @@ void Game::Stat::setupStat(UInt16 lv){
 	fullHeal();
 }
 
-void Game::Stat::heal(UInt32 hp, UInt32 mana, UInt32 stamina){
+bool Game::Stat::heal(UInt32 hp, UInt32 mana, UInt32 stamina){
 	if(healthStat.dead){
-		return;
+		return false; 
 	}
 		
 	healthStat.health += hp;
@@ -244,4 +261,7 @@ void Game::Stat::heal(UInt32 hp, UInt32 mana, UInt32 stamina){
 	if(healthStat.stamina > healthStat.maxStamina){
 		healthStat.stamina = healthStat.maxStamina;
 	}		
+
+	recalculateStats();
+	return true;
 }

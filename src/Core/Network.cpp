@@ -13,29 +13,29 @@ void Game::Net::setState(unsigned state){
     this->state = state;
 }
 
-Game::PersisentDelivey& Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet){
+Shared<Game::PersisentDelivey> Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet){
     return persSend(client, packet, 250, 3);
 }
 
-Game::PersisentDelivey& Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries){
+Shared<Game::PersisentDelivey> Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries){
     if(!init){
         nite::print("persend when net is not init");
     }    
     UInt64 netId = client.address + client.port + sock.sock;
     dropPersForHeader(netId, packet.getHeader()); // remove older versions of this packet
-    Game::PersisentDelivey pd;
-    pd.retryInterval = retryInterval;
-    pd.retries = retries;
-    pd.retry = 0; 
-    pd.netId = netId;
-    pd.packet = packet;
-    pd.cl = client;
-    pd.order = packet.getOrder();
-    pd.lastRetry = nite::getTicks();
-    pd.created = nite::getTicks();
+    auto pd = Shared<Game::PersisentDelivey>(new Game::PersisentDelivey());
+    pd->retryInterval = retryInterval;
+    pd->retries = retries;
+    pd->retry = 0; 
+    pd->netId = netId;
+    pd->packet = packet;
+    pd->cl = client;
+    pd->order = packet.getOrder();
+    pd->lastRetry = nite::getTicks();
+    pd->created = nite::getTicks();
     sock.send(client, packet);
     deliveries.push_back(pd);
-    return deliveries[deliveries.size() - 1];
+    return pd;
 }
 
 void Game::Net::updateDeliveries(){
@@ -45,23 +45,30 @@ void Game::Net::updateDeliveries(){
     }    
     // send deliveries
     for(int i = 0; i < deliveries.size(); ++i){
-        auto &del = deliveries[i];
-        if(nite::getTicks()-del.lastRetry > del.retryInterval){
-            ++del.retry;
-            del.lastRetry = nite::getTicks();
-            sock.send(del.cl, del.packet);
+        auto del = deliveries[i].get();
+        if(!del->stale && nite::getTicks()-del->lastRetry > del->retryInterval){
+            ++del->retry;
+            del->lastRetry = nite::getTicks();
+            sock.send(del->cl, del->packet);
         }
     }
-    // drop expired ones
+    // mark expired ones as stale
     for(int i = 0; i < deliveries.size(); ++i){
-        auto &del = deliveries[i];
+        auto del = deliveries[i].get();
         // only drops packages with positive retries
         // also, if a client doesn't respond a packet after 30 seconds of retries the packet is dropped
-        if(del.retries != -1 && del.retry >= del.retries || (nite::getTicks()-del.created  > 30 * 1000)){ 
+        if(!del->stale && del->retries != -1 && del->retry >= del->retries || (nite::getTicks()-del->created  > 60 * 1000)){ 
+            del->markStale();
+        }
+    }   
+    // drop stale ones
+    for(int i = 0; i < deliveries.size(); ++i){
+        auto del = deliveries[i].get();
+        if(del->stale && nite::getTicks()-del->lastStaleTick > 10 * 1000){ 
             deliveries.erase(deliveries.begin() + i);
             --i;
         }
-    }    
+    }        
 }
 
 void Game::RemoteClock::update(){
@@ -77,20 +84,18 @@ void Game::RemoteClock::set(UInt64 time){
 
 void Game::Net::dropPersFor(UInt64 netId){
     for(int i = 0; i < deliveries.size(); ++i){
-        auto &del = deliveries[i];
-        if(del.netId == netId){
-            deliveries.erase(deliveries.begin() + i);
-            --i;
+        auto del = deliveries[i].get();
+        if(!del->stale && del->netId == netId){
+            del->markStale();
         }
     }
 }
 
 void Game::Net::dropPersForHeader(UInt64 netId, UInt16 header){
     for(int i = 0; i < deliveries.size(); ++i){
-        auto &del = deliveries[i];
-        if(del.netId == netId && del.packet.getHeader() == header){
-            deliveries.erase(deliveries.begin() + i);
-            --i;
+        auto del = deliveries[i].get();
+        if(!del->stale && del->netId == netId && del->packet.getHeader() == header){
+            del->markStale();
         }
     }
 }
@@ -102,20 +107,20 @@ void Game::Net::ack(nite::Packet &packet){
     UInt32 order;
     packet.read(&order, nite::NetworkOrderSize);
     for(int i = 0; i < deliveries.size(); ++i){
-        if(deliveries[i].order == order){
-            deliveries[i].onAck(deliveries[i].onAckPayload, deliveries[i].cl);
-            deliveries.erase(deliveries.begin() + i);
-            --i;
+        auto pck = deliveries[i].get();
+        if(!pck->stale && pck->order == order){
+            pck->onAck(pck->onAckPayload, pck->cl);
+            pck->markStale();
         }
     }
 }
 
 void Game::Net::bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda, nite::SmallPacket packet){
     for(int i = 0; i < deliveries.size(); ++i){
-        auto &pck = deliveries[i];
-        if(pck.packet.getHeader() == header){
-            pck.onAckPayload = packet;
-            pck.onAck = lambda;
+        auto pck = deliveries[i].get();
+        if(!pck->stale && pck->packet.getHeader() == header){
+            pck->onAckPayload = packet;
+            pck->onAck = lambda;
         }
     }
 }
@@ -123,9 +128,9 @@ void Game::Net::bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket
 // this one is to avoid copying nite::SmallPacket if it is not needed
 void Game::Net::bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda){
     for(int i = 0; i < deliveries.size(); ++i){
-        auto &pck = deliveries[i];
-        if(pck.packet.getHeader() == header){         
-            pck.onAck = lambda;
+        auto pck = deliveries[i].get();
+        if(!pck->stale && pck->packet.getHeader() == header){         
+            pck->onAck = lambda;
         }
     }
 }

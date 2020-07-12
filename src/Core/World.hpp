@@ -8,30 +8,37 @@
 
 		struct NetWorld {
 			std::unordered_map<UInt16, Shared<Game::NetObject>> objects;	
-			Vector<UInt16> updateQueue;	
+			Dict<UInt16, Game::NetObject*> updateQueue;	
 			Vector<UInt16> removeQueue;
+			UInt64 tickrate;
+			float currentTickRate;
+			UInt64 delta;
+			UInt64 lastTick;
 			NetWorld();
 			float timescale;
 			bool debugPhysics;
+			UInt32 snapshotOrder;
 			void clear();
 			bool exists(UInt16 id);
-			void updateObjectPhysics(Game::NetObject *obj, float x, float y);
+			void updateObject(Game::NetObject *obj);
+			float testSweptAABB(Game::NetObject *a, Game::NetObject *b, const nite::Vec2 &diff, nite::Vec2 &normal);
 			UInt16 add(Shared<Game::NetObject> &obj, int useId = -1);
 			void remove(UInt16 objectId);
 			void remove(Game::NetObject *obj);
-			Shared<Game::NetObject> get(UInt16 id);
+			Game::NetObject *get(UInt16 id);
 			void update();
 			void step();
 			void render();
 
-			
+			nite::Vec2 gridSpec; // gridsped for grid positioning
+			// cell grid is smaller (or should be)
 			Game::NetObject **cells; 
 			int ctotal;
 			int cwidth;
 			int cheight;
 			int cusize;
 			nite::Vec2 size;
-			void setSize(int w, int h, int unitsize);
+			void setSize(int w, int h, int unitsize, float gridSpec);
 			void getQuadrant(int x, int y, int w, int h, Vector<Game::NetObject*> &holder);
 			~NetWorld();
 		};

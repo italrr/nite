@@ -98,30 +98,23 @@
         };
 
         struct EntityBase : Game::NetObject, Game::Stat {
-            EntityBase(){
-                this->isWalking = false;
-                this->isCasting = false;
-                this->effectStat.owner = this;
-                this->skillStat.owner = this;
-                this->invStat.owner = this;
-                this->lastUpdateStats = nite::getTicks();
-                this->objType = ObjectType::Entity;
-                this->currentCasting = Shared<Game::EntityCasting>(NULL);
-                setState(EntityState::IDLE, EntityStateSlot::MID, 0);
-                setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);
-            }
+            EntityBase();
             Shared<Game::EntityCasting> currentCasting;
             UInt8 state[EntityStateSlot::total];
             UInt8 stNum[EntityStateSlot::total];
             UInt64 lastStateTime[EntityStateSlot::total];
+            UInt64 lastFrameTime[EntityStateSlot::total];
             void setState(UInt8 nstate, UInt8 slot, UInt8 n);
+            void switchFrame(UInt8 slot, UInt8 n);
             Game::Actionable actionables[Game::EntityActionables]; // 1 2 3 4 5 keys + M1 + M2
             UInt8 faceDirection;
             Game::Anim anim;
             bool isWalking;
             bool isCasting;
             String name;
-            float walkPushRate;
+            UInt64 walkPushRate;
+            UInt64 lastWalkTime;
+            int walkStepTick;
             bool dead;
             float castingMsgAlpha;
             Gfx_CastingBall castingBall;
@@ -131,7 +124,7 @@
             void onCreate();
             void draw();
             void solveCasting();
-            void entityMove(float angle, float mod, bool holdStance);
+            void entityMove(const nite::Vec2 &dir, bool holdStance);
             void loadAnim();
             void entityStep();
             void printInfo();

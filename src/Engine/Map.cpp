@@ -205,11 +205,13 @@ bool nite::Map::load(const String &path){
 
     // TODO: `nav`
     // TODO: `fragments`
+    return true;
 }
 
 
 bool nite::Map::compose(const nite::Map &fragment){
     // TODO
+    return false;
 }
 
 bool nite::Map::setup(int n, const nite::Vec2 &size, const nite::Vec2 &tileSize, const nite::Vec2 &margin, const nite::Vec2 &spacing){

@@ -176,7 +176,7 @@ size_t nite::UDPSocket::recv(IP_Port &sender, char *buffer){
 	if(s > 0){
 		Sx += s;
 	}
-	return s;
+	return s < 0 ? 0 : s;
 }
 	
 size_t nite::UDPSocket::recv(IP_Port &sender, nite::Packet &buffer){

@@ -160,6 +160,7 @@
                 }
                 String getStatus(Game::EntityBase *owner);
                 void setup(UInt16 amnt, UInt64 time);
+                void setup();                
                 bool step(Game::EntityBase *owner);
             };             
         }

@@ -6,8 +6,6 @@
     #include "../Engine/Packets.hpp"
 
     namespace Game {
-
-        static const UInt8 InputMaxFrameBuffer = 1;
     
         namespace Key {
             enum Key : UInt8 {
@@ -21,8 +19,10 @@
                 k4,
                 k5,
                 k6,
-                k7
+                k7,
+                SPACE
             };
+            static const UInt8 total = 12;
         }
 
         namespace PressType {
@@ -32,20 +32,6 @@
                 Released
             };
         }
-
-        struct InputFrameBuffer {
-            UInt8 key;
-            UInt8 type;
-            UInt64 lastStroke; // it should never be more than 255 msecs, thats why using int8
-            InputFrameBuffer(){
-
-            }
-            InputFrameBuffer(UInt8 key, UInt8 type, UInt8 lastStroke){
-                this->key = key;
-                this->type = type;
-                this->lastStroke = lastStroke;
-            }
-        };
 
         static const Dict<unsigned, UInt8> InputDefaultMapping = { 
             { nite::keyW, Key::UP },
@@ -58,36 +44,25 @@
             { nite::key4, Key::k4 },
             { nite::key5, Key::k5 },
             { nite::butLEFT, Key::k6 },
-            { nite::butRIGHT, Key::k7 }
+            { nite::butRIGHT, Key::k7 },
+            { nite::keySPACE, Key::SPACE }
         };
 
-        struct Input {
+        struct InputCompacter {
+            UInt8 states[Key::total];
+            bool changed;
+            InputCompacter();
+            bool isKeyPress(UInt8 key);
+            UInt16 getCompat();
+            void loadCompat(UInt16 v);
+        };
+
+        struct Input : InputCompacter {
+            UInt64 lastChange;
+            UInt64 lastCheck;
             Dict<unsigned, UInt8> mapping; // nite key -> game key
-            Vector<InputFrameBuffer> buffer;
-            Dict<UInt8, UInt8> states;
-            int lastFrame;
-            UInt64 lastStroke;
-            bool capturing;
-            Vector<InputFrameBuffer> getBuffer();
             Input();
             void update(bool update);
-        };
-
-        struct InputSimulator {
-            Vector<InputFrameBuffer> queue;
-            UInt64 nextKey;
-            Dict<UInt8, UInt8> keys;
-            bool isKeyPress(UInt8 key);
-            void update();
-            InputSimulator(){
-                this->keys = {
-                    {Key::UP, PressType::Released },    {Key::DOWN, PressType::Released },  {Key::RIGHT, PressType::Released },
-                    {Key::LEFT, PressType::Released },  {Key::k1, PressType::Released },     {Key::k2, PressType::Released },
-                    {Key::k3, PressType::Released },     {Key::k4, PressType::Released },     {Key::k5, PressType::Released },
-                    {Key::k6, PressType::Released }, {Key::k7, PressType::Released }
-                };
-                nextKey = nite::getTicks();
-            }
         };
 
     }

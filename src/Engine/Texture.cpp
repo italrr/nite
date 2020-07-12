@@ -37,6 +37,7 @@ bool nite::TextureCellBatch::add(int index, nite::TextureRegionSingle *src){
 	}
 	size_t objSize = sizeof(TextureRegionSingle);
 	memcpy(cells + index * objSize, src, objSize);
+	return true;
 }
 
 void nite::TextureCellBatch::clear(){

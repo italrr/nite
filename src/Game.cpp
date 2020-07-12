@@ -100,6 +100,7 @@ void Game::GameCore::start(){
 	instance = this;
 	nite::graphicsInit();
 	nite::inputInit();
+	svTickRate = 1000 / 60;
 	isRunning = true;
 	stepGeneralTimer.name = "STEP GENERAL";
 	drawGeneralTimer.name = "DRAW GENERAL";
@@ -108,6 +109,7 @@ void Game::GameCore::start(){
 	Game::DBLoadEffect("data/db/effects.json");
 	Game::DBLoadInventory("data/db/items.json");
 	nite::setView(true, nite::RenderTargetGame);	
+	spawnServerThread();
 }
 
 void Game::GameCore::end(){
@@ -116,7 +118,7 @@ void Game::GameCore::end(){
 
 void Game::GameCore::onEnd(){
 	nite::graphicsEnd();
-	this->localSv.close();	
+	killServerThread();
 	this->client.disconnect();
 	nite::print("bye!");
 }
@@ -125,8 +127,34 @@ void Game::GameCore::update(){
 	nite::viewUpdate();
 	nite::inputUpdate();
 	this->client.update();
-	this->localSv.update();
 }
+
+static void *localSvThread(void *vargp){ 
+	auto *core = static_cast<Game::GameCore*>(vargp);
+	auto &sv = core->localSv;
+    while(true){
+		if(nite::getTicks()-core->svLastTick > core->svTickRate){
+			sv.update();
+			core->svLastTick = nite::getTicks();
+		}
+	}
+    return NULL; 
+} 
+
+void Game::GameCore::spawnServerThread(){
+	localSv.preinit();
+	localSv.setupGame("Pacifier's corner", 4, 1);	
+	pthread_create(&svThread, NULL, localSvThread, this); 
+	nite::print("spawned local server thread. tickrate "+nite::toStr(this->svTickRate)+" msecs");
+}
+
+void Game::GameCore::killServerThread(){
+	pthread_cancel(svThread);
+	pthread_join(svThread, NULL);	
+	nite::print("killed local server thread");
+	this->localSv.close();
+}
+
 
 void Game::GameCore::render(){	
 	this->client.render();

@@ -133,7 +133,7 @@ bool Game::InventoryStat::unequip(UInt16 itemId){
 }
 
 UInt16 Game::InventoryStat::add(Shared<Game::ItemBase> &item){
-	add(item, 0);
+	return add(item, 0);
 }
 
 Shared<Game::ItemBase> Game::InventoryStat::getById(UInt16 id){

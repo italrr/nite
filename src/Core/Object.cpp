@@ -29,8 +29,19 @@ void Game::NetObject::destroy(){
 
 void Game::NetObject::setPosition(const nite::Vec2 &p){
     this->position.set(p);
-    this->lerpPosition.set(p);
+    snapPosition();
+    this->lerpPosition.set(this->position);
+    this->nextPosition.set(this->position);
     updateQuadrant();
+}
+
+
+void Game::NetObject::snapPosition(){
+    if(container == NULL){
+        return;
+    }
+    position.x = nite::round(position.x / container->gridSpec.x) * container->gridSpec.x; 
+    position.y = nite::round(position.y / container->gridSpec.y) * container->gridSpec.y;     
 }
 
 void Game::NetObject::updateQuadrant(){

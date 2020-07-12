@@ -113,6 +113,8 @@ static nite::Console::Result cfDisconnect(Vector<String> params){
 static auto cfDisconnectIns = nite::Console::CreateFunction("disconnect", &cfDisconnect);
 
 Game::Client::Client() : Game::Net(){
+    nite::Console::CreateProxy clPhysicsDebug("cl_physics_debug", nite::Console::ProxyType::Bool, sizeof(bool), &world.debugPhysics);
+    nite::Console::CreateProxy clTimescale("cl_local_timescale", nite::Console::ProxyType::Float, sizeof(float), &world.timescale);
     init = false;
     clear();
 }
@@ -221,7 +223,7 @@ void Game::Client::update(){
     }
     nite::Packet handler;
     nite::IP_Port sender;
-    if(sock.recv(sender, handler)){
+    if(sock.recv(sender, handler) > 0){
         UInt64 netId = sender.address + sender.port + sock.sock;
         bool isSv = netId == this->serverId && state != Game::NetState::Disconnected;
         bool isLast = isSv && handler.getOrder() > rcvOrder;
@@ -454,36 +456,30 @@ void Game::Client::update(){
             */
             case Game::PacketType::SV_UPDATE_PHYSICS_OBJECT: {
                 // TODO: check for isLast
-                if(!isSv){ break; }  
+                if(!isSv || !isLast){ break; }  
                 UInt16 amnt;
                 handler.read(&amnt, sizeof(UInt16));
                 for(int i = 0; i < amnt; ++i){
                     UInt16 id;
-                    float x, y, sx, sy;
+                    float x, y, xspeed, yspeed;
                     handler.read(&id, sizeof(UInt16));
                     handler.read(&x, sizeof(float));
                     handler.read(&y, sizeof(float));
-                    handler.read(&sx, sizeof(float));
-                    handler.read(&sy, sizeof(float));                    
-                    auto it = world.objects.find(id);
-                    if(it != world.objects.end()){
-                        auto obj = it->second;
-                        obj->lerpPosition.set(x, y);
-                        if(nite::abs(obj->position.x - x) > ClientRepositionThreshold.x * 2){
-                            obj->setPosition(x, obj->position.y);
+                    auto obj = world.get(id);
+                    if(obj != NULL){
+                        if(obj->snapshots.size() > 25){
+                            obj->snapshots.clear();
                         }
-                        if(nite::abs(obj->position.y - y) > ClientRepositionThreshold.y * 2){
-                            obj->setPosition(obj->position.x, y);
-                        }                        
-                        obj->lerpSpeed.set(sx, sy);
-                        // if(sx == 0.0f){
-                        //     obj->speed.x = 0.0f;
-                        //     obj->position.x = x;
-                        // }
-                        // if(sy == 0.0f){
-                        //     obj->speed.y = 0.0f;
-                        //     obj->position.y = y;
-                        // }                        
+                        obj->nextPosition.set(x, y);
+                        UInt8 amnt;
+                        handler.read(&amnt, sizeof(amnt));
+                        for(int j = 0; j < amnt; ++j){
+                            Game::PredictFragment frg;
+                            handler.read(&frg.order, sizeof(frg.order));
+                            handler.read(&frg.pos.x, sizeof(frg.pos.x));
+                            handler.read(&frg.pos.y, sizeof(frg.pos.y));
+                            obj->snapshots.push_back(frg);
+                        }
                     }
                 }
             } break;  
@@ -492,7 +488,8 @@ void Game::Client::update(){
             */
             case Game::PacketType::SV_UPDATE_WORLD_SIMULATION_PROPS: {
                 if(!isSv){ break; }  
-                handler.read(&world.timescale, sizeof(float));
+                handler.read(&world.timescale, sizeof(world.timescale));
+                handler.read(&world.tickrate, sizeof(world.tickrate));
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
             } break;              
             /*
@@ -1013,20 +1010,50 @@ void Game::Client::onStart(){
     camera.start(this);
 }
 
+// void __temp();
+
 void Game::Client::game(){
+    // __temp();
     input.update(igmenu.open);
     hud.update();
     igmenu.update();
+    auto ent = getEntity(this->entityId);
+    bool isSpace = input.isKeyPress(Game::Key::SPACE);
     // local input
+    if(ent != NULL){
+        if(input.isKeyPress(Game::Key::UP) && input.isKeyPress(Game::Key::RIGHT)){
+            ent->entityMove(nite::Vec2(1.0f, -1.0f), isSpace);
+        }else
+        if(input.isKeyPress(Game::Key::DOWN) && input.isKeyPress(Game::Key::RIGHT)){
+            ent->entityMove(nite::Vec2(1.0f, 1.0f), isSpace);
+        }else
+        if(input.isKeyPress(Game::Key::UP) && input.isKeyPress(Game::Key::LEFT)){
+            ent->entityMove(nite::Vec2(-1.0f, -1.0f), isSpace);
+        }else		
+        if(input.isKeyPress(Game::Key::DOWN) && input.isKeyPress(Game::Key::LEFT)){
+            ent->entityMove(nite::Vec2(-1.0f, 1.0f), isSpace);
+        }else				
+        if(input.isKeyPress(Game::Key::UP)){
+            ent->entityMove(nite::Vec2(0.0f, -1.0f), isSpace);
+        }else
+        if(input.isKeyPress(Game::Key::RIGHT)){
+            ent->entityMove(nite::Vec2(1.0f, 0.0f), isSpace);
+        }else
+        if(input.isKeyPress(Game::Key::DOWN)){
+            ent->entityMove(nite::Vec2(0.0f, 1.0f), isSpace);
+        }else
+        if(input.isKeyPress(Game::Key::LEFT)){
+            ent->entityMove(nite::Vec2(-1.0f, 0.0f), isSpace);
+        }	
+    }
     for(auto key : this->input.mapping){
+        if(ent == NULL){
+            break;
+        }        
         auto gk = key.second;
-        auto nk = key.first;
+        auto nk = key.first;    
         bool pressed = (nk > 200 ? nite::mousePressed(nk) : nite::keyboardPressed(nk));
         if(!pressed || entityId == 0) continue;
-        auto ent = getEntity(this->entityId);
-        if(ent == NULL){
-            continue;
-        }
         Game::Actionable *act = NULL;
         auto requestUse = [&](UInt8 type, UInt32 id, UInt16 target, float x, float y){
             nite::Packet use(++this->sentOrder);
@@ -1085,32 +1112,24 @@ void Game::Client::game(){
         }
     } 
 
-    auto buffer = input.getBuffer();
-    if(buffer.size() > 0){
+
+    if(nite::getTicks()-input.lastCheck > 500 || (nite::getTicks()-input.lastChange < 20 && nite::getTicks()-input.lastCheck > 10)){
         nite::Packet pack(++sentOrder);
         pack.setHeader(Game::PacketType::SV_CLIENT_INPUT);        
-        UInt8 amnt = buffer.size();
-        pack.write(&amnt, sizeof(UInt8));
-        for(int i = 0; i < buffer.size(); ++i){
-            pack.write(&buffer[i].key, sizeof(UInt8));
-            pack.write(&buffer[i].type, sizeof(UInt8));
-            pack.write(&buffer[i].lastStroke, sizeof(UInt8));
-        }
+        auto compat = input.getCompat();
+        pack.write(&compat, sizeof(compat));
         sock.send(this->sv, pack);
+        input.lastCheck = nite::getTicks();
     } 
-    // client-side interpolation for new-position smoothing-out (lag compensation)
-    // might make client to be a few milliseconds behind, which is concerning
-    // we'll have to test this out in the future
-    
+
+
     for(auto &obj : world.objects){
-        if(obj.second->unmovable){
-            continue;
+        if(obj.second->objType == ObjectType::Entity){
+            auto ent = static_cast<Game::EntityBase*>(obj.second.get());
+            ent->updateStance();
         }
-        obj.second->position.lerpDiscrete(obj.second->lerpPosition, 0.1f);
-        obj.second->updateQuadrant();
-        obj.second->speed.lerpDiscrete(obj.second->lerpSpeed, 0.8f);
-    }    
-    // TODO: update objs anim
+    }
+    
     world.update();
     camera.update();   
 }
@@ -1120,13 +1139,13 @@ Game::EntityBase *Game::Client::getEntity(UInt16 id){
         return NULL;
     }    
     auto obj = this->world.get(id);
-    if(obj.get() == NULL){
+    if(obj == NULL){
         return NULL;
     }
     if(obj->objType != Game::ObjectType::Entity){
         return NULL;
     }
-    return static_cast<Game::EntityBase*>(obj.get());
+    return static_cast<Game::EntityBase*>(obj);
 }
 
 void Game::Client::render(){
@@ -1150,7 +1169,7 @@ void Game::Client::render(){
 void Game::Client::setCurrentMap(Shared<nite::Map> &m){
     clearWorldColMaks(); 
     nite::Vec2 ws = m->size * m->tileSize;
-    this->world.setSize(ws.x, ws.y, 16);    
+    this->world.setSize(ws.x, ws.y, 64, 128);    
     for(int i = 0; i < m->masks.size(); ++i){
         auto &mask = m->masks[i];
         auto obj = Shared<Game::NetObject>(new Game::NetObject());

@@ -218,7 +218,6 @@ bool Game::Effects::EffHeal::step(Game::EntityBase *owner){
     this->lastStep = nite::getTicks();
     UInt16 toHeal = diff * amntpersecond;
     owner->heal(toHeal, 0, 0);
-
     return true;
 }
 
@@ -226,6 +225,11 @@ void Game::Effects::EffHeal::setup(UInt16 amnt, UInt64 time){ // time is msecs
     this->amnt = amnt;
     this->duration = time;  
     this->amntpersecond = amnt / (time / 1000);                
+}
+
+void Game::Effects::EffHeal::setup(){
+    this->amnt = 100;
+    this->amntpersecond = amnt / (duration / 1000);   
 }
 
 String Game::Effects::EffHeal::getStatus(Game::EntityBase *owner){

@@ -28,6 +28,7 @@ void nite::SmallPacket::copy(const nite::SmallPacket &other){
 
 nite::SmallPacket& nite::SmallPacket::operator= (const nite::SmallPacket &other){
 	copy(other);
+	return *this;
 }
 
 void nite::SmallPacket::clear(){

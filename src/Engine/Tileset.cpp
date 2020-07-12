@@ -307,7 +307,7 @@ void nite::Tileset::load(const String &path){
 // }
 
 nite::Renderable *nite::Tileset::draw(float x, float y, float scaleX, float scaleY){
-
+  return NULL;
 }
 
 nite::Renderable *nite::Tileset::draw(const nite::Vec2 &position){

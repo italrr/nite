@@ -28,16 +28,16 @@ void Game::IconManager::load(const nite::Texture &source, nite::Vec2 iconSize){
     nite::print("icon manager: loaded "+nite::toStr(total)+" icons from '"+this->source.getFilename()+"'");
 }
 
-Game::Icon &Game::IconManager::getIcon(int id){
+Game::Icon Game::IconManager::getIcon(int id){
     auto it = icons.find(id);
     if(it == icons.end()){
-        Game::Icon empty; // TODO: fix this. returning local ref
+        Game::Icon empty;
         empty.id = -1;
         return empty;
     }
     return icons[id];
 }
 
-Game::Icon &Game::IconManager::getIcon(int x, int y){
+Game::Icon Game::IconManager::getIcon(int x, int y){
     return getIcon(x + y * iconSize.y);
 }

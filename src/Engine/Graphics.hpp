@@ -120,6 +120,7 @@
 		float getTimescale();
 		void setTimescale(float ts);
 		UInt64 getDelta();
+		void updateDelta();
 		void setParameters(Vector<String> &params);
 		const Vector<String> &getParameters();
 		nite::Vec2 getRenderOffset();

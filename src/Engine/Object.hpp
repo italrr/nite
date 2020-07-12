@@ -49,6 +49,7 @@
 			nite::Vec2 position;
 			nite::Vec2 speed;
 			nite::Vec2 size;
+			float direction;
 			float friction;
 			float mass;
 			virtual void destroy();
@@ -57,8 +58,7 @@
 			bool unmovable;
 			bool collided;
 			PhysicsObject();
-			void push(float angle, float force);
-			void move(float angle, float mod);
+			void move(const nite::Vec2 &speed);
 			bool isCollidingWith(nite::PhysicsObject *other);
 			bool isCollidingWithSomething();
 			bool isCollidingWithExcept(const Vector<nite::PhysicsObject*> &ignores);

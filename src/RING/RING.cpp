@@ -310,7 +310,19 @@ namespace DEFAULT_MAPPING {
                                     W, W, W, W, P,
                                     W, W, W, W, P,
                                     W, W, W, W, P,
-                                    P, P, P, P, P }, "wall_horizontal_tmiddle"),                                                                                                                                             
+                                    P, P, P, P, P }, "wall_horizontal_tmiddle"),                 
+
+        MappingCriteria((int[]){    P, W, W, W, W,  
+                                    P, W, W, W, W,
+                                    P, W, W, W, W,
+                                    P, W, W, W, W,
+                                    P, P, P, P, P }, "wall_horizontal_tmiddle"),    
+
+        MappingCriteria((int[]){    W, W, W, W, P,  
+                                    W, W, W, W, P,
+                                    W, W, W, W, P,
+                                    W, W, W, W, P,
+                                    P, P, P, P, P }, "wall_horizontal_tmiddle"),                                                                                                                                                                                                        
 
         // wall_horizontal_bmiddle
 
@@ -684,6 +696,25 @@ bool Game::RING::TileSource::isIgnoredForFLoors(const String &key){
     return false;
 }
 
+// static MappingCriteria *stored = NULL;
+// static int storedtotal = 0;
+// static int storedwith = 0;
+// static nite::Vec2 storedtilesize;
+// void __temp(){
+//     for(int i = 0; i < storedtotal; ++i){
+//         nite::Vec2 mrp = nite::mousePosition() + nite::getView(nite::RenderTargetGame);
+//         int inx = (i %  storedwith) * storedtilesize.x;
+//         int iny = (i / storedwith) * storedtilesize.y;
+        
+//         bool inRegion = nite::isPointInRegion(mrp, nite::Vec2(inx, iny), nite::Vec2(inx, iny) + nite::Vec2(128.0f));
+
+//         if(inRegion && nite::mousePressed(nite::butLEFT)){
+//             std::cout << (String)stored[i] << std::endl;
+//         }
+//     }
+// }
+
+
 Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game::RING::TileSource &temp, int scale){
     UInt64 initTime = nite::getTicks();
     auto width = bp->width * scale;
@@ -699,6 +730,10 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     // int specials[size];
     int mirror[size]; // temp
     int allWalls[size]; //temp
+    // stored = new MappingCriteria[size];
+    // storedtotal = size;
+    // storedwith = width;
+    // storedtilesize = temp.tileSize;
 
     for(int i = 0; i < size; ++i){
         floor[i] = -1;
@@ -750,8 +785,8 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     map->author = "RING:none@none.com";
     map->version = "0.0.0";
     map->startCell.index = (bp->start % bp->width) * scale + (bp->start / bp->width) * scale;
-    map->startCell.x = (bp->start % bp->width) * scale * temp.tileSize.x + temp.tileSize.x * scale * 0.5f;
-    map->startCell.y = (bp->start / bp->width) * scale * temp.tileSize.y + temp.tileSize.y * scale * 0.5f;
+    map->startCell.x = (bp->start % bp->width) * scale * temp.tileSize.x;
+    map->startCell.y = (bp->start / bp->width) * scale * temp.tileSize.y;
     map->setup(3, nite::Vec2(width, height), temp.tileSize, temp.margin, temp.spacing);
     map->add(floor, 0, temp.sourcePath, "floor");
     map->add(walls, 1, temp.sourcePath, "walls");
@@ -766,13 +801,14 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
         auto mask = nite::MapWallMask();
         mask.size.set(temp.tileSize);
         mask.index = i;
-        mask.position.x = (i % width) * temp.tileSize.x + temp.tileSize.x * 0.5f;
-        mask.position.y = (i / width) * temp.tileSize.y + temp.tileSize.y * 0.5f;
+        mask.position.x = (i % width) * temp.tileSize.x;
+        mask.position.y = (i / width) * temp.tileSize.y;
         Game::RING::TileSourceWalkMask specMask = temp.getSpecialWallMask(allWalls[i]);
         if(specMask.key != ""){
-            mask.size.set(specMask.size);
-            mask.position.x += specMask.offset.x;        
-            mask.position.y += specMask.offset.y;
+            // mask.size.set(specMask.size);
+            // mask.position.x += specMask.offset.x;        
+            // mask.position.y += specMask.offset.y;
+            continue;
         }
         // chunks[i % width][i / width] = mask;
         map->masks.push_back(mask);

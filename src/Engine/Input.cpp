@@ -110,6 +110,7 @@ bool nite::isMouseInRegion(float x, float y,float x2, float y2, unsigned target)
 		// return 1;
 	// }
 	// return 0;
+	return false;
 }
 
 bool nite::isMouseInRegion(const nite::Vec2 &P, const nite::Vec2 &Q, unsigned target){

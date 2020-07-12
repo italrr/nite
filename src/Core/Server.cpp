@@ -168,22 +168,9 @@ static nite::Console::Result cfRemoveItemEntity(Vector<String> params){
     auto &sv = core->localSv;    
 
     if(params.size() < 3){
-        return nite::Console::Result("not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+        return nite::Console::Result("not enough parameters(3)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
     }
     String entityIdStr = params[0], itemIdStr = params[1], amountStr = params[2];
-    
-    if(!nite::isNumber(entityIdStr)){
-        return nite::Console::Result("'"+entityIdStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-    }
-
-    if(!nite::isNumber(itemIdStr)){
-        return nite::Console::Result("'"+itemIdStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-    } 
-
-    if(!nite::isNumber(amountStr)){
-        return nite::Console::Result("'"+amountStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-    }          
-
     UInt16 entId = nite::toInt(entityIdStr), itemId = nite::toInt(itemIdStr), amount = nite::toInt(amountStr);
 
     auto it = sv.world.objects.find(entId);
@@ -207,6 +194,98 @@ static auto cfRmItemEntityIns = nite::Console::CreateFunction("ent_rm_item", &cf
 static auto cfRemoveItemEntityIns = nite::Console::CreateFunction("ent_remove_item", &cfRemoveItemEntity, true, true);
 
 
+
+
+static nite::Console::Result cfEntityStats(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    auto &sv = core->localSv;    
+
+    if(params.size() < 1){
+        return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    String entityIdStr = params[0];    
+    UInt16 entId = nite::toInt(entityIdStr);
+    auto ent = sv.getEntity(entId);
+    if(ent == NULL){
+        return nite::Console::Result("entity id '"+entityIdStr+"' doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }   
+    ent->printInfo();
+    return nite::Console::Result();
+}
+static auto cfEntityStatsIns = nite::Console::CreateFunction("ent_stats", &cfEntityStats, false, false);
+
+
+
+static nite::Console::Result cfEntityAddStat(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    auto &sv = core->localSv;    
+
+    if(params.size() < 3){
+        return nite::Console::Result("not enough parameters(3)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    String entityIdStr = params[0], stat = params[1], amount = params[2];
+
+    if(!nite::isNumber(entityIdStr)){
+        return nite::Console::Result("'"+entityIdStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    UInt16 entId = nite::toInt(entityIdStr);
+    auto ent = sv.getEntity(entId);
+    if(ent == NULL){
+        return nite::Console::Result("entity id '"+entityIdStr+"' doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    UInt8 toAdd;
+    if(stat == "str"){
+        toAdd = Game::BaseStatType::Strength;    
+    }else
+    if(stat == "agi"){
+        toAdd = Game::BaseStatType::Agility;    
+    }else
+    if(stat == "dex"){
+        toAdd = Game::BaseStatType::Dexterity;    
+    }else
+    if(stat == "endu"){
+        toAdd = Game::BaseStatType::Endurance;    
+    }else
+    if(stat == "luk"){
+        toAdd = Game::BaseStatType::Luck;    
+    }else
+    if(stat == "intel"){
+        toAdd = Game::BaseStatType::Intelligence;    
+    }else
+    if(stat == "charm"){
+        toAdd = Game::BaseStatType::Charisma;            
+    }else{
+        return nite::Console::Result("stat '"+stat+"' is undefined", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    // TODO: as is it's technically possible to change other player's stats. fix this
+    nite::print(ent->addBaseStat(toAdd, nite::toInt(amount)));
+    return nite::Console::Result();
+}
+static auto cfEntityAddStatIns = nite::Console::CreateFunction("ent_add_stat", &cfEntityAddStat, true, false);
+
+
+
+static nite::Console::Result cfEntityLvUp(Vector<String> params){
+    auto core = Game::getGameCoreInstance();
+    auto &sv = core->localSv;    
+
+    if(params.size() < 2){
+        return nite::Console::Result("not enough parameters(2)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    String entityIdStr = params[0],amount = params[1];
+
+    if(!nite::isNumber(entityIdStr)){
+        return nite::Console::Result("'"+entityIdStr+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    UInt16 entId = nite::toInt(entityIdStr);
+    auto ent = sv.getEntity(entId);
+    if(ent == NULL){
+        return nite::Console::Result("entity id '"+entityIdStr+"' doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    ent->lvUp(nite::toInt(amount));
+    return nite::Console::Result();
+}
+static auto cfEntityLvUpIns = nite::Console::CreateFunction("ent_lvup", &cfEntityLvUp, true, true);
 
 
 static nite::Console::Result cfKick(Vector<String> params){
@@ -422,7 +501,7 @@ void Game::Server::update(){
     }
     nite::IP_Port sender;
     nite::Packet handler;
-    if(sock.recv(sender, handler)){
+    if(sock.recv(sender, handler) > 0){
         UInt64 netId = sender.address+sender.port+sock.sock;
         auto client = this->getClient(netId);
         bool isLast = client && handler.getOrder() > client->lastRecvOrder;
@@ -531,24 +610,25 @@ void Game::Server::update(){
                     }
                     persSend(clients[netId].cl, accepted);
                     bindOnAckFor(Game::PacketType::SV_CONNECT_ACCEPT, [&](nite::SmallPacket &payload, nite::IP_Port &cl){
-                        nite::Packet await(++clients[netId].svOrder);
+                        auto client = getClientByIp(cl);
+                        if(client == NULL){
+                            nite::print("[server] SV_CONNECT_REQUEST -> bindOnAckFor::SV_CONNECT_ACCEPT: fatal failure: client doesn't exist anymore?");
+                            return;
+                        }
+                        nite::Packet await(++client->svOrder);
                         await.setHeader(Game::PacketType::SV_AWAIT_CLIENT_LOAD);
                         await.write(maps[currentMap]->hash);
                         persSend(cl, await, 1000, -1);
+                        bindOnAckFor(Game::PacketType::SV_AWAIT_CLIENT_LOAD, [&](nite::SmallPacket &payload, nite::IP_Port &cl){
+                            auto client = getClientByIp(cl);
+                            nite::Packet notify;
+                            notify.setHeader(Game::PacketType::SV_CLIENT_JOIN);
+                            notify.write(&client->clientId, sizeof(client->clientId));
+                            notify.write(client->nickname);
+                            persSendAll(notify, 1000, -1);     
+                            sendPlayerList(client->clientId);                            
+                        });
                     });
-                    // notify clients someone joined
-                    nite::AsyncTask::spawn(nite::AsyncTask::ALambda([&](nite::AsyncTask::Context &ct){
-                        nite::Packet notify;
-                        UInt64 uid;
-                        ct.payload.read(&uid, sizeof(UInt64));
-                        auto &cl = clients[uid];
-                        notify.setHeader(Game::PacketType::SV_CLIENT_JOIN);
-                        notify.write(&cl.clientId, sizeof(UInt64));
-                        notify.write(cl.nickname);
-                        persSendAll(notify, 1000, -1);     
-                        sendPlayerList(uid);
-                        ct.stop();                   
-                    }), 100, netIdPack);
                     
                 }
             } break; 
@@ -574,15 +654,9 @@ void Game::Server::update(){
                 if(!client){
                     break;
                 }
-                UInt8 amount;
-                handler.read(&amount, sizeof(UInt8));
-                for(int i = 0; i < amount; ++i){
-                    UInt8 key, type, lastStroke;
-                    handler.read(&key, sizeof(UInt8));
-                    handler.read(&type, sizeof(UInt8));
-                    handler.read(&lastStroke, sizeof(UInt8));
-                    client->input.queue.push_back(InputFrameBuffer(key, type, lastStroke));
-                }
+                UInt16 compat;
+                handler.read(&compat, sizeof(compat));
+                client->input.loadCompat(compat);
             } break;       
             /*
                 SV_RCON
@@ -661,6 +735,15 @@ void Game::Server::update(){
                     } break;
                 }
             } break; 
+            /* 
+                UNKNOWN
+            */
+            default: {
+                if(!client){
+                    break;
+                } 
+                nite::print("[server] unknown packet type '"+nite::toStr(handler.getHeader())+"'");
+            } break;            
         }
     }
 
@@ -698,23 +781,27 @@ void Game::Server::update(){
     }
 
     // update physics
-    if(nite::getTicks()-physicsUpdate > UpdatePhysicsTimeout){
+    if(nite::getTicks()-physicsUpdate > 0){
         auto &queue = world.updateQueue;
-        if(queue.size() > 0){
-            std::sort(queue.begin(), queue.end());
-            queue.erase(std::unique(queue.begin(), queue.end()), queue.end());            
+        if(queue.size() > 0){      
             UInt16 amnt = queue.size();
             nite::Packet phys;
             phys.setHeader(Game::PacketType::SV_UPDATE_PHYSICS_OBJECT);
             phys.write(&amnt, sizeof(UInt16));
             // TODO: scope it for visible areas only            
-            for(int i = 0; i < queue.size(); ++i){
-                auto &obj = world.objects[queue[i]];
+            for(auto &it : queue){
+                auto &obj = world.objects[it.first];
                 phys.write(&obj->id, sizeof(UInt16));
                 phys.write(&obj->position.x, sizeof(float));
                 phys.write(&obj->position.y, sizeof(float));
-                phys.write(&obj->speed.x, sizeof(float));
-                phys.write(&obj->speed.y, sizeof(float));                
+                UInt8 predictions = obj->snapshots.size();
+                phys.write(&predictions, sizeof(predictions));
+                for(int j = 0; j < predictions; ++j){
+                    auto &snap = obj->snapshots[j];
+                    phys.write(&snap.order, sizeof(snap.order));
+                    phys.write(&snap.pos.x, sizeof(snap.pos.x));
+                    phys.write(&snap.pos.y, sizeof(snap.pos.y));  
+                }
             }
             sendAll(phys);
             queue.clear();
@@ -733,13 +820,13 @@ Game::EntityBase *Game::Server::getEntity(UInt16 id){
         return NULL;
     }
     auto obj = this->world.get(id);
-    if(obj.get() == NULL){
+    if(obj == NULL){
         return NULL;
     }
     if(obj->objType != Game::ObjectType::Entity){
         return NULL;
     }
-    return static_cast<Game::EntityBase*>(obj.get());
+    return static_cast<Game::EntityBase*>(obj);
 }
 
 
@@ -783,15 +870,15 @@ void Game::Server::broadcast(const String &message){
 void Game::Server::game(){
     if(!init) return;
 
-    if(debugging && nite::getTicks()-lastDebug > 1000){
-        auto text = static_cast<nite::TextUI*>(debug->children[0].get());
-        lastDebug = nite::getTicks();
-        String composed = "remaining deliveries: "+nite::toStr(deliveries.size())+" | ";
-        for(int i = 0; i < deliveries.size(); ++i){
-            composed += " "+nite::toStr(deliveries[i].packet.getHeader());
-        }        
-        text->setText(composed);
-    }    
+    // if(debugging && nite::getTicks()-lastDebug > 1000){
+    //     auto text = static_cast<nite::TextUI*>(debug->children[0].get());
+    //     lastDebug = nite::getTicks();
+    //     String composed = "remaining deliveries: "+nite::toStr(deliveries.size())+" | ";
+    //     for(int i = 0; i < deliveries.size(); ++i){
+    //         composed += " "+nite::toStr(deliveries[i].packet.getHeader());
+    //     }        
+    //     text->setText(composed);
+    // }    
 
     // players joined. wait for them to be ready and then start the game
     if(nite::getTicks()-lastState > 5*1000 && state == Game::ServerState::Waiting){
@@ -846,43 +933,36 @@ void Game::Server::game(){
 
     // update inputs
     for(auto cl : clients){
-        cl.second.input.update();
         auto it = players.find(cl.second.clientId);
         if(it == players.end()){
             continue;
         }
-        auto entId = it->second;
-        if(!world.exists(entId)){
-            continue;
-        }
-        // TODO: this doesn't actually go here
-        auto &ent = *static_cast<Game::EntityBase*>(world.objects[entId].get());
+        auto &ent = *getEntity(it->second);
         auto &in = cl.second.input;
-        // bool isSpace = in.isKeyPress(Game::Key::SPACE);
-        bool isSpace = false;
+        bool isSpace = in.isKeyPress(Game::Key::SPACE);
         if(in.isKeyPress(Game::Key::UP) && in.isKeyPress(Game::Key::RIGHT)){
-            ent.entityMove(-0.7854f, ent.walkPushRate, isSpace);
+            ent.entityMove(nite::Vec2(1.0f, -1.0f), isSpace);
         }else
         if(in.isKeyPress(Game::Key::DOWN) && in.isKeyPress(Game::Key::RIGHT)){
-            ent.entityMove(-5.498f, ent.walkPushRate, isSpace);
+            ent.entityMove(nite::Vec2(1.0f, 1.0f), isSpace);
         }else
         if(in.isKeyPress(Game::Key::UP) && in.isKeyPress(Game::Key::LEFT)){
-            ent.entityMove(-2.356f, ent.walkPushRate, isSpace);
+            ent.entityMove(nite::Vec2(-1.0f, -1.0f), isSpace);
         }else		
         if(in.isKeyPress(Game::Key::DOWN) && in.isKeyPress(Game::Key::LEFT)){
-            ent.entityMove(-3.927f, ent.walkPushRate, isSpace);
+            ent.entityMove(nite::Vec2(-1.0f, 1.0f), isSpace);
         }else				
         if(in.isKeyPress(Game::Key::UP)){
-            ent.entityMove(-1.571f, ent.walkPushRate, isSpace);
+            ent.entityMove(nite::Vec2(0.0f, -1.0f), isSpace);
         }else
         if(in.isKeyPress(Game::Key::RIGHT)){
-            ent.entityMove(0.0f, ent.walkPushRate, isSpace);
+            ent.entityMove(nite::Vec2(1.0f, 0.0f), isSpace);
         }else
         if(in.isKeyPress(Game::Key::DOWN)){
-            ent.entityMove(-4.712f, ent.walkPushRate, isSpace);
+            ent.entityMove(nite::Vec2(0.0f, 1.0f), isSpace);
         }else
         if(in.isKeyPress(Game::Key::LEFT)){
-            ent.entityMove(3.142f, ent.walkPushRate, isSpace);
+            ent.entityMove(nite::Vec2(-1.0f, 0.0f), isSpace);
         }		        
     }
 
@@ -890,12 +970,6 @@ void Game::Server::game(){
     for(auto &obj : world.objects){
         if(obj.second->objType == ObjectType::Entity){
             auto ent = static_cast<Game::EntityBase*>(obj.second.get());
-            // update stats
-            // TODO: consider updating only when values have changed
-            // if(nite::getTicks()-ent->lastUpdateStats > Game::RecalculateStatTimeout){
-            //     ent->recalculateStats();
-            //     ent->lastUpdateStats = nite::getTicks();
-            // }
             ent->effectStat.update();
             ent->entityStep();
         }
@@ -906,19 +980,25 @@ void Game::Server::game(){
 }
 
 void Game::Server::createPlayersOnStart(UInt16 initialHeader){
+    nite::Packet simProps;
+    simProps.setHeader(Game::PacketType::SV_UPDATE_WORLD_SIMULATION_PROPS);
+    simProps.write(&world.timescale, sizeof(world.timescale));
+    simProps.write(&world.tickrate, sizeof(world.tickrate));
+    persSendAll(simProps, 750, -1);
+    auto me = this;
     // and now some chained-deliveries craziness... (apologies in advance)
 
     // [0] bind on the initialHeader before we start creating players and asigning
-    bindOnAckFor(initialHeader, [&](nite::SmallPacket &pck, nite::IP_Port &ip){
-        auto cl = getClientByIp(ip);
+    me->bindOnAckFor(initialHeader, [me](nite::SmallPacket &pck, nite::IP_Port &ip){
+        auto cl = me->getClientByIp(ip);
         if(cl == NULL){
             nite::print("[server] failed to notify clients their respective entity. ip was not found in the list");
             return;
         }
-        createPlayer(cl->clientId, 1);
+        me->createPlayer(cl->clientId, 1);
         // [1] notify clients of their respective owners
-        bindOnAckFor(Game::PacketType::SV_CREATE_OBJECT, [&](nite::SmallPacket &pck, nite::IP_Port &ip){   
-            auto cl = getClientByIp(ip);
+        me->bindOnAckFor(Game::PacketType::SV_CREATE_OBJECT, [me](nite::SmallPacket &pck, nite::IP_Port &ip){   
+            auto cl = me->getClientByIp(ip);
             if(cl == NULL){
                 nite::print("[server] failed to notify clients their respective entity. ip was not found in the list");
                 return;
@@ -926,24 +1006,24 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
             nite::Packet noti(++cl->svOrder);
             noti.setHeader(Game::PacketType::SV_NOTI_ENTITY_OWNER);
             noti.write(&cl->entityId, sizeof(UInt16));
-            persSend(cl->cl, noti);         
+            me->persSend(cl->cl, noti);         
             // [2] send respective clients their default skill list
-            bindOnAckFor(Game::PacketType::SV_NOTI_ENTITY_OWNER, [&](nite::SmallPacket &pck, nite::IP_Port &ip){   
-                auto cl = getClientByIp(ip);
+            me->bindOnAckFor(Game::PacketType::SV_NOTI_ENTITY_OWNER, [me](nite::SmallPacket &pck, nite::IP_Port &ip){   
+                auto cl = me->getClientByIp(ip);
                 if(cl == NULL){
                     nite::print("[server] failed to send skill list. ip was not found in the list");
                     return;
                 }
-                sendSkillList(cl->clientId, cl->entityId);
+                me->sendSkillList(cl->clientId, cl->entityId);
                 // [3] send respective clients their default keybinds
-                bindOnAckFor(Game::PacketType::SV_SET_ENTITY_SKILLS, [&](nite::SmallPacket &pck, nite::IP_Port &ip){  
-                    auto cl = getClientByIp(ip);
+                me->bindOnAckFor(Game::PacketType::SV_SET_ENTITY_SKILLS, [me](nite::SmallPacket &pck, nite::IP_Port &ip){  
+                    auto cl = me->getClientByIp(ip);
                     if(cl == NULL){
                         nite::print("[server] failed to send default keybinds: ip was not found in the list");
                         return;
                     }
-                    auto itent = world.objects.find(cl->entityId);
-                    if(itent == world.objects.end()){
+                    auto itent = me->world.objects.find(cl->entityId);
+                    if(itent == me->world.objects.end()){
                         nite::print("[server] failed to send default keybinds: ent id "+nite::toStr(cl->entityId)+" doesn't exist");
                         return;
                     }
@@ -965,7 +1045,7 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
                     writeSkill(Game::SkillList::BA_BASH, 0);
                     writeSkill(Game::SkillList::BA_DODGE, 1);
                     writeSkill(Game::SkillList::BA_FIRST_AID, 2);
-                    persSend(cl->cl, packet, 750, -1);
+                    me->persSend(cl->cl, packet, 750, -1);
                 });                    
             });             
         });             
@@ -1012,7 +1092,7 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
     for(int i = 0; i < maps; ++i){
         auto bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
         bp->generate(35, 35);
-        auto map = Game::RING::generateMap(bp, src, 3);
+        auto map = Game::RING::generateMap(bp, src, 4);
         String fname = "./data/map/generated/"+map->hash+".json";
         map->exportToJson(fname);
         auto indexed = indexer->indexFile(fname);
@@ -1035,7 +1115,7 @@ void Game::Server::setCurrentMap(unsigned cm){
     this->currentMap = cm;
     auto &m = this->maps[this->currentMap]; 
     nite::Vec2 ws = m->size * m->tileSize;
-    this->world.setSize(ws.x, ws.y, 16);    
+    this->world.setSize(ws.x, ws.y, 128, 128);    
     for(int i = 0; i < m->masks.size(); ++i){
         auto &mask = m->masks[i];
         auto obj = Shared<Game::NetObject>(new Game::NetObject());
