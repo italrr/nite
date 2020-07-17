@@ -1113,7 +1113,8 @@ void Game::Client::game(){
     } 
 
 
-    if(nite::getTicks()-input.lastCheck > 500 || (nite::getTicks()-input.lastChange < 20 && nite::getTicks()-input.lastCheck > 10)){
+    UInt64 lastChange = nite::getTicks()-input.lastChange;
+    if(nite::getTicks()-input.lastCheck > 500 || (lastChange > 10  && lastChange < 20 && nite::getTicks()-input.lastCheck > 10)){
         nite::Packet pack(++sentOrder);
         pack.setHeader(Game::PacketType::SV_CLIENT_INPUT);        
         auto compat = input.getCompat();

@@ -8,6 +8,7 @@
 		struct Client;
 		struct Camera {
 			UInt16 followId;
+			nite::Vec2 np;
 			Game::Client *client;
 			void update();
 			void update(nite::Vec2 &v, float mu);

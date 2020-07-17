@@ -21,7 +21,6 @@
 			void clear();
 			bool exists(UInt16 id);
 			void updateObject(Game::NetObject *obj);
-			float testSweptAABB(Game::NetObject *a, Game::NetObject *b, const nite::Vec2 &diff, nite::Vec2 &normal);
 			UInt16 add(Shared<Game::NetObject> &obj, int useId = -1);
 			void remove(UInt16 objectId);
 			void remove(Game::NetObject *obj);
@@ -40,6 +39,7 @@
 			nite::Vec2 size;
 			void setSize(int w, int h, int unitsize, float gridSpec);
 			void getQuadrant(int x, int y, int w, int h, Vector<Game::NetObject*> &holder);
+			void setVisibleQuadrant(int x, int y, int w, int h);
 			~NetWorld();
 		};
 	}

@@ -70,7 +70,7 @@ Game::NetWorld::NetWorld(){
 	debugPhysics = false;
 	cells = NULL;
 	snapshotOrder = 0;
-	tickrate = 1000 / 60;
+	tickrate = 1000 / 33;
 	objects.reserve(5000);
 }
 
@@ -124,70 +124,52 @@ void Game::NetWorld::step(){
 	}
 }
 
-float Game::NetWorld::testSweptAABB(Game::NetObject *a, Game::NetObject *b, const nite::Vec2 &diff, nite::Vec2 &normal){
-	nite::Vec2 apos = a->position - a->size * 0.5f;
-	nite::Vec2 bpos = b->position - b->size * 0.5f;
-	float dxEntry, dxExit;
-	float dyEntry, dyExit;
-	float txEntry, txExit;
-	float tyEntry, tyExit;
+static bool testCollision(Game::NetObject *a, Game::NetObject *b, const nite::Vec2 &diff, nite::Vec2 &limit, nite::Vec2 &normal){
+	bool collision = false;
 	normal.x = 0.0f;
 	normal.y = 0.0f;
-	if(diff.x > 0.0f){
-		dxEntry = bpos.x - (apos.x + a->size.x);
-		dxExit = (bpos.x + b->size.x) - apos.x;
-	}else{
-		dxEntry = (bpos.x + b->size.x) - apos.x;
-		dxExit = bpos.x - (apos.x + a->size.x);
-	}
-	if(diff.y > 0.0f){
-		dyEntry = bpos.y - (apos.y + a->size.y);
-		dyExit = (bpos.y + b->size.y) - apos.y;
-	}else{
-		dyEntry = (bpos.y + b->size.y) - apos.y;
-		dyExit = bpos.y - (apos.y + a->size.y);
-	}	
-	if(diff.x == 0.0f){
-		txEntry = -std::numeric_limits<float>::infinity();
-		txExit = std::numeric_limits<float>::infinity();
-	}else{
-		txEntry = dxEntry / diff.x;
-		txExit = dxExit / diff.x;
-	}
-	if(diff.y == 0.0f){
-		tyEntry = -std::numeric_limits<float>::infinity();
-		tyExit = std::numeric_limits<float>::infinity();
-	}else{
-		tyEntry = dyEntry / diff.y;
-		tyExit = dyExit / diff.y;
-	}
-	float entryTime = std::max(txEntry, tyEntry);
-	float exitTime = std::min(txExit, tyExit);
-	if(	entryTime > exitTime || txEntry < 0.0f && tyEntry < 0.0f || txEntry > 1.0f || tyEntry > 1.0f ||
-		txEntry < 0.0f && (apos.x + a->size.x < bpos.x || apos.x > bpos.x + b->size.x) || // this could be error-prone at high speeds.
-		tyEntry < 0.0f && (apos.y + a->size.y < bpos.y || apos.y > bpos.y + b->size.y) ){ // right now i don't have any other solution
-		return 1.0f;
-	}
-	if (txEntry > tyEntry){ 
-		if (dxEntry < 0.0f){ 
-			normal.x = 1.0f; 
-			normal.y = 0.0f; 
-		} else{ 
-			normal.x = -1.0f; 
-			normal.y = 0.0f;
-		} 
-	}else{ 
-		if (dyEntry < 0.0f){ 
-			normal.x = 0.0f; 
-			normal.y = 1.0f; 
-		}else{ 
-			normal.x = 0.0f; 
-			normal.y = -1.0f; 
-		} 
-	}
-	return entryTime;
-}
+	bool withinTopY = a->position.y <= b->position.y + a->size.y && a->position.y >= b->position.y;
+	bool withinBottomY = a->position.y + a->size.y <= b->position.y + a->size.y && a->position.y + a->size.y >= b->position.y;
 
+	bool withinTopX = a->position.x <= b->position.x + a->size.x && a->position.x >= b->position.x;
+	bool withinBottomX = a->position.x + a->size.x <= b->position.x + a->size.x && a->position.x + a->size.x >= b->position.x;
+
+	if(diff.x > 0){
+		float ray = a->position.x + a->size.x + diff.x;
+		if(ray >= b->position.x && (a->position.x + a->size.x) < b->position.x && (withinTopY || withinBottomY)){
+			limit.x = 0.0f;
+			normal.x = 1.0f;
+			collision = true;
+		}
+	}else
+	if(diff.x < 0){
+		float ray = a->position.x + diff.x;
+		if(ray <= b->position.x + b->size.x && a->position.x > b->position.x + b->size.x && (withinTopY || withinBottomY)){
+			limit.x = 0.0f;
+			normal.x = -1.0f;
+			collision = true;
+		}
+	}	
+
+	if(diff.y > 0){	
+		float ray = a->position.y + a->size.y + diff.y;
+		if(ray >= b->position.y && (a->position.y + a->size.y) < b->position.y && (withinTopX || withinBottomX)){
+			limit.y = 0.0f;
+			normal.y = 1.0f;
+			collision = true;
+		}
+	}else
+	if(diff.y < 0){
+		float ray = a->position.y + diff.y;
+		if(ray <= b->position.y + b->size.y && a->position.y > b->position.y + b->size.y && (withinTopX || withinBottomX)){
+			limit.y = 0.0f;
+			normal.y = -1.0f;
+			collision = true;
+		}
+	}
+
+	return collision;
+}
 
 void Game::NetWorld::updateObject(Game::NetObject *obj){
 	if(obj->unmovable || obj == NULL) return;
@@ -198,92 +180,72 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	// TODO: this ^
 	
 	Vector<Game::NetObject*> nearObjs;
-	nite::Vec2 diff = nite::Vec2(nite::getSign(obj->speed.x) * gridSpec.x, nite::getSign(obj->speed.y) * gridSpec.y);
-	bool predicting = false;
-
-	if(obj->sv == NULL){
-		auto &snaps = obj->snapshots;
-		auto find = [&](const nite::Vec2 &p){
-			for(int i = 0; i < snaps.size(); ++i){
-				if(p.x == snaps[i].pos.x && p.y == snaps[i].pos.y){
-					return i;
-				}
+	getQuadrant(obj->position.x - 1500 * 0.5f,  obj->position.y - 1500 * 0.5f, 3000, 3000, nearObjs);		
+	float xdiff = obj->speed.x * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
+	float ydiff = obj->speed.y * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
+	auto diff = nite::Vec2(xdiff, ydiff);
+	auto normal = nite::Vec2(0.0f);
+	auto limit = nite::Vec2(1.0f);
+	for(int i = 0; i < nearObjs.size(); ++i){
+		auto other = nearObjs[i];
+		if(obj->id == other->id) continue;				
+		if(!other->solid) continue;		
+		if(testCollision(obj, other, diff, limit, normal)){
+			obj->collided = true; 
+			obj->onCollision(other);
+			float offset = 1.0f;
+			if(normal.x > 0.0f){
+				obj->position.x = other->position.x - obj->size.x - offset;
+				limit.x = 0.0f;
+			}else
+			if(normal.x < 0.0f){
+				obj->position.x = other->position.x + other->size.x + offset;
+				limit.x = 0.0f;
 			}
-			return -1;
-		};
-		auto orig = find(origp);
-		auto next = find(obj->position + diff);		
-		if(orig != -1 && next != -1 && nite::abs((int)snaps[orig].order - (int)snaps[next].order) == 1){
-			predicting = true;
-			obj->snapshots.erase(obj->snapshots.begin(), obj->snapshots.begin() + next);
-			obj->position = obj->position + diff;
-			nite::print(":^)");
-		}else{
-			obj->position.set(obj->nextPosition);
-		}
-	}
-
-	if(!predicting){ // would always be false on the server
-		getQuadrant(obj->position.x - 1024 * 0.5f,  obj->position.y - 1024 * 0.5f, 1024, 1024, nearObjs);		
-		obj->position = obj->position + diff;	
-		for(int i = 0; i < nearObjs.size(); ++i){
-			auto other = nearObjs[i];
-			if(obj->id == other->id) continue;				
-			if(!other->solid) continue;			
-			if(obj->isCollidingWith(other)){
-				nite::print("lol");
-				obj->position = obj->position - diff;
+			if(normal.y > 0.0f){
+				obj->position.y = other->position.y - obj->size.y - offset;
+				limit.y = 0.0f;
+			}else
+			if(normal.y < 0.0f){
+				obj->position.y = other->position.y + other->size.y + offset;
+				limit.y = 0.0f;
+			}
+			if(limit.x == 0.0f && limit.y == 0.0f){	
 				break;
 			}
 		}
-		// auto test = [&](const nite::Vec2 &test){
-		// 	bool r = true;
-		// 	obj->position = obj->position + test;
-		// 	for(int i = 0; i < nearObjs.size(); ++i){
-		// 		auto other = nearObjs[i];
-		// 		if(obj->id == other->id) continue;				
-		// 		if(!other->solid) continue;			
-		// 		if(obj->isCollidingWith(other)){
-		// 			r = false;
-		// 			break;
-		// 		}
-		// 	}			
-		// 	obj->position = obj->position - test;
-		// 	return r;
-		// };
-		obj->speed.set(0.0f);	
-		// build predictions
-		if(obj->sv != NULL){
-			obj->snapshots.clear();
-			nite::Vec2 start = origp;
-			for(int i = 0; i < 3; ++i){
-				Game::PredictFragment frg;
-				frg.order = ++snapshotOrder;
-				frg.pos = start;
-				start = start + diff;
-				// if(test(frg.pos)){
-					obj->snapshots.push_back(frg);
-				// }
-			}
-		}
 	}
-
-	obj->snapPosition();	
-	obj->lerpPosition.lerpDiscrete(obj->position, 0.15f);
+	obj->position = obj->position + nite::Vec2(diff.x * limit.x, diff.y * limit.y);
+	// client side real position correction
+	if(obj->sv == NULL){
+		float distx = nite::abs(obj->nextPosition.x - obj->position.x);
+		float disty = nite::abs(obj->nextPosition.y - obj->position.y);
+		if(distx > 4){
+			float origx = obj->nextPosition.x, nx = obj->position.x;
+			nite::lerpDiscrete(origx, nx, 0.15f);
+			obj->position.x = origx;
+		}
+		if(disty > 4){
+			float origy = obj->nextPosition.y, ny = obj->position.y;
+			nite::lerpDiscrete(origy, ny, 0.15f);
+			obj->position.y = origy;
+		}		
+	}
 	if(origp.x != obj->position.x || origp.y != obj->position.y){
 		obj->updateQuadrant();
 	}	
 }
 
+void Game::NetWorld::setVisibleQuadrant(int x, int y, int w, int h){
+
+}
+
 void Game::NetWorld::update(){
-	delta = nite::getTicks() - lastTick;
-	lastTick = nite::getTicks();
-	currentTickRate = ((float)delta / (float)tickrate) * 16.6666667f;
-  	for (auto it : objects){
-		auto current = it.second;
-		nite::Vec2 p = current->position;
-		auto obj = it.second.get();
-		if(obj->sv == NULL && debugPhysics){
+
+	// debug: shows masks
+	if(debugPhysics){
+		for (auto it : objects){
+			auto current = it.second;
 			nite::setDepth(nite::DepthTop);
 			nite::setRenderTarget(nite::RenderTargetGame);
 			nite::setColor(current->collided ? nite::Color(1.0f, 0, 0) : nite::Color(0, 1.0f, 0));
@@ -291,12 +253,27 @@ void Game::NetWorld::update(){
 			nite::setDepth(0);
 			nite::resetColor();
 		}
+	}
+
+	if(nite::getTicks()-lastTick < tickrate){
+		return;
+	}
+	delta = nite::getTicks() - lastTick;
+	lastTick = nite::getTicks();
+	currentTickRate = ((float)delta / (float)tickrate) * 16.6666667f;
+
+  	for (auto it : objects){
+		auto current = it.second;
+		nite::Vec2 p = current->position;
+		auto obj = it.second.get();
 		current->collided = false;
 		updateObject(obj);
+		current->speed.lerpDiscrete(nite::Vec2(0.0f), currentTickRate * current->friction * current->relativeTimescale * nite::getTimescale() * this->timescale);
 		if(current->position.x != p.x || current->position.y != p.y){
 			this->updateQueue[current->id] = current.get();
 		}		
 	}
+
 	++snapshotOrder;
 	// clean up
 	if(removeQueue.size() > 0){

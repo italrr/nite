@@ -21,6 +21,15 @@ Shared<Game::NetObject> Game::createNetObject(UInt16 id, UInt16 sig, float x, fl
     }
 }
 
+Game::NetObject::NetObject(){
+    container = NULL;
+    sv = NULL;
+    quadrant = -1;
+    frictionRate = 30;
+    net = NULL;
+    objType = Game::ObjectType::Base;
+}
+
 void Game::NetObject::destroy(){
 	if(container == NULL) return;
     clearQuadrant();
@@ -29,7 +38,7 @@ void Game::NetObject::destroy(){
 
 void Game::NetObject::setPosition(const nite::Vec2 &p){
     this->position.set(p);
-    snapPosition();
+    // snapPosition();
     this->lerpPosition.set(this->position);
     this->nextPosition.set(this->position);
     updateQuadrant();

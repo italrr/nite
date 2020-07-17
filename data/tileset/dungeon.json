@@ -73,52 +73,52 @@
 		"wall_corner_tbottom_right": {
 			"width": 48,
 			"height": 128,
-			"xOffset": 48,
+			"xOffset": 0,
 			"yOffset": 0
 		},	
 		"wall_corner_tbottom_left": {
 			"width": 48,
 			"height": 128,
-			"xOffset": -48,
+			"xOffset": 0,
 			"yOffset": 0
 		},		
 		
 		"wall_vertical_rtop": {
 			"width": 48,
 			"height": 128,
-			"xOffset": 48,
+			"xOffset": 0,
 			"yOffset": 0
 		},
 
 		"wall_vertical_rbottom": {
 			"width": 48,
 			"height": 128,
-			"xOffset": 48,
+			"xOffset": 0,
 			"yOffset": 0
 		},
 
 		"wall_vertical_ltop": {
 			"width": 48,
 			"height": 128,
-			"xOffset": -48,
+			"xOffset": 0,
 			"yOffset": 0
 		},
 		"wall_vertical_lbottom": {
 			"width": 48,
 			"height": 128,
-			"xOffset": -48,
+			"xOffset": 0,
 			"yOffset": 0
 		},
 		"wall_vertical_rmiddle": {
 			"width": 48,
 			"height": 128,
-			"xOffset": 48,
+			"xOffset": 0,
 			"yOffset": 0
 		},
 		"wall_vertical_lmiddle": {
 			"width": 48,
 			"height": 128,
-			"xOffset": -48,
+			"xOffset": 0,
 			"yOffset": 0
 		}		
 	}

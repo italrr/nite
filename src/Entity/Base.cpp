@@ -16,7 +16,6 @@ static void notifyEntityDeath(Game::EntityBase *ent){
 }
 
 Game::EntityBase::EntityBase(){
-	this->isWalking = false;
 	this->isCasting = false;
 	this->effectStat.owner = this;
 	this->skillStat.owner = this;
@@ -33,9 +32,6 @@ void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // m
 	if(healthStat.dead){
 		return;
 	}
-	if(nite::getTicks()-lastWalkTime < walkPushRate){
-		return;
-	}	
 	if(!holdStance && dir.x > 0){
 		faceDirection = EntityFacing::Right;
 	}
@@ -45,10 +41,8 @@ void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // m
 	if(state[EntityStateSlot::BOTTOM] != EntityState::WALKING){
 		setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
 	}
-	++walkStepTick;
-	lastWalkTime = nite::getTicks();
-	isWalking = true;
-	move(dir);
+	isMoving = true;
+	move((nite::Vec2(20.0f) + nite::Vec2(complexStat.walkRate))* dir);
 }
 
 void Game::EntityBase::kill(){
@@ -67,8 +61,6 @@ void Game::EntityBase::onCreate(){
     mass = 2.8f;
     healthStat.dead = false;
     size.set(128, 128);
-    walkPushRate = 200; // one unit every 150 msecs
-	lastWalkTime = nite::getTicks();
     name = "Base Entity Type";  
 }
 
@@ -98,7 +90,7 @@ void Game::EntityBase::draw(){
 	UInt8 anims[AnimPart::total] = {bot, mid, AnimType::TOP_NEUTRAL};
 	UInt8 numbs[AnimPart::total] = {stNum[EntityStateSlot::BOTTOM], stNum[EntityStateSlot::MID], 0};
 	anim.setState(anims, numbs);
-
+	lerpPosition.lerpDiscrete(position, 0.15f);
 	nite::Vec2 rp = lerpPosition + size * 0.5f;
 
     nite::setRenderTarget(nite::RenderTargetGame);
@@ -259,12 +251,14 @@ void Game::EntityBase::updateStance(){
 				if(canim == NULL){
 					break;
 				}
-
-				if(!isWalking && nite::getTicks()-lastFrameTime[EntityStateSlot::BOTTOM] > 250){
+				UInt64 walkRateDiff = complexStat.walkRate * 8;
+				UInt64 walkAnimTime = canim->spd - (walkRateDiff > walkAnimTime ? ((UInt64)canim->spd*0.05f) : walkRateDiff);
+				UInt64 currentTime = nite::getTicks()-lastStateTime[EntityStateSlot::BOTTOM];
+				if(!isMoving && currentTime > walkAnimTime){
 					setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);
 				}else
-				if(isWalking){
-					switchFrame(EntityStateSlot::BOTTOM, walkStepTick % 2);
+				if(currentTime > walkAnimTime){
+					setState(EntityState::WALKING, EntityStateSlot::BOTTOM, stNum[EntityStateSlot::BOTTOM] + 1);
 				}
 			} break;
 			case EntityState::JUMPING: {
@@ -316,7 +310,7 @@ void Game::EntityBase::updateStance(){
 			} break;                
 		}		
 	}
-	isWalking = false;
+	isMoving = false;
 }
 
 void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x, float y){
@@ -404,7 +398,6 @@ void Game::EntityBase::recalculateStats(){
 
 	baseStat.resetAdd();
 	resetComplexStats();
-	
 
 	// recalculate effects-given stats
 	auto &eff = effectStat.effects;

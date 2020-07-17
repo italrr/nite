@@ -58,7 +58,8 @@
 			bool unmovable;
 			bool collided;
 			PhysicsObject();
-			void move(const nite::Vec2 &speed);
+			virtual bool move(const nite::Vec2 &dir);
+			virtual bool push(const nite::Vec2 &dir);
 			bool isCollidingWith(nite::PhysicsObject *other);
 			bool isCollidingWithSomething();
 			bool isCollidingWithExcept(const Vector<nite::PhysicsObject*> &ignores);

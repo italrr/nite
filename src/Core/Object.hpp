@@ -56,6 +56,7 @@
             nite::Vec2 lerpPosition; // client side position interpolation
             nite::Vec2 lerpSpeed;
             nite::Vec2 nextPosition;
+            nite::Vec2 clNextPosition;
             Game::NetWorld *container;
             Game::Server *sv;
             Game::Net *net;
@@ -64,15 +65,12 @@
             void updateQuadrant();
             void clearQuadrant();
 
+            UInt64 frictionRate;
+            UInt64 lastMoveTime;            
+
             Vector<Game::PredictFragment> snapshots;
             
-            NetObject(){
-                container = NULL;
-                sv = NULL;
-                quadrant = -1;
-                net = NULL;
-                objType = Game::ObjectType::Base;
-            }
+            NetObject();
 
             void snapPosition();
             void setPosition(const nite::Vec2 &p);

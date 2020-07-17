@@ -109,11 +109,9 @@
             Game::Actionable actionables[Game::EntityActionables]; // 1 2 3 4 5 keys + M1 + M2
             UInt8 faceDirection;
             Game::Anim anim;
-            bool isWalking;
+            bool isMoving;
             bool isCasting;
             String name;
-            UInt64 walkPushRate;
-            UInt64 lastWalkTime;
             int walkStepTick;
             bool dead;
             float castingMsgAlpha;

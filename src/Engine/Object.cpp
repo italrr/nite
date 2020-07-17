@@ -43,10 +43,15 @@ nite::PhysicsObject::PhysicsObject(){
 	position.set(0.0f);
 }
 
-// used for self-moving objects
-void nite::PhysicsObject::move(const nite::Vec2 &speed){
-	this->speed = speed;
 
+bool nite::PhysicsObject::move(const nite::Vec2 &dir){
+	speed = dir;
+	return true;
+}
+
+bool nite::PhysicsObject::push(const nite::Vec2 &dir){
+	speed = speed + dir;
+	return true;
 }
 
 bool nite::PhysicsObject::isCollidingWith(nite::PhysicsObject *other){
