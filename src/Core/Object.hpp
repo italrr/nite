@@ -29,12 +29,16 @@
 
         namespace ObjectSig {
             enum ObjectSig :  UInt16 {
-                Player = 0
+                Base = 0,
+                Player,
+                MobHumanoid
             };
             static String name(UInt16 sig){
                 switch(sig){
                     case Player:
                         return "Player";
+                    case MobHumanoid:
+                        return "MobHumanoid";
                     default:
                         return "Undefined";
                 }
@@ -50,7 +54,21 @@
             UInt32 order;
         };
 
-        struct NetObject : nite::PhysicsObject {
+        struct NetObject : nite::BaseObject {
+            UInt16 id;
+			int localId;	
+			nite::Vec2 position;
+			nite::Vec2 speed;
+			nite::Vec2 size;
+			float direction;
+			float friction;
+			float mass;
+			virtual void destroy();
+			float relativeTimescale;
+			bool solid;
+			bool unmovable;
+			bool collided;
+
             UInt8 objType;
             UInt16 sigId;
             nite::Vec2 lerpPosition; // client side position interpolation
@@ -82,7 +100,6 @@
             // the idea behind these is that we'll be updating
             // specific things from entities/objects but they'll read and prove it themselves
             // we should every entity with the changeForSync flag to be true
-            void destroy();
             bool readyForSync;
             // we'll be fetching the initial values to be sync'd
             virtual void writeInitialState(nite::Packet &packet){
@@ -91,6 +108,17 @@
             virtual void readInitialState(nite::Packet &packet){
 
             }
+			
+			virtual bool move(const nite::Vec2 &dir);
+			virtual bool push(const nite::Vec2 &dir);
+			bool isCollidingWith(Game::NetObject *other);
+			bool isCollidingWithSomething(Game::NetObject **who);
+			bool isCollidingWithExcept(const Vector<Game::NetObject*> &ignores);
+			float getDistance(Game::NetObject *other);
+
+			virtual void onCollision(Game::NetObject *obj){
+
+			}
         };
 
         Shared<Game::NetObject> createNetObject(UInt16 id, UInt16 sig, float x, float y);

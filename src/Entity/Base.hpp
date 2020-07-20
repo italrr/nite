@@ -1,9 +1,13 @@
 #ifndef GAME_ENTITY_BASE_HPP
     #define GAME_ENTITY_BASE_HPP
-
+    
+    #include "../AI/AI.hpp"
     #include "../Core/Object.hpp"
+    #include "../Core/Input.hpp"
+    
     #include "Stat.hpp"
     #include "Anim.hpp"
+
     #include "../Engine/UI/PanelUI.hpp"
     namespace Game {
 
@@ -97,8 +101,19 @@
             void draw(const nite::Vec2 &p);
         };
 
+        struct EntityBase;
+        struct AIDriver {
+            Game::EntityBase *subject;
+            Vector<Shared<Game::AI::BaseBehavior>> behaviors;
+            void set(Game::EntityBase *subject);
+            void update();
+            void add(Shared<Game::AI::BaseBehavior> behavior);
+        };
+
         struct EntityBase : Game::NetObject, Game::Stat {
+            Game::InputCompacter input;
             EntityBase();
+            AIDriver aidriver;
             Shared<Game::EntityCasting> currentCasting;
             UInt8 state[EntityStateSlot::total];
             UInt8 stNum[EntityStateSlot::total];

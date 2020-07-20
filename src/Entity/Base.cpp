@@ -15,6 +15,24 @@ static void notifyEntityDeath(Game::EntityBase *ent){
     }
 }
 
+void Game::AIDriver::set(Game::EntityBase *subject){
+	this->subject = subject;
+}
+
+void Game::AIDriver::update(){
+	for(int i = 0; i < behaviors.size(); ++i){
+		auto beh = behaviors[i];
+		if(beh->isReady()){
+			beh->think(subject);
+		}
+	}
+}
+
+void Game::AIDriver::add(Shared<Game::AI::BaseBehavior> behavior){
+	behaviors.push_back(behavior);
+	behavior->init();
+}
+
 Game::EntityBase::EntityBase(){
 	this->isCasting = false;
 	this->effectStat.owner = this;
@@ -26,6 +44,7 @@ Game::EntityBase::EntityBase(){
 	setState(EntityState::IDLE, EntityStateSlot::MID, 0);
 	setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);
 	walkStepTick = 0;
+	aidriver.set(this);
 }
 
 void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // more like hold direction
@@ -42,7 +61,7 @@ void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // m
 		setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
 	}
 	isMoving = true;
-	move((nite::Vec2(20.0f) + nite::Vec2(complexStat.walkRate))* dir);
+	move((nite::Vec2(8.0f) + nite::Vec2(complexStat.walkRate))* dir);
 }
 
 void Game::EntityBase::kill(){
@@ -191,6 +210,7 @@ void Game::EntityBase::entityStep(){
 	}
 	updateStance();
 	solveCasting();
+	aidriver.update();
 }
 
 void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n){
@@ -201,10 +221,10 @@ void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n){
 	if(nanim != NULL && nanim->n > 0 && n > nanim->n){
 		n = n % nanim->n;
 	}
-	bool update = false;
-	if(state[slot] != nstate){
-		update = true;
-	}
+	bool update = true;
+	// if(state[slot] != nstate){
+	// 	update = true;
+	// }
 	state[slot] = nstate;
 	lastStateTime[slot] = nite::getTicks();	
 	lastFrameTime[slot] = nite::getTicks();	
@@ -290,9 +310,10 @@ void Game::EntityBase::updateStance(){
 							switchFrame(EntityStateSlot::MID, stNum[EntityStateSlot::MID] + 1);
 						}
 					} break;
+					default:
 					case 1: {
 						throwMelee(0.0f, 0.0f);
-						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 200){ // 200 hard coded for now
+						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 400){ // 200 hard coded for now
 							setState(EntityState::IDLE_FIST, EntityStateSlot::MID, 0);
 						}						
 					} break;					

@@ -42,32 +42,6 @@
 
 			}
 		};
-
-		struct PhysicsObject : public nite::BaseObject {
-			UInt16 id;
-			nite::World *container;						
-			nite::Vec2 position;
-			nite::Vec2 speed;
-			nite::Vec2 size;
-			float direction;
-			float friction;
-			float mass;
-			virtual void destroy();
-			float relativeTimescale;
-			bool solid;
-			bool unmovable;
-			bool collided;
-			PhysicsObject();
-			virtual bool move(const nite::Vec2 &dir);
-			virtual bool push(const nite::Vec2 &dir);
-			bool isCollidingWith(nite::PhysicsObject *other);
-			bool isCollidingWithSomething();
-			bool isCollidingWithExcept(const Vector<nite::PhysicsObject*> &ignores);
-			float getDistance(nite::PhysicsObject *other);
-			virtual void onCollision(nite::PhysicsObject *obj){
-
-			}
-		};
 	}
 
 #endif

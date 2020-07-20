@@ -469,7 +469,7 @@ void Game::Server::clear(){
     this->init = false;
     physicsUpdate = nite::getTicks();
     sock.close();
-    clearWorldColMaks();
+    world.clearWallMasks();
     ft.clear();
     deliveries.clear();
     clients.clear();
@@ -651,12 +651,15 @@ void Game::Server::update(){
                 SV_CLIENT_INPUT
             */
             case Game::PacketType::SV_CLIENT_INPUT: {
-                if(!client){
+                if(!client || !isLast){
                     break;
                 }
-                UInt16 compat;
-                handler.read(&compat, sizeof(compat));
-                client->input.loadCompat(compat);
+                auto ent = getEntity(client->entityId);
+                if(ent != NULL){
+                    UInt16 compat;
+                    handler.read(&compat, sizeof(compat));
+                    ent->input.loadCompat(compat);
+                }
             } break;       
             /*
                 SV_RCON
@@ -794,14 +797,8 @@ void Game::Server::update(){
                 phys.write(&obj->id, sizeof(UInt16));
                 phys.write(&obj->position.x, sizeof(float));
                 phys.write(&obj->position.y, sizeof(float));
-                UInt8 predictions = obj->snapshots.size();
-                phys.write(&predictions, sizeof(predictions));
-                for(int j = 0; j < predictions; ++j){
-                    auto &snap = obj->snapshots[j];
-                    phys.write(&snap.order, sizeof(snap.order));
-                    phys.write(&snap.pos.x, sizeof(snap.pos.x));
-                    phys.write(&snap.pos.y, sizeof(snap.pos.y));  
-                }
+                phys.write(&obj->speed.x, sizeof(float));
+                phys.write(&obj->speed.y, sizeof(float));
             }
             sendAll(phys);
             queue.clear();
@@ -931,45 +928,36 @@ void Game::Server::game(){
         restart();
     }
 
-    // update inputs
-    for(auto cl : clients){
-        auto it = players.find(cl.second.clientId);
-        if(it == players.end()){
-            continue;
-        }
-        auto &ent = *getEntity(it->second);
-        auto &in = cl.second.input;
-        bool isSpace = in.isKeyPress(Game::Key::SPACE);
-        if(in.isKeyPress(Game::Key::UP) && in.isKeyPress(Game::Key::RIGHT)){
-            ent.entityMove(nite::Vec2(1.0f, -1.0f), isSpace);
-        }else
-        if(in.isKeyPress(Game::Key::DOWN) && in.isKeyPress(Game::Key::RIGHT)){
-            ent.entityMove(nite::Vec2(1.0f, 1.0f), isSpace);
-        }else
-        if(in.isKeyPress(Game::Key::UP) && in.isKeyPress(Game::Key::LEFT)){
-            ent.entityMove(nite::Vec2(-1.0f, -1.0f), isSpace);
-        }else		
-        if(in.isKeyPress(Game::Key::DOWN) && in.isKeyPress(Game::Key::LEFT)){
-            ent.entityMove(nite::Vec2(-1.0f, 1.0f), isSpace);
-        }else				
-        if(in.isKeyPress(Game::Key::UP)){
-            ent.entityMove(nite::Vec2(0.0f, -1.0f), isSpace);
-        }else
-        if(in.isKeyPress(Game::Key::RIGHT)){
-            ent.entityMove(nite::Vec2(1.0f, 0.0f), isSpace);
-        }else
-        if(in.isKeyPress(Game::Key::DOWN)){
-            ent.entityMove(nite::Vec2(0.0f, 1.0f), isSpace);
-        }else
-        if(in.isKeyPress(Game::Key::LEFT)){
-            ent.entityMove(nite::Vec2(-1.0f, 0.0f), isSpace);
-        }		        
-    }
-
     // update entity specifics
     for(auto &obj : world.objects){
         if(obj.second->objType == ObjectType::Entity){
             auto ent = static_cast<Game::EntityBase*>(obj.second.get());
+            auto &in = ent->input;
+            bool isSpace = in.isKeyPress(Game::Key::SPACE);
+            if(in.isKeyPress(Game::Key::UP) && in.isKeyPress(Game::Key::RIGHT)){
+                ent->entityMove(nite::Vec2(1.0f, -1.0f), isSpace);
+            }else
+            if(in.isKeyPress(Game::Key::DOWN) && in.isKeyPress(Game::Key::RIGHT)){
+                ent->entityMove(nite::Vec2(1.0f, 1.0f), isSpace);
+            }else
+            if(in.isKeyPress(Game::Key::UP) && in.isKeyPress(Game::Key::LEFT)){
+                ent->entityMove(nite::Vec2(-1.0f, -1.0f), isSpace);
+            }else		
+            if(in.isKeyPress(Game::Key::DOWN) && in.isKeyPress(Game::Key::LEFT)){
+                ent->entityMove(nite::Vec2(-1.0f, 1.0f), isSpace);
+            }else				
+            if(in.isKeyPress(Game::Key::UP)){
+                ent->entityMove(nite::Vec2(0.0f, -1.0f), isSpace);
+            }else
+            if(in.isKeyPress(Game::Key::RIGHT)){
+                ent->entityMove(nite::Vec2(1.0f, 0.0f), isSpace);
+            }else
+            if(in.isKeyPress(Game::Key::DOWN)){
+                ent->entityMove(nite::Vec2(0.0f, 1.0f), isSpace);
+            }else
+            if(in.isKeyPress(Game::Key::LEFT)){
+                ent->entityMove(nite::Vec2(-1.0f, 0.0f), isSpace);
+            }
             ent->effectStat.update();
             ent->entityStep();
         }
@@ -995,7 +983,11 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
             nite::print("[server] failed to notify clients their respective entity. ip was not found in the list");
             return;
         }
-        me->createPlayer(cl->clientId, 1);
+
+        float startx = me->maps[me->currentMap]->startCell.x + nite::randomInt(-50, 50);
+        float starty = me->maps[me->currentMap]->startCell.y + nite::randomInt(-50, 50);    
+
+        me->createPlayer(cl->clientId, 1, startx, starty);
         // [1] notify clients of their respective owners
         me->bindOnAckFor(Game::PacketType::SV_CREATE_OBJECT, [me](nite::SmallPacket &pck, nite::IP_Port &ip){   
             auto cl = me->getClientByIp(ip);
@@ -1049,7 +1041,15 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
                 });                    
             });             
         });             
-    });  
+    }); 
+
+
+    float startx = me->maps[me->currentMap]->startCell.x + nite::randomInt(-50, 50);
+    float starty = me->maps[me->currentMap]->startCell.y + nite::randomInt(-50, 50);   
+
+    auto objMob = createMob(Game::ObjectSig::MobHumanoid, 10, startx, starty); 
+    auto mob = static_cast<Game::EntityBase*>(objMob.get());
+    mob->aidriver.add(Shared<Game::AI::DumbassBehavior>(new Game::AI::DumbassBehavior()));
 }
 
 void Game::Server::restart(){
@@ -1111,29 +1111,22 @@ void Game::Server::setCurrentMap(unsigned cm){
     if(cm >= this->maps.size()){
         return;
     }
-    clearWorldColMaks();
+    world.clearWallMasks();
     this->currentMap = cm;
     auto &m = this->maps[this->currentMap]; 
     nite::Vec2 ws = m->size * m->tileSize;
     this->world.setSize(ws.x, ws.y, 128, 128);    
     for(int i = 0; i < m->masks.size(); ++i){
         auto &mask = m->masks[i];
-        auto obj = Shared<Game::NetObject>(new Game::NetObject());
+        auto obj = new Game::NetObject();
         obj->position = mask.position;
         obj->size = mask.size;
         obj->solid = true;
         obj->unmovable = true;
-        this->world.add(obj);
-        localMasks.push_back(obj.get());
+        this->world.addWallMask(obj);
+        localMasks.push_back(obj);
     }
     nite::print("current cmasks: "+nite::toStr(this->world.objects.size()));
-}
-
-void Game::Server::clearWorldColMaks(){
-    for(int i = 0; i < localMasks.size(); ++i){
-        localMasks[i]->destroy();
-    }
-    localMasks.clear();
 }
 
 void Game::Server::addItem(UInt16 entityId, Shared<Game::ItemBase> item){
@@ -1460,6 +1453,30 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
     obj->net = this;
     obj->container = &world;
     auto id = this->world.add(obj);
+
+    // solve position  
+    Game::NetObject *who;
+    int trial = 0;
+    while(obj->isCollidingWithSomething(&who)){
+        if(trial > 3 || who == NULL){
+            break;
+        }
+        // hardcoded for now
+        if(trial == 0){
+            obj->setPosition(who->position.x + who->size.x, who->position.y);
+        }else
+        if(trial == 1){
+            obj->setPosition(who->position.x - obj->size.x, who->position.y);
+        }else
+        if(trial == 2){
+            obj->setPosition(who->position.x, who->position.y - obj->size.y);
+        }else
+        if(trial == 3){
+            obj->setPosition(who->position.x, who->position.y + who->size.y);
+        }
+        ++trial;
+    }
+
     nite::Packet crt;
     crt.setHeader(Game::PacketType::SV_CREATE_OBJECT);
     crt.write(&id, sizeof(UInt16));
@@ -1487,24 +1504,42 @@ bool Game::Server::destroy(UInt32 id){
     return true;
 }
 
-Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv){
+Shared<Game::NetObject>  Game::Server::createMob(UInt16 sig, UInt32 lv, float x, float y){
+    auto obj = Game::createNetObject(world.generateId(), sig, x, y);
+    if(obj.get() == NULL){
+        nite::print("[server] FATAL ERROR: failed to create mob object: signature id '"+Game::ObjectSig::name(sig)+"' does not exist?");
+        close();
+        return obj;
+    }    
+    Game::EntityBase *ent = static_cast<Game::EntityBase*>(obj.get());
+    ent->setupStat(lv);
+    spawn(obj);
+    ent->loadAnim();
+    ent->printInfo();
+    nite::print("[server] created mob entity with id "+nite::toStr(obj->id));
+    return obj;
+}
+
+Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv, float x, float y){
     auto client = clients.find(uid);
     if(client == clients.end()){
         nite::print("[server] failed to create player for unexisting client id '"+nite::toStr(uid)+"'");
         return Shared<Game::NetObject>(NULL);
     }
-    auto obj = Shared<Game::NetObject>(new Game::EntityBase()); // ideally we should create this using createNetObject
-    auto player = static_cast<EntityBase*>(obj.get());
+
+    auto obj = Game::createNetObject(world.generateId(), Game::ObjectSig::Player, x, y);
+    if(obj.get() == NULL){
+        nite::print("[server] FATAL ERROR: failed to create player object: signature id '"+Game::ObjectSig::name(Game::ObjectSig::Player)+"' does not exist?");
+        close();
+        return obj;
+    }
+    Game::EntityBase *player = static_cast<Game::EntityBase*>(obj.get());
     player->setupStat(lv);
-    player->sigId = Game::ObjectSig::Player;
-    auto &cm = maps[currentMap]; 
-    float startx = cm->startCell.x + nite::randomInt(-50, 50);
-    float starty = cm->startCell.y + nite::randomInt(-50, 50);
-    player->setPosition(startx, starty);
     spawn(obj);
     client->second.entityId = obj->id;
-    static_cast<Game::EntityBase*>(obj.get())->loadAnim();
+    player->loadAnim();
     players[uid] = obj->id;
+
     nite::print("[server] created player entity with id "+nite::toStr(obj->id)+" | for client id "+nite::toStr(uid)+"("+client->second.nickname+")");
 
     // testing stats

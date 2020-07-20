@@ -3,10 +3,10 @@
 
     #include "../Engine/Tools/Tools.hpp"
     #include "../Engine/Map.hpp"
-    #include "../Entity/Base.hpp"
 
     namespace Game {
-
+        
+        struct EntityBase;
         namespace AI {
 
             enum Type : UInt8 {
@@ -32,7 +32,8 @@
             struct SharedMemory {
                 
             };
-
+            
+            
             struct BaseBehavior {
                 UInt64 behaviorTimeout;
                 UInt64 lastBehaviorTimeout;
@@ -55,6 +56,9 @@
                 unsigned type;
                 String name;
                 Vector<String> tags;
+                BaseBehavior(){
+                    behaviorTimeout = 32;
+                }
                 virtual bool isReady(){
                     if(nite::getTicks()-lastBehaviorTimeout > behaviorTimeout){
                         lastBehaviorTimeout = nite::getTicks();
@@ -71,12 +75,18 @@
             };
 
 
-
             struct WanderBehavior : public BaseBehavior {
                 void init();
-                void think(EntityBase *subject);
+                void think(Game::EntityBase *subject);
             };
 
+            struct DumbassBehavior : public BaseBehavior {
+                int rand;
+                UInt64 lastRand;
+                UInt64 nextRand;
+                void init();
+                void think(Game::EntityBase *subject);
+            };
 
         }
     }

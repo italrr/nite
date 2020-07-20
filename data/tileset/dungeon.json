@@ -48,9 +48,6 @@
 		"wall_vertical_ltop",
 		"wall_vertical_rmiddle",
 		"wall_vertical_lmiddle",
-		"wall_vertical_rbottom",
-		"wall_vertical_lbottom",
-		"wall_horizontal_bmiddle",
 		"wall_corner_bbottom_right",
 		"wall_corner_bbottom_left"
 	],

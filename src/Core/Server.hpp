@@ -31,7 +31,6 @@
 
         struct SvClient {
             nite::IP_Port cl;
-            Game::InputCompacter input;
             String nickname;
             UInt64 clientId;
             UInt16 entityId;
@@ -130,7 +129,8 @@
             Shared<Game::NetObject> spawn(Shared<Game::NetObject> obj);
             bool destroy(UInt32 id);            
             void setupGame(const String &name, int maxClients, int maps);
-            Shared<Game::NetObject> createPlayer(UInt64 uid, UInt32 lv);
+            Shared<Game::NetObject> createPlayer(UInt64 uid, UInt32 lv, float x, float y);
+            Shared<Game::NetObject> createMob(UInt16 sig, UInt32 lv, float x, float y);
             bool removePlayer(UInt64 uid);
             bool killPlayer(UInt64 uid);
             void createPlayersOnStart(UInt16 initialHeader);

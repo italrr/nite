@@ -455,6 +455,7 @@ void nite::Map::draw(const nite::Vec2 &pos, const nite::Rect &vwp){
     int vwdiff = nite::round((vwp.w / realSize.x) * size.x);
     int vhdiff = nite::round((vwp.h / realSize.y) * size.y);           
     for(int j = 0; j < layers.size(); ++j){
+        nite::setDepth(layers[j]->dynamicY ? nite::DepthTop : nite::DepthMiddle);
         layers[j]->src.drawCellBatch(&layers[j]->batch, pos.x, pos.y, vxdiff, vydiff, vwdiff, vhdiff);    
     }
     nite::setDepth(nite::DepthMiddle);

@@ -134,7 +134,7 @@ void Game::Client::clear(){
     sock.close();
     ft.clear();
     clients.clear();
-    clearWorldColMaks();
+    world.clearWallMasks();
     world.clear();
     deliveries.clear();
     hud.stop();
@@ -406,7 +406,7 @@ void Game::Client::update(){
                 if(obj->objType == ObjectType::Entity){
                     static_cast<Game::EntityBase*>(obj.get())->loadAnim();
                 }
-                nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+Game::ObjectSig::name(sigId)+" at "+nite::Vec2(x, y).str());
+                nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+nite::toStr(sigId)+" at "+nite::Vec2(x, y).str());
             } break;
             /*
                 SV_DESTROY_OBJECT
@@ -465,20 +465,13 @@ void Game::Client::update(){
                     handler.read(&id, sizeof(UInt16));
                     handler.read(&x, sizeof(float));
                     handler.read(&y, sizeof(float));
+                    handler.read(&xspeed, sizeof(float));
+                    handler.read(&yspeed, sizeof(float));                    
                     auto obj = world.get(id);
                     if(obj != NULL){
-                        if(obj->snapshots.size() > 25){
-                            obj->snapshots.clear();
-                        }
                         obj->nextPosition.set(x, y);
-                        UInt8 amnt;
-                        handler.read(&amnt, sizeof(amnt));
-                        for(int j = 0; j < amnt; ++j){
-                            Game::PredictFragment frg;
-                            handler.read(&frg.order, sizeof(frg.order));
-                            handler.read(&frg.pos.x, sizeof(frg.pos.x));
-                            handler.read(&frg.pos.y, sizeof(frg.pos.y));
-                            obj->snapshots.push_back(frg);
+                        if(entityId != obj->id){
+                            obj->speed.set(xspeed, yspeed);
                         }
                     }
                 }
@@ -1168,26 +1161,19 @@ void Game::Client::render(){
 }
 
 void Game::Client::setCurrentMap(Shared<nite::Map> &m){
-    clearWorldColMaks(); 
+    world.clearWallMasks();
     nite::Vec2 ws = m->size * m->tileSize;
     this->world.setSize(ws.x, ws.y, 64, 128);    
     for(int i = 0; i < m->masks.size(); ++i){
         auto &mask = m->masks[i];
-        auto obj = Shared<Game::NetObject>(new Game::NetObject());
+        auto obj = new Game::NetObject();
         obj->position = mask.position;
         obj->size = mask.size;
         obj->solid = true;
         obj->unmovable = true;
-        this->world.add(obj);
-        localMasks.push_back(obj.get());
+        this->world.addWallMask(obj); // we use id 0 for wallmasks as these are not managed by the server
+        localMasks.push_back(obj);
     }
     this->map = m;
     nite::print("[client] current cmasks: "+nite::toStr(this->world.objects.size()));
-}
-
-void Game::Client::clearWorldColMaks(){
-    for(int i = 0; i < localMasks.size(); ++i){
-        localMasks[i]->destroy();
-    }
-    localMasks.clear();
 }

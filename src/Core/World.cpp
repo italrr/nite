@@ -8,9 +8,8 @@
 #include "Network.hpp"
 
 
-static UInt16 generateId(){
-	static UInt16 seed = nite::randomInt(25, 50);
-	return ++seed; // networld ids are never to be 0. so a response with 0 means error
+UInt16 Game::NetWorld::generateId(){
+	return ++seedId; // networld ids are never to be 0. so a response with 0 means error
 }
 
 void Game::NetWorld::setSize(int w, int h, int unitsize, float gridSpec){
@@ -60,6 +59,7 @@ void Game::NetWorld::getQuadrant(int x, int y, int w, int h, Vector<Game::NetObj
 }
 
 Game::NetWorld::~NetWorld(){
+	clearWallMasks();
 	if(cells != NULL){
 		delete cells;
 	}
@@ -69,9 +69,13 @@ Game::NetWorld::NetWorld(){
 	timescale = 1.0f;
 	debugPhysics = false;
 	cells = NULL;
+	seedNId = -1;
+	seedId = nite::randomInt(25, 50);
 	snapshotOrder = 0;
 	tickrate = 1000 / 33;
-	objects.reserve(5000);
+	int reserve = 1000 * 30;
+	objects.reserve(reserve);
+	nite::print("NetWorld reserved "+nite::toStr(sizeof(Shared<Game::NetObject>) * reserve)+" bytes");
 }
 
 bool Game::NetWorld::exists(UInt16 id){
@@ -79,8 +83,8 @@ bool Game::NetWorld::exists(UInt16 id){
 }
 
 UInt16 Game::NetWorld::add(Shared<Game::NetObject> &obj, int useId){
-	UInt16 id = useId == -1 ? generateId() : useId; 
-	objects[id] = obj;
+	int id = useId == -1 ? generateId() : useId; 
+	objects[id] = obj; 
 	obj->id = id;
 	obj->container = this;
 	obj->onCreate();
@@ -88,11 +92,41 @@ UInt16 Game::NetWorld::add(Shared<Game::NetObject> &obj, int useId){
 	return id;
 }
 
-void Game::NetWorld::clear(){
-	objects.clear();
+void Game::NetWorld::clearWallMasks(){
+	for(int i = 0; i < wallMasks.size(); ++i){
+		wallMasks[i]->clearQuadrant();
+		delete wallMasks[i];
+	}
+	wallMasks.clear();
 }
 
-void Game::NetWorld::remove(UInt16 objectId){
+bool Game::NetWorld::removeWallMask(Game::NetObject *mask){
+	for(int i = 0; i < wallMasks.size(); ++i){
+		if(wallMasks[i] == mask){
+			wallMasks[i]->clearQuadrant();
+			delete mask;
+			wallMasks.erase(wallMasks.begin() + i);
+			return true;
+		}
+	}
+	return false;
+}
+
+int Game::NetWorld::addWallMask(Game::NetObject *mask){
+	mask->localId = --seedNId;
+	mask->id = 0;
+	mask->container = this;
+	mask->onCreate();
+	mask->updateQuadrant();		
+	return mask->localId;
+}
+
+void Game::NetWorld::clear(){
+	objects.clear();
+	clearWallMasks();
+}
+
+void Game::NetWorld::remove(int objectId){
 	auto search = objects.find(objectId);
 	if(search != objects.end()) {
 		for(int i = 0; i < removeQueue.size(); ++i){
@@ -100,7 +134,7 @@ void Game::NetWorld::remove(UInt16 objectId){
 		}
 		removeQueue.push_back(objectId);
 	}else{
-		nite::print("unable to remove object id '"+nite::toStr(objectId)+"': it doesn't exist.");
+		nite::print("[NetWorld] unable to remove object id '"+nite::toStr(objectId)+"': it doesn't exist.");
 	}
 }
 
@@ -180,7 +214,7 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	// TODO: this ^
 	
 	Vector<Game::NetObject*> nearObjs;
-	getQuadrant(obj->position.x - 1500 * 0.5f,  obj->position.y - 1500 * 0.5f, 3000, 3000, nearObjs);		
+	getQuadrant(obj->position.x - 2500,  obj->position.y - 2500, 5000, 5000, nearObjs);		
 	float xdiff = obj->speed.x * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
 	float ydiff = obj->speed.y * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
 	auto diff = nite::Vec2(xdiff, ydiff);
@@ -190,7 +224,7 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 		auto other = nearObjs[i];
 		if(obj->id == other->id) continue;				
 		if(!other->solid) continue;		
-		if(testCollision(obj, other, diff, limit, normal)){
+		if(testCollision(obj, other, diff, limit, normal)){	
 			obj->collided = true; 
 			obj->onCollision(other);
 			float offset = 1.0f;
@@ -220,14 +254,14 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	if(obj->sv == NULL){
 		float distx = nite::abs(obj->nextPosition.x - obj->position.x);
 		float disty = nite::abs(obj->nextPosition.y - obj->position.y);
-		if(distx > 4){
+		if(distx > 3){
 			float origx = obj->nextPosition.x, nx = obj->position.x;
-			nite::lerpDiscrete(origx, nx, 0.15f);
+			nite::lerpDiscrete(origx, nx, 0.55f);
 			obj->position.x = origx;
 		}
-		if(disty > 4){
+		if(disty > 3){
 			float origy = obj->nextPosition.y, ny = obj->position.y;
-			nite::lerpDiscrete(origy, ny, 0.15f);
+			nite::lerpDiscrete(origy, ny, 0.55f);
 			obj->position.y = origy;
 		}		
 	}
@@ -258,18 +292,24 @@ void Game::NetWorld::update(){
 	if(nite::getTicks()-lastTick < tickrate){
 		return;
 	}
+	
 	delta = nite::getTicks() - lastTick;
 	lastTick = nite::getTicks();
-	currentTickRate = ((float)delta / (float)tickrate) * 16.6666667f;
+	currentTickRate = delta;
 
   	for (auto it : objects){
 		auto current = it.second;
-		nite::Vec2 p = current->position;
-		auto obj = it.second.get();
+		nite::Vec2 lastPos = current->position;
 		current->collided = false;
-		updateObject(obj);
-		current->speed.lerpDiscrete(nite::Vec2(0.0f), currentTickRate * current->friction * current->relativeTimescale * nite::getTimescale() * this->timescale);
-		if(current->position.x != p.x || current->position.y != p.y){
+		// movement
+		updateObject(it.second.get());
+		// friction
+		for(int i = 0; i < currentTickRate / tickrate; ++i){
+			current->speed.x *= 1.0f - (current->friction * nite::getTimescale() * timescale * current->relativeTimescale);
+			current->speed.y *= 1.0f - (current->friction * nite::getTimescale() * timescale * current->relativeTimescale);
+		}
+		// position changed, send updates to clients
+		if(current->position.x != lastPos.x || current->position.y != lastPos.y){
 			this->updateQueue[current->id] = current.get();
 		}		
 	}

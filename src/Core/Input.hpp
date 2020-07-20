@@ -51,6 +51,8 @@
         struct InputCompacter {
             UInt8 states[Key::total];
             bool changed;
+            bool set(UInt8 key, UInt16 v);
+            void setAll(UInt16 v);
             InputCompacter();
             bool isKeyPress(UInt8 key);
             UInt16 getCompat();

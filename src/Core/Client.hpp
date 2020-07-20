@@ -54,7 +54,6 @@
             Client();
             ~Client();
             void setCurrentMap(Shared<nite::Map> &map);
-            void clearWorldColMaks();
             Game::EntityBase *getEntity(UInt16 id);
             void disconnect(const String &reason);
             void disconnect();

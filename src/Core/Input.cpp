@@ -17,6 +17,20 @@ UInt16 Game::InputCompacter::getCompat(){
     return compat;
 }
 
+bool Game::InputCompacter::set(UInt8 key, UInt16 v){
+    if(key >= Game::Key::total){
+        return false;
+    }
+    states[key] = v;
+    return true;
+}
+
+void Game::InputCompacter::setAll(UInt16 v){
+    for(int i = 0; i < Key::total; ++i){
+        states[i] = v;
+    }
+}
+
 void Game::InputCompacter::loadCompat(UInt16 v){
     int bit = 1;
     for(int i = 0; i < Key::total; ++i){

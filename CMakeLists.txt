@@ -202,8 +202,6 @@ set (nite_src
 		src/Engine/Animation.cpp
 		src/Engine/Indexer.cpp
 		src/Engine/Map.cpp
-		src/Engine/World.cpp
-		src/Engine/World.cpp
 		src/Engine/Object.cpp
 		src/Engine/nScript.cpp
 		src/Engine/Audio.cpp
