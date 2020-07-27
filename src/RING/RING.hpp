@@ -30,6 +30,45 @@
                 }              
             };
 
+            struct Rule {
+                String k;
+                Vector<int> v;
+                void load(const Jzon::Node &obj){
+                    this->k = obj.get("k").toString();
+                    auto v = obj.get("v");
+                    for(int i = 0; i < v.getCount(); ++i){
+                        this->v.push_back(v.get(i).toInt());
+                    }
+                }                    
+            };
+
+            struct Criteria {
+                int width;
+                int height;
+                int sampleSize; // width * height
+                int outbounds;
+                int any;
+                int offsetx;
+                int offsety;
+                Vector<Rule> rules;
+                void load(const Jzon::Node &obj){
+                    width = obj.get("width").toInt();
+                    height = obj.get("height").toInt();
+                    sampleSize = obj.get("sampleSize").toInt();
+                    any = obj.get("any").toInt();
+                    outbounds = obj.get("outbounds").toInt();
+                    offsetx = obj.get("offset_start_x").toInt();
+                    offsety = obj.get("offset_start_y").toInt();
+                    auto ruleObj = obj.get("rules");
+                    rules.clear();
+                    for(int i = 0; i < ruleObj.getCount(); ++i){
+                        Rule rule;
+                        rule.load(ruleObj.get(i));
+                        rules.push_back(rule);
+                    }                                        
+                }
+            };
+
             struct TileSource {
                 String name;
                 String description;
@@ -39,7 +78,7 @@
                 nite::Vec2 margin;
                 nite::Vec2 spacing;
                 nite::Vec2 tileSize;
-                Jzon::Node criteria;
+                Criteria criteria;
                 nite::Color transparency;
                 TileSource(const String &path);
                 TileSource();

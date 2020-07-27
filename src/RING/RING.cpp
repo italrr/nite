@@ -17,26 +17,8 @@
 // #define MAPPING_CRITERIA_OFFSET_START_X 2
 // #define MAPPING_CRITERIA_OFFSET_START_Y 2
 
-struct Criteria {
-    int width;
-    int height;
-    int sampleSize; // width * height
-    int outbounds;
-    int any;
-    int offsetx;
-    int offsety;
-    void load(const Jzon::Node &obj){
-        width = obj.get("width").toInt();
-        height = obj.get("height").toInt();
-        sampleSize = obj.get("sampleSize").toInt();
-        any = obj.get("any").toInt();
-        outbounds = obj.get("outbounds").toInt();
-        offsetx = obj.get("offset_start_x").toInt();
-        offsety = obj.get("offset_start_y").toInt();
-    }
-};
 
-static Criteria criteria;
+static Game::RING::Criteria criteria;
 
 
 struct MappingCriteria {
@@ -59,12 +41,9 @@ struct MappingCriteria {
             this->region[i] = grid[xi + yi * width];
         }
     }
-    void load(const Jzon::Node &obj){
-        key = obj.get("k").toString();
-        auto v = obj.get("v");
-        for(int i = 0; i < v.getCount(); ++i){
-            region[i] = v.get(i).toInt();
-        }
+    void loadFromRule(const Game::RING::Rule &rule){
+        this->key = rule.k;
+        this->region = rule.v;
     }    
     bool match(const MappingCriteria &other){
         for(int i = 0; i < criteria.sampleSize; ++i){
@@ -138,17 +117,15 @@ static MappingCriteria matchForRules(const MappingCriteria &src){
     }
     return __default;
 }
-
-static void loadRules(const Jzon::Node &ruleObj){
+static void loadFromRules(const Vector<Game::RING::Rule> &_rules){
     rules.clear();
-    for(int i = 0; i < ruleObj.getCount(); ++i){
-        MappingCriteria rule;
-        rule.load(ruleObj.get(i));
-        rules.push_back(rule);
+    for(int i = 0; i < _rules.size(); ++i){
+        MappingCriteria mpr;
+        mpr.loadFromRule(_rules[i]);
+        rules.push_back(mpr);
     }
     nite::print("loaded "+nite::toStr(rules.size())+" MappingCriteria rule(s)");
 }
-
 
 Game::RING::TileSource::TileSource(const String &path){
     load(path);
@@ -176,7 +153,7 @@ void Game::RING::TileSource::load(const String &path){
     this->tileSize.set(node.get("tileWidth").toFloat(), node.get("tileHeight").toFloat());
     this->floorDefault = node.get("floorDefault").toString();
     this->floorVarianceFactor = node.get("floorVarianceFactor").toFloat();
-    this->criteria = node.get("criteria");
+    this->criteria.load(node.get("criteria"));
     this->lastFloorVariant = floorDefault;
     auto mappings = node.get("mapping");
     for(auto mapp : mappings){
@@ -313,8 +290,8 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
         mirror[i] = bp->grid[pind].type;
     }
 
-    criteria.load(temp.criteria);
-    loadRules(temp.criteria.get("rules"));
+    criteria = temp.criteria;
+    loadFromRules(criteria.rules);
 
     // put walls using template
     for(int i = 0; i < size; ++i){
