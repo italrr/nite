@@ -1,8 +1,14 @@
+#include <algorithm>
+
 #include "Tools/Tools.hpp"
 #include "View.hpp"
 #include "Map.hpp"
 #include "Texture.hpp"
-#include <algorithm>
+#include "Console.hpp"
+
+
+static bool renMap = true;
+static nite::Console::CreateProxy cpAnDatTo("ren_enable_map", nite::Console::ProxyType::Bool, sizeof(bool), &renMap);
 
 void nite::MapLayer::clear(){
     if(cells == NULL){
@@ -446,6 +452,9 @@ void nite::Map::draw(const nite::Vec2 &pos, const nite::Rect &vwp){
     nite::setRenderTarget(nite::RenderTargetPrevious);   // render black background right before Game
     nite::setColor(0.0f, 0.0f, 0.0f, 1.0f); 
     empty.draw(0.0f, 0.0f, nite::getWidth(), nite::getHeight(), 0.0f, 0.0f, 0.0f);
+    if(!renMap){
+        return;
+    }
     nite::setDepth(nite::DepthMiddle);
     nite::setRenderTarget(nite::RenderTargetGame);   
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f); 

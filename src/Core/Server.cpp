@@ -59,10 +59,10 @@ static nite::Console::Result cfDmgEntity(Vector<String> params){
     dmg.dmgtype = Game::DamageType::Magical;
     dmg.elmnt = Game::Element::Neutral;
     dmg.isCrit = false;
-    dmg.owner = Shared<Game::EntityBase>(NULL);
-    dmg.receiver = obj;
+    dmg.emitter = 0;
+    dmg.receiver = obj->id;
     dmg.truedmg = false;
-    dmg.weap = Shared<Game::EquipItem>(NULL);
+    dmg.weap = 0;
     ent->damage(dmg);
     return nite::Console::Result();
 }
@@ -738,6 +738,30 @@ void Game::Server::update(){
                     } break;
                 }
             } break; 
+            /*
+                SV_UPDATE_PHYSICS_OBJECT
+            */            
+            case Game::PacketType::SV_UPDATE_PHYSICS_OBJECT: {
+                if(!client || !isLast){
+                    break;
+                }
+                UInt16 amnt;
+                handler.read(&amnt, sizeof(UInt16));
+                for(int i = 0; i < amnt; ++i){
+                    UInt16 id;
+                    float x, y, xspeed, yspeed;
+                    handler.read(&id, sizeof(UInt16));
+                    handler.read(&x, sizeof(float));
+                    handler.read(&y, sizeof(float));
+                    handler.read(&xspeed, sizeof(float));
+                    handler.read(&yspeed, sizeof(float));                    
+                    auto obj = world.get(id);
+                    if(obj != NULL && obj->id == client->entityId){
+                        obj->position.set(x, y);
+                        obj->speed.set(xspeed, yspeed);
+                    }
+                }
+            } break;              
             /* 
                 UNKNOWN
             */
@@ -784,7 +808,7 @@ void Game::Server::update(){
     }
 
     // update physics
-    if(nite::getTicks()-physicsUpdate > 0){
+    if(nite::getTicks()-physicsUpdate > 5){
         auto &queue = world.updateQueue;
         if(queue.size() > 0){      
             UInt16 amnt = queue.size();
@@ -792,6 +816,7 @@ void Game::Server::update(){
             phys.setHeader(Game::PacketType::SV_UPDATE_PHYSICS_OBJECT);
             phys.write(&amnt, sizeof(UInt16));
             // TODO: scope it for visible areas only            
+            // TODO: check if the entity actually existits before pulling these values
             for(auto &it : queue){
                 auto &obj = world.objects[it.first];
                 phys.write(&obj->id, sizeof(UInt16));
@@ -1115,7 +1140,7 @@ void Game::Server::setCurrentMap(unsigned cm){
     this->currentMap = cm;
     auto &m = this->maps[this->currentMap]; 
     nite::Vec2 ws = m->size * m->tileSize;
-    this->world.setSize(ws.x, ws.y, 128, 128);    
+    this->world.setSize(ws.x, ws.y, 64, 64);    
     for(int i = 0; i < m->masks.size(); ++i){
         auto &mask = m->masks[i];
         auto obj = new Game::NetObject();

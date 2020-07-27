@@ -39,6 +39,7 @@
                 nite::Vec2 margin;
                 nite::Vec2 spacing;
                 nite::Vec2 tileSize;
+                Jzon::Node criteria;
                 nite::Color transparency;
                 TileSource(const String &path);
                 TileSource();

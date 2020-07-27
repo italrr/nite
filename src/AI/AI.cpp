@@ -4,9 +4,9 @@
 #include "../Entity/Base.hpp"
 
 void Game::AI::WanderBehavior::init(){
-    behaviorTimeout = 100;
+    tickrate = 100;
     priority = 10;
-    type = Game::AI::Type::Wanderer;
+    type = Game::AI::BehaviorType::Wanderer;
     name = "Stare";
 }
 
@@ -23,7 +23,7 @@ void Game::AI::DumbassBehavior::init(){
 void Game::AI::DumbassBehavior::think(Game::EntityBase *subject){
     if(nite::getTicks()-lastRand > nextRand){
         rand = nite::randomInt(0, 3);
-        nextRand = nite::randomInt(500, 1500);
+        nextRand = nite::randomInt(100, 500);
         lastRand = nite::getTicks();
         subject->input.setAll(Game::PressType::Released);
     }

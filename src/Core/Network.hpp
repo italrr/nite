@@ -1,19 +1,19 @@
 #ifndef GAME_NETWORK_HPP
     #define GAME_NETWORK_HPP
-    
+
     #include <stdio.h>
-    #include "../Engine/Network.hpp" 
+    #include "../Engine/Network.hpp"
     #include "../Engine/Tools/Tools.hpp"
 
     namespace Game {
-        
+
         enum NetState: UInt32 {
             Disconnected = 0,
             Connecting,
             Connected
-        };      
+        };
 
-        static const UInt32 RetryTimeOutInterval = 60;  
+        static const UInt32 RetryTimeOutInterval = 60;
         static const UInt64 ClientTimeout = 1000 * 30; // TODO: inc this for release
         static const UInt64 ConnectingTimeout = 1000 * 3;
         static const UInt64 UpdatePhysicsTimeout = 32; // every 32 msecs a snapshot is sent
@@ -34,7 +34,7 @@
             an ACK [ORDER] is received, after that packet is dropped.
         */
 
-       /* 
+       /*
             the uniqueId (uid) or called as 'netId' is basically:
             ip + port + sock
             this is decided by the server
@@ -68,7 +68,7 @@
                 lastStaleTick = nite::getTicks();
                 created = nite::getTicks();
                 this->onAck = [](nite::SmallPacket &payload, nite::IP_Port &cl){
-                    
+
                 };
             }
         };
@@ -97,7 +97,7 @@
             Net();
             void setState(unsigned state);
             Shared<Game::PersisentDelivey> persSend(nite::IP_Port &client, nite::Packet &packet);
-            Shared<Game::PersisentDelivey> persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries);  
+            Shared<Game::PersisentDelivey> persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries);
             void updateDeliveries();
             void dropPersFor(UInt64 netId);
             void dropPersForHeader(UInt64 netId, UInt16 header);
@@ -122,48 +122,48 @@
             /*
                 UINT32 ORDER
             */
-            
+
             SV_PING,
             /*
                 SEVER-SIDE ONY:
                 UINT64 REMOTE_TIME
             */
-            
+
             SV_PONG,
             /*
-            */                         
-            
+            */
+
             SV_CONNECT_REQUEST,
             /*
                 UINT32  CLIENTVERSION
                 STRING  NICKNAME
             */
-            
+
             SV_CONNECT_ACCEPT,  // ACK
             /*
-                UINT64 CLIENTID 
+                UINT64 CLIENTID
                 STRING SVNAME
-            */  
-            
-            SV_CONNECT_REJECT,  
+            */
+
+            SV_CONNECT_REJECT,
             /*
                 STRING REASON
-            */  
-            
-            SV_CLIENT_DROP,  
+            */
+
+            SV_CLIENT_DROP,
             /*
                 STRING REASON (OPTIONAL)
-            */    
-            
-            SV_CLIENT_DISCONNECT, 
+            */
+
+            SV_CLIENT_DISCONNECT,
             /*
                 STRING REASON (OPTIONAL)
-            */     
-            
+            */
+
             SV_AWAIT_CLIENT_LOAD,  // ACK
             /*
                 STRING MAPHASH
-            */ 
+            */
 
             SV_CLIENT_LOAD_READY, // ACK
             /*
@@ -176,13 +176,13 @@
                 FLOAT R
                 FLOAT G
                 FLOAT B
-            */    
+            */
 
             SV_REMOTE_CMD_EXEC,  // ACK
             /*
                 STRING CMD
-            */        
-            
+            */
+
             SV_CLIENT_LIST,  // ACK (including yourself)
             /*
                 UINT16 AMOUNT
@@ -197,31 +197,31 @@
                     UINT64 PING
                     STRING NICKNAME
                 }
-            */                                                
-            
+            */
+
             SV_NOTI_CLIENT_DROP,  // ACK
             /*
                 UINT64 UID
                 STRING REASON
-            */           
-            
+            */
+
             SV_BROADCAST_MESSAGE,  // ACK
             /*
                 STRING MESSAGE
-            */ 
-            
+            */
+
             SV_CLIENT_JOIN,  // ACK
             /*
                 UINT64 UID(NETID)
                 STRING NICKNAME
             */
-            
+
             SV_CHAT_MESSAGE,  // ACK
             /*
                 UINT64 UID
                 STRING MESSAGE
-            */  
-            
+            */
+
             SV_ENTITY_COUNT,  // ACK
             /*
                 UINT16 AMOUNT
@@ -233,13 +233,13 @@
                 UINT16 SIGID
                 FLOAT x
                 FLOAT y
-            */               
+            */
 
             SV_DESTROY_OBJECT,  // ACK
             /*
                 UINT16 ID
             */
-            
+
             SV_CREATE_OBJECT_BATCH, // ACK
             /*
                 UINT16 AMOUNT
@@ -255,21 +255,21 @@
                     UINT16 SIGID
                     FLOAT x
                     FLOAT y
-                }                
-            */    
+                }
+            */
 
             SV_DESTROY_OBJECT_BATCH, // ACK
             /*
                 UINT16 AMOUNT
                 0: UINT16 ID[0]
                 ...
-                n: UINT16 ID[n]             
-            */ 
+                n: UINT16 ID[n]
+            */
 
              SV_CLIENT_INPUT,
             /*
                 UINT16 COMPAT
-            */    
+            */
 
             SV_UPDATE_PHYSICS_OBJECT,
             /*
@@ -287,32 +287,32 @@
                     FLOAT X
                     FLOAT Y
                     FLOAT XSPEED
-                    FLOAT YSPEED                  
-                }                
-            */ 
+                    FLOAT YSPEED
+                }
+            */
 
             SV_UPDATE_WORLD_SIMULATION_PROPS, // ACK
             /*
                 FLOAT TIMESCALE
                 UINT16 TICKRATE
-            */  
+            */
 
             SV_UPDATE_OBJECT_RELATIVE_TIMESCALE, // ACK
             /*
                 UINT16 ID
                 FLOAT TIMESCALE
-            */    
+            */
             SV_RCON, // ACK
             /*
                 STRING PASSWORD(hash)
-            */   
+            */
             SV_SET_GAME_START, // ACK
             /*
-            */  
+            */
             SV_NOTI_ENTITY_OWNER, // ACK
             /*
                 UINT16 ENTID
-            */                                                      
+            */
             SV_SET_ENTITY_SKILLS, // ACK
             /*
                 UINT16 ENTID
@@ -325,16 +325,16 @@
                 n: {
                     UINT16 SKILLID[n]
                     UINT8 LV[n]
-                }                
+                }
 
-            */ 
+            */
             SV_ADD_ENTITY_SKILL, // ACK
             /*
                 UINT16 ENTID
                 UINT16 SKILLID
-                UINT8 LV           
+                UINT8 LV
 
-            */             
+            */
             SV_REMOVE_ENTITY_SKILLS, // ACK
             /*
                 UINT16 ENTID
@@ -345,15 +345,15 @@
                 ...
                 n: {
                     UINT16 SKILLID[n]
-                }                
+                }
 
-            */  
+            */
             SV_REMOVE_ENTITY_SKILL, // ACK
             /*
                 UINT16 ENTID
-                UINT16 SKILLID     
+                UINT16 SKILLID
 
-            */               
+            */
             SV_SET_ENTITY_ACTIONABLES, // ACK
             /*
                 UINT16 ENTID
@@ -368,9 +368,9 @@
                     UINT8 SLOT
                     UINT8 TYPE[n]
                     UINT16 ID[n]
-                }                
+                }
 
-            */  
+            */
             SV_ENTITY_USE_SKILL_ITEM, // ACK
             /*
                 UINT16 ENTID(USER)
@@ -390,19 +390,19 @@
                 }
 
             */
-            SV_REMOVE_EFFECT, // ACK     
+            SV_REMOVE_EFFECT, // ACK
             /*
                 UINT16 ENTID
                 UINT16 INSID
-            */    
-            SV_UPDATE_EFFECT, // ACK     
+            */
+            SV_UPDATE_EFFECT, // ACK
             /*
                 UINT16 ENTID
                 UINT16 INSID
                 {
                     CUSTOM PAYLOAD
                 }
-            */  
+            */
             SV_ADD_ITEM, // ACK
             /*
                 UINT16 ENTID
@@ -416,7 +416,7 @@
                 UINT16 ITEMID
                 UINT16 SLOTID
                 UINT16 AMNT
-            */ 
+            */
             SV_UPDATE_ENTITY_STANCE_STATE,
             /*
                 UINT16 ENTID
@@ -429,9 +429,9 @@
                 1: { // ALWAYS MID
                     UINT8 STATE
                     UINT8 NUMBER
-                } 
-               
-            */     
+                }
+
+            */
             SV_UPDATE_ENTITY_SET_CASTING_STATE, // ACK
             /*
                 UINT16 ENTID
@@ -442,7 +442,7 @@
                 UINT64 TIME
                 FLOAT X
                 FLOAT Y
-            */                      
+            */
             SV_UPDATE_ENTITY_ALL_STAT, // ACK
             /*
                 UINT16 ENTID
@@ -451,7 +451,7 @@
                     sizeof(BaseStat)
                     sizeof(ComplexCStat)
                 }
-            */           
+            */
             SV_UPDATE_ENTITY_BASE_STAT, // ACK
             /*
                 UINT16 ENTID
@@ -465,14 +465,14 @@
                 {
                     sizeof(HealthStat)
                 }
-            */                                           
+            */
             SV_UPDATE_ENTITY_COMPLEX_STAT, // ACK
             /*
                 UINT16 ENTID
                 {
                     sizeof(ComplexStat)
                 }
-            */ 
+            */
             SV_UPDATE_SKILL_STATE, // ACK
             /*
                 UINT16 ENTID
@@ -480,7 +480,7 @@
                 {
                     CUSTOM PAYLOAD // Ideally less than 32 bytes
                 }
-            */            
+            */
             SV_NOTIFY_ENTITY_DEATH, // ACK
             /*
                 UINT16 ENTID
@@ -494,13 +494,13 @@
                 {
                     sizeof(HealthStat)
                 }
-            */ 
+            */
             SV_SET_GAME_OVER,  // ACK
-            SV_SET_GAME_RESTART,  // ACK 
+            SV_SET_GAME_RESTART,  // ACK
         };
 
 
     }
 
 
-#endif 
+#endif

@@ -7,9 +7,9 @@
 #include "Entity/Inventory.hpp"
 
 static Game::GameCore *instance = NULL;
-static nite::Vec2 mvSpeedDef = nite::Vec2(32.0f);	
-static nite::Vec2 mvSpeedTop = nite::Vec2(600.0f);	
-static nite::Vec2 mvSpeed = mvSpeedDef;	
+static nite::Vec2 mvSpeedDef = nite::Vec2(32.0f);
+static nite::Vec2 mvSpeedTop = nite::Vec2(600.0f);
+static nite::Vec2 mvSpeed = mvSpeedDef;
 
 static nite::Console::Result cfMapSave(Vector<String> params){
 	if(params.size() < 1){
@@ -19,7 +19,7 @@ static nite::Console::Result cfMapSave(Vector<String> params){
 	instance->client.map->exportToJson(path, true);
 	return nite::Console::Result();
 }
-static auto cfMapSaveIns = nite::Console::CreateFunction("map_save", &cfMapSave); 
+static auto cfMapSaveIns = nite::Console::CreateFunction("map_save", &cfMapSave);
 
 static nite::Console::Result cfMapLoad(Vector<String> params){
 	if(params.size() < 1){
@@ -35,7 +35,7 @@ static nite::Console::Result cfMapLoad(Vector<String> params){
 	instance->client.map = map;
 	return nite::Console::Result();
 }
-static auto cfMapLoadIns = nite::Console::CreateFunction("map_load", &cfMapLoad); 
+static auto cfMapLoadIns = nite::Console::CreateFunction("map_load", &cfMapLoad);
 
 
 static nite::Console::Result cfMapReadInfo(Vector<String> params){
@@ -62,7 +62,7 @@ static nite::Console::Result cfMapReadInfo(Vector<String> params){
 	nite::print("md5: '"+hash+"' | size: "+nite::toStr(nite::fileSize(path))+" bytes");
 	return nite::Console::Result();
 }
-static auto cfMapReadInfoIns = nite::Console::CreateFunction("map_read_info", &cfMapReadInfo); 
+static auto cfMapReadInfoIns = nite::Console::CreateFunction("map_read_info", &cfMapReadInfo);
 
 
 
@@ -77,12 +77,12 @@ static nite::Console::Result cfRINGGenerateMap(Vector<String> params){
 
 	if(!nite::isNumber(params[1])){
 		return nite::Console::Result("invalid parameter '"+params[1]+"'", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-	}	
+	}
 	int x = nite::toInt(params[0]);
 	int y = nite::toInt(params[1]);
 	if(instance->client.connected){
 		return nite::Console::Result("you cannot generate a map while in a game. disconnect first", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-	}	
+	}
 	instance->client.clear();
 	// TODO: allow to provide blueprint specs, tilesource and scale
 	// may require to create other commands
@@ -94,7 +94,7 @@ static nite::Console::Result cfRINGGenerateMap(Vector<String> params){
 	return nite::Console::Result();
 
 }
-static auto cfRINGGenerateMapIns = nite::Console::CreateFunction("ring_generate_map", &cfRINGGenerateMap); 
+static auto cfRINGGenerateMapIns = nite::Console::CreateFunction("ring_generate_map", &cfRINGGenerateMap);
 
 void Game::GameCore::start(){
 	instance = this;
@@ -108,7 +108,7 @@ void Game::GameCore::start(){
 	Game::DBLoadSkill("data/db/skills.json");
 	Game::DBLoadEffect("data/db/effects.json");
 	Game::DBLoadInventory("data/db/items.json");
-	nite::setView(true, nite::RenderTargetGame);	
+	nite::setView(true, nite::RenderTargetGame);
 	spawnServerThread();
 }
 
@@ -129,7 +129,7 @@ void Game::GameCore::update(){
 	this->client.update();
 }
 
-static void *localSvThread(void *vargp){ 
+static void *localSvThread(void *vargp){
 	auto *core = static_cast<Game::GameCore*>(vargp);
 	auto &sv = core->localSv;
     while(true){
@@ -138,25 +138,25 @@ static void *localSvThread(void *vargp){
 			core->svLastTick = nite::getTicks();
 		}
 	}
-    return NULL; 
-} 
+    return NULL;
+}
 
 void Game::GameCore::spawnServerThread(){
 	localSv.preinit();
-	localSv.setupGame("Pacifier's corner", 4, 1);	
-	pthread_create(&svThread, NULL, localSvThread, this); 
+	localSv.setupGame("Pacifier's corner", 4, 1);
+	pthread_create(&svThread, NULL, localSvThread, this);
 	nite::print("spawned local server thread. tickrate "+nite::toStr(this->svTickRate)+" msecs");
 }
 
 void Game::GameCore::killServerThread(){
 	pthread_cancel(svThread);
-	pthread_join(svThread, NULL);	
+	pthread_join(svThread, NULL);
 	nite::print("killed local server thread");
 	this->localSv.close();
 }
 
 
-void Game::GameCore::render(){	
+void Game::GameCore::render(){
 	this->client.render();
 	nite::graphicsRender();
 }

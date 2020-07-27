@@ -4,7 +4,7 @@ rel_path = "data/texture/overworld/humanoid_sliced"
 framesize = [128, 192]
 cells = [5, 7]
 filename = "player_sheet.png"
-imgsize = [framesize[0] * cells[0], framesize[1] * cells[1]]
+imgsize = framesize * cells
 
 bot_walk = [
 	"bot_walking_1.png",

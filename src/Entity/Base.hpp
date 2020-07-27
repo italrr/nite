@@ -111,9 +111,10 @@
         };
 
         struct EntityBase : Game::NetObject, Game::Stat {
+            UInt64 lastMeleeHit;
             Game::InputCompacter input;
             EntityBase();
-            AIDriver aidriver;
+            Game::AIDriver aidriver;
             Shared<Game::EntityCasting> currentCasting;
             UInt8 state[EntityStateSlot::total];
             UInt8 stNum[EntityStateSlot::total];
@@ -132,6 +133,7 @@
             float castingMsgAlpha;
             Gfx_CastingBall castingBall;
             Shared<nite::BaseUIComponent> castingMsg;
+            Vector<nite::Hitbox> getHitbox();
             void throwMelee(float x, float y); // time recommended to be not more than 100ms
 			void kill();
             void onCreate();

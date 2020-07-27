@@ -51,8 +51,8 @@ void Game::NetWorld::getQuadrant(int x, int y, int w, int h, Vector<Game::NetObj
 			auto c = cells[ind];
 			if(c != NULL){
 				quadrant.push_back(c);
-			}			
-			
+			}
+
 		}
 	}
 	return;
@@ -83,8 +83,8 @@ bool Game::NetWorld::exists(UInt16 id){
 }
 
 UInt16 Game::NetWorld::add(Shared<Game::NetObject> &obj, int useId){
-	int id = useId == -1 ? generateId() : useId; 
-	objects[id] = obj; 
+	int id = useId == -1 ? generateId() : useId;
+	objects[id] = obj;
 	obj->id = id;
 	obj->container = this;
 	obj->onCreate();
@@ -117,7 +117,8 @@ int Game::NetWorld::addWallMask(Game::NetObject *mask){
 	mask->id = 0;
 	mask->container = this;
 	mask->onCreate();
-	mask->updateQuadrant();		
+	mask->updateQuadrant();
+	wallMasks.push_back(mask);
 	return mask->localId;
 }
 
@@ -162,11 +163,11 @@ static bool testCollision(Game::NetObject *a, Game::NetObject *b, const nite::Ve
 	bool collision = false;
 	normal.x = 0.0f;
 	normal.y = 0.0f;
-	bool withinTopY = a->position.y <= b->position.y + a->size.y && a->position.y >= b->position.y;
+	bool withinTopY = a->position.y <= b->position.y + b->size.y && a->position.y >= b->position.y;
 	bool withinBottomY = a->position.y + a->size.y <= b->position.y + a->size.y && a->position.y + a->size.y >= b->position.y;
 
 	bool withinTopX = a->position.x <= b->position.x + a->size.x && a->position.x >= b->position.x;
-	bool withinBottomX = a->position.x + a->size.x <= b->position.x + a->size.x && a->position.x + a->size.x >= b->position.x;
+	bool withinBottomX = a->position.x + a->size.x <= b->position.x + b->size.x && a->position.x + a->size.x >= b->position.x;
 
 	if(diff.x > 0){
 		float ray = a->position.x + a->size.x + diff.x;
@@ -183,9 +184,9 @@ static bool testCollision(Game::NetObject *a, Game::NetObject *b, const nite::Ve
 			normal.x = -1.0f;
 			collision = true;
 		}
-	}	
+	}
 
-	if(diff.y > 0){	
+	if(diff.y > 0){
 		float ray = a->position.y + a->size.y + diff.y;
 		if(ray >= b->position.y && (a->position.y + a->size.y) < b->position.y && (withinTopX || withinBottomX)){
 			limit.y = 0.0f;
@@ -208,13 +209,13 @@ static bool testCollision(Game::NetObject *a, Game::NetObject *b, const nite::Ve
 void Game::NetWorld::updateObject(Game::NetObject *obj){
 	if(obj->unmovable || obj == NULL) return;
 	nite::Vec2 origp = obj->position;
-	
+
 	// we're gonna use a fixed size to look for quadrants for now(1024x1024 from center/origin)
 	// ideally we should use a size relative to the object's speed
 	// TODO: this ^
-	
+
 	Vector<Game::NetObject*> nearObjs;
-	getQuadrant(obj->position.x - 2500,  obj->position.y - 2500, 5000, 5000, nearObjs);		
+	getQuadrant(obj->position.x - 3000,  obj->position.y - 3000, 6000, 6000, nearObjs);
 	float xdiff = obj->speed.x * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
 	float ydiff = obj->speed.y * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
 	auto diff = nite::Vec2(xdiff, ydiff);
@@ -222,10 +223,10 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	auto limit = nite::Vec2(1.0f);
 	for(int i = 0; i < nearObjs.size(); ++i){
 		auto other = nearObjs[i];
-		if(obj->id == other->id) continue;				
-		if(!other->solid) continue;		
-		if(testCollision(obj, other, diff, limit, normal)){	
-			obj->collided = true; 
+		if(obj->id == other->id) continue;
+		if(!other->solid) continue;
+		if(testCollision(obj, other, diff, limit, normal)){
+			obj->collided = true;
 			obj->onCollision(other);
 			float offset = 1.0f;
 			if(normal.x > 0.0f){
@@ -244,30 +245,15 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 				obj->position.y = other->position.y + other->size.y + offset;
 				limit.y = 0.0f;
 			}
-			if(limit.x == 0.0f && limit.y == 0.0f){	
+			if(limit.x == 0.0f && limit.y == 0.0f){
 				break;
 			}
 		}
 	}
 	obj->position = obj->position + nite::Vec2(diff.x * limit.x, diff.y * limit.y);
-	// client side real position correction
-	if(obj->sv == NULL){
-		float distx = nite::abs(obj->nextPosition.x - obj->position.x);
-		float disty = nite::abs(obj->nextPosition.y - obj->position.y);
-		if(distx > 3){
-			float origx = obj->nextPosition.x, nx = obj->position.x;
-			nite::lerpDiscrete(origx, nx, 0.55f);
-			obj->position.x = origx;
-		}
-		if(disty > 3){
-			float origy = obj->nextPosition.y, ny = obj->position.y;
-			nite::lerpDiscrete(origy, ny, 0.55f);
-			obj->position.y = origy;
-		}		
-	}
 	if(origp.x != obj->position.x || origp.y != obj->position.y){
 		obj->updateQuadrant();
-	}	
+	}
 }
 
 void Game::NetWorld::setVisibleQuadrant(int x, int y, int w, int h){
@@ -287,12 +273,21 @@ void Game::NetWorld::update(){
 			nite::setDepth(0);
 			nite::resetColor();
 		}
+		for(int i = 0; i < wallMasks.size(); ++i){
+			auto mask = wallMasks[i];
+			nite::setDepth(nite::DepthTop);
+			nite::setRenderTarget(nite::RenderTargetGame);
+			nite::setColor(mask->collided ? nite::Color(1.0f, 0, 0) : nite::Color(0, 1.0f, 0));
+			nite::Draw::Rectangle(mask->position, mask->size, false, nite::Vec2(0.0, 0.0), 0);
+			nite::setDepth(0);
+			nite::resetColor();
+		}
 	}
 
 	if(nite::getTicks()-lastTick < tickrate){
 		return;
 	}
-	
+
 	delta = nite::getTicks() - lastTick;
 	lastTick = nite::getTicks();
 	currentTickRate = delta;
@@ -308,10 +303,10 @@ void Game::NetWorld::update(){
 			current->speed.x *= 1.0f - (current->friction * nite::getTimescale() * timescale * current->relativeTimescale);
 			current->speed.y *= 1.0f - (current->friction * nite::getTimescale() * timescale * current->relativeTimescale);
 		}
-		// position changed, send updates to clients
+		// position changed, send updates to clients (client->side only)
 		if(current->position.x != lastPos.x || current->position.y != lastPos.y){
 			this->updateQueue[current->id] = current.get();
-		}		
+		}
 	}
 
 	++snapshotOrder;

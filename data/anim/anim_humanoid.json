@@ -1,12 +1,38 @@
 {
 	"frameSize": {
-		"width": 128,
-		"height": 192
+		"w": 128,
+		"h": 192
 	},
-	"bodyDepthOffset": 70.0,
+	"maskSize": {
+		"w": 72,
+		"h": 150
+	},
+	"bodyDepthOffset": 64.0,
 	"transparency": "#ffffff",
 	"source": "3fafb8ea3751d7c2ce7a9568ac6624c7",
 	"filename": "humanoid_sheet.png",
+	"bodyHitbox": [
+		{
+			"x": 52,
+			"y": 12,
+			"w": 56,
+			"h": 48,
+			"name": "high",
+		},
+		{
+			"x": 20,
+			"y": 58,
+			"w": 76,
+			"h": 92,
+			"name": "mid",
+		}
+	],
+	"meleeNoWeapHitbox": {
+		"x": 100,
+		"y": 64,
+		"w": 26,
+		"h": 30
+	},
 	"frames": {
 		"bot_walking": {
 			"x": 0,

@@ -7,9 +7,10 @@
     namespace Game {
         
         struct EntityBase;
+        struct AIDriver;
         namespace AI {
 
-            enum Type : UInt8 {
+            enum BehaviorType : UInt8 {
                 Idle = 0,
                 Offensive,
                 Defensive,
@@ -17,26 +18,54 @@
                 Gatherer
             };
 
-            enum EventType : int {
-
-            };
-
-            struct MemoryEvent {
-                String tag;
-                int id; // whether entityId, itemId, skillId
-                int type;
-                UInt64 time;
-                nite::Vec2 pos;
-            };
-
-            struct SharedMemory {
+            enum MemoryType : int {
+                Hint, 
+                Intent, 
                 
             };
+
+            enum MemoryTag : int {
+                Seen,
+                Attacked,
+                Defended,
+                Traded,
+                Talked
+            };
+
+            struct Memory {
+                AI::MemoryTag tag;
+                int artifactId; // whether entityId, itemId, skillId
+                AI::MemoryType type;
+                UInt64 creation;
+                UInt64 expiration;
+                nite::Vec2 position;
+                UInt16 author; // entityId
+            };
+
+            struct Notion {
+                String name;
+                String desc;
+                int value;
+                int ref;
+                nite::Vec2 loc;
+                AI::BehaviorType type; // behaviortype
+                UInt16 author; // entityId
+            };
+
             
+            struct Concious {
+                Vector<AI::Memory> memory;
+                Vector<AI::Notion> notions;
+                void subscribe(AIDriver *driver);
+            };
+
+            struct Hivemind {
+
+            };
             
             struct BaseBehavior {
-                UInt64 behaviorTimeout;
-                UInt64 lastBehaviorTimeout;
+                UInt64 tickrate;
+                UInt64 lastTick;
                 /*
                     Priority will decide which behavior is executed first, and  
                     how strong is its authority agaisnt other baheviors.
@@ -57,11 +86,11 @@
                 String name;
                 Vector<String> tags;
                 BaseBehavior(){
-                    behaviorTimeout = 32;
+                    lastTick = 32;
                 }
                 virtual bool isReady(){
-                    if(nite::getTicks()-lastBehaviorTimeout > behaviorTimeout){
-                        lastBehaviorTimeout = nite::getTicks();
+                    if(nite::getTicks()-lastTick > tickrate){
+                        tickrate = nite::getTicks();
                         return true;
                     }
                     return false;
@@ -74,11 +103,15 @@
                 }
             };
 
-
             struct WanderBehavior : public BaseBehavior {
                 void init();
                 void think(Game::EntityBase *subject);
             };
+
+            struct FollowBehavior : public BaseBehavior {
+                void init();
+                void think(Game::EntityBase *subject);
+            };            
 
             struct DumbassBehavior : public BaseBehavior {
                 int rand;

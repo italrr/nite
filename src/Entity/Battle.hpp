@@ -26,9 +26,9 @@
         }  		
 
 		struct DamageInfo {
-			Shared<Game::NetObject> owner;
-			Shared<Game::NetObject> receiver;
-			Shared<Game::EquipItem> weap; // weapon used to deal the dmg. it can be null
+			UInt16 emitter;
+			UInt16 receiver;
+			UInt16 weap; // slotId
 			UInt8 dmgtype;
 			Int32 amnt;
 			bool truedmg;

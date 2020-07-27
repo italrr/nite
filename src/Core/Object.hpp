@@ -68,7 +68,7 @@
 			bool solid;
 			bool unmovable;
 			bool collided;
-
+            Vector<NetObject*> locals;
             UInt8 objType;
             UInt16 sigId;
             nite::Vec2 lerpPosition; // client side position interpolation

@@ -9,43 +9,66 @@
 
 #include "RING.hpp"
 
-#define MAPPING_CRITERIA_WIDTH 5
-#define MAPPING_CRITERIA_HEIGHT 5
-#define MAPPING_CRITERIA_SAMPLE MAPPING_CRITERIA_WIDTH * MAPPING_CRITERIA_HEIGHT
-#define MAPPING_CRITERIA_ANY -1
-#define MAPPING_CRITERIA_OUT_OF_BOUNDS -2
-#define MAPPING_CRITERIA_OFFSET_START_X 2
-#define MAPPING_CRITERIA_OFFSET_START_Y 2
+// #define MAPPING_CRITERIA_WIDTH 5
+// #define MAPPING_CRITERIA_HEIGHT 5
+// #define MAPPING_CRITERIA_SAMPLE MAPPING_CRITERIA_WIDTH * MAPPING_CRITERIA_HEIGHT
+// #define MAPPING_CRITERIA_ANY -1
+// #define MAPPING_CRITERIA_OUT_OF_BOUNDS -2
+// #define MAPPING_CRITERIA_OFFSET_START_X 2
+// #define MAPPING_CRITERIA_OFFSET_START_Y 2
+
+struct Criteria {
+    int width;
+    int height;
+    int sampleSize; // width * height
+    int outbounds;
+    int any;
+    int offsetx;
+    int offsety;
+    void load(const Jzon::Node &obj){
+        width = obj.get("width").toInt();
+        height = obj.get("height").toInt();
+        sampleSize = obj.get("sampleSize").toInt();
+        any = obj.get("any").toInt();
+        outbounds = obj.get("outbounds").toInt();
+        offsetx = obj.get("offset_start_x").toInt();
+        offsety = obj.get("offset_start_y").toInt();
+    }
+};
+
+static Criteria criteria;
+
 
 struct MappingCriteria {
-    String key;
-    int region[MAPPING_CRITERIA_SAMPLE]; // center plus surroundings (center is always x 2 y 2)
+    Vector<int> region;
+    String key;    
     void pull(int index, int *grid, int width, int height){ // copy cells 
-        for(int i = 0; i < MAPPING_CRITERIA_SAMPLE; ++i){
-            int xrel = i % MAPPING_CRITERIA_WIDTH;
-            int yrel = i / MAPPING_CRITERIA_WIDTH;
+        for(int i = 0; i < criteria.sampleSize; ++i){
+            int xrel = i % criteria.width;
+            int yrel = i / criteria.width;
             int gridx = index % width;
             int gridy = index / width;
-            int xg = gridx - MAPPING_CRITERIA_OFFSET_START_X;
-            int yg = gridy - MAPPING_CRITERIA_OFFSET_START_Y;
+            int xg = gridx - criteria.offsetx;
+            int yg = gridy - criteria.offsety;
             int xi = (xg + xrel);
             int yi = (yg + yrel);
             if(xi < 0 || yi < 0 || xi >= width || yi >= height){  // out of bouds
-                this->region[i] = MAPPING_CRITERIA_OUT_OF_BOUNDS;
+                this->region[i] = criteria.outbounds;
                 continue;
             }            
             this->region[i] = grid[xi + yi * width];
         }
     }
-    void set(int region[MAPPING_CRITERIA_SAMPLE], const String &key){
-        this->key = key;
-        for(int i = 0; i < MAPPING_CRITERIA_SAMPLE; ++i){
-            this->region[i] = region[i];
+    void load(const Jzon::Node &obj){
+        key = obj.get("k").toString();
+        auto v = obj.get("v");
+        for(int i = 0; i < v.getCount(); ++i){
+            region[i] = v.get(i).toInt();
         }
-    }
+    }    
     bool match(const MappingCriteria &other){
-        for(int i = 0; i < MAPPING_CRITERIA_SAMPLE; ++i){
-            if(this->region[i] == MAPPING_CRITERIA_ANY){
+        for(int i = 0; i < criteria.sampleSize; ++i){
+            if(this->region[i] == criteria.any){
                 continue;
             }            
             if(this->region[i] != other.region[i]){
@@ -53,19 +76,27 @@ struct MappingCriteria {
             }
         }
         return true;
+    }    
+    void set(const Vector<int> &region, const String &key){
+        this->key = key;
+        for(int i = 0; i < criteria.sampleSize; ++i){
+            this->region[i] = region[i];
+        }
     }
-    MappingCriteria(int region[MAPPING_CRITERIA_SAMPLE], const String &key){
+    MappingCriteria(const Vector<int> &region, const String &key){
+        this->region = Vector<int>(criteria.sampleSize, -1);
         set(region, key);
     }
     MappingCriteria(int index, int *grid, int width, int height){
+        this->region = Vector<int>(criteria.sampleSize, -1);
         pull(index, grid, width, height);
     }    
     MappingCriteria(){
-
+        this->region = Vector<int>(criteria.sampleSize, -1);
     }
     operator std::string() const{
         String output;
-        for(int i = 0; i < MAPPING_CRITERIA_SAMPLE; ++i){
+        for(int i = 0; i < criteria.sampleSize; ++i){
             String lett = "";
             if(this->region[i] == Game::RING::CellType::Path){
                 lett = "P";
@@ -73,14 +104,14 @@ struct MappingCriteria {
             if(this->region[i] == Game::RING::CellType::Wall){
                 lett = "W";
             }else
-            if(this->region[i] == MAPPING_CRITERIA_ANY){
+            if(this->region[i] == criteria.any){
                 lett = "A";
             }else
-            if(this->region[i] == MAPPING_CRITERIA_OUT_OF_BOUNDS){
+            if(this->region[i] == criteria.outbounds){
                 lett = "O";
             }
             output += lett+" ";
-            if(i % MAPPING_CRITERIA_WIDTH == MAPPING_CRITERIA_WIDTH-1){
+            if(i % criteria.width == criteria.width-1){
                 output += "\n";
             }
         }
@@ -91,502 +122,33 @@ struct MappingCriteria {
     }
 };
 
-// TODO: Convert these to JSONs
-namespace DEFAULT_MAPPING {
-    #define P Game::RING::CellType::Path
-    #define W Game::RING::CellType::Wall
-    #define A MAPPING_CRITERIA_ANY
-    static const MappingCriteria criteria[] = {
-
-        // wall_corner_bbottom_left
-
-        MappingCriteria((int[]){    W, W, W, P, P,  
-                                    W, W, W, P, P,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_corner_bbottom_left"),
-
-
-        // wall_corner_bbottom_right
-
-        MappingCriteria((int[]){    P, P, W, W, W,  
-                                    P, P, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_corner_bbottom_right"),
-
-
-        // wall_horizontal_bmiddle
-        
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_bmiddle"),   
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    P, W, W, W, P,
-                                    P, W, W, W, P,
-                                    P, W, W, W, P }, "wall_horizontal_bmiddle"),                                      
-
-        MappingCriteria((int[]){    W, W, P, P, P,  
-                                    W, W, P, P, P,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_bmiddle"),   
-
-        MappingCriteria((int[]){    W, P, P, P, P,  
-                                    W, P, P, P, P,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_bmiddle"), 
-
-        MappingCriteria((int[]){    P, P, P, P, W,  
-                                    P, P, P, P, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_bmiddle"), 
-
-        MappingCriteria((int[]){    P, P, P, W, W,  
-                                    P, P, P, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_bmiddle"),                                                                                                                                                   
-
-
-
-        // wall_corner_btop_left
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P }, "wall_corner_btop_left"),
-        // wall_corner_ttop_left
-
-        MappingCriteria((int[]){    A, A, A, A, A,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, P, P }, "wall_corner_ttop_left"),                                                                       
-
-        // wall_corner_btop_right
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W }, "wall_corner_btop_right"),      
-
-        // wall_corner_ttop_right
-
-        MappingCriteria((int[]){    A, A, A, A, A,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    P, P, W, W, W }, "wall_corner_ttop_right"), 
-
-
-        // wall_horizontal_tmiddle
-
-        MappingCriteria((int[]){    A, A, A, A, A,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    P, P, P, P, P }, "wall_horizontal_tmiddle"), 
-
-        MappingCriteria((int[]){    A, A, A, A, A,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, P, P, P, W }, "wall_horizontal_tmiddle"),  
-
-        MappingCriteria((int[]){    A, A, A, A, A,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, P, P, P }, "wall_horizontal_tmiddle"), 
-
-        MappingCriteria((int[]){    A, A, A, A, A,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, P, P, P, P }, "wall_horizontal_tmiddle"), 
-
-        MappingCriteria((int[]){    A, A, A, A, A,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    P, P, P, W, W }, "wall_horizontal_tmiddle"),                                                                       
-
-        MappingCriteria((int[]){    A, A, A, A, A,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    P, P, P, P, W }, "wall_horizontal_tmiddle"),  
-
-        MappingCriteria((int[]){    W, P, P, P, W,  
-                                    W, P, P, P, W,
-                                    W, P, P, P, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_tmiddle"), 
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    P, P, P, P, P,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_tmiddle"),   
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    P, P, P, P, P,
-                                    P, W, W, W, P,
-                                    P, W, W, W, P }, "wall_horizontal_tmiddle"),                                      
-
-        MappingCriteria((int[]){    W, P, P, P, P,  
-                                    W, P, P, P, P,
-                                    W, P, P, P, P,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_tmiddle"), 
-
-        MappingCriteria((int[]){    W, W, P, P, P,  
-                                    W, W, P, P, P,
-                                    W, W, P, P, P,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_tmiddle"),   
-
-        MappingCriteria((int[]){    P, W, W, W, P,  
-                                    W, W, W, W, P,
-                                    W, W, W, W, P,
-                                    W, W, W, W, P,
-                                    P, P, P, P, P }, "wall_horizontal_tmiddle"),        
-
-        MappingCriteria((int[]){    P, W, W, W, P,  
-                                    P, W, W, W, W,
-                                    P, W, W, W, W,
-                                    P, W, W, W, W,
-                                    P, P, P, P, P }, "wall_horizontal_tmiddle"),                                                                  
-
-        MappingCriteria((int[]){    P, P, P, P, W,  
-                                    P, P, P, P, W,
-                                    P, P, P, P, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_tmiddle"),  
-
-        MappingCriteria((int[]){    P, P, P, W, W,  
-                                    P, P, P, W, W,
-                                    P, P, P, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_tmiddle"),                                                                                                                                                                                          
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    P, P, P, P, P,
-                                    P, W, W, W, W,
-                                    P, W, W, W, W }, "wall_horizontal_tmiddle"),
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, W, W, W, W,
-                                    P, W, W, W, W,
-                                    P, W, W, W, W,
-                                    P, P, P, P, P }, "wall_horizontal_tmiddle"),  
-
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    P, P, P, P, P,
-                                    W, W, W, W, P,
-                                    W, W, W, W, P }, "wall_horizontal_tmiddle"), 
-
-
-        MappingCriteria((int[]){    P, W, W, W, P,  
-                                    P, W, W, W, P,
-                                    P, W, W, W, P,
-                                    P, W, W, W, P,
-                                    P, P, P, P, P }, "wall_horizontal_tmiddle"),    
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    W, W, W, W, P,
-                                    W, W, W, W, P,
-                                    W, W, W, W, P,
-                                    P, P, P, P, P }, "wall_horizontal_tmiddle"),                 
-
-        MappingCriteria((int[]){    P, W, W, W, W,  
-                                    P, W, W, W, W,
-                                    P, W, W, W, W,
-                                    P, W, W, W, W,
-                                    P, P, P, P, P }, "wall_horizontal_tmiddle"),    
-
-        MappingCriteria((int[]){    W, W, W, W, P,  
-                                    W, W, W, W, P,
-                                    W, W, W, W, P,
-                                    W, W, W, W, P,
-                                    P, P, P, P, P }, "wall_horizontal_tmiddle"),                                                                                                                                                                                                        
-
-        // wall_horizontal_bmiddle
-
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, P, P, P, W,
-                                    W, P, P, P, W }, "wall_horizontal_bmiddle"), 
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    P, P, P, P, P,
-                                    P, P, P, P, P }, "wall_horizontal_bmiddle"), 
-
-
-        MappingCriteria((int[]){    W, W, W, W, P,  
-                                    W, W, W, W, P,
-                                    W, W, W, W, P,
-                                    P, P, P, P, P,
-                                    P, P, P, P, P }, "wall_horizontal_bmiddle"),  
-
-        MappingCriteria((int[]){    P, W, W, W, P,  
-                                    P, W, W, W, P,
-                                    P, W, W, W, P,
-                                    P, P, P, P, P,
-                                    P, P, P, P, P }, "wall_horizontal_bmiddle"),                                             
-
-
-        MappingCriteria((int[]){    P, W, W, W, W,  
-                                    P, W, W, W, W,
-                                    P, W, W, W, W,
-                                    P, P, P, P, P,
-                                    P, P, P, P, P }, "wall_horizontal_bmiddle"),                                                                          
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, P, P, P,
-                                    W, W, P, P, P }, "wall_horizontal_bmiddle"),   
-
-        MappingCriteria((int[]){    W, W, W, W, W,
-                                    W, W, W, W, W, 
-                                    W, W, W, W, W,
-                                    W, P, P, P, P,
-                                    W, P, P, P, P }, "wall_horizontal_bmiddle"),     
-
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    P, P, P, P, W,
-                                    P, P, P, P, W }, "wall_horizontal_bmiddle"),                                                                                                        
-
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    P, P, P, W, W,
-                                    P, P, P, W, W }, "wall_horizontal_bmiddle"),  
-
-        MappingCriteria((int[]){    W, P, P, P, W,  
-                                    W, P, P, P, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_horizontal_bmiddle"),  
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    P, W, W, W, W,
-                                    P, W, W, W, W,
-                                    P, W, W, W, W }, "wall_horizontal_bmiddle"), 
-
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    W, W, W, W, P,
-                                    W, W, W, W, P,
-                                    W, W, W, W, P }, "wall_horizontal_bmiddle"),                                                                               
-                                                                    
-
-
-        // wall_vertical_lmiddle
-        MappingCriteria((int[]){    W, W, W, P, P,  
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P }, "wall_vertical_lmiddle"),  
-
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P }, "wall_vertical_lmiddle"), 
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, W, W }, "wall_vertical_lmiddle"),                                     
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P }, "wall_vertical_lmiddle"),   
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P }, "wall_vertical_lmiddle"),                                                                          
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    W, W, W, W, W,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P }, "wall_vertical_lmiddle"), 
-
-        MappingCriteria((int[]){    W, W, W, P, P,  
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, W, W }, "wall_vertical_lmiddle"),                                   
-
-
-        MappingCriteria((int[]){    W, W, W, P, P,  
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    P, P, P, P, P }, "wall_vertical_lmiddle"),  
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    P, P, P, P, P }, "wall_vertical_lmiddle"), 
-
-
-        // wall_vertical_rmiddle
-
-        MappingCriteria((int[]){    P, P, W, W, W,  
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W }, "wall_vertical_rmiddle"),  
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    W, W, W, W, W }, "wall_vertical_rmiddle"),                                     
-
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W }, "wall_vertical_rmiddle"),
-
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, P, P, P }, "wall_vertical_rmiddle"),                                    
-
-
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W }, "wall_vertical_rmiddle"),                                    
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W }, "wall_vertical_rmiddle"),  
-
-        MappingCriteria((int[]){    W, W, W, W, W,  
-                                    W, W, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W }, "wall_vertical_rmiddle"), 
-
-        MappingCriteria((int[]){    P, P, W, W, W,  
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    W, W, W, W, W }, "wall_vertical_rmiddle"),
-
-        MappingCriteria((int[]){    P, P, W, W, W,  
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, P, P, P }, "wall_vertical_rmiddle"),                                                                            
-
-        // wall_corner_tbottom_left
-
-        MappingCriteria((int[]){    W, W, W, P, P,  
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_corner_tbottom_left"),                                                                                                                                             
-        
-        // wall_corner_tbottom_right
-
-        MappingCriteria((int[]){    P, P, W, W, W,  
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    W, W, W, W, W,
-                                    W, W, W, W, W }, "wall_corner_tbottom_right"), 
-
-
-        // wall_vertical_lbottom    
-
-        MappingCriteria((int[]){    W, W, W, P, P,  
-                                    W, W, W, P, P,
-                                    W, W, W, P, P,
-                                    P, P, P, P, P,
-                                    P, P, P, P, P }, "wall_vertical_lbottom"),         
-
-        // wall_vertical_rbottom  
-        MappingCriteria((int[]){    P, P, W, W, W,  
-                                    P, P, W, W, W,
-                                    P, P, W, W, W,
-                                    P, P, P, P, P,
-                                    P, P, P, P, P }, "wall_vertical_rbottom"),  
-
-        // wall_vertical_rtop 
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    P, P, P, P, P,
-                                    P, P, W, W, W,
-                                    P, P, W, W, W }, "wall_vertical_rtop"),     
-
-
-        // wall_vertical_ltop 
-        MappingCriteria((int[]){    P, P, P, P, P,  
-                                    P, P, P, P, P,
-                                    P, P, P, P, P,
-                                    W, W, W, P, P,
-                                    W, W, W, P, P }, "wall_vertical_ltop"),                                                                                                            
-                                                                                             
-    };
-                                                                        
-    static const MappingCriteria DEFAULT = MappingCriteria((int[]){ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }, "");
-    static const int total = sizeof(criteria) / sizeof(MappingCriteria);
-    MappingCriteria match(const MappingCriteria &src){
-       for(int i = 0; i < total; ++i){
-           auto crit = criteria[i];
-           if(crit.match(src)){
-               return crit;
-           }
-       }
-       return DEFAULT;
+static Vector<MappingCriteria> rules;
+
+static MappingCriteria matchForRules(const MappingCriteria &src){
+    for(int i = 0; i < rules.size(); ++i){
+        auto &rule = rules[i];
+        if(rule.match(src)){
+            return rule;
+        }
     }
-    #undef P
-    #undef W
-    #undef A
-};
+    MappingCriteria __default;
+    __default.key = "";
+    for(int i = 0; i < criteria.sampleSize; ++i){
+        __default.region.push_back(-1);
+    }
+    return __default;
+}
+
+static void loadRules(const Jzon::Node &ruleObj){
+    rules.clear();
+    for(int i = 0; i < ruleObj.getCount(); ++i){
+        MappingCriteria rule;
+        rule.load(ruleObj.get(i));
+        rules.push_back(rule);
+    }
+    nite::print("loaded "+nite::toStr(rules.size())+" MappingCriteria rule(s)");
+}
+
 
 Game::RING::TileSource::TileSource(const String &path){
     load(path);
@@ -614,6 +176,7 @@ void Game::RING::TileSource::load(const String &path){
     this->tileSize.set(node.get("tileWidth").toFloat(), node.get("tileHeight").toFloat());
     this->floorDefault = node.get("floorDefault").toString();
     this->floorVarianceFactor = node.get("floorVarianceFactor").toFloat();
+    this->criteria = node.get("criteria");
     this->lastFloorVariant = floorDefault;
     auto mappings = node.get("mapping");
     for(auto mapp : mappings){
@@ -750,10 +313,13 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
         mirror[i] = bp->grid[pind].type;
     }
 
+    criteria.load(temp.criteria);
+    loadRules(temp.criteria.get("rules"));
+
     // put walls using template
     for(int i = 0; i < size; ++i){
         auto crit = MappingCriteria(i, mirror, width, height);
-        auto isMatch = DEFAULT_MAPPING::match(crit);
+        auto isMatch = matchForRules(crit);
         // stored[i] = crit;
         if(isMatch.key != ""){
             if(temp.isDynamicYDepth(isMatch.key)){

@@ -1,6 +1,7 @@
 #ifndef GAME_ANIM_CORE_HPP
     #define GAME_ANIM_CORE_HPP
 
+    #include "../Engine/Object.hpp"
     #include "../Engine/Types.hpp"
     #include "../Engine/Animation.hpp"
     #include "../Engine/Indexer.hpp"
@@ -81,11 +82,16 @@
         }
 
         struct Anim {
+            Vector<nite::Hitbox> hitboxes;
+            nite::Hitbox meleeNoWeapHb;
+            nite::Vec2 maskSize;
             UInt8 parts[AnimPart::total];
             nite::Vec2 frameSize;
             nite::Animation anim;
             nite::Batch batch;
             float bodyDepthOffset;
+            String path;
+            void reload();
             Dict<UInt8, Game::AnimFrame> frames;
             Game::AnimFrame *getAnim(UInt8 anim);
             bool load(const String &path);

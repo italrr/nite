@@ -28,6 +28,7 @@
         };
 
         struct Client : Game::Net {
+            UInt64 physicsUpdate;
             Game::IconManager icons;
             Game::Input input;
             Game::HUD hud;

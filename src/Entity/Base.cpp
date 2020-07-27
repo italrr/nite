@@ -1,11 +1,15 @@
 #include "../Engine/Graphics.hpp"
 #include "../Engine/Texture.hpp"
 #include "../Engine/UI/UI.hpp"
+#include "../Engine/Console.hpp"
 
 #include "../Core/Network.hpp"
 #include "../Core/Server.hpp"
 
 #include "Base.hpp"
+
+static bool showHitboxes = false;
+static nite::Console::CreateProxy cpshowHitboxes("cl_show_hitbox", nite::Console::ProxyType::Bool, sizeof(bool), &showHitboxes);
 
 static void notifyEntityDeath(Game::EntityBase *ent){
     if(ent != NULL && ent->sv != NULL){
@@ -38,6 +42,7 @@ Game::EntityBase::EntityBase(){
 	this->effectStat.owner = this;
 	this->skillStat.owner = this;
 	this->invStat.owner = this;
+	this->lastMeleeHit = nite::getTicks();
 	this->lastUpdateStats = nite::getTicks();
 	this->objType = ObjectType::Entity;
 	this->currentCasting = Shared<Game::EntityCasting>(NULL);
@@ -103,6 +108,17 @@ void Game::EntityBase::printInfo(){
 	#undef str    
 }
 
+Vector<nite::Hitbox> Game::EntityBase::getHitbox(){
+	auto initp = (position + size * nite::Vec2(0.5f)) - (anim.frameSize * nite::Vec2(0.5f));
+	auto copy = anim.hitboxes;
+	for(int i = 0; i < copy.size(); ++i){
+		auto &hb = copy[i];
+		hb.position.x = initp.x + (faceDirection == EntityFacing::Right ? hb.position.x : (anim.frameSize.x - hb.position.x) - hb.size.x);
+		hb.position.y = initp.y + hb.position.y;
+	}
+	return copy;
+}
+
 void Game::EntityBase::draw(){
 	UInt8 bot = EntityState::stateToAnimType[state[EntityStateSlot::BOTTOM]][EntityStateSlot::BOTTOM];
 	UInt8 mid = EntityState::stateToAnimType[state[EntityStateSlot::MID]][EntityStateSlot::MID];
@@ -117,8 +133,20 @@ void Game::EntityBase::draw(){
 	int bodyDepth = -rp.y - anim.bodyDepthOffset;
 	nite::setDepth(bodyDepth);
 	float reversed = faceDirection == EntityFacing::Left ? -1.0f : 1.0f;
-	auto ref = anim.batch.draw(rp.x, rp.y - anim.bodyDepthOffset * (1.0f/3.0f), anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);
+	auto ref = anim.batch.draw(rp.x, rp.y, anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);
 
+	if(showHitboxes){
+		static nite::Texture empty("data/texture/empty.png");	
+		nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
+		auto hitboxes = getHitbox();
+		for(int i = 0; i < hitboxes.size(); ++i){
+			auto &hb = hitboxes[i];
+			empty.draw(hb.position.x, hb.position.y, hb.size.x, hb.size.y, 0.0f, 0.0f, 0.0f);
+		}
+	}
+
+	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+	nite::setDepth(bodyDepth);
 	bool castingSt = state[EntityStateSlot::MID] == EntityState::CASTING && castingMsg.get() != NULL;
 	nite::cInterpDiscrete(castingMsgAlpha, castingSt ? 100.0f : 0.0f, 0.30f);
 	if(castingMsgAlpha > 0.0f){
@@ -253,7 +281,53 @@ void Game::EntityBase::switchFrame(UInt8 slot, UInt8 n){
 }
 
 void Game::EntityBase::throwMelee(float x, float y){
-	// setState(EntityState::MELEE_NOWEAP, EntityStateSlot::MID, 0);
+	// server-side only
+	if(sv == NULL){
+		return;
+	}
+	
+	container->getQuadrant(position.x - 256,  position.y - 256, 512, 512, locals);		
+	nite::Hitbox *hb = NULL;
+	nite::Hitbox cpy;
+	auto initp = (position + size * nite::Vec2(0.5f)) - (anim.frameSize * nite::Vec2(0.5f));
+	// no weap
+	if(state[EntityStateSlot::MID] == EntityState::MELEE_NOWEAP){
+		cpy = anim.meleeNoWeapHb;
+		hb = &cpy;
+		cpy.position.x = initp.x + (faceDirection == EntityFacing::Right ? cpy.position.x : (anim.frameSize.x - cpy.position.x) - cpy.size.x);
+		cpy.position.y = initp.y + cpy.position.y;
+	}
+
+	if(hb == NULL){
+		return;
+	}
+
+	// if(showHitboxes){
+	// 	static nite::Texture empty("data/texture/empty.png");	
+	// 	nite::setRenderTarget(nite::RenderTargetGame);
+	// 	nite::setDepth(nite::DepthTop);
+	// 	nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
+	// 	empty.draw(hb->position.x, hb->position.y, hb->size.x, hb->size.y, 0.0f, 0.0f, 0.0f);
+	// }
+
+	for(int i = 0; i < locals.size(); ++i){
+		if(locals[i]->objType != ObjectType::Entity || locals[i] == this){
+			continue;
+		}
+		auto ent = static_cast<Game::EntityBase*>(locals[i]);
+		// TODO: move this from here
+		if(nite::getTicks() - ent->lastMeleeHit < 350){
+			continue;
+		}
+		auto ohbs = ent->getHitbox();
+		for(int j = 0; j < ohbs.size(); ++j){
+			if(hb->collision(ohbs[j])){
+				nite::print("detect");
+				ent->lastMeleeHit = nite::getTicks();
+				break;	
+			}
+		}
+	}
 }
 
 void Game::EntityBase::updateStance(){
@@ -463,6 +537,7 @@ void Game::EntityBase::recalculateStats(){
 
 void Game::EntityBase::loadAnim(){
 	anim.load("data/anim/anim_humanoid.json");
+	this->size.set(anim.maskSize);
 	// server cannot load textures (headless doesnt' run opengl)
 	if(sv == NULL){
 		anim.anim.load(anim.source.path, anim.transparency);

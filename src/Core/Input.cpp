@@ -57,7 +57,7 @@ void Game::Input::update(bool ignore){
         auto nv = check ? Game::PressType::Pressed : Game::PressType::Released;
         if(states[key.second] != nv){
             states[key.second] = nv;
-            lastChange = nite::getTicks();   
+            lastChange = nite::getTicks();
             changed = true;
         }
     }

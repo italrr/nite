@@ -15,7 +15,7 @@ bool Game::Anim::load(const String &path){
         return false;
     }
     auto indexer = nite::getIndexer();
-    frameSize.set(node.get("frameSize").get("width").toInt(128), node.get("frameSize").get("height").toInt(192));
+    frameSize.set(node.get("frameSize").get("w").toInt(128), node.get("frameSize").get("h").toInt(192));
     String hash = node.get("source").toString("");
     auto ifile = indexer->get(hash);
     this->transparency = nite::Color(node.get("transparency").toString("#ffffff"));
@@ -33,7 +33,6 @@ bool Game::Anim::load(const String &path){
         nite::print(errmsg+"'frames' was not found or it's not an object");
         return false;
     }
-    // this->anim.load(ifile->path, transparency);
     for(auto &fnode : node.get("frames")){
         Game:: AnimFrame frame;
         frame.n = fnode.second.get("n").toInt(0);
@@ -46,6 +45,28 @@ bool Game::Anim::load(const String &path){
         this->anim.setManualClicking(frame.id, true);
         this->frames[frame.type] = frame;
     }
+    for(auto &hnode : node.get("bodyHitbox")){
+        nite::Hitbox hitbox;
+        hitbox.name = hnode.second.get("name").toString("none");
+        hitbox.position.x = hnode.second.get("x").toInt(0);
+        hitbox.position.y = hnode.second.get("y").toInt(0);
+        hitbox.size.x =  hnode.second.get("w").toInt(frameSize.x);
+        hitbox.size.y =  hnode.second.get("h").toInt(frameSize.y);
+        hitboxes.push_back(hitbox);
+    }    
+    if(node.has("meleeNoWeapHitbox")){
+        auto obj = node.get("meleeNoWeapHitbox");
+        meleeNoWeapHb.position.x = obj.get("x").toInt(0);
+        meleeNoWeapHb.position.y = obj.get("y").toInt(0);
+        meleeNoWeapHb.size.x = obj.get("w").toInt(0);
+        meleeNoWeapHb.size.y = obj.get("h").toInt(0);        
+        meleeNoWeapHb.name = "meleeNoWeap";
+    }
+    if(node.has("maskSize")){
+        auto obj = node.get("maskSize");
+        maskSize.x = obj.get("w").toInt(frameSize.x);
+        maskSize.y = obj.get("h").toInt(frameSize.y);
+    }    
     nite::print("loaded anim '"+path+"': "+nite::toStr(this->frames.size())+" animation(s)");
     return true;
 }
