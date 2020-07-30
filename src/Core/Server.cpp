@@ -1111,7 +1111,7 @@ void Game::Server::setupGame(const String &name, int maxClients, int maps){
     }  
     nite::print("[server] setting up game for "+nite::toStr(maxClients)+" player(s) | "+nite::toStr(maps)+" map(s)");
     //TODO: move/remove this. we're meant to tell this method what tile source to use
-    Game::RING::TileSource src("data/tileset/dungeon.json");
+    Game::RING::TileSource src("data/tileset/alp_ruins.json");
     auto indexer = nite::getIndexer();
     // build maps
     for(int i = 0; i < maps; ++i){

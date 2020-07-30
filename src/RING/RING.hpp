@@ -69,6 +69,12 @@
                 }
             };
 
+            struct ArbirtraryVariance {
+                String target;
+                String variant;
+                float chance;
+            };
+
             struct TileSource {
                 String name;
                 String description;
@@ -80,6 +86,7 @@
                 nite::Vec2 tileSize;
                 Criteria criteria;
                 nite::Color transparency;
+                Vector<RING::ArbirtraryVariance> arbVar;
                 TileSource(const String &path);
                 TileSource();
                 void load(const String &path);

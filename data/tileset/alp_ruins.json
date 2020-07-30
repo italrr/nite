@@ -1,0 +1,783 @@
+{
+	"name": "Alp Ruins",
+	"description": "Top level of the Pit",
+	"transparency": "#ffffff",
+	"source": "data/texture/tileset/alk_ruins.png",
+	"sourceWidth": 2048,
+	"sourceHeight": 2048,
+	"margin": 0,
+	"spacing": 0,
+	"tileWidth": 128,
+	"tileHeight": 128,
+	"floorVarianceFactor": 0.15,
+	"criteria": {
+		"width": 5,
+		"height": 5,
+		"sampleSize": 25,
+		"any": -1,
+		"outbounds": -2,
+		"offset_start_x": 2,
+		"offset_start_y": 2,
+		"rules": [
+
+
+			{
+				"k": "wall_top_right",
+				"v": [
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+  					1, 1, 1, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_bot_right",
+				"v": [
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					1, 1, 1, 1, 1,
+  					1, 1, 1, 1, 1
+				]
+			},
+
+
+			{
+				"k": "wall_top_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 1, 1, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_top_middle",
+				"v": [
+					0, 0, 0, 0, 1,
+					0, 0, 0, 0, 1,
+					0, 0, 0, 0, 1,
+					0, 0, 0, 0, 1,
+  					1, 1, 1, 1, 1
+				]
+			},
+
+
+			{
+				"k": "wall_bot_middle",
+				"v": [
+					0, 0, 0, 0, 1,
+					0, 0, 0, 0, 1,
+					0, 0, 0, 0, 1,
+					1, 1, 1, 1, 1,
+  					1, 1, 1, 1, 1
+				]
+			},
+
+
+			{
+				"k": "wall_bot_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 1, 1, 1, 1,
+  					0, 1, 1, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_bot_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					1, 1, 1, 1, 1,
+  					1, 1, 1, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_bot_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 1, 1, 1,
+  					0, 0, 1, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_bot_middle",
+				"v": [
+					1, 0, 0, 0, 0,
+					1, 0, 0, 0, 0,
+					1, 0, 0, 0, 0,
+					1, 1, 1, 1, 1,
+  					1, 1, 1, 1, 1
+				]
+			},
+			{
+				"k": "wall_bot_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					1, 1, 1, 1, 0,
+  					1, 1, 1, 1, 0
+				]
+			},
+			{
+				"k": "wall_bot_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					1, 1, 1, 0, 0,
+  					1, 1, 1, 0, 0
+				]
+			},
+
+
+			{
+				"k": "wall_bot_left",
+				"v": [
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 1, 1, 1,
+  					1, 1, 1, 1, 1
+				]
+			},
+
+
+			{
+				"k": "wall_top_left",
+				"v": [
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+  					1, 1, 1, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_top_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 1, 1, 1
+				]
+			},
+
+
+			{
+				"k": "wall_top_middle",
+				"v": [
+					1, 0, 0, 0, 0,
+					1, 0, 0, 0, 0,
+					1, 0, 0, 0, 0,
+					1, 0, 0, 0, 0,
+  					1, 1, 1, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_top_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					1, 1, 1, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_top_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					1, 1, 1, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_top_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					1, 1, 1, 1, 0
+				]
+			},
+
+			{
+				"k": "wall_left_middle",
+				"v": [
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+  					0, 0, 0, 1, 1
+				]
+			},
+
+
+			{
+				"k": "wall_left_middle",
+				"v": [
+					1, 1, 1, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+  					0, 0, 0, 1, 1
+				]
+			},
+
+
+			{
+				"k": "wall_right_middle",
+				"v": [
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+  					1, 1, 0, 0, 0
+				]
+			},
+
+
+			{
+				"k": "wall_right_middle",
+				"v": [
+					1, 1, 1, 1, 1,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+  					1, 1, 0, 0, 0
+				]
+			},
+
+
+
+			{
+				"k": "wall_lower_middle",
+				"v": [
+					1, 1, 1, 1, 1,
+					1, 1, 1, 1, 1,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_middle",
+				"v": [
+					0, 1, 1, 1, 1,
+					0, 1, 1, 1, 1,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_middle",
+				"v": [
+					0, 0, 1, 1, 1,
+					0, 0, 1, 1, 1,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_middle",
+				"v": [
+					1, 1, 1, 1, 0,
+					1, 1, 1, 1, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_middle",
+				"v": [
+					1, 1, 1, 0, 0,
+					1, 1, 1, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_middle",
+				"v": [
+					1, 1, 1, 1, 1,
+					1, 1, 1, 1, 1,
+					0, 0, 0, 0, 1,
+					0, 0, 0, 0, 1,
+  					0, 0, 0, 0, 1
+				]
+			},
+
+			{
+				"k": "wall_lower_right",
+				"v": [
+					1, 1, 1, 1, 1,
+					1, 1, 1, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+  					0, 0, 0, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_lower_left",
+				"v": [
+					1, 1, 1, 1, 1,
+					1, 1, 1, 1, 1,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+  					1, 1, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_middle",
+				"v": [
+					1, 1, 1, 1, 1,
+					1, 1, 1, 1, 1,
+					1, 0, 0, 0, 0,
+					1, 0, 0, 0, 0,
+  					1, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_right",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					1, 1, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_left",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_right_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					1, 1, 0, 0, 0,
+  					1, 1, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_left_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 1, 1,
+  					0, 0, 0, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_right_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+  					1, 1, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_left_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+  					0, 0, 0, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_right_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+  					1, 1, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_left_middle",
+				"v": [
+					0, 0, 0, 0, 0,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+  					0, 0, 0, 1, 1
+				]
+			},
+
+			{
+				"k": "wall_top_left",
+				"v": [
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_top_right",
+				"v": [
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_right_middle",
+				"v": [
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_right_middle",
+				"v": [
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+					1, 1, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_right_middle",
+				"v": [
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_right_middle",
+				"v": [
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+					0, 0, 0, 1, 1,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_bmiddle",
+				"v": [
+					1, 1, 1, 1, 1,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_bmiddle",
+				"v": [
+					1, 1, 1, 1, 1,
+					1, 0, 0, 0, 0,
+					1, 0, 0, 0, 0,
+					1, 0, 0, 0, 0,
+  					1, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_bmiddle",
+				"v": [
+					1, 1, 1, 1, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_bmiddle",
+				"v": [
+					1, 1, 1, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_bright",
+				"v": [
+					1, 1, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_bmiddle",
+				"v": [
+					0, 1, 1, 1, 1,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_bmiddle",
+				"v": [
+					0, 0, 1, 1, 1,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_bleft",
+				"v": [
+					0, 0, 0, 1, 1,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0,
+  					0, 0, 0, 0, 0
+				]
+			},
+
+			{
+				"k": "wall_lower_bmiddle",
+				"v": [
+					1, 1, 1, 1, 1,
+					0, 0, 0, 0, 1,
+					0, 0, 0, 0, 1,
+					0, 0, 0, 0, 1,
+  					0, 0, 0, 0, 1
+				]
+			}
+
+
+		]
+	},
+	"mapping": {
+		"floor_": 4,
+		"floor_var01": 5,
+		"floor_var02": 6,
+		"floor_var03": 7,
+		"floor_var04": 8,
+		"floor_var05": 9,
+		"floor_var06": 10,
+		"floor_var07": 11,
+		"floor_var08": 12,
+		"floor_var09": 13,
+
+		"wall_bot_left": 49,
+		"wall_bot_middle": 50,
+		"wall_bot_right": 51,
+
+		"wall_top_left": 33,
+		"wall_top_middle": 34,
+		"wall_top_right": 35,
+		
+		"wall_left_middle": 17,
+		"wall_right_middle": 19,
+		
+		"wall_lower_left": 1,
+		"wall_lower_middle": 2,
+		"wall_lower_right": 3,
+		"wall_lower_bleft": 20,
+		"wall_lower_bmiddle": 21,
+		"wall_lower_bright": 22,
+
+		
+		"wall_var01": 52,
+		"wall_var02": 53,
+		"wall_var03": 54,
+		"wall_var04": 55,
+		"wall_var05": 56,
+		"wall_var06": 57,
+
+		"wall_left_var01": 68,
+		"wall_left_var02": 69,
+		"wall_left_var03": 70,
+
+		"wall_right_var01": 84,
+		"wall_right_var02": 85,
+		"wall_right_var03": 86,
+
+		"trap_needle": 36
+	
+	},
+	"arbitraryVariance": [
+		{
+			"target": "wall_bot_middle",
+			"variant": "wall_var01",
+			"chance": 0.25
+		},
+		{
+			"target": "wall_bot_middle",
+			"variant": "wall_var02",
+			"chance": 0.25
+		},
+		{
+			"target": "wall_bot_middle",
+			"variant": "wall_var03",
+			"chance": 0.25
+		},
+		{
+			"target": "wall_bot_middle",
+			"variant": "wall_var04",
+			"chance": 0.25
+		},
+		{
+			"target": "wall_bot_middle",
+			"variant": "wall_var05",
+			"chance": 0.25
+		},
+		{
+			"target": "wall_bot_middle",
+			"variant": "wall_var06",
+			"chance": 0.25
+		},
+
+
+		{
+			"target": "wall_bot_right",
+			"variant": "wall_right_var01",
+			"chance": 0.50
+		},
+		{
+			"target": "wall_bot_right",
+			"variant": "wall_right_var02",
+			"chance": 0.50
+		},
+		{
+			"target": "wall_bot_right",
+			"variant": "wall_right_var03",
+			"chance": 0.50
+		},
+
+
+		{
+			"target": "wall_bot_left",
+			"variant": "wall_left_var01",
+			"chance": 0.50
+		},
+		{
+			"target": "wall_bot_left",
+			"variant": "wall_left_var02",
+			"chance": 0.50
+		},
+		{
+			"target": "wall_bot_left",
+			"variant": "wall_left_var03",
+			"chance": 0.50
+		}
+		
+	],
+	"dynamicTile": {
+		"needle": {
+			"state": 0,
+			"ref": "trap_needle",
+			"n": 2
+		}
+	},
+	"dynamicYDepth": [
+		"wall_left_middle",
+		"wall_right_middle",
+		"wall_top_right",
+		"wall_top_left",
+		"wall_lower_right",
+		"wall_lower_left"
+	],
+	"ignoresForFloor": [
+		"wall_lower_bmiddle",
+		"wall_lower_bleft",
+		"wall_lower_bright",
+		"wall_lower_left",
+		"wall_lower_right"
+	],
+	"floorDefault": "floor_",
+	"floorVariants": [
+		"floor_var01",
+		"floor_var02",
+		"floor_var03",
+		"floor_var04",
+		"floor_var05",
+		"floor_var06",
+		"floor_var07",
+		"floor_var08",
+		"floor_var09"
+	],
+	"specialWallMasks": {
+
+	}
+}

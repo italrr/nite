@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
+#include <utility>
 
 #include "../Engine/Shapes.hpp"
 #include "../Engine/Console.hpp"
@@ -9,17 +10,7 @@
 
 #include "RING.hpp"
 
-// #define MAPPING_CRITERIA_WIDTH 5
-// #define MAPPING_CRITERIA_HEIGHT 5
-// #define MAPPING_CRITERIA_SAMPLE MAPPING_CRITERIA_WIDTH * MAPPING_CRITERIA_HEIGHT
-// #define MAPPING_CRITERIA_ANY -1
-// #define MAPPING_CRITERIA_OUT_OF_BOUNDS -2
-// #define MAPPING_CRITERIA_OFFSET_START_X 2
-// #define MAPPING_CRITERIA_OFFSET_START_Y 2
-
-
 static Game::RING::Criteria criteria;
-
 
 struct MappingCriteria {
     Vector<int> region;
@@ -187,6 +178,16 @@ void Game::RING::TileSource::load(const String &path){
             this->specialWallMasks.push_back(mask);
         }        
     }
+    if(node.has("arbitraryVariance") && node.get("arbitraryVariance").isArray()){
+        auto vars = node.get("arbitraryVariance");
+        for(auto obj : vars){
+            Game::RING::ArbirtraryVariance vari;
+            vari.target = obj.second.get("target").toString("");
+            vari.variant = obj.second.get("variant").toString("");
+            vari.chance = obj.second.get("chance").toFloat(0.0f);
+            this->arbVar.push_back(vari);
+        }
+    }
     nite::print("loaded builder template json '"+path+"'");
 }
 
@@ -236,23 +237,23 @@ bool Game::RING::TileSource::isIgnoredForFLoors(const String &key){
     return false;
 }
 
-// static MappingCriteria *stored = NULL;
-// static int storedtotal = 0;
-// static int storedwith = 0;
-// static nite::Vec2 storedtilesize;
-// void __temp(){
-//     for(int i = 0; i < storedtotal; ++i){
-//         nite::Vec2 mrp = nite::mousePosition() + nite::getView(nite::RenderTargetGame);
-//         int inx = (i %  storedwith) * storedtilesize.x;
-//         int iny = (i / storedwith) * storedtilesize.y;
+static MappingCriteria *stored = NULL;
+static int storedtotal = 0;
+static int storedwith = 0;
+static nite::Vec2 storedtilesize;
+void __temp(){
+    for(int i = 0; i < storedtotal; ++i){
+        nite::Vec2 mrp = nite::mousePosition() + nite::getView(nite::RenderTargetGame);
+        int inx = (i %  storedwith) * storedtilesize.x;
+        int iny = (i / storedwith) * storedtilesize.y;
         
-//         bool inRegion = nite::isPointInRegion(mrp, nite::Vec2(inx, iny), nite::Vec2(inx, iny) + nite::Vec2(128.0f));
+        bool inRegion = nite::isPointInRegion(mrp, nite::Vec2(inx, iny), nite::Vec2(inx, iny) + nite::Vec2(128.0f));
 
-//         if(inRegion && nite::mousePressed(nite::butLEFT)){
-//             std::cout << (String)stored[i] << std::endl;
-//         }
-//     }
-// }
+        if(inRegion && nite::mousePressed(nite::butLEFT)){
+            std::cout << (String)stored[i] << std::endl;
+        }
+    }
+}
 
 
 Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game::RING::TileSource &temp, int scale){
@@ -270,10 +271,11 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     // int specials[size];
     int mirror[size]; // temp
     int allWalls[size]; //temp
-    // stored = new MappingCriteria[size];
-    // storedtotal = size;
-    // storedwith = width;
-    // storedtilesize = temp.tileSize;
+    
+    stored = new MappingCriteria[size];
+    storedtotal = size;
+    storedwith = width;
+    storedtilesize = temp.tileSize;
 
     for(int i = 0; i < size; ++i){
         floor[i] = -1;
@@ -293,18 +295,39 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     criteria = temp.criteria;
     loadFromRules(criteria.rules);
 
+    auto findArbiVar = [&](const String &target){
+        Vector<ArbirtraryVariance> matches;
+        for(int i = 0; i < temp.arbVar.size(); ++i){
+            if(temp.arbVar[i].target == target){
+                matches.push_back(temp.arbVar[i]);
+            }
+        }
+        if(matches.size() > 0){
+            return std::pair<bool, ArbirtraryVariance>(true, matches[nite::randomInt(1, matches.size())-1]);
+        }
+        return std::pair<bool, ArbirtraryVariance>(false, ArbirtraryVariance());
+    };
+
     // put walls using template
     for(int i = 0; i < size; ++i){
         auto crit = MappingCriteria(i, mirror, width, height);
         auto isMatch = matchForRules(crit);
-        // stored[i] = crit;
+        stored[i] = crit;
         if(isMatch.key != ""){
-            if(temp.isDynamicYDepth(isMatch.key)){
-                dynamicY[i] = temp.mapping[isMatch.key];
-            }else{
-                walls[i] = temp.mapping[isMatch.key];
+
+            auto var = findArbiVar(isMatch.key);
+            auto v = temp.mapping[isMatch.key];
+            
+            if(var.first && nite::randomInt(1, 100) < 100 * var.second.chance){
+                v =  temp.mapping[var.second.variant];
             }
-            allWalls[i] = temp.mapping[isMatch.key];
+
+            if(temp.isDynamicYDepth(isMatch.key)){
+                dynamicY[i] = v;
+            }else{
+                walls[i] = v;
+            }
+            allWalls[i] = v;
         }
         // anything that is a "path" or an inner wall gets to have a floor using ignoresForFloor for exceptions
         if(mirror[i] == Game::RING::CellType::Path || (isMatch.key.length() > 0 && !temp.isIgnoredForFLoors(isMatch.key))){ 

@@ -105,20 +105,22 @@ void Game::Camera::update(nite::Vec2 &v){
 void Game::Camera::update(){	
 	if(cameraFreeroam){
 		nite::Vec2 np = nite::getView(nite::RenderTargetGame);
+		nite::Vec2 lnp = np;
 		if(nite::keyboardCheck(nite::keyA)){
-			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(32.0f, 0.0f));
+			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(64.0f, 0.0f));
 		}
 		if(nite::keyboardCheck(nite::keyD)){
-			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(32.0f, 0.0f));
+			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(64.0f, 0.0f));
 		}		
 		if(nite::keyboardCheck(nite::keyW)){
-			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(0.0f, 32.0f));			
+			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(0.0f, 64.0f));			
 		}
 		if(nite::keyboardCheck(nite::keyS)){
-			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(0.0f, 32.0f));						
+			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(0.0f, 64.0f));						
 		}		
+		lnp.lerpDiscrete(np, 0.35f);
 		nite::setView(true, nite::RenderTargetGame);
-		nite::setViewPosition(np, nite::RenderTargetGame);
+		nite::setViewPosition(lnp, nite::RenderTargetGame);
 		return;
 	}
 	if(followId == 0 || client == NULL){

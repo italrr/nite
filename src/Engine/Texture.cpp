@@ -15,7 +15,6 @@ static bool renTextureBatches = true;
 static nite::Console::CreateProxy cpRenBatches("ren_texturebatches", nite::Console::ProxyType::Bool, sizeof(bool), &renTextureBatches);
 static nite::Console::CreateProxy cpRenTextures("ren_textures", nite::Console::ProxyType::Bool, sizeof(bool), &renTextureSingles);
 
-
 bool nite::TextureCellBatch::setSize(int w, int h, float wp, float hp){
 	if(w <= 0 || h <= 0){
 		return false;
@@ -63,26 +62,71 @@ struct textureT {
 	String Hash;
 	int Width;
 	int Height;
+	int id;
 	int Channels;
 	bool stick;
   	String filename;
+	nite::Color transparency;
 	Vector<nite::Texture*> owners;
 	void clear(){
 		if(texture == 0) return;
-    // nite::print("unloaded texture `"+filename+"`.");
+    	// nite::print("unloaded texture `"+filename+"`.");
 		empty = true;
 		Hash = "NULL";
-    filename = "NULL";
+    	filename = "NULL";
 		stick = false;
 		glDeleteTextures(1, &texture);
-    texture = 0;
+    	texture = 0;
+		id = -1;
 	}
 	textureT(){
-    Hash = "NULL";
-    filename = "NULL";
+    	Hash = "NULL";
+    	filename = "NULL";
 		texture = 0;
 		empty = 1;
 		stick = false;
+	}
+	bool reload(){
+		if(empty){
+			return false;
+		}
+		glDeleteTextures(1, &texture);
+		int Width;
+		int Height;
+		int Channels;
+		GLubyte *Pixels = SOIL_load_image(filename.c_str(), &Width, &Height, &Channels, SOIL_LOAD_AUTO);
+		if (Pixels == NULL){
+			nite::print("failed to load texture '"+filename+"': unsupported format");
+			return false;
+		}
+		if(transparency.a != -1.0){
+			for(int i = 0; i < Width * Height * Channels; i += 4){
+				const nite::Color &tr = transparency;
+				#define uchar unsigned char
+				uchar &r = Pixels[i];
+				uchar &g = Pixels[i + 1];
+				uchar &b = Pixels[i + 2];
+				uchar &a = Pixels[i + 3];
+				if(r == (tr.r * 255.0) && g == (tr.g * 255.0) && b == (tr.b * 255.0)){
+					r = 0; g = 0;	b = 0; a = 0;
+				}
+			}
+		}
+		glEnable(GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glGenTextures(1, &this->texture);
+		glBindTexture(GL_TEXTURE_2D, this->texture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Pixels);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
+		this->Width	= Width;
+		this->Height = Height;
+		this->Channels = Channels;
+		SOIL_free_image_data(Pixels);
+		return true;
 	}
 	~textureT(){
 
@@ -90,6 +134,43 @@ struct textureT {
 };
 
 static Vector<textureT> textureList;
+
+
+static nite::Console::Result cfReloadTexture(Vector<String> params){
+    if(params.size() < 1){
+        return nite::Console::Result("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    int id = nite::toInt(params[0]);
+	for(int i = 0; i < textureList.size(); ++i){
+		if(!textureList[i].empty && textureList[i].id == id){
+			return nite::Console::Result(textureList[i].reload() ? "OK" : "FAIL", nite::Color(0.80f, 0.80f, 0.80f, 1.0f));
+		}
+	}
+	return nite::Console::Result("no such texture "+nite::toStr(id), nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+}
+static auto cfReloadTextureIns = nite::Console::CreateFunction("ren_reload_texture", &cfReloadTexture, false, false ); 
+
+
+
+
+static nite::Console::Result cfFindTexture(Vector<String> params){
+    if(params.size() < 1){
+        return nite::Console::Result("Not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+    }
+    auto query = params[0];
+	for(int i = 0; i < textureList.size(); ++i){
+		if(!textureList[i].empty && textureList[i].filename.find(query.c_str()) != std::string::npos){
+			return nite::Console::Result("'"+textureList[i].filename+"'("+nite::toStr(textureList[i].id)+") | "+nite::Vec2(textureList[i].Width, textureList[i].Height).str(), nite::Color(0.80f, 0.80f, 0.80f, 1.0f));
+		}
+	}
+	return nite::Console::Result("no such texture '"+query+"'", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+}
+static auto cfFindTextureIns = nite::Console::CreateFunction("ren_find_texture_by_name", &cfFindTexture, false, false ); 
+
+
+
+
+
 
 void flushTextureBuffer(){
   for(int i = 0; i < textureList.size(); ++i){
@@ -191,12 +272,14 @@ bool nite::Texture::load(const String &path, const nite::Color &transparency){
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, Pixels);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDisable(GL_TEXTURE_2D);
+	textureList[objectId].id = objectId;
 	textureList[objectId].Width	= Width;
 	textureList[objectId].Height = Height;
 	textureList[objectId].Channels = Channels;
+	textureList[objectId].transparency = transparency;
 	this->filename = path;
 	region.set(0, 0, Width, Height);
-	nite::print("loaded texture '"+path+"'");
+	nite::print("loaded texture '"+path+"'("+nite::toStr(objectId)+")");
 	SOIL_free_image_data(Pixels);
 	return true;
 }

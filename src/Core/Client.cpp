@@ -1001,10 +1001,10 @@ void Game::Client::onStart(){
     camera.start(this);
 }
 
-// void __temp();
+void __temp();
 
 void Game::Client::game(){
-    // __temp();
+    __temp();
     input.update(igmenu.open);
     hud.update();
     igmenu.update();
