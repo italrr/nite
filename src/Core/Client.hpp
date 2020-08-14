@@ -35,8 +35,6 @@
             Game::Camera camera;
             Game::InGameMenu igmenu;
             Dict<UInt64, Game::ClClient> clients;
-            Game::NetWorld world;
-            Shared<nite::Map> map;
             nite::IP_Port sv;
             UInt64 clientId;
             UInt64 serverId;
@@ -50,11 +48,9 @@
             UInt32 svOrder;
             UInt32 rcvOrder;
             UInt32 sentOrder;
-            Vector<Game::NetObject*> localMasks;
             bool connected;
             Client();
             ~Client();
-            void setCurrentMap(Shared<nite::Map> &map);
             Game::EntityBase *getEntity(UInt16 id);
             void disconnect(const String &reason);
             void disconnect();

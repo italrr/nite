@@ -50,6 +50,10 @@ void Game::NetWorld::getQuadrant(int x, int y, int w, int h, Vector<Game::NetObj
 			}
 			auto c = cells[ind];
 			if(c != NULL){
+				if(c->objType == ObjectType::Ghost){
+					// nite::print("xDDDDDDDDDDD");
+				}
+
 				quadrant.push_back(c);
 			}
 
@@ -60,6 +64,7 @@ void Game::NetWorld::getQuadrant(int x, int y, int w, int h, Vector<Game::NetObj
 
 Game::NetWorld::~NetWorld(){
 	clearWallMasks();
+	clearGhostMasks();
 	if(cells != NULL){
 		delete cells;
 	}
@@ -75,7 +80,7 @@ Game::NetWorld::NetWorld(){
 	tickrate = 1000 / 33;
 	int reserve = 1000 * 30;
 	objects.reserve(reserve);
-	nite::print("NetWorld reserved "+nite::toStr(sizeof(Shared<Game::NetObject>) * reserve)+" bytes");
+	nite::print("networld reserved "+nite::toStr(sizeof(Shared<Game::NetObject>) * reserve)+" bytes");
 }
 
 bool Game::NetWorld::exists(UInt16 id){
@@ -122,9 +127,42 @@ int Game::NetWorld::addWallMask(Game::NetObject *mask){
 	return mask->localId;
 }
 
+
+void Game::NetWorld::clearGhostMasks(){
+	for(int i = 0; i < ghostMasks.size(); ++i){
+		ghostMasks[i]->clearQuadrant();
+		delete ghostMasks[i];
+	}
+	ghostMasks.clear();
+}
+
+int Game::NetWorld::addGhostMask(Game::NetObject *mask){
+	mask->localId = --seedNId;
+	mask->id = 0;
+	mask->container = this;
+	mask->onCreate();
+	mask->updateQuadrant();
+	ghostMasks.push_back(mask);
+	return mask->localId;
+}
+
+bool Game::NetWorld::removeGhostMask(Game::NetObject *mask){
+	for(int i = 0; i < ghostMasks.size(); ++i){
+		if(ghostMasks[i] == mask){
+			ghostMasks[i]->clearQuadrant();
+			delete mask;
+			ghostMasks.erase(ghostMasks.begin() + i);
+			return true;
+		}
+	}
+	return false;
+}
+
+
 void Game::NetWorld::clear(){
 	objects.clear();
 	clearWallMasks();
+	clearGhostMasks();
 }
 
 void Game::NetWorld::remove(int objectId){
@@ -210,7 +248,7 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	if(obj->unmovable || obj == NULL) return;
 	nite::Vec2 origp = obj->position;
 
-	// we're gonna use a fixed size to look for quadrants for now(1024x1024 from center/origin)
+	// we're gonna use a fixed size to look for quadrants for now(3000x3000 from center/origin)
 	// ideally we should use a size relative to the object's speed
 	// TODO: this ^
 
@@ -223,9 +261,17 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	auto limit = nite::Vec2(1.0f);
 	for(int i = 0; i < nearObjs.size(); ++i){
 		auto other = nearObjs[i];
-		if(obj->id == other->id) continue;
-		if(!other->solid) continue;
+		if(obj->id == other->id) continue;		
+		if(!other->solid && other->objType != ObjectType::Ghost) continue;	
 		if(testCollision(obj, other, diff, limit, normal)){
+			// if(other->objType == ObjectType::Ghost){
+				// auto ghost = static_cast<Game::GhostMask*>(other);
+				// ghost->callback(obj);
+				// nite::print("CONTACT");
+				// normal = nite::Vec2(0.0f);
+				// limit = nite::Vec2(1.0f);				
+				// continue; // we do not handle collision if it's a ghost object	
+			// }			
 			obj->collided = true;
 			obj->onCollision(other);
 			float offset = 1.0f;
@@ -282,6 +328,15 @@ void Game::NetWorld::update(){
 			nite::setDepth(0);
 			nite::resetColor();
 		}
+		for(int i = 0; i < ghostMasks.size(); ++i){
+			auto mask = ghostMasks[i];
+			nite::setDepth(nite::DepthTop);
+			nite::setRenderTarget(nite::RenderTargetGame);
+			nite::setColor(nite::Color(1.0f, 0, 1.0f));
+			nite::Draw::Rectangle(mask->position, mask->size, false, nite::Vec2(0.0, 0.0), 0);
+			nite::setDepth(0);
+			nite::resetColor();
+		}		
 	}
 
 	if(nite::getTicks()-lastTick < tickrate){

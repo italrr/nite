@@ -159,6 +159,19 @@ bool nite::Indexer::removeByPath(const String &path){
     return false;
 }
 
+nite::IndexedFile *nite::Indexer::getByName(const String &name){
+    pthread_mutex_lock(&mutex); 
+    for(auto &it : indexed){
+        auto fn = nite::getFilename(it.second.path);
+        if(fn == name){
+            pthread_mutex_unlock(&mutex); 
+            return &it.second;
+        }
+    }
+    pthread_mutex_unlock(&mutex); 
+    return NULL;
+}
+
 bool nite::Indexer::removeByHash(const String &hash){
     pthread_mutex_lock(&mutex); 
     auto it = indexed.find(hash);

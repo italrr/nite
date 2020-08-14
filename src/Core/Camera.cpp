@@ -11,6 +11,9 @@
 static bool cameraFreeroam = false;
 static nite::Console::CreateProxy cpAnDatTo("cl_camera_freeroam", nite::Console::ProxyType::Bool, sizeof(bool), &cameraFreeroam);
 
+static bool cameraForceZoom = true;
+static nite::Console::CreateProxy cpCamFZoom("cl_camera_forcezoom", nite::Console::ProxyType::Bool, sizeof(bool), &cameraForceZoom);
+
 /////////////
 // COMMAND: cl_camera_follow
 ////////////
@@ -126,7 +129,9 @@ void Game::Camera::update(){
 	if(followId == 0 || client == NULL){
 		return;
 	}
-	nite::setZoom(nite::RenderTargetGame, client->igmenu.open ? 0.60f : 0.70f);
+	if(cameraForceZoom){
+		nite::setZoom(nite::RenderTargetGame, client->igmenu.open ? 0.60f : 0.70f);
+	}
 	auto ent = client->getEntity(followId);
 	if(ent != NULL){
 		update(ent->position);

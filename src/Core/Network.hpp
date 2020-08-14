@@ -4,6 +4,9 @@
     #include <stdio.h>
     #include "../Engine/Network.hpp"
     #include "../Engine/Tools/Tools.hpp"
+    #include "../Engine/Map.hpp"
+    #include "../Entity/Traps/Trap.hpp"
+    #include "World.hpp"
 
     namespace Game {
 
@@ -90,10 +93,15 @@
             Vector<Shared<Game::PersisentDelivey>> deliveries;
             unsigned state;
             UInt64 lastState;
+            Game::NetWorld world;
+            Vector<Game::NetObject*> localMasks;
             bool init;
+            Game::TrapDevice traps;
             UInt16 lastInitTfId;
             nite::UDPSocket sock;
+            Shared<nite::Map> map;
             nite::FileTransfer::UDPClient ft;
+            void setCurrentMap(Shared<nite::Map> &map);
             Net();
             void setState(unsigned state);
             Shared<Game::PersisentDelivey> persSend(nite::IP_Port &client, nite::Packet &packet);
@@ -497,6 +505,26 @@
             */
             SV_SET_GAME_OVER,  // ACK
             SV_SET_GAME_RESTART,  // ACK
+
+            SV_UPDATE_TRAP_STATE,
+            /*
+                UINT16 ID
+                UINT16 STATE
+            */   
+
+            SV_UPDATE_MANY_TRAPS_STATE,
+            /*
+                UINT16 N
+                0: { // ALWAYS BOT
+                    UINT16 ID
+                    UINT8 STATE
+                }
+                ...
+                n: { // ALWAYS MID
+                    UINT16 ID
+                    UINT8 STATE
+                }
+            */                            
         };
 
 

@@ -117,6 +117,7 @@ Game::Client::Client() : Game::Net(){
     nite::Console::CreateProxy clTimescale("cl_local_timescale", nite::Console::ProxyType::Float, sizeof(float), &world.timescale);
     init = false;
     clear();
+    traps.start(this);
 }
 
 Game::Client::~Client(){
@@ -135,6 +136,7 @@ void Game::Client::clear(){
     ft.clear();
     clients.clear();
     world.clearWallMasks();
+    world.clearGhostMasks();
     world.clear();
     deliveries.clear();
     hud.stop();
@@ -877,6 +879,39 @@ void Game::Client::update(){
                 sk->readUpdate(handler);
             } break;
             /*
+                SV_UPDATE_TRAP_STATE
+            */
+            case Game::PacketType::SV_UPDATE_TRAP_STATE: {
+                if(!isSv || !isLast){ break; }
+                UInt16 id, state;
+                handler.read(&id, sizeof(id));
+                handler.read(&state, sizeof(state));
+                auto trap = this->traps.getTrap(id);
+                if(trap == NULL){
+                    nite::print("[client] SV_UPDATE_TRAP_STATE: unable to find id '"+nite::toStr(id)+"'");
+                    break;
+                }
+                trap->setState(state, this->map, this->world);
+            } break;     
+            /*
+                SV_UPDATE_MANY_TRAPS_STATE
+            */
+            case Game::PacketType::SV_UPDATE_MANY_TRAPS_STATE: {
+                if(!isSv || !isLast){ break; }
+                UInt16 n;
+                UInt16 id, state;
+                for(int i = 0; i < n; ++i){
+                    handler.read(&id, sizeof(id));
+                    handler.read(&state, sizeof(state));
+                    auto trap = this->traps.getTrap(id);
+                    if(trap == NULL){
+                        nite::print("[client] SV_UPDATE_TRAP_STATE: unable to find id '"+nite::toStr(id)+"'");
+                        break;
+                    }
+                    trap->setState(state, this->map, this->world);                    
+                }
+            } break;                     
+            /*
                 SV_AWAIT_CLIENT_LOAD
             */
             case Game::PacketType::SV_AWAIT_CLIENT_LOAD: {
@@ -996,6 +1031,7 @@ void Game::Client::update(){
 }
 
 void Game::Client::onStart(){
+    nite::Console::interpret("cl_camera_forcezoom true", false, false, false, false);
     hud.start(this);
     igmenu.start(this);
     camera.start(this);
@@ -1004,7 +1040,7 @@ void Game::Client::onStart(){
 void __temp();
 
 void Game::Client::game(){
-    __temp();
+    // __temp();
     input.update(igmenu.open);
     hud.update();
     igmenu.update();
@@ -1153,7 +1189,6 @@ void Game::Client::game(){
     }
 
     world.update();
-    camera.update();
 }
 
 Game::EntityBase *Game::Client::getEntity(UInt16 id){
@@ -1186,22 +1221,4 @@ void Game::Client::render(){
     for(auto &obj : world.objects){
         obj.second->draw();
     }
-}
-
-void Game::Client::setCurrentMap(Shared<nite::Map> &m){
-    world.clearWallMasks();
-    nite::Vec2 ws = m->size * m->tileSize;
-    this->world.setSize(ws.x, ws.y, 64, 64);
-    for(int i = 0; i < m->masks.size(); ++i){
-        auto &mask = m->masks[i];
-        auto obj = new Game::NetObject();
-        obj->position = mask.position;
-        obj->size = mask.size;
-        obj->solid = true;
-        obj->unmovable = true;
-        this->world.addWallMask(obj); // we use id 0 for wallmasks as these are not managed by the server
-        localMasks.push_back(obj);
-    }
-    this->map = m;
-    nite::print("[client] current cmasks: "+nite::toStr(this->world.objects.size()));
 }

@@ -11,6 +11,7 @@
             enum ObjectType : UInt8 {
                 Base,
                 Entity,
+                Ghost,
                 Prop
             };
             static String name(UInt16 type){
@@ -19,6 +20,8 @@
                         return "Base";
                     case Entity:
                         return "Entity";
+                    case Ghost:
+                        return "Ghost";                        
                     case Prop:
                         return "Prop";
                     default:

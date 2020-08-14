@@ -3,7 +3,6 @@
 
     #include "Network.hpp"
     #include "Object.hpp"
-    #include "World.hpp"
     #include "Input.hpp"
     #include "../Entity/Effect.hpp"
     #include "../Entity/Inventory.hpp"
@@ -63,14 +62,12 @@
         struct Server : Game::Net {
             String name;
             Dict<String, Game::SvTilesetSource> tilesets;
-            Game::NetWorld world;
             Dict<UInt64, Game::SvClient> clients;
             UInt8 maxClients;
             UInt64 physicsUpdate;
             UInt64 lastPlayerInfoSent;
             Dict<UInt64, UInt16> players;
             Vector<Shared<nite::Map>> maps;
-            int currentMap;
             Server();
             ~Server();
             void setState(unsigned state);
@@ -82,9 +79,6 @@
             Game::SvClient *getClientByIp(nite::IP_Port &ip);
             Game::SvClient *getClientByEntityId(UInt16 entityId);
             Game::EntityBase *getEntity(UInt16 id);
-            Vector<Game::NetObject*> localMasks;
-            void clearWorldColMaks();
-            void setCurrentMap(unsigned cm);
             void persSendAll(nite::Packet &packet, UInt64 timeout, int retries);
             void sendAll(nite::Packet &packet);
             void broadcast(const String &message);

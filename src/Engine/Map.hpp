@@ -70,6 +70,23 @@
             Int32 index;
         };
 
+        struct MapDynamicTileGroup {
+            Dict<int, int> stateToIndex;
+            Vector<int> tiles;
+            int state;
+            int layer;
+            int id;
+        };
+
+        struct MapSpecialDescriptor {
+            int id;
+            int ref;
+            String tag;
+            String type;
+            nite::Vec2 position;
+            nite::Vec2 size;            
+        };
+
         struct Map {
 
             String title;
@@ -103,6 +120,13 @@
             // margin and spacing as the composed, otherwise bool returns false (failure)
             bool compose(const nite::Map &fragment); // for composing fragments
 
+            int lastDTId;
+            Dict<int, MapSpecialDescriptor> specials;
+            Dict<int, MapDynamicTileGroup> dynamicTiles;
+            int generateDescriptor(const nite::Vec2 &p, const nite::Vec2 &s, const String &type, const String &tag, int ref = 0, int setId = 0);
+            int generateDynamicTile(const Dict<int, int> &stateToIndex, const Vector<int> &tiles, int layer, int setId = 0);
+            void setDynamicTileState(int id, int state);
+            void resetDynamicTile(int id);
 
             bool setup(int n, const nite::Vec2 &size, const nite::Vec2 &tileSize, const nite::Vec2 &margin, const nite::Vec2 &spacing);
             bool add(int *cells, int depth, const String &src, const String &type = "generic", bool dynamicY = false);

@@ -304,7 +304,7 @@ static GLuint createTexture(int Width, int Height){
 	glBindTexture(GL_TEXTURE_2D, 0);
 	return texture;
 }
-
+static int RTcount = 0;
 struct RenderTarget {
 	Vector<Renderable*> objects;
 	GLuint objectId;
@@ -329,8 +329,8 @@ struct RenderTarget {
 		// GLenum Status;
 		// Status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 		// if (Status != GL_FRAMEBUFFER_COMPLETE_EXT) Error = Status;
-
 		/* Switch back to the window framebuffer */
+		nite::Console::CreateProxy renRTZoom("ren_zoom"+nite::toStr(RTcount++), nite::Console::ProxyType::Float, sizeof(Zoom), &Zoom);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		minZoom = 25;
 		angle 	= 0;

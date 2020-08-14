@@ -87,17 +87,17 @@ void Game::NetObject::updateQuadrant(){
         }        
         UInt32 nq = _x + container->cwidth * _y;
         if(quadrant != -1 && nq != quadrant && container->cells[quadrant] == this){
-            container->cells[quadrant] = NULL;
+            container->cells[quadrant] = NULL;            
         }
         quadrant = nq;
-        if(nq < container->ctotal){
+        if(nq < container->ctotal){          
             container->cells[nq] = this;
             lqPos.set(_x, _y); // last valid in-map quadrant position
         }
     }    
 }
 
-void Game::NetObject::clearQuadrant(){
+void Game::NetObject::clearQuadrant(){  
     if(container != NULL && quadrant != -1  && container->cells[quadrant] == this){
         container->cells[quadrant] = NULL;
     }

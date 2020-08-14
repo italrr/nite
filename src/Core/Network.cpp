@@ -150,3 +150,39 @@ void Game::Net::step(){
 
 }
 
+
+void Game::Net::setCurrentMap(Shared<nite::Map> &m){
+    world.clearWallMasks();
+    world.clearGhostMasks();
+    traps.clear();
+    nite::Vec2 ws = m->size * m->tileSize;
+    this->world.setSize(ws.x, ws.y, 64, 64);
+    // wall masks
+    for(int i = 0; i < m->masks.size(); ++i){
+        auto &mask = m->masks[i];
+        auto obj = new Game::NetObject();
+        obj->position = mask.position;
+        obj->size = mask.size;
+        obj->solid = true;
+        obj->unmovable = true;
+        this->world.addWallMask(obj); // we use id 0 for wallmasks as these are not managed by the server
+        localMasks.push_back(obj);
+    }
+    this->map = m;
+    // traps
+    for(int i = 0; i < m->specials.size(); ++i){
+        auto &sp = m->specials[i];
+        if(sp.type != "trap"){
+            continue;
+        }
+        auto t = Game::getTrap(sp.tag);
+        if(t.get() == NULL){
+            nite::print("failed create trap '"+sp.tag+"': it's undefined");
+            continue;
+        }
+        t->position = sp.position;
+        t->size = sp.size;
+        traps.add(t, sp.id);
+    }    
+    nite::print("[net] current cmasks: "+nite::toStr(this->world.wallMasks.size())+" | current gmasks: "+nite::toStr(this->world.ghostMasks.size()));
+}

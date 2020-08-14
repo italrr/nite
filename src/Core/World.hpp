@@ -24,12 +24,26 @@
 			int priority;
 		};
 
+
+		struct GhostMask : Game::NetObject {
+			GhostMask(){
+				callback = [](Game::NetObject *subj){
+					return;
+				};
+				solid = true;
+				unmovable = true;
+				this->objType = ObjectType::Ghost;
+			}
+			std::function<void(Game::NetObject *subj)> callback;
+		};
+
 		struct NetWorld {
 			UInt16 generateId();
 			UInt16 seedId;
 			int seedNId;
 			std::unordered_map<UInt16, Shared<Game::NetObject>> objects;	
 			Vector<Game::NetObject*> wallMasks;
+			Vector<Game::NetObject*> ghostMasks;
 			Dict<UInt16, Game::NetObject*> updateQueue;	
 			Vector<UInt16> removeQueue;
 			UInt64 tickrate;
@@ -55,6 +69,9 @@
 			void clearWallMasks();
 			int addWallMask(Game::NetObject *mask);
 			bool removeWallMask(Game::NetObject *mask);
+			void clearGhostMasks();
+			int addGhostMask(Game::NetObject *mask);
+			bool removeGhostMask(Game::NetObject *mask);
 			Game::NetObject **cells; 
 			int ctotal;
 			int cwidth;

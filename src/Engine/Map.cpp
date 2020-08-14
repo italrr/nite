@@ -45,6 +45,7 @@ nite::Map::Map(){
     title = "";
     author = "";
     hash = "";
+    lastDTId = 0;
 }
 
 nite::Map::~Map(){
@@ -207,6 +208,38 @@ bool nite::Map::load(const String &path){
         mask.size.y = node.get("h").toFloat(-1);        
         mask.index = node.get("i").toInt(-1);        
         this->masks.push_back(mask);
+    }
+
+    // dynamic tiles
+    auto dyTilesNode = file.get("dynamicTiles");
+    for(auto ins : dyTilesNode){
+        auto dytile = nite::MapDynamicTileGroup();
+        dytile.id = nite::toInt(ins.first);
+        dytile.layer = ins.second.get("layer").toInt(0);
+        dytile.state = ins.second.get("state").toInt(0);        
+        for(auto tls : ins.second.get("tiles")){
+            dytile.tiles.push_back(tls.second.toInt(0));
+        }
+        for(auto sts : ins.second.get("stateToIndex")){
+            dytile.stateToIndex[nite::toInt(sts.first)] = sts.second.toInt(0);
+        }
+        dynamicTiles[dytile.id] = dytile;
+        setDynamicTileState(dytile.id, 0);
+    }
+
+    // special descriptors
+    auto specialsNode = file.get("specialObjects");
+    for(auto ins : specialsNode){
+        auto sp = nite::MapSpecialDescriptor();
+        sp.id = nite::toInt(ins.first);
+        sp.tag = ins.second.get("tag").toString("");
+        sp.ref = ins.second.get("ref").toInt(0);        
+        sp.type = ins.second.get("type").toString("");
+        sp.position.x = ins.second.get("x").toFloat(0);
+        sp.position.y = ins.second.get("y").toFloat(0);
+        sp.size.x = ins.second.get("w").toFloat(0);
+        sp.size.y = ins.second.get("h").toFloat(0);
+        specials[sp.id] = sp;
     }
 
     // TODO: `nav`
@@ -434,6 +467,42 @@ bool nite::Map::exportToJson(const String &path, bool allowOverwrite){
         masksArr.add(maskObj);
     }
     file.add("masks", masksArr);
+    // dynamic tiles
+    Jzon::Node dyTiles = Jzon::object();
+    for(auto &it : dynamicTiles){
+        auto &dty = it.second;
+        auto obj = Jzon::object();
+        auto tiles = Jzon::array();
+        auto stateToIndex = Jzon::object();
+        for(auto st : dty.stateToIndex){
+            stateToIndex.add(nite::toStr(st.first), st.second);
+        }
+        for(int i = 0; i < dty.tiles.size(); ++i){
+            tiles.add(dty.tiles[i]);
+        }
+        obj.add("state", dty.state);
+        obj.add("layer", dty.layer);
+        obj.add("tiles", tiles);
+        obj.add("stateToIndex", stateToIndex);
+        dyTiles.add(nite::toStr(it.first), obj);
+    }
+    file.add("dynamicTiles", dyTiles);
+    // specials
+    Jzon::Node spGroups = Jzon::object();
+    for(auto &it : specials){
+        auto &sp = it.second;
+        auto obj = Jzon::object();
+        obj.add("id", it.first);
+        obj.add("ref", it.second.ref);
+        obj.add("tag", it.second.tag);
+        obj.add("type", it.second.type);
+        obj.add("x", it.second.position.x);
+        obj.add("y", it.second.position.y);
+        obj.add("w", it.second.size.x);
+        obj.add("h", it.second.size.y);
+        spGroups.add(nite::toStr(it.first), obj);
+    }    
+    file.add("specialObjects", spGroups);
 
     //TODO: `nav`
     //TODO: `fragments`
@@ -443,6 +512,80 @@ bool nite::Map::exportToJson(const String &path, bool allowOverwrite){
     return true;
 }
 
+int nite::Map::generateDynamicTile(const Dict<int, int> &stateToIndex, const Vector<int> &tiles, int layer, int setId){
+    int cid =  setId == -1 ? lastDTId++ : setId;
+    MapDynamicTileGroup gp;
+    gp.stateToIndex = stateToIndex;
+    gp.tiles = tiles;
+    gp.id = cid;
+    gp.state = 0;
+    gp.layer = layer;
+    dynamicTiles[cid] = gp;
+    return cid;
+}
+
+int nite::Map::generateDescriptor(const nite::Vec2 &p, const nite::Vec2 &s, const String &type, const String &tag, int ref, int setId){
+    int cid =  setId == -1 ? lastDTId++ : setId;
+    MapSpecialDescriptor sp;
+    sp.ref = ref;
+    sp.id = cid;
+    sp.position = p;
+    sp.size = s;
+    sp.tag = tag;
+    sp.type = type;
+    specials[cid] = sp;
+    return cid;
+}
+
+void nite::Map::resetDynamicTile(int id){
+    auto it = dynamicTiles.find(id);
+    if(it == dynamicTiles.end()){
+        return;
+    }
+    setDynamicTileState(it->second.id, 0);
+}
+
+void nite::Map::setDynamicTileState(int id, int state){
+    auto &dytiles = dynamicTiles[id];
+    int nindx = dytiles.stateToIndex[state];
+    for(int j = 0; j < layers.size(); ++j){
+        auto &layer = layers[j];
+        if(layer->depth != dytiles.layer){
+            continue;
+        }
+        for(int i = 0; i < dytiles.tiles.size(); ++i){
+            layer->cells[dytiles.tiles[i]] = nindx;
+            nite::TextureRegionSingle *single = (nite::TextureRegionSingle*)(layer->batch.cells + dytiles.tiles[i] * sizeof(nite::TextureRegionSingle));
+            auto *tilesrc = &sources[layer->srcHash];
+            int tw = tilesrc->bsize.x; // Texture width
+            int th = tilesrc->bsize.y; // Texture height
+            float ity = (nindx - 1) / (int)tilesrc->units.x; // inTextureCoors y
+            float itx = (nindx - 1) - ity * (int)tilesrc->units.x; // inTextureCoors x
+            ity *= tileSize.y;
+            itx *= tileSize.x;
+            float bfsx = tileSize.x;
+            float bfsy = tileSize.y;
+            float dx = (dytiles.tiles[i] % (int)size.x) * tileSize.x; // in draw coors px
+            float dy = (dytiles.tiles[i] / (int)size.x) * tileSize.y; // in draw coors py
+            single->box[0] = dx;
+            single->box[1] = dy;
+            single->box[2] = dx + bfsx;
+            single->box[3] = dy;
+            single->box[4] = dx + bfsx;
+            single->box[5] = dy + bfsy;
+            single->box[6] = dx;
+            single->box[7] = dy + bfsy;
+            single->texBox[0] = itx / tw;
+            single->texBox[1] = ity / th;
+            single->texBox[2] = (itx + bfsx) / tw;
+            single->texBox[3] = ity / th;
+            single->texBox[4] = (itx + bfsx) / tw;
+            single->texBox[5] = (ity + bfsy) / th;
+            single->texBox[6] = itx / tw;
+            single->texBox[7] = (ity + bfsy) / th;            
+        }
+    }
+}
 
 void nite::Map::draw(const nite::Vec2 &pos, const nite::Rect &vwp){
     if(layers.size() == 0){

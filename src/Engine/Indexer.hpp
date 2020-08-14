@@ -26,6 +26,7 @@
             nite::IndexedFile *indexFile(const String &file);
             nite::IndexedFile *indexGhostFile(const String &path, const String &hash);
             nite::IndexedFile *get(const String &hash);
+            nite::IndexedFile *getByName(const String &name);
             bool removeByPath(const String &path);
             bool removeByHash(const String &hash);
         };

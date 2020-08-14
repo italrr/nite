@@ -237,23 +237,23 @@ bool Game::RING::TileSource::isIgnoredForFLoors(const String &key){
     return false;
 }
 
-static MappingCriteria *stored = NULL;
-static int storedtotal = 0;
-static int storedwith = 0;
-static nite::Vec2 storedtilesize;
-void __temp(){
-    for(int i = 0; i < storedtotal; ++i){
-        nite::Vec2 mrp = nite::mousePosition() + nite::getView(nite::RenderTargetGame);
-        int inx = (i %  storedwith) * storedtilesize.x;
-        int iny = (i / storedwith) * storedtilesize.y;
+// static MappingCriteria *stored = NULL;
+// static int storedtotal = 0;
+// static int storedwith = 0;
+// static nite::Vec2 storedtilesize;
+// void __temp(){
+//     for(int i = 0; i < storedtotal; ++i){
+//         nite::Vec2 mrp = nite::mousePosition() + nite::getView(nite::RenderTargetGame);
+//         int inx = (i %  storedwith) * storedtilesize.x;
+//         int iny = (i / storedwith) * storedtilesize.y;
         
-        bool inRegion = nite::isPointInRegion(mrp, nite::Vec2(inx, iny), nite::Vec2(inx, iny) + nite::Vec2(128.0f));
+//         bool inRegion = nite::isPointInRegion(mrp, nite::Vec2(inx, iny), nite::Vec2(inx, iny) + nite::Vec2(128.0f));
 
-        if(inRegion && nite::mousePressed(nite::butLEFT)){
-            std::cout << (String)stored[i] << std::endl;
-        }
-    }
-}
+//         if(inRegion && nite::mousePressed(nite::butLEFT)){
+//             std::cout << (String)stored[i] << std::endl;
+//         }
+//     }
+// }
 
 
 Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game::RING::TileSource &temp, int scale){
@@ -272,10 +272,10 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     int mirror[size]; // temp
     int allWalls[size]; //temp
     
-    stored = new MappingCriteria[size];
-    storedtotal = size;
-    storedwith = width;
-    storedtilesize = temp.tileSize;
+    // stored = new MappingCriteria[size];
+    // storedtotal = size;
+    // storedwith = width;
+    // storedtilesize = temp.tileSize;
 
     for(int i = 0; i < size; ++i){
         floor[i] = -1;
@@ -312,7 +312,7 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     for(int i = 0; i < size; ++i){
         auto crit = MappingCriteria(i, mirror, width, height);
         auto isMatch = matchForRules(crit);
-        stored[i] = crit;
+        // stored[i] = crit;
         if(isMatch.key != ""){
 
             auto var = findArbiVar(isMatch.key);
@@ -350,9 +350,11 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     map->hash = uuid;
     map->author = "RING:none@none.com";
     map->version = "0.0.0";
-    map->startCell.index = (bp->start % bp->width) * scale + (bp->start / bp->width) * scale;
-    map->startCell.x = (bp->start % bp->width) * scale * temp.tileSize.x;
-    map->startCell.y = (bp->start / bp->width) * scale * temp.tileSize.y;
+    int indxs = (bp->start % bp->width) * scale;
+    int indys = (bp->start / bp->width) * scale;
+    map->startCell.index = indxs + indys * width;
+    map->startCell.x = indxs * temp.tileSize.x;
+    map->startCell.y = indys * temp.tileSize.y;
     map->setup(3, nite::Vec2(width, height), temp.tileSize, temp.margin, temp.spacing);
     map->add(floor, 0, temp.sourcePath, "floor");
     map->add(walls, 1, temp.sourcePath, "walls");
@@ -381,12 +383,18 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
         // chunksTemp.push_back(mask);
     }
 
+    // generate traps
+
 
     // generate navegation paths
     auto generateNav = [&](){
 
     };
 
+
+    // test trap
+    map->generateDynamicTile({ {0, 36}, {1, 37} }, {map->startCell.index}, 0, 10);
+    map->generateDescriptor(nite::Vec2(map->startCell.x, map->startCell.y), temp.tileSize, "trap", "needles", 10, 25);
 
     // auto table = _ptable(width, height, chunksTemp);
 

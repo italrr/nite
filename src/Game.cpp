@@ -67,7 +67,7 @@ static auto cfMapReadInfoIns = nite::Console::CreateFunction("map_read_info", &c
 
 
 static nite::Console::Result cfRINGGenerateMap(Vector<String> params){
-	if(params.size() < 2){
+	if(params.size() < 3){
 		return nite::Console::Result("not enough parameters(1)", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}
 
@@ -80,17 +80,27 @@ static nite::Console::Result cfRINGGenerateMap(Vector<String> params){
 	}
 	int x = nite::toInt(params[0]);
 	int y = nite::toInt(params[1]);
+	String tilesource = params[2];
 	if(instance->client.connected){
 		return nite::Console::Result("you cannot generate a map while in a game. disconnect first", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}
 	instance->client.clear();
 	// TODO: allow to provide blueprint specs, tilesource and scale
 	// may require to create other commands
+	auto indexer = nite::getIndexer();
+	auto *file = indexer->getByName(tilesource);
+	if(file == NULL){
+		return nite::Console::Result("'"+tilesource+"' doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	}
+	if(!file->isIt("tilesource")){
+		return nite::Console::Result("'"+tilesource+"' is not a tilesource", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+	}
+	nite::Console::interpret("cl_camera_forcezoom false", false, false, false, false);
 	Game::RING::TileSource ts;
-	ts.load("data/tileset/dungeon.json");
+	ts.load(file->path);
 	auto bp = Shared<Game::RING::Blueprint>(new Game::RING::Blueprint());
 	bp->generate(x, y);
-	instance->client.map = Game::RING::generateMap(bp, ts, 3);
+	instance->client.map = Game::RING::generateMap(bp, ts, 4);
 	return nite::Console::Result();
 
 }
@@ -127,6 +137,7 @@ void Game::GameCore::update(){
 	nite::viewUpdate();
 	nite::inputUpdate();
 	this->client.update();
+	this->client.camera.update();
 }
 
 static void *localSvThread(void *vargp){

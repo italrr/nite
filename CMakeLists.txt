@@ -173,47 +173,47 @@ ENDIF(MINGW)
 
 # Build ninte #
 set (nite_src
-		src/Engine/Tools/hashids.cpp
-		src/Engine/Input.cpp
-		src/Engine/Graphics.cpp
-		src/Engine/Types.cpp
-		src/Engine/JSON/Jzon.cpp
-		src/Engine/Tools/Files.cpp
-		src/Engine/Tools/Hash.cpp
-		src/Engine/Tools/StepTimer.cpp
-		src/Engine/Tools/Log.cpp
-		src/Engine/Tools/Math.cpp
-		src/Engine/Tools/AsyncTask.cpp
-		src/Engine/Tools/String.cpp
-		src/Engine/Tools/System.cpp
-		src/Engine/Tools/Time.cpp
-		src/Engine/Tools/MD5.cpp
-		src/Engine/Tools/SmallPacket.cpp
-		src/Engine/Shader.cpp
-		src/Engine/Tileset.cpp
-		src/Engine/Packets.cpp
-		src/Engine/Network.cpp
-		src/Engine/View.cpp
-		src/Engine/Graphics.cpp
-		src/Engine/Shapes.cpp
-		src/Engine/Texture.cpp
-		src/Engine/Font.cpp
-		src/Engine/Particles.cpp
-		src/Engine/Animation.cpp
-		src/Engine/Indexer.cpp
-		src/Engine/Map.cpp
-		src/Engine/Object.cpp
-		src/Engine/nScript.cpp
-		src/Engine/Audio.cpp
-		src/Engine/UI/UI.cpp
-		src/Engine/UI/WindowUI.cpp
-		src/Engine/UI/PanelUI.cpp
-		src/Engine/UI/TextUI.cpp
-		src/Engine/UI/IconUI.cpp
-		src/Engine/UI/ButtonUI.cpp
-		src/Engine/UI/CheckboxUI.cpp	
-		src/Engine/UI/BaseUIComponent.cpp		
-		src/Engine/Console.cpp		)
+	src/Engine/Tools/hashids.cpp
+	src/Engine/Input.cpp
+	src/Engine/Graphics.cpp
+	src/Engine/Types.cpp
+	src/Engine/JSON/Jzon.cpp
+	src/Engine/Tools/Files.cpp
+	src/Engine/Tools/Hash.cpp
+	src/Engine/Tools/StepTimer.cpp
+	src/Engine/Tools/Log.cpp
+	src/Engine/Tools/Math.cpp
+	src/Engine/Tools/AsyncTask.cpp
+	src/Engine/Tools/String.cpp
+	src/Engine/Tools/System.cpp
+	src/Engine/Tools/Time.cpp
+	src/Engine/Tools/MD5.cpp
+	src/Engine/Tools/SmallPacket.cpp
+	src/Engine/Shader.cpp
+	src/Engine/Tileset.cpp
+	src/Engine/Packets.cpp
+	src/Engine/Network.cpp
+	src/Engine/View.cpp
+	src/Engine/Graphics.cpp
+	src/Engine/Shapes.cpp
+	src/Engine/Texture.cpp
+	src/Engine/Font.cpp
+	src/Engine/Particles.cpp
+	src/Engine/Animation.cpp
+	src/Engine/Indexer.cpp
+	src/Engine/Map.cpp
+	src/Engine/Object.cpp
+	src/Engine/nScript.cpp
+	src/Engine/Audio.cpp
+	src/Engine/UI/UI.cpp
+	src/Engine/UI/WindowUI.cpp
+	src/Engine/UI/PanelUI.cpp
+	src/Engine/UI/TextUI.cpp
+	src/Engine/UI/IconUI.cpp
+	src/Engine/UI/ButtonUI.cpp
+	src/Engine/UI/CheckboxUI.cpp	
+	src/Engine/UI/BaseUIComponent.cpp		
+	src/Engine/Console.cpp		)
 
 add_library(nite ${nite_src})
 
@@ -231,6 +231,7 @@ set(src_files
 	src/Core/World.cpp
 	src/Core/Input.cpp
 	# Entity #
+	src/Entity/Traps/Trap.cpp
 	src/Entity/Anim.cpp
 	src/Entity/Inventory.cpp
 	src/Entity/Base.cpp
