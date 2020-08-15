@@ -116,6 +116,7 @@ Game::Client::Client() : Game::Net(){
     nite::Console::CreateProxy clPhysicsDebug("cl_physics_debug", nite::Console::ProxyType::Bool, sizeof(bool), &world.debugPhysics);
     nite::Console::CreateProxy clTimescale("cl_local_timescale", nite::Console::ProxyType::Float, sizeof(float), &world.timescale);
     init = false;
+    isServer = false;
     clear();
     traps.start(this);
 }
@@ -899,7 +900,9 @@ void Game::Client::update(){
             case Game::PacketType::SV_UPDATE_MANY_TRAPS_STATE: {
                 if(!isSv || !isLast){ break; }
                 UInt16 n;
-                UInt16 id, state;
+                UInt16 id;
+                UInt8 state;
+                handler.read(&n, sizeof(n));
                 for(int i = 0; i < n; ++i){
                     handler.read(&id, sizeof(id));
                     handler.read(&state, sizeof(state));

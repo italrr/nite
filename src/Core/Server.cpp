@@ -309,6 +309,7 @@ static auto cfKickIns = nite::Console::CreateFunction("kick", &cfKick, true, tru
 
 Game::Server::Server(){
     this->init = false;
+    this->isServer = true;
     setState(Game::ServerState::Off);
     traps.start(this);
 }
@@ -904,12 +905,6 @@ void Game::Server::game(){
     //     text->setText(composed);
     // }    
 
-    for(int i = 0; i < world.ctotal; ++i){
-        if(world.cells[i] != NULL && world.cells[i]->objType == ObjectType::Ghost){
-            nite::print("it's here");
-        }
-    }
-
     // players joined. wait for them to be ready and then start the game
     if(nite::getTicks()-lastState > 5*1000 && state == Game::ServerState::Waiting){
         int n = 0;
@@ -1007,7 +1002,8 @@ void Game::Server::game(){
         updTrps.setHeader(PacketType::SV_UPDATE_MANY_TRAPS_STATE);
         updTrps.write(&n, sizeof(n));
         for(int i = 0; i < n; ++i){
-            updTrps.write(&changed[i], sizeof(changed[i]));
+            UInt16 id = changed[i];
+            updTrps.write(&id, sizeof(id));
             UInt8 st = traps.traps[changed[i]]->state;
             updTrps.write(&st, sizeof(st));
         }

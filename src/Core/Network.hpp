@@ -89,6 +89,7 @@
         };
 
         struct Net {
+            bool isServer;
             Game::RemoteClock clock;
             Vector<Shared<Game::PersisentDelivey>> deliveries;
             unsigned state;
@@ -515,12 +516,12 @@
             SV_UPDATE_MANY_TRAPS_STATE,
             /*
                 UINT16 N
-                0: { // ALWAYS BOT
+                0: {
                     UINT16 ID
                     UINT8 STATE
                 }
                 ...
-                n: { // ALWAYS MID
+                n: { 
                     UINT16 ID
                     UINT8 STATE
                 }

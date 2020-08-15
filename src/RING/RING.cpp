@@ -393,8 +393,8 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
 
 
     // test trap
-    map->generateDynamicTile({ {0, 36}, {1, 37} }, {map->startCell.index}, 0, 10);
-    map->generateDescriptor(nite::Vec2(map->startCell.x, map->startCell.y), temp.tileSize, "trap", "needles", 10, 25);
+    map->generateDynamicTile({ {0, 36}, {1, 37} }, {map->startCell.index + 2}, 0, 10);
+    map->generateDescriptor(nite::Vec2(map->startCell.x + temp.tileSize.x * 2, map->startCell.y), temp.tileSize, "trap", "needles", 10, 25);
 
     // auto table = _ptable(width, height, chunksTemp);
 

@@ -45,6 +45,8 @@
             void setState(int state, const Shared<nite::Map> &map, Game::NetWorld &world);
             TrapNeedles(){
                 type = TrapType::NEEDLES;
+                timeout = 1000;
+                initTime = nite::getTicks();
                 callback = [](Game::NetObject *who){
                     nite::print("nope");
                     return;

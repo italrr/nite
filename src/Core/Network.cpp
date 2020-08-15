@@ -169,6 +169,10 @@ void Game::Net::setCurrentMap(Shared<nite::Map> &m){
         localMasks.push_back(obj);
     }
     this->map = m;
+    // dynamic tiles
+    for(auto &it : m->dynamicTiles){
+        m->generateDynamicTile(it.second.stateToIndex, it.second.tiles, it.second.layer, it.second.id);
+    }    
     // traps
     for(int i = 0; i < m->specials.size(); ++i){
         auto &sp = m->specials[i];
@@ -182,7 +186,8 @@ void Game::Net::setCurrentMap(Shared<nite::Map> &m){
         }
         t->position = sp.position;
         t->size = sp.size;
+        t->dynTile = sp.ref;
         traps.add(t, sp.id);
     }    
-    nite::print("[net] current cmasks: "+nite::toStr(this->world.wallMasks.size())+" | current gmasks: "+nite::toStr(this->world.ghostMasks.size()));
+    nite::print("[net] dynamic tiles: "+nite::toStr(m->dynamicTiles.size())+" | cmasks: "+nite::toStr(this->world.wallMasks.size())+" | gmasks: "+nite::toStr(this->world.ghostMasks.size()));
 }

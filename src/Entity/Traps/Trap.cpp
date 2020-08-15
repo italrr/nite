@@ -71,13 +71,22 @@ void Game::TrapDevice::clear(){
 
 
 void Game::TrapNeedles::update(const Shared<nite::Map> &map, Game::NetWorld &world){
-    // TODO
- 
+   if(nite::getTicks()-initTime > timeout){
+       switch(state){
+            case 0: {
+                setState(1, map, world);
+            } break;
+            default: 
+            case 1: {
+                setState(0, map, world);
+            } break;
+       }
+       initTime = nite::getTicks();
+   }
 }
 
 void Game::TrapNeedles::setState(int state, const Shared<nite::Map> &map, Game::NetWorld &world){
-
-
+    this->state = state;
     if(this->dynTile > 0){
         map->setDynamicTileState(dynTile, state);
     }
