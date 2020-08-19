@@ -86,7 +86,7 @@ UInt64 Game::Skill::getCooldown(EntityBase *who){
     Int64 cd = (cooldown - cooldown * who->complexStat.cooldownRedRate);
     if(cd < 0){
         cd = cooldown;
-    }    
+    }
     return cd;
 }
 
@@ -95,7 +95,7 @@ void Game::Skill::readUpdate(nite::Packet &packet){
 }
 
 Shared<Game::Skill> Game::getSkill(UInt16 id, UInt8 lv){
-	auto dbInfo = db.get(nite::toStr(id)); 
+	auto dbInfo = db.get(nite::toStr(id));
     auto sk = Shared<Game::Skill>(NULL);
     switch(id){
         case Game::SkillList::BA_ATTACK: {
@@ -109,17 +109,17 @@ Shared<Game::Skill> Game::getSkill(UInt16 id, UInt8 lv){
         } break;
         case Game::SkillList::BA_PARRY: {
             sk = Shared<Game::Skill>(new Game::Skills::BA_Parry());
-        } break;  
+        } break;
         case Game::SkillList::BA_FIRST_AID: {
             sk = Shared<Game::Skill>(new Game::Skills::BA_FIRST_AID());
-        } break;               
+        } break;
     }
     if(sk.get() != NULL){
         sk->lv = lv;
         if(db.has(nite::toStr(id))){
             sk->parse(dbInfo);
             sk->parseSpecial(dbInfo);
-        }     
+        }
     }
     return sk;
 }
@@ -127,7 +127,7 @@ Shared<Game::Skill> Game::getSkill(UInt16 id, UInt8 lv){
 bool Game::SkillStat::add(Shared<Game::Skill> &sk){
     if(contains(sk->id)){
         return false;
-    }   
+    }
     this->skills[sk->id] = sk;
     // server-side only
     notifyAddSkill(owner, sk->id, sk->lv);
@@ -142,7 +142,7 @@ bool Game::SkillStat::remove(UInt16 id){
     }
     skills.erase(it);
     // server-side only
-    notifyRemoveSkill(owner, id); 
+    notifyRemoveSkill(owner, id);
     owner->recalculateStats();
     return true;
 }
@@ -162,7 +162,7 @@ Game::Skill *Game::SkillStat::get(UInt16 id){
 bool Game::SkillStat::lvUp(UInt16 id){
     if(contains(id)){
         return false;
-    }    
+    }
     if(skills[id]->lv >= skills[id]->maxLv){
         return false;
     }

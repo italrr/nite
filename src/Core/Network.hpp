@@ -526,6 +526,13 @@
                     UINT8 STATE
                 }
             */                            
+
+            SV_NOTIFY_ENTITY_DAMAGE,
+            /*
+                UINT16 ID
+                UINT32 AMNT
+            */ 
+
         };
 
 

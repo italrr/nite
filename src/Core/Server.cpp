@@ -745,25 +745,27 @@ void Game::Server::update(){
                 SV_UPDATE_PHYSICS_OBJECT
             */            
             case Game::PacketType::SV_UPDATE_PHYSICS_OBJECT: {
-                if(!client || !isLast){
-                    break;
-                }
-                UInt16 amnt;
-                handler.read(&amnt, sizeof(UInt16));
-                for(int i = 0; i < amnt; ++i){
-                    UInt16 id;
-                    float x, y, xspeed, yspeed;
-                    handler.read(&id, sizeof(UInt16));
-                    handler.read(&x, sizeof(float));
-                    handler.read(&y, sizeof(float));
-                    handler.read(&xspeed, sizeof(float));
-                    handler.read(&yspeed, sizeof(float));                    
-                    auto obj = world.get(id);
-                    if(obj != NULL && obj->id == client->entityId){
-                        obj->position.set(x, y);
-                        obj->speed.set(xspeed, yspeed);
-                    }
-                }
+                nite::print("[server] SV_UPDATE_PHYSICS_OBJECT: discarded");
+                break;
+                // if(!client || !isLast){
+                //     break;
+                // }
+                // UInt16 amnt;
+                // handler.read(&amnt, sizeof(UInt16));
+                // for(int i = 0; i < amnt; ++i){
+                //     UInt16 id;
+                //     float x, y, xspeed, yspeed;
+                //     handler.read(&id, sizeof(UInt16));
+                //     handler.read(&x, sizeof(float));
+                //     handler.read(&y, sizeof(float));
+                //     handler.read(&xspeed, sizeof(float));
+                //     handler.read(&yspeed, sizeof(float));                    
+                //     auto obj = world.get(id);
+                //     if(obj != NULL && obj->id == client->entityId){
+                //         obj->position.set(x, y);
+                //         obj->speed.set(xspeed, yspeed);
+                //     }
+                // }
             } break;              
             /* 
                 UNKNOWN

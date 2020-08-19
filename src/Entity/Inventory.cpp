@@ -78,10 +78,10 @@ UInt16 Game::InventoryStat::add(Shared<Game::ItemBase> &item, UInt16 slotId){
 	// if(item->weight * item->qty + owner->complexStat.carry > owner->complexStat.maxCarry){ // too heavy
 	// 	return finalId;
 	// }
-	if(ins.get() == NULL || !item->amnt){			
-		carry[_seedIndex] = item;	
-		item->slotId = _seedIndex;		
-		item->onCarryAdd(owner);	
+	if(ins.get() == NULL || !item->amnt){
+		carry[_seedIndex] = item;
+		item->slotId = _seedIndex;
+		item->onCarryAdd(owner);
 		finalId = _seedIndex;
 		owner->complexStat.carry += item->weight;
 		notifyAddItem(owner, item->id, item->slotId, item->qty);
@@ -121,7 +121,7 @@ bool Game::InventoryStat::unequip(UInt16 itemId){
 		for(auto &it : carry){
 			if(it.second->id == itemId){
 				auto equip = static_cast<Game::EquipItem*>(it.second.get());
-				equip->onUnequip(owner);				
+				equip->onUnequip(owner);
 				slots[equip->equipType] = Shared<Game::EquipItem>(NULL);
 				owner->recalculateStats();
 				return true;
@@ -173,25 +173,25 @@ bool Game::InventoryStat::remove(UInt16 id, UInt16 qty){
         auto &item = *it.second.get();
         if(item.id == id){
             if(item.amnt){
-                item.qty -= qty; 
+                item.qty -= qty;
             }
 			int origSlot = item.slotId;
             if(qty == 0 || item.qty <= 0){
                 item.onCarryRemove(owner);
 				owner->complexStat.carry -= item.weight * item.qty;
                 item.slotId = 0;
-                carry.erase(it.first);             
+                carry.erase(it.first);
 			}
 			notifyRemoveItem(owner, id, origSlot, qty);
-			owner->recalculateStats();  
-			return true;			
+			owner->recalculateStats();
+			return true;
         }
     }
     return true;
 }
 
 bool Game::InventoryStat::removeBySlotId(UInt16 slotId, UInt16 qty){
-	
+
 	auto it = carry.find(slotId);
 	if(it == carry.end()){
 		return false;
@@ -205,10 +205,10 @@ bool Game::InventoryStat::removeBySlotId(UInt16 slotId, UInt16 qty){
 		item->onCarryRemove(owner);
 		owner->complexStat.carry -= item->weight * item->qty;
 		item->slotId = 0;
-		carry.erase(it->first);              
-	} 	
+		carry.erase(it->first);
+	}
 	notifyRemoveItem(owner, item->id, slotId, qty);
-	owner->recalculateStats();  
+	owner->recalculateStats();
 	return true;
 }
 
@@ -226,7 +226,7 @@ Shared<Game::ItemBase> Game::getItem(UInt16 id, UInt16 qty){
 		if(db.has(nite::toStr(id))){
 			it->parse(dbInfo);
 			it->parseSpecial(dbInfo);
-		}		
+		}
 	}
 	return it;
 }

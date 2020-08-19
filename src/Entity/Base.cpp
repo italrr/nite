@@ -11,6 +11,10 @@
 static bool showHitboxes = false;
 static nite::Console::CreateProxy cpshowHitboxes("cl_show_hitbox", nite::Console::ProxyType::Bool, sizeof(bool), &showHitboxes);
 
+
+static UInt64 EntityDamageRecover = 200;
+static nite::Console::CreateProxy cpEntityDamageRecover("game_entity_damage_rcv_time", nite::Console::ProxyType::Int, sizeof(int), &EntityDamageRecover);
+
 static void notifyEntityDeath(Game::EntityBase *ent){
     if(ent != NULL && ent->sv != NULL){
         if(auto cl = ent->sv->getClientByEntityId(ent->id)){
@@ -45,11 +49,16 @@ Game::EntityBase::EntityBase(){
 	this->lastMeleeHit = nite::getTicks();
 	this->lastUpdateStats = nite::getTicks();
 	this->objType = ObjectType::Entity;
+	this->lastDmgd = nite::getTicks();
 	this->currentCasting = Shared<Game::EntityCasting>(NULL);
 	setState(EntityState::IDLE, EntityStateSlot::MID, 0);
 	setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);
 	walkStepTick = 0;
 	aidriver.set(this);
+}
+
+bool Game::EntityBase::canDamage(){
+	return nite::getTicks()-lastDmgd > EntityDamageRecover;
 }
 
 void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // more like hold direction
@@ -66,7 +75,7 @@ void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // m
 		setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
 	}
 	isMoving = true;
-	move((nite::Vec2(8.0f) + nite::Vec2(complexStat.walkRate))* dir);
+	move((nite::Vec2(4.0f) + nite::Vec2(complexStat.walkRate)) * dir);
 }
 
 void Game::EntityBase::kill(){
@@ -81,11 +90,11 @@ void Game::EntityBase::kill(){
 void Game::EntityBase::onCreate(){
     unmovable = false;
     solid = true;
-    friction = 0.87f; 
+    friction = 0.87f;
     mass = 2.8f;
     healthStat.dead = false;
     size.set(128, 128);
-    name = "Base Entity Type";  
+    name = "Base Entity Type";
 }
 
 void Game::EntityBase::printInfo(){
@@ -104,8 +113,8 @@ void Game::EntityBase::printInfo(){
 	nite::print("PrecsRate "+str(complexStat.precsRate));
 	nite::print("AtkRate "+str(complexStat.atkRate));
 	nite::print("CharmRate "+str(complexStat.charmRate));
-	nite::print("PersuasionRate "+str(complexStat.persuasionRate));    
-	#undef str    
+	nite::print("PersuasionRate "+str(complexStat.persuasionRate));
+	#undef str
 }
 
 Vector<nite::Hitbox> Game::EntityBase::getHitbox(){
@@ -129,14 +138,14 @@ void Game::EntityBase::draw(){
 	nite::Vec2 rp = lerpPosition + size * 0.5f;
 
     nite::setRenderTarget(nite::RenderTargetGame);
-	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+	nite::setColor(1.0f, 1.0f, 1.0f, canDamage() ? 1.0f : 0.80f);
 	int bodyDepth = -rp.y - anim.bodyDepthOffset;
 	nite::setDepth(bodyDepth);
 	float reversed = faceDirection == EntityFacing::Left ? -1.0f : 1.0f;
 	auto ref = anim.batch.draw(rp.x, rp.y, anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);
 
 	if(showHitboxes){
-		static nite::Texture empty("data/texture/empty.png");	
+		static nite::Texture empty("data/texture/empty.png");
 		nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
 		auto hitboxes = getHitbox();
 		for(int i = 0; i < hitboxes.size(); ++i){
@@ -152,7 +161,7 @@ void Game::EntityBase::draw(){
 	if(castingMsgAlpha > 0.0f){
 		if(!castingMsg->visible){
 			castingMsg->setVisible(true);
-		}		
+		}
 		auto self = static_cast<nite::PanelUI*>(castingMsg.get());
 		auto renderPanel = [&](const nite::Vec2 &offset){
 			if(currentCasting.get() != NULL){
@@ -163,7 +172,7 @@ void Game::EntityBase::draw(){
 						static_cast<nite::TextUI*>(cmp.get())->setText(nite::toUpper(sk->name));
 					}
 				}
-			}			
+			}
 			self->recalculate();
 			auto cps = self->computeSize();
 			nite::Vec2 rp = self->margin * 0.5f + offset; // offset
@@ -206,7 +215,7 @@ void Game::EntityBase::draw(){
 void Game::Gfx_CastingBall::draw(const nite::Vec2 &p){
 	step += 1 * nite::getDelta();
 	// nite::setRenderTarget(nite::RenderTargetGame);
-	// nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);	
+	// nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	// float r = 32.0f;
 	// for(int i = 0; i < 3; ++i){
 	// 	int _an = step + i * 120;
@@ -254,8 +263,8 @@ void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n){
 	// 	update = true;
 	// }
 	state[slot] = nstate;
-	lastStateTime[slot] = nite::getTicks();	
-	lastFrameTime[slot] = nite::getTicks();	
+	lastStateTime[slot] = nite::getTicks();
+	lastFrameTime[slot] = nite::getTicks();
 	stNum[slot] = n;
 	// issue anim update to clients
 	if(update && sv != NULL){
@@ -276,7 +285,7 @@ void Game::EntityBase::switchFrame(UInt8 slot, UInt8 n){
 	if(slot >= EntityStateSlot::total){
 		return;
 	}
-	lastFrameTime[slot] = nite::getTicks();	
+	lastFrameTime[slot] = nite::getTicks();
 	stNum[slot] = n;
 }
 
@@ -285,8 +294,8 @@ void Game::EntityBase::throwMelee(float x, float y){
 	if(sv == NULL){
 		return;
 	}
-	
-	container->getQuadrant(position.x - 256,  position.y - 256, 512, 512, locals);		
+
+	container->getQuadrant(position.x - 256,  position.y - 256, 512, 512, locals);
 	nite::Hitbox *hb = NULL;
 	nite::Hitbox cpy;
 	auto initp = (position + size * nite::Vec2(0.5f)) - (anim.frameSize * nite::Vec2(0.5f));
@@ -303,7 +312,7 @@ void Game::EntityBase::throwMelee(float x, float y){
 	}
 
 	// if(showHitboxes){
-	// 	static nite::Texture empty("data/texture/empty.png");	
+	// 	static nite::Texture empty("data/texture/empty.png");
 	// 	nite::setRenderTarget(nite::RenderTargetGame);
 	// 	nite::setDepth(nite::DepthTop);
 	// 	nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
@@ -324,7 +333,7 @@ void Game::EntityBase::throwMelee(float x, float y){
 			if(hb->collision(ohbs[j])){
 				nite::print("detect");
 				ent->lastMeleeHit = nite::getTicks();
-				break;	
+				break;
 			}
 		}
 	}
@@ -356,7 +365,7 @@ void Game::EntityBase::updateStance(){
 				}
 			} break;
 			case EntityState::JUMPING: {
-			} break; 
+			} break;
 			case EntityState::SHOOTING_HANDGUN: {
 			} break;
 			case EntityState::SHOOTING_BOW: {
@@ -376,8 +385,8 @@ void Game::EntityBase::updateStance(){
             case EntityState::MELEE_NOWEAP: {
 				if(part != EntityStateSlot::MID){
 					break;
-				}		
-				auto canim = this->anim.getAnim(EntityState::stateToAnimType[EntityState::MELEE_NOWEAP][EntityStateSlot::MID]);		
+				}
+				auto canim = this->anim.getAnim(EntityState::stateToAnimType[EntityState::MELEE_NOWEAP][EntityStateSlot::MID]);
 				switch(stNum[EntityStateSlot::MID]){
 					case 0:{
 						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > canim->spd){
@@ -389,21 +398,21 @@ void Game::EntityBase::updateStance(){
 						throwMelee(0.0f, 0.0f);
 						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 400){ // 200 hard coded for now
 							setState(EntityState::IDLE_FIST, EntityStateSlot::MID, 0);
-						}						
-					} break;					
+						}
+					} break;
 				}
 			} break;
 			case EntityState::IDLE_FIST: {
 				if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 1500){
 					setState(EntityState::IDLE, EntityStateSlot::MID, 0);
-				}	
+				}
 			} break;
 			case EntityState::CASTING: {
 				if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 500 && !isCasting){
 					setState(EntityState::IDLE, EntityStateSlot::MID, 0);
 				}
-			} break;                
-		}		
+			} break;
+		}
 	}
 	isMoving = false;
 }
@@ -415,7 +424,7 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 	switch(type){
 		case ActionableType::Skill: {
 			auto sk = skillStat.get(id);
-			if(sk != NULL && sk->isReady(this)){ 
+			if(sk != NULL && sk->isReady(this)){
 				currentCasting = Shared<Game::EntityCasting>(new Game::EntityCasting());
 				currentCasting->id = id;
 				currentCasting->type = type;
@@ -438,14 +447,14 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 					update.write(&currentCasting->startTime, sizeof(currentCasting->startTime));
 					update.write(&sk->castDelay, sizeof(sk->castDelay));
 					update.write(&x, sizeof(x));
-					update.write(&y, sizeof(y));					
+					update.write(&y, sizeof(y));
 					sv->persSend(cl->cl, update, 1000, -1);
 				}
 			}
 		} break;
 		case ActionableType::Item: {
 			nite::print("USE ITEM TODO");
-		} break;		
+		} break;
 	}
 	solveCasting();
 }
@@ -479,7 +488,7 @@ void Game::EntityBase::solveCasting(){
 			if(sk->use(this, target, nite::Vec2(currentCasting->p.x, currentCasting->p.y))){
 				sendSkillState(sk);
 			}
-		} break;		
+		} break;
 	}
 	isCasting = false;
 	currentCasting = Shared<Game::EntityCasting>(NULL);
@@ -499,7 +508,7 @@ void Game::EntityBase::recalculateStats(){
 	for(auto &ef : eff){
 		ef.second->onRecalculateStat(this);
 	}
-	
+
 	// recalculate passive-items-given stats
 	auto &carry = invStat.carry;
 	for(auto &item : carry){
@@ -515,13 +524,13 @@ void Game::EntityBase::recalculateStats(){
 	// recalculate local stats
 	recalculateBaseStats();
 	recalculateHealthStats();
-	recalculateComplexStats();	
+	recalculateComplexStats();
 
 	// normalize in case of overflows
-	normalizeComplexStats();	
+	normalizeComplexStats();
 
 	// server-side only (notify client owner)
-	if(sv != NULL){ 
+	if(sv != NULL){
 		auto cl = sv->getClientByEntityId(this->id);
 		if(cl == NULL){
 			return;
@@ -532,7 +541,7 @@ void Game::EntityBase::recalculateStats(){
 		writeAllStatState(notify);
 		sv->persSend(cl->cl, notify, 750, -1);
 	}
-		
+
 }
 
 void Game::EntityBase::loadAnim(){
@@ -545,19 +554,23 @@ void Game::EntityBase::loadAnim(){
 		castingMsg->onCreate();
 		castingMsg->setVisible(false);
 		castingMsgAlpha = 0.0f;
-		castingBall.init(position);		
+		castingBall.init(position);
 	}
 }
 
+void Game::EntityBase::markDamaged(){
+	lastDmgd = nite::getTicks();
+}
+
 bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
-	if(this->healthStat.dead){
+	if(this->healthStat.dead || !canDamage() || this->sv == NULL){
 		return false;
 	}
 	Int32 def = 0, mdef = 0;
 	auto item = invStat.slots[Game::EquipSlot::Chest];
-	Game::ItemBase *armor = item.get() != NULL ? static_cast<Game::EquipItem*>(item.get()) : NULL; 
+	Game::ItemBase *armor = item.get() != NULL ? static_cast<Game::EquipItem*>(item.get()) : NULL;
 	auto efVal = Game::Element::isEffective(dmg.elmnt, armor == NULL ? Game::Element::Neutral : armor->elemnt); // entities are neutral by default
-	Int32 dmgdone = dmg.amnt * efVal * (dmg.isCrit ? 2.25f : 1.0f); // damage cannot be negative at the end	   
+	Int32 dmgdone = dmg.amnt * efVal * (dmg.isCrit ? 2.25f : 1.0f); // damage cannot be negative at the end
 	for(int i = 0; i < EquipSlot::TOTAL; ++i){
 		auto item = invStat.slots[i];
 		if(item.get() == NULL || i == EquipSlot::LeftAcc || i == EquipSlot::RightAcc) continue;
@@ -565,7 +578,7 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 		def += equip->def;
 		mdef += equip->mdef;
 		if(!dmg.truedmg){ // truedmg ignores damage buffs from weaps and items
-			dmgdone = equip->onDamageRecv(dmgdone, dmg); 
+			dmgdone = equip->onDamageRecv(dmgdone, dmg);
 		}
 	}
 	switch(dmg.dmgtype){
@@ -577,7 +590,11 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 		} break;
 		case Game::DamageType::Ranged: {
 			dmgdone = dmgdone * 0.90f - def; // ranged attacks are always 90% of the real value
-		} break;				
+		} break;
+        default: {
+            dmgdone = 0;
+            nite::print("entity '"+nite::toStr(this->id)+"' received damage of unknown type");
+        } break;
 	}
 	auto &health = this->healthStat.health;
 	auto orig = health;
@@ -588,13 +605,22 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 			health -= dmgdone;
 		}
 	}
+	lastDmgd = nite::getTicks();
+    nite::print("dealt "+nite::toStr(dmgdone)+" DMG to entity '"+nite::toStr(this->id)+"'");
 	// server-side only
-	if(orig != health && sv != NULL){ 
+	if(orig != health && sv != NULL){
+		// send new health
 		nite::Packet notify;
 		notify.setHeader(Game::PacketType::SV_UPDATE_ENTITY_HEALTH_STAT);
 		notify.write(&id, sizeof(id));
 		writeHealthStatState(notify);
-		sv->persSendAll(notify, 750, -1);		
+		sv->persSendAll(notify, 750, -1);
+		// send damage notification
+		nite::Packet notifydmg;
+		notifydmg.setHeader(Game::PacketType::SV_NOTIFY_ENTITY_DAMAGE);
+		notifydmg.write(&id, sizeof(id));
+		notifydmg.write(&dmgdone, sizeof(dmgdone));
+		sv->sendAll(notifydmg);
 	}
 	return dmgdone > 0;
 }
@@ -608,7 +634,7 @@ void Game::EntityBase::writeAllStatState(nite::Packet &packet){
 void Game::EntityBase::readAllStatState(nite::Packet &packet){
 	packet.read(&healthStat, sizeof(healthStat));
 	packet.read(&baseStat, sizeof(baseStat));
-	packet.read(&complexStat, sizeof(complexStat));	
+	packet.read(&complexStat, sizeof(complexStat));
 }
 
 void Game::EntityBase::writeHealthStatState(nite::Packet &packet){

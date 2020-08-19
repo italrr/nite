@@ -36,6 +36,7 @@
                     return;
                 };
             }
+            virtual void damage(Game::NetObject *who) {}
         };
 
         struct TrapNeedles : Trap {
@@ -43,15 +44,8 @@
             UInt64 timeout;
             void update(const Shared<nite::Map> &map, Game::NetWorld &world);
             void setState(int state, const Shared<nite::Map> &map, Game::NetWorld &world);
-            TrapNeedles(){
-                type = TrapType::NEEDLES;
-                timeout = 1000;
-                initTime = nite::getTicks();
-                callback = [](Game::NetObject *who){
-                    nite::print("nope");
-                    return;
-                };                
-            }
+            void damage(Game::NetObject *who);
+            TrapNeedles();
         };
 
         struct Net;

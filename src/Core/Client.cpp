@@ -471,7 +471,7 @@ void Game::Client::update(){
                     handler.read(&xspeed, sizeof(float));
                     handler.read(&yspeed, sizeof(float));
                     auto obj = world.get(id);
-                    if(obj != NULL && obj->id != entityId){
+                    if(obj != NULL){
                         obj->position.set(x, y);
                         obj->speed.set(xspeed, yspeed);
                     }
@@ -893,7 +893,7 @@ void Game::Client::update(){
                     break;
                 }
                 trap->setState(state, this->map, this->world);
-            } break;     
+            } break;
             /*
                 SV_UPDATE_MANY_TRAPS_STATE
             */
@@ -911,9 +911,9 @@ void Game::Client::update(){
                         nite::print("[client] SV_UPDATE_TRAP_STATE: unable to find id '"+nite::toStr(id)+"'");
                         break;
                     }
-                    trap->setState(state, this->map, this->world);                    
+                    trap->setState(state, this->map, this->world);
                 }
-            } break;                     
+            } break;
             /*
                 SV_AWAIT_CLIENT_LOAD
             */
@@ -1001,6 +1001,24 @@ void Game::Client::update(){
                     ent->currentCasting->p.set(x,y);
                 }
             } break;
+            /*
+                SV_NOTIFY_ENTITY_DAMAGE
+            */
+            case Game::PacketType::SV_NOTIFY_ENTITY_DAMAGE: {
+                if(!isSv){ break; }
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId;
+                UInt32 amnt;
+                handler.read(&entId, sizeof(entId));
+                handler.read(&amnt, sizeof(amnt));
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] SV_NOTIFY_ENTITY_DAMAGE: unable to find entity id '"+nite::toStr(entId)+"'");
+                    break;
+                }
+                ent->markDamaged();
+                // TODO: spawn damage number
+            } break;            
             /*
                 UNKNOWN
             */
@@ -1161,37 +1179,37 @@ void Game::Client::game(){
         }
     }
 
-    if(nite::getTicks()-physicsUpdate > 5){
-        auto &queue = world.updateQueue;
-        if(queue.size() > 0){
-            UInt16 amnt = 1;
-            UInt16 n = 0;
-            nite::Packet phys(++sentOrder);
-            phys.setHeader(Game::PacketType::SV_UPDATE_PHYSICS_OBJECT);
-            phys.write(&amnt, sizeof(UInt16));
-            // TODO: scope it for visible areas only
-            // TODO: check if the entity actually existits before pulling these values
-            for(auto &it : queue){
-                auto &obj = world.objects[it.first];
-                if(obj->id != entityId){
-                    continue;
-                }
-                phys.write(&obj->id, sizeof(UInt16));
-                phys.write(&obj->position.x, sizeof(float));
-                phys.write(&obj->position.y, sizeof(float));
-                phys.write(&obj->speed.x, sizeof(float));
-                phys.write(&obj->speed.y, sizeof(float));
-                ++n;
-            }
-            if(n > 0){
-                sock.send(this->sv, phys);
-            }
-            queue.clear();
-        }
-        physicsUpdate = nite::getTicks();
-    }
+    // if(nite::getTicks()-physicsUpdate > 5){
+    //     auto &queue = world.updateQueue;
+    //     if(queue.size() > 0){
+    //         UInt16 amnt = 1;
+    //         UInt16 n = 0;
+    //         nite::Packet phys(++sentOrder);
+    //         phys.setHeader(Game::PacketType::SV_UPDATE_PHYSICS_OBJECT);
+    //         phys.write(&amnt, sizeof(UInt16));
+    //         // TODO: scope it for visible areas only
+    //         // TODO: check if the entity actually existits before pulling these values
+    //         for(auto &it : queue){
+    //             auto &obj = world.objects[it.first];
+    //             if(obj->id != entityId){
+    //                 continue;
+    //             }
+    //             phys.write(&obj->id, sizeof(UInt16));
+    //             phys.write(&obj->position.x, sizeof(float));
+    //             phys.write(&obj->position.y, sizeof(float));
+    //             phys.write(&obj->speed.x, sizeof(float));
+    //             phys.write(&obj->speed.y, sizeof(float));
+    //             ++n;
+    //         }
+    //         if(n > 0){
+    //             sock.send(this->sv, phys);
+    //         }
+    //         queue.clear();
+    //     }
+    //     physicsUpdate = nite::getTicks();
+    // }
 
-    world.update();
+    // world.update();
 }
 
 Game::EntityBase *Game::Client::getEntity(UInt16 id){

@@ -19,6 +19,9 @@ void Game::NetWorld::setSize(int w, int h, int unitsize, float gridSpec){
 	if(cells != NULL){
 		delete cells;
 	}
+	if(ghosts != NULL){
+		delete ghosts;
+	}
 	this->gridSpec = nite::Vec2(gridSpec);
 	this->size.set(w, h);
 	this->cusize = unitsize;
@@ -26,14 +29,16 @@ void Game::NetWorld::setSize(int w, int h, int unitsize, float gridSpec){
 	this->cheight = h / this->cusize;
 	this->ctotal = this->cwidth * this->cheight;
 	this->cells = new Game::NetObject*[this->ctotal];
+	this->ghosts = new Game::NetObject*[this->ctotal];
 	for(int i = 0; i < this->ctotal; ++i){
 		this->cells[i] = NULL;
+		this->ghosts[i] = NULL;
 	}
 	nite::print("set world size "+nite::toStr(this->cwidth)+"x"+nite::toStr(this->cheight)+"("+nite::toStr(unitsize)+") | cells "+nite::toStr(this->ctotal));
 }
 
 void Game::NetWorld::getQuadrant(int x, int y, int w, int h, Vector<Game::NetObject*> &quadrant){
-	if(cells == NULL){
+	if(cells == NULL || ghosts == NULL){
 		return;
 	}
 	x /= cusize;
@@ -49,12 +54,12 @@ void Game::NetWorld::getQuadrant(int x, int y, int w, int h, Vector<Game::NetObj
 				continue;
 			}
 			auto c = cells[ind];
+			auto g = ghosts[ind];
 			if(c != NULL){
-				if(c->objType == ObjectType::Ghost){
-					// nite::print("xDDDDDDDDDDD");
-				}
-
 				quadrant.push_back(c);
+			}
+			if(g != NULL){
+				quadrant.push_back(g);
 			}
 
 		}
@@ -68,12 +73,16 @@ Game::NetWorld::~NetWorld(){
 	if(cells != NULL){
 		delete cells;
 	}
+	if(ghosts != NULL){
+		delete ghosts;
+	}
 }
 
 Game::NetWorld::NetWorld(){
 	timescale = 1.0f;
 	debugPhysics = false;
 	cells = NULL;
+	ghosts = NULL;
 	seedNId = -1;
 	seedId = nite::randomInt(25, 50);
 	snapshotOrder = 0;
@@ -197,7 +206,7 @@ void Game::NetWorld::step(){
 	}
 }
 
-static bool testCollision(Game::NetObject *a, Game::NetObject *b, const nite::Vec2 &diff, nite::Vec2 &limit, nite::Vec2 &normal){
+bool Game::NetWorld::testCollision(Game::NetObject *a, Game::NetObject *b, const nite::Vec2 &diff, nite::Vec2 &limit, nite::Vec2 &normal){
 	bool collision = false;
 	normal.x = 0.0f;
 	normal.y = 0.0f;
@@ -251,7 +260,7 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	// we're gonna use a fixed size to look for quadrants for now(3000x3000 from center/origin)
 	// ideally we should use a size relative to the object's speed
 	// TODO: this ^
-
+	
 	Vector<Game::NetObject*> nearObjs;
 	getQuadrant(obj->position.x - 3000,  obj->position.y - 3000, 6000, 6000, nearObjs);
 	float xdiff = obj->speed.x * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
@@ -261,17 +270,16 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	auto limit = nite::Vec2(1.0f);
 	for(int i = 0; i < nearObjs.size(); ++i){
 		auto other = nearObjs[i];
-		if(obj->id == other->id) continue;		
-		if(!other->solid && other->objType != ObjectType::Ghost) continue;	
+		if(obj->id == other->id) continue;
+		if(!other->solid && other->objType != ObjectType::Ghost) continue;
 		if(testCollision(obj, other, diff, limit, normal)){
-			// if(other->objType == ObjectType::Ghost){
-				// auto ghost = static_cast<Game::GhostMask*>(other);
-				// ghost->callback(obj);
-				// nite::print("CONTACT");
-				// normal = nite::Vec2(0.0f);
-				// limit = nite::Vec2(1.0f);				
-				// continue; // we do not handle collision if it's a ghost object	
-			// }			
+			if(other->objType == ObjectType::Ghost){
+				auto ghost = static_cast<Game::GhostMask*>(other);
+				ghost->callback(obj);
+				normal = nite::Vec2(0.0f);
+				limit = nite::Vec2(1.0f);
+				continue; // we do not handle collision if it's a ghost object
+			}
 			obj->collided = true;
 			obj->onCollision(other);
 			float offset = 1.0f;
@@ -287,7 +295,7 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 				obj->position.y = other->position.y - obj->size.y - offset;
 				limit.y = 0.0f;
 			}else
-			if(normal.y < 0.0f){
+	 		if(normal.y < 0.0f){
 				obj->position.y = other->position.y + other->size.y + offset;
 				limit.y = 0.0f;
 			}
@@ -297,6 +305,16 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 		}
 	}
 	obj->position = obj->position + nite::Vec2(diff.x * limit.x, diff.y * limit.y);
+	if(obj->sv == NULL){
+		//obj->position.cInterpAbsolute(obj->nextPosition, 0.75f);
+		//nite::print("pos "+obj->position.str()+" | next "+obj->nextPosition.str());
+		// if(nite::abs(obj->position.x - obj->nextPosition.x) < 1.0f){
+		// 	obj->position.x = obj->nextPosition.x;
+		// }
+		// if(nite::abs(obj->position.y - obj->nextPosition.y) < 1.0f){
+		// 	obj->position.y = obj->nextPosition.y;
+		// }		
+	}
 	if(origp.x != obj->position.x || origp.y != obj->position.y){
 		obj->updateQuadrant();
 	}
@@ -336,7 +354,7 @@ void Game::NetWorld::update(){
 			nite::Draw::Rectangle(mask->position, mask->size, false, nite::Vec2(0.0, 0.0), 0);
 			nite::setDepth(0);
 			nite::resetColor();
-		}		
+		}
 	}
 
 	if(nite::getTicks()-lastTick < tickrate){

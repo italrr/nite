@@ -2,6 +2,7 @@
 #include "../../Core/Network.hpp"
 #include "../../Core/Object.hpp"
 #include "../../Core/World.hpp"
+#include "../../Entity/Base.hpp"
 
 
 
@@ -36,6 +37,71 @@ void Game::TrapDevice::remove(UInt16 id){
     traps.erase(it->first);
 }
 
+void Game::TrapNeedles::damage(Game::NetObject *who){
+    float mod = 64.0f;
+    auto origin = mask->position + mask->size  * 0.5f;
+    auto whoorigin = who->position + who->size  * 0.5f;
+    auto *ent = static_cast<Game::EntityBase*>(who);
+    float ang = nite::arctan(origin.x - whoorigin.x, origin.y - whoorigin.y);
+    ent->push(nite::Vec2(nite::cos(ang) * mod,  nite::sin(ang) * mod));
+    auto dmg = Game::DamageInfo();
+    dmg.emitter = 0;
+    dmg.receiver = who->id;
+    dmg.weap = 0; // slotId
+    dmg.dmgtype = DamageType::Physical;
+    dmg.amnt = 5; // TODO:
+    dmg.truedmg = true;
+    dmg.elmnt = Game::Element::Neutral;
+    dmg.isCrit = false; // TODO: false for now
+    ent->damage(dmg);
+}
+
+Game::TrapNeedles::TrapNeedles(){
+    type = TrapType::NEEDLES;
+    timeout = 1000;
+    initTime = nite::getTicks();
+    callback = [&](Game::NetObject *who){
+        return;
+    };
+}
+
+
+void Game::TrapNeedles::update(const Shared<nite::Map> &map, Game::NetWorld &world){
+   if(nite::getTicks()-initTime > timeout){
+       switch(state){
+            case 0: {
+                setState(1, map, world);
+            } break;
+            default:
+            case 1: {
+                setState(0, map, world);
+            } break;
+       }
+       initTime = nite::getTicks();
+   }
+   if(state == 1){
+        Vector<Game::NetObject*> adjacent;
+        world.getQuadrant(mask->position.x - 3000,  mask->position.y - 3000, 6000, 6000, adjacent);
+        for(int i = 0; i < adjacent.size(); ++i){
+            if(adjacent[i] == mask || adjacent[i]->objType != ObjectType::Entity){
+                continue;
+            }
+            auto ent = static_cast<Game::EntityBase*>(adjacent[i]);
+            if(ent->isCollidingWith(mask) && ent->canDamage()){
+                damage(ent);
+            }
+        }       
+   }
+}
+
+void Game::TrapNeedles::setState(int state, const Shared<nite::Map> &map, Game::NetWorld &world){
+    this->state = state;
+    if(this->dynTile > 0){
+        map->setDynamicTileState(dynTile, state);
+    }
+
+}
+
 Vector<UInt16> Game::TrapDevice::update(){
     Vector<UInt16> changes;
     for(auto &it : traps){
@@ -66,31 +132,6 @@ void Game::TrapDevice::clear(){
         remove(ids[i]);
     }
     traps.clear();
-}
-
-
-
-void Game::TrapNeedles::update(const Shared<nite::Map> &map, Game::NetWorld &world){
-   if(nite::getTicks()-initTime > timeout){
-       switch(state){
-            case 0: {
-                setState(1, map, world);
-            } break;
-            default: 
-            case 1: {
-                setState(0, map, world);
-            } break;
-       }
-       initTime = nite::getTicks();
-   }
-}
-
-void Game::TrapNeedles::setState(int state, const Shared<nite::Map> &map, Game::NetWorld &world){
-    this->state = state;
-    if(this->dynTile > 0){
-        map->setDynamicTileState(dynTile, state);
-    }
-      
 }
 
 

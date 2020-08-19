@@ -23,8 +23,8 @@ Shared<Game::NetObject> Game::createNetObject(UInt16 id, UInt16 sig, float x, fl
             mob->id = id;
             mob->sigId = Game::ObjectSig::MobHumanoid;
             return mob;
-        } break;        
-        default:    
+        } break;
+        default:
             nite::print("[netplay] failed to created object of sig '"+nite::toStr(sig)+"': it's undefined");
             return Shared<Game::NetObject>(NULL);
     }
@@ -71,54 +71,79 @@ void Game::NetObject::snapPosition(){
     if(container == NULL){
         return;
     }
-    position.x = nite::round(position.x / container->gridSpec.x) * container->gridSpec.x; 
-    position.y = nite::round(position.y / container->gridSpec.y) * container->gridSpec.y;     
+    position.x = nite::round(position.x / container->gridSpec.x) * container->gridSpec.x;
+    position.y = nite::round(position.y / container->gridSpec.y) * container->gridSpec.y;
 }
 
 void Game::NetObject::updateQuadrant(){
-    if(container != NULL && container->cells != NULL){
+    if(container != NULL && container->cells != NULL && container->ghosts != NULL){
         int _x = nite::floor((position.x / container->size.x) * container->cwidth);
-        int _y = nite::floor((position.y / container->size.y) * container->cheight);    
+        int _y = nite::floor((position.y / container->size.y) * container->cheight);
         if(_x < 0 || _x >= container->cwidth){
             _x = lqPos.x;
         }
         if(_y < 0 || _y >= container->cheight){
             _y = lqPos.y;
-        }        
+        }
         UInt32 nq = _x + container->cwidth * _y;
-        if(quadrant != -1 && nq != quadrant && container->cells[quadrant] == this){
-            container->cells[quadrant] = NULL;            
+        if(quadrant != -1 && nq != quadrant && (objType == ObjectType::Ghost ? container->ghosts[quadrant] == this : container->cells[quadrant] == this)){
+            if(objType == ObjectType::Ghost){
+                container->ghosts[quadrant] = NULL;
+            }else{
+                container->cells[quadrant] = NULL;
+            }
         }
         quadrant = nq;
-        if(nq < container->ctotal){          
-            container->cells[nq] = this;
+        if(nq < container->ctotal){
+            if(objType == ObjectType::Ghost){
+                container->ghosts[nq] = this;
+            }else{
+                container->cells[nq] = this;
+            }
             lqPos.set(_x, _y); // last valid in-map quadrant position
         }
-    }    
+    }
 }
 
-void Game::NetObject::clearQuadrant(){  
-    if(container != NULL && quadrant != -1  && container->cells[quadrant] == this){
-        container->cells[quadrant] = NULL;
+void Game::NetObject::clearQuadrant(){
+    if(container != NULL && quadrant != -1  && (objType == ObjectType::Ghost ? container->ghosts[quadrant] == this : container->cells[quadrant] == this)){
+        if(objType == ObjectType::Ghost){
+            container->ghosts[quadrant] = NULL;
+        }else{
+            container->cells[quadrant] = NULL;
+        }
     }
     quadrant = -1;
 }
 
 bool Game::NetObject::move(const nite::Vec2 &dir){
-	speed = dir;
+    float ang = nite::arctan(dir.y, dir.x);
+    float mod = nite::sqrt(dir.x * dir.x + dir.y * dir.y);
+    float smod = nite::sqrt(speed.x * speed.x + speed.y * speed.y);
+
+    if(smod > mod){
+        mod = 0.0f;
+    }else
+    if(mod > smod){
+        mod = mod - smod;
+    }
+
+    this->speed.x += nite::cos(ang) * mod;
+    this->speed.y += nite::sin(ang) * mod;
+
 	return true;
 }
 
 bool Game::NetObject::push(const nite::Vec2 &dir){
-	speed = speed + dir;
+    this->speed = speed + dir;
 	return true;
 }
 
-bool Game::NetObject::isCollidingWith(Game::NetObject *other){
-	return ((position.x + size.x > other->position.x &&
-	position.x  < other->position.x + other->size.x) &&
-	(position.y + size.y > other->position.y &&
-	position.y < other->position.y+other->size.y));
+bool Game::NetObject::isCollidingWith(Game::NetObject *b){
+    return position.x < b->position.x + b->size.x &&
+   position.x + size.x > b->position.x &&
+   position.y < b->position.y + b->size.y &&
+   position.y + size.y > b->position.y;
 }
 
 float Game::NetObject::getDistance(Game::NetObject *other){
@@ -135,9 +160,9 @@ bool Game::NetObject::isCollidingWithSomething(Game::NetObject **who){
 
 	Vector<Game::NetObject*> nearObjs;
 
-	container->getQuadrant(position.x - 1500 * 0.5f,  position.y - 1500 * 0.5f, 3000, 3000, nearObjs);	
+	container->getQuadrant(position.x - 1500 * 0.5f,  position.y - 1500 * 0.5f, 3000, 3000, nearObjs);
 
-	for (int i = 0; i < nearObjs.size(); ++i){		
+	for (int i = 0; i < nearObjs.size(); ++i){
 		auto obj = nearObjs[i];
 		if(obj->id == this->id) continue;
 		if(!obj->solid) continue;
@@ -156,16 +181,16 @@ bool Game::NetObject::isCollidingWithExcept(const Vector<Game::NetObject*> &igno
 			if(ignores[i] == ref){
 				return true;
 			}
-		}	
+		}
 		return false;
 	};
 	if(container == NULL) return false;
 
 	Vector<Game::NetObject*> nearObjs;
 
-	container->getQuadrant(position.x - 1500 * 0.5f,  position.y - 1500 * 0.5f, 3000, 3000, nearObjs);	
+	container->getQuadrant(position.x - 1500 * 0.5f,  position.y - 1500 * 0.5f, 3000, 3000, nearObjs);
 
-	for (int i = 0; i < nearObjs.size(); ++i){		
+	for (int i = 0; i < nearObjs.size(); ++i){
 		auto obj = nearObjs[i];
 		if(obj->id == this->id) continue;
 		if(!obj->solid) continue;

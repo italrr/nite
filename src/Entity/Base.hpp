@@ -111,6 +111,8 @@
         };
 
         struct EntityBase : Game::NetObject, Game::Stat {
+            bool canDamage();
+            UInt64 lastDmgd;
             UInt64 lastMeleeHit;
             Game::InputCompacter input;
             EntityBase();
@@ -144,6 +146,7 @@
             void entityStep();
             void printInfo();
             bool damage(const Game::DamageInfo &dmg);
+            void markDamaged();
             void invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x, float y);
             UInt64 lastUpdateStats;
             void recalculateStats();

@@ -30,7 +30,7 @@
 				callback = [](Game::NetObject *subj){
 					return;
 				};
-				solid = true;
+				solid = false;
 				unmovable = true;
 				this->objType = ObjectType::Ghost;
 			}
@@ -58,6 +58,7 @@
 			bool exists(UInt16 id);
 			void updateObject(Game::NetObject *obj);
 			UInt16 add(Shared<Game::NetObject> &obj, int useId = -1);
+			bool testCollision(Game::NetObject *a, Game::NetObject *b, const nite::Vec2 &diff, nite::Vec2 &limit, nite::Vec2 &normal);
 			void remove(int objectId);
 			void remove(Game::NetObject *obj);
 			Game::NetObject *get(UInt16 id);
@@ -72,7 +73,8 @@
 			void clearGhostMasks();
 			int addGhostMask(Game::NetObject *mask);
 			bool removeGhostMask(Game::NetObject *mask);
-			Game::NetObject **cells; 
+			Game::NetObject **cells;
+			Game::NetObject **ghosts;
 			int ctotal;
 			int cwidth;
 			int cheight;
