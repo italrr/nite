@@ -13,7 +13,7 @@ static nite::Console::CreateProxy cpshowHitboxes("cl_show_hitbox", nite::Console
 
 
 static UInt64 EntityDamageRecover = 200;
-static nite::Console::CreateProxy cpEntityDamageRecover("game_entity_damage_rcv_time", nite::Console::ProxyType::Int, sizeof(int), &EntityDamageRecover);
+static nite::Console::CreateProxy cpEntityDamageRecover("gm_entity_damage_rcv_time", nite::Console::ProxyType::Int, sizeof(int), &EntityDamageRecover, true, true);
 
 static void notifyEntityDeath(Game::EntityBase *ent){
     if(ent != NULL && ent->sv != NULL){
@@ -58,7 +58,7 @@ Game::EntityBase::EntityBase(){
 }
 
 bool Game::EntityBase::canDamage(){
-	return nite::getTicks()-lastDmgd > EntityDamageRecover;
+	return nite::getTicks()-lastDmgd > 1000;
 }
 
 void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // more like hold direction
@@ -75,7 +75,7 @@ void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // m
 		setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
 	}
 	isMoving = true;
-	move((nite::Vec2(4.0f) + nite::Vec2(complexStat.walkRate)) * dir);
+	move((nite::Vec2(8.0f) + nite::Vec2(complexStat.walkRate)) * dir);
 }
 
 void Game::EntityBase::kill(){
@@ -566,6 +566,7 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 	if(this->healthStat.dead || !canDamage() || this->sv == NULL){
 		return false;
 	}
+	markDamaged();
 	Int32 def = 0, mdef = 0;
 	auto item = invStat.slots[Game::EquipSlot::Chest];
 	Game::ItemBase *armor = item.get() != NULL ? static_cast<Game::EquipItem*>(item.get()) : NULL;
@@ -605,7 +606,6 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 			health -= dmgdone;
 		}
 	}
-	lastDmgd = nite::getTicks();
     nite::print("dealt "+nite::toStr(dmgdone)+" DMG to entity '"+nite::toStr(this->id)+"'");
 	// server-side only
 	if(orig != health && sv != NULL){

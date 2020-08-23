@@ -1,0 +1,76 @@
+{
+    "title": "RING_Sun-Aug-23-14_42_42-2020_c62c6cb0a7199e5e35bfb19e23cf4d20",
+    "author": "RING:none@none.com",
+    "version": "0.0.0",
+    "tileSize": {
+        "x": 128,
+        "y": 128
+    },
+    "spacing": {
+        "x": 0,
+        "y": 0
+    },
+    "margin": {
+        "x": 0,
+        "y": 0
+    },
+    "size": {
+        "x": 140,
+        "y": 140
+    },
+    "start": {
+        "x": 0,
+        "y": 0,
+        "i": 0
+    },
+    "end": {
+        "x": 1.07481e+07,
+        "y": 1.3435e+07,
+        "i": 10708
+    },
+    "source": {
+        "26fd0bd5f85b18a536924a1123dc0dca": {
+            "size": {
+                "x": 2048,
+                "y": 2048
+            }
+        }
+    },
+    "layer": [
+
+    ],
+    "masks": [
+        {
+            "x": 450,
+            "y": 300,
+            "w": 128,
+            "h": 128,
+            "i": 0
+        }
+    ],
+    "dynamicTiles": {
+        "10": {
+            "state": 0,
+            "layer": 0,
+            "tiles": [
+                10710
+            ],
+            "stateToIndex": {
+                "1": 37,
+                "0": 36
+            }
+        }
+    },
+    "specialObjects": {
+        "25": {
+            "id": 25,
+            "ref": 10,
+            "tag": "needles",
+            "type": "trap",
+            "x": 8960,
+            "y": 9728,
+            "w": 128,
+            "h": 128
+        }
+    }
+}

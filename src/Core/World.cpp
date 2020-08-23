@@ -213,21 +213,27 @@ bool Game::NetWorld::testCollision(Game::NetObject *a, Game::NetObject *b, const
 	bool withinTopY = a->position.y <= b->position.y + b->size.y && a->position.y >= b->position.y;
 	bool withinBottomY = a->position.y + a->size.y <= b->position.y + a->size.y && a->position.y + a->size.y >= b->position.y;
 
-	bool withinTopX = a->position.x <= b->position.x + a->size.x && a->position.x >= b->position.x;
+	bool withinTopX = a->position.x <= b->position.x + b->size.x && a->position.x >= b->position.x;
 	bool withinBottomX = a->position.x + a->size.x <= b->position.x + b->size.x && a->position.x + a->size.x >= b->position.x;
 
 	if(diff.x > 0){
 		float ray = a->position.x + a->size.x + diff.x;
-		if(ray >= b->position.x && (a->position.x + a->size.x) < b->position.x && (withinTopY || withinBottomY)){
-			limit.x = 0.0f;
+		if(ray >= b->position.x && (a->position.x + a->size.x) <= b->position.x && (withinTopY || withinBottomY)){
+			float lim = (b->position.x - (a->position.x + a->size.x)) / diff.x;
+			if(lim < limit.x){
+				limit.x = lim;
+			}
 			normal.x = 1.0f;
 			collision = true;
 		}
 	}else
 	if(diff.x < 0){
 		float ray = a->position.x + diff.x;
-		if(ray <= b->position.x + b->size.x && a->position.x > b->position.x + b->size.x && (withinTopY || withinBottomY)){
-			limit.x = 0.0f;
+		if(ray <= b->position.x + b->size.x && a->position.x >= b->position.x + b->size.x && (withinTopY || withinBottomY)){
+			float lim = (a->position.x - (b->position.x + b->size.x)) / (diff.x * -1.0f);
+			if(lim < limit.x){
+				limit.x = lim;
+			}			
 			normal.x = -1.0f;
 			collision = true;
 		}
@@ -235,20 +241,33 @@ bool Game::NetWorld::testCollision(Game::NetObject *a, Game::NetObject *b, const
 
 	if(diff.y > 0){
 		float ray = a->position.y + a->size.y + diff.y;
-		if(ray >= b->position.y && (a->position.y + a->size.y) < b->position.y && (withinTopX || withinBottomX)){
-			limit.y = 0.0f;
+		if(ray >= b->position.y && (a->position.y + a->size.y) <= b->position.y && (withinTopX || withinBottomX)){
+			float lim = (b->position.y - (a->position.y + a->size.y)) / diff.y;
+			if(lim < limit.y){
+				limit.y = lim;
+			}			
 			normal.y = 1.0f;
 			collision = true;
 		}
 	}else
 	if(diff.y < 0){
 		float ray = a->position.y + diff.y;
-		if(ray <= b->position.y + b->size.y && a->position.y > b->position.y + b->size.y && (withinTopX || withinBottomX)){
-			limit.y = 0.0f;
+		if(ray <= b->position.y + b->size.y && a->position.y >= b->position.y + b->size.y && (withinTopX || withinBottomX)){
+			float lim = (a->position.y - (b->position.y + b->size.y)) / (diff.y * -1.0f);
+			if(lim < limit.y){
+				limit.y = lim;
+			}			
 			normal.y = -1.0f;
 			collision = true;
 		}
 	}
+
+	// normalize limit
+	// if(limit.x < 0.0f) limit.x = 0.0f;
+	// if(limit.x > 1.0f) limit.x = 1.0f;	
+
+	// if(limit.y < 0.0f) limit.y = 0.0f;
+	// if(limit.y > 1.0f) limit.y = 1.0f;		
 
 	return collision;
 }
@@ -276,45 +295,38 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 			if(other->objType == ObjectType::Ghost){
 				auto ghost = static_cast<Game::GhostMask*>(other);
 				ghost->callback(obj);
-				normal = nite::Vec2(0.0f);
 				limit = nite::Vec2(1.0f);
 				continue; // we do not handle collision if it's a ghost object
 			}
+
+			float offset = 1.0f;
+
 			obj->collided = true;
 			obj->onCollision(other);
-			float offset = 1.0f;
-			if(normal.x > 0.0f){
-				obj->position.x = other->position.x - obj->size.x - offset;
-				limit.x = 0.0f;
-			}else
-			if(normal.x < 0.0f){
-				obj->position.x = other->position.x + other->size.x + offset;
-				limit.x = 0.0f;
+			if(limit.x == 0.0f){
+				if(normal.x > 0.0f){
+					obj->position.x = other->position.x - obj->size.x - offset;
+				}else
+				if(normal.x < 0.0f){
+					obj->position.x = other->position.x + other->size.x + offset;
+				}
 			}
-			if(normal.y > 0.0f){
-				obj->position.y = other->position.y - obj->size.y - offset;
-				limit.y = 0.0f;
-			}else
-	 		if(normal.y < 0.0f){
-				obj->position.y = other->position.y + other->size.y + offset;
-				limit.y = 0.0f;
-			}
+			if(limit.y == 0.0f){
+				if(normal.y > 0.0f){
+					obj->position.y = other->position.y - obj->size.y - offset;
+				}else
+				if(normal.y < 0.0f){
+					obj->position.y = other->position.y + other->size.y + offset;
+				}
+			}			
 			if(limit.x == 0.0f && limit.y == 0.0f){
+
+
 				break;
 			}
 		}
 	}
 	obj->position = obj->position + nite::Vec2(diff.x * limit.x, diff.y * limit.y);
-	if(obj->sv == NULL){
-		//obj->position.cInterpAbsolute(obj->nextPosition, 0.75f);
-		//nite::print("pos "+obj->position.str()+" | next "+obj->nextPosition.str());
-		// if(nite::abs(obj->position.x - obj->nextPosition.x) < 1.0f){
-		// 	obj->position.x = obj->nextPosition.x;
-		// }
-		// if(nite::abs(obj->position.y - obj->nextPosition.y) < 1.0f){
-		// 	obj->position.y = obj->nextPosition.y;
-		// }		
-	}
 	if(origp.x != obj->position.x || origp.y != obj->position.y){
 		obj->updateQuadrant();
 	}
@@ -324,8 +336,7 @@ void Game::NetWorld::setVisibleQuadrant(int x, int y, int w, int h){
 
 }
 
-void Game::NetWorld::update(){
-
+void Game::NetWorld::renderDbug(){
 	// debug: shows masks
 	if(debugPhysics){
 		for (auto it : objects){
@@ -356,6 +367,10 @@ void Game::NetWorld::update(){
 			nite::resetColor();
 		}
 	}
+}
+
+void Game::NetWorld::update(){
+	renderDbug();
 
 	if(nite::getTicks()-lastTick < tickrate){
 		return;

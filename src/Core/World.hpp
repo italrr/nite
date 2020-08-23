@@ -64,6 +64,7 @@
 			Game::NetObject *get(UInt16 id);
 			void update();
 			void step();
+			void renderDbug();
 			void render();
 			nite::Vec2 gridSpec; // gridspec for grid positioning
 			// cell grid is smaller (or should be)

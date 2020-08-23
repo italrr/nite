@@ -135,7 +135,8 @@ bool Game::NetObject::move(const nite::Vec2 &dir){
 }
 
 bool Game::NetObject::push(const nite::Vec2 &dir){
-    this->speed = speed + dir;
+    this->speed.x += dir.x;
+    this->speed.y += dir.y;
 	return true;
 }
 

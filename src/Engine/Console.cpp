@@ -522,7 +522,7 @@ nite::Console::Result nite::Console::interpret(const String &command, bool remot
             if(isBoolean(assignment)){
                 result = modifyObject(op, assignment == "true");
             }else{
-                nite::Console::Result r("'"+assignment+"' is an undefined symbol.", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+                nite::Console::Result r("'"+assignment+"' is an undefined symbol", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
                 nite::Console::add(r);
                 return r;
             }

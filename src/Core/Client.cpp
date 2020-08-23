@@ -1230,6 +1230,7 @@ void Game::Client::render(){
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     nite::setRenderTarget(nite::RenderTargetGame);
     nite::setDepth(nite::DepthMiddle);
+    world.renderDbug();
     if(map != NULL){
         auto pos = nite::getView(nite::RenderTargetGame);
         auto sizeAdj = nite::getAdjustedSize();
