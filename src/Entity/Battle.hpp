@@ -34,6 +34,7 @@
 			bool truedmg;
 			UInt8 elmnt;
 			bool isCrit;
+			nite::Vec2 position;
 			DamageInfo(){
 				this->isCrit = false;
 				this->truedmg = false;

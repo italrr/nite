@@ -111,6 +111,15 @@
         };
 
         struct EntityBase : Game::NetObject, Game::Stat {
+
+            void addDamageCountShow(int n);
+            unsigned dmgCountShow;
+            float dmgCountShowAngle;
+            float dmgCountShowAlpha;
+            nite::Vec2 dmgCountShowPos;
+            UInt64 lastDmgCountShow;
+
+            float entityAlpha;
             bool canDamage();
             UInt64 lastDmgd;
             UInt64 lastMeleeHit;

@@ -7,8 +7,10 @@
 			nite::Vec2 origin;
 			float angle;
 			bool fill;
+			float thickness;
 		};
 		struct RenderableLine : public nite::Renderable {
+			float thickness;
 			nite::Vec2 positionStart;	
 			nite::Vec2 positionEnd;			
 		};

@@ -543,6 +543,8 @@
             /*
                 UINT16 ID
                 UINT32 AMNT
+                FLOAT X
+                FLOAT Y
             */ 
 
         };

@@ -10,6 +10,7 @@
 
 static void drawRectangle(nite::Renderable *object){
 	nite::RenderableRectangle &obj = *(nite::RenderableRectangle*)object;
+	glLineWidth(obj.thickness);
 	glColor4f(obj.color.r, obj.color.g, obj.color.b, obj.color.a);
 	nite::Vec2 offset = nite::getRenderOffset();
 	glPushMatrix();
@@ -73,6 +74,7 @@ static void drawLine(nite::Renderable *object){
 	nite::RenderableLine &obj = *(nite::RenderableLine*)object;
 	nite::Vec2 offset = nite::getRenderOffset();	
 	glColor4f(obj.color.r, obj.color.g, obj.color.b, obj.color.a);
+	glLineWidth(obj.thickness);
 	glPushMatrix();
 		glTranslatef(obj.positionStart.x - nite::getViewX(obj.target) + 0.5f + offset.x,  obj.positionStart.y - nite::getViewY(obj.target) + 0.5f + offset.y, 0.f);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -103,6 +105,7 @@ nite::RenderableLine *nite::Draw::Line(float x, float y, float x2, float y2){
 	obj->positionEnd.y = y2;
 	obj->positionStart.x = x;
 	obj->positionStart.y = y;
+	obj->thickness = 1.0f;
 	obj->function	= &drawLine;
 	obj->color = nite::getColor();
 	nite::addRenderList((nite::Renderable*)obj);
@@ -116,6 +119,7 @@ nite::RenderableRectangle *nite::Draw::Rectangle(float x, float y, float w, floa
 	obj->size.y 		= h;
 	obj->position.x 	= x;
 	obj->position.y 	= y;
+	obj->thickness = 1.0f;
 	obj->angle 			= angle;
 	obj->fill			= fill;
 	obj->origin			= nite::Vec2(origX*w, origY*h);
@@ -133,6 +137,7 @@ nite::RenderableRectangle *nite::Draw::Rectangle(float x, float y, float w, floa
 	obj->position.x 	= x;
 	obj->position.y 	= y;
 	obj->angle 			= 0;
+	obj->thickness = 1.0f;
 	obj->fill			= fill;
 	obj->origin			= nite::Vec2(0, 0);
 	obj->function		= &drawRectangle;
@@ -149,6 +154,7 @@ nite::RenderableRectangle *nite::Draw::Rectangle(const nite::Vec2 &P, const nite
 	obj->position.x 	= P.x;
 	obj->position.y 	= P.y;
 	obj->angle 			= angle;
+	obj->thickness 		= 1.0f;
 	obj->fill			= fill;
 	obj->origin			= nite::Vec2(orig.x*S.x, orig.y*S.y);
 	obj->function		= &drawRectangle;
@@ -166,6 +172,7 @@ nite::RenderableRectangle *nite::Draw::Rectangle(const nite::Vec2 &P, const nite
 	obj->position.y 	= P.y;
 	obj->angle 			= 0;
 	obj->fill			= fill;
+	obj->thickness 		= 1.0f;
 	obj->origin			= nite::Vec2(0, 0);
 	obj->function		= &drawRectangle;
 	obj->color			= nite::getColor();

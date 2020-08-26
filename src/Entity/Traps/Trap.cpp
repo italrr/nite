@@ -52,6 +52,8 @@ void Game::TrapNeedles::damage(Game::NetObject *who){
     dmg.amnt = 5; // TODO:
     dmg.truedmg = true;
     dmg.elmnt = Game::Element::Neutral;
+    float dist = nite::sqrt(nite::pow(whoorigin.x - origin.x, 2) + nite::pow(whoorigin.y - origin.y, 2));
+    dmg.position =  mask->position + mask->size * nite::Vec2(0.5f) + nite::Vec2(nite::cos(ang) * mod, nite::sin(ang) * mod);
     dmg.isCrit = false; // TODO: false for now
     ent->damage(dmg);
 }

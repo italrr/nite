@@ -10,8 +10,7 @@
 
 static bool showHitboxes = false;
 static nite::Console::CreateProxy cpshowHitboxes("cl_show_hitbox", nite::Console::ProxyType::Bool, sizeof(bool), &showHitboxes);
-
-
+static nite::Font dmgFont;
 static UInt64 EntityDamageRecover = 250;
 static nite::Console::CreateProxy cpEntityDamageRecover("gm_entity_damage_rcv_time", nite::Console::ProxyType::Int, sizeof(int), &EntityDamageRecover, true, true);
 
@@ -41,6 +40,12 @@ void Game::AIDriver::add(Shared<Game::AI::BaseBehavior> behavior){
 	behavior->init();
 }
 
+void Game::EntityBase::addDamageCountShow(int n){
+	lastDmgCountShow = nite::getTicks();
+	dmgCountShowAlpha = 100.0f;
+	dmgCountShow += n;
+}
+
 Game::EntityBase::EntityBase(){
 	this->isCasting = false;
 	this->effectStat.owner = this;
@@ -54,6 +59,8 @@ Game::EntityBase::EntityBase(){
 	setState(EntityState::IDLE, EntityStateSlot::MID, 0);
 	setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);
 	walkStepTick = 0;
+	lastDmgCountShow = nite::getTicks();
+	dmgCountShow = 0;
 	aidriver.set(this);
 }
 
@@ -92,6 +99,7 @@ void Game::EntityBase::onCreate(){
     solid = true;
     friction = 0.87f;
     mass = 2.8f;
+	entityAlpha = 100.0f;
     healthStat.dead = false;
     size.set(128, 128);
     name = "Base Entity Type";
@@ -135,14 +143,39 @@ void Game::EntityBase::draw(){
 	UInt8 numbs[AnimPart::total] = {stNum[EntityStateSlot::BOTTOM], stNum[EntityStateSlot::MID], 0};
 	anim.setState(anims, numbs);
 	nite::Vec2 rp = position + size * 0.5f;
-
+	nite::lerpDiscrete(entityAlpha, canDamage() ? 100.0f : 55.0f, 0.15f);
     nite::setRenderTarget(nite::RenderTargetGame);
-	nite::setColor(1.0f, 1.0f, 1.0f, canDamage() ? 1.0f : 0.80f);
+	nite::setColor(1.0f, 1.0f, 1.0f, entityAlpha / 100.0f);
 	int bodyDepth = -rp.y - anim.bodyDepthOffset;
 	nite::setDepth(bodyDepth);
 	float reversed = faceDirection == EntityFacing::Left ? -1.0f : 1.0f;
 	auto ref = anim.batch.draw(rp.x, rp.y, anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);
 
+
+	if(dmgCountShow > 0){
+		dmgCountShowPos.lerpDiscrete(nite::Vec2(0.0f, -anim.frameSize.y  * 0.5f), 0.25f);
+		UInt64 t = nite::getTicks()-lastDmgCountShow;
+		UInt64 target = 160;
+		if(t < target && t % 10 == 0){
+			dmgCountShowPos.x += nite::randomInt(-9, 9);
+			dmgCountShowPos.y += nite::randomInt(-9, 9);			
+		}
+		if(t < target && t % 50 == 0){
+			dmgCountShowAngle = dmgCountShowAngle > 0 ? -45 : 45;
+		}
+		if(t > target){
+			nite::lerpDiscrete(dmgCountShowAngle, 0, 0.35f);
+		}
+		if(t > 2200){
+			dmgCountShow = 0;
+			dmgCountShowAlpha = 0.0f;
+			dmgCountShowPos.set(0.0f);
+		}
+		nite::setColor(0.90f, 0.05f, 0.03f, dmgCountShowAlpha / 100.0f);
+		dmgFont.draw("-"+nite::toStr(dmgCountShow), rp.x + dmgCountShowPos.x, rp.y + dmgCountShowPos.y, 0.5f, 0.5f, dmgCountShowAngle);
+	}
+	
+	
 	if(showHitboxes){
 		static nite::Texture empty("data/texture/empty.png");
 		nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
@@ -554,6 +587,10 @@ void Game::EntityBase::loadAnim(){
 		castingMsg->setVisible(false);
 		castingMsgAlpha = 0.0f;
 		castingBall.init(position);
+
+		if(!dmgFont.isLoaded()){
+			dmgFont.load("data/font/Exo2-Regular.ttf", 26, 5.0f);
+		}		
 	}
 }
 
@@ -605,6 +642,7 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 			health -= dmgdone;
 		}
 	}
+	addDamageCountShow(dmgdone);
     nite::print("dealt "+nite::toStr(dmgdone)+" DMG to entity '"+nite::toStr(this->id)+"'");
 	// server-side only
 	if(orig != health && sv != NULL){
@@ -619,6 +657,8 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 		notifydmg.setHeader(Game::PacketType::SV_NOTIFY_ENTITY_DAMAGE);
 		notifydmg.write(&id, sizeof(id));
 		notifydmg.write(&dmgdone, sizeof(dmgdone));
+		notifydmg.write(&dmg.position.x, sizeof(dmg.position.x));		
+		notifydmg.write(&dmg.position.y, sizeof(dmg.position.y));		
 		sv->sendAll(notifydmg);
 	}
 	return dmgdone > 0;

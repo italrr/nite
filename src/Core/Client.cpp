@@ -1011,15 +1011,24 @@ void Game::Client::update(){
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 UInt16 entId;
                 UInt32 amnt;
+                nite::Vec2 p;
                 handler.read(&entId, sizeof(entId));
                 handler.read(&amnt, sizeof(amnt));
+                handler.read(&p.x, sizeof(p.x));
+                handler.read(&p.y, sizeof(p.y));
                 auto ent = getEntity(entId);
                 if(ent == NULL){
                     nite::print("[client] SV_NOTIFY_ENTITY_DAMAGE: unable to find entity id '"+nite::toStr(entId)+"'");
                     break;
                 }
                 ent->markDamaged();
-                // TODO: spawn damage number
+                ent->addDamageCountShow(amnt);
+                auto ef = Shared<Game::VfxBang>(new Game::VfxBang());
+                ef->position = p;
+                this->vfx.add(ef);
+                if(entId == entityId){
+                    nite::shakeScreen(nite::RenderTargetGame, 0.55f, 200 * (amnt / 5));
+                }
             } break;            
             /*
                 UNKNOWN
@@ -1174,6 +1183,7 @@ void Game::Client::game(){
     }
 
 
+    // TODO: filter by active quadrants(?)
     for(auto &it : world.objects){
         Game::NetObject *obj = it.second.get();
         if(obj->objType == ObjectType::Entity){
@@ -1216,7 +1226,7 @@ void Game::Client::game(){
     //     physicsUpdate = nite::getTicks();
     // }
 
-    // world.update();
+    vfx.step();
 }
 
 Game::EntityBase *Game::Client::getEntity(UInt16 id){
@@ -1250,4 +1260,6 @@ void Game::Client::render(){
     for(auto &obj : world.objects){
         obj.second->draw();
     }
+    nite::setDepth(nite::DepthTop);
+    vfx.draw();
 }

@@ -43,7 +43,8 @@
 					"type": "text",
 					"text": "text",
 					"textColor": {"r": 0.0, "g": 0.0, "b": 1.0, "a": 1.0},
-					"fontSize": 10
+					"fontSize": 14,
+					"font": "data/font/Exo2-Regular.ttf"
 				},
 				{
 					"type": "panel",

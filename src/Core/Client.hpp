@@ -11,6 +11,7 @@
     #include "../UI/HUD.hpp"
     #include "../UI/Icon.hpp"
     #include "../UI/IngameMenu.hpp"
+    #include "../Entity/Vfx/Vfx.hpp"
 
     namespace Game {
 
@@ -34,6 +35,7 @@
             Game::HUD hud;
             Game::Camera camera;
             Game::InGameMenu igmenu;
+            Game::VfxDevice vfx;
             Dict<UInt64, Game::ClClient> clients;
             nite::IP_Port sv;
             UInt64 clientId;

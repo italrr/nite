@@ -20,8 +20,8 @@ static UInt64 lastShakeScreen = 0;
 void nite::viewUpdate(){
 	if(nite::getTicks()-lastShakeScreen > shakeScreenTimeout) return;
 	nite::Vec2 &target = views[shakeScreenTarget].position;
-	target.x += 1.25f * ((nite::randomInt(1, 2) == 1.0f) ? -1.0f : 1.0f);
-	target.y += 1.25f * ((nite::randomInt(1, 2) == 1.0f) ? -1.0f : 1.0f);
+	target.x += shakeScreenMagnitude * ((nite::randomInt(1, 2) == 1.0f) ? -1.0f : 1.0f);
+	target.y += shakeScreenMagnitude * ((nite::randomInt(1, 2) == 1.0f) ? -1.0f : 1.0f);
 }
 
 void nite::shakeScreen(int target, float magnitude, UInt64 timeout){

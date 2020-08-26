@@ -7,13 +7,14 @@
 	"layout": "vbox",
 	"unmovable": true,
 	"resizeable": false,
-    "borderThickness": 1.8,
+	"borderThickness": 1.8,
 	"backgroundColor": {"r": 1.0, "g": 0.0, "b": 0.0, "a": 0.0},
 	"borderColor": {"r": 0.0, "g": 1.0, "b": 0.0, "a": 0.0 },
 	"styles": {
 		"stats_text": {
 			"margin": {"vert": 0, "hor": 32},
-			"fontSize": 14
+			"fontSize": 18,
+			"font": "data/font/Exo2-Regular.ttf"
 		},
 		"actionable_bar": {
 			"iconSize": {"hor": 32, "vert": 32},
