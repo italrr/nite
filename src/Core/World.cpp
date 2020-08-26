@@ -287,6 +287,7 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	auto diff = nite::Vec2(xdiff, ydiff);
 	auto normal = nite::Vec2(0.0f);
 	auto limit = nite::Vec2(1.0f);
+	Game::NetObject *otherP;
 	for(int i = 0; i < nearObjs.size(); ++i){
 		auto other = nearObjs[i];
 		if(obj->id == other->id) continue;
@@ -298,35 +299,32 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 				limit = nite::Vec2(1.0f);
 				continue; // we do not handle collision if it's a ghost object
 			}
-
-			float offset = 1.0f;
-
 			obj->collided = true;
-			obj->onCollision(other);
-			if(limit.x == 0.0f){
-				if(normal.x > 0.0f){
-					obj->position.x = other->position.x - obj->size.x - offset;
-				}else
-				if(normal.x < 0.0f){
-					obj->position.x = other->position.x + other->size.x + offset;
-				}
-			}
-			if(limit.y == 0.0f){
-				if(normal.y > 0.0f){
-					obj->position.y = other->position.y - obj->size.y - offset;
-				}else
-				if(normal.y < 0.0f){
-					obj->position.y = other->position.y + other->size.y + offset;
-				}
-			}			
+			obj->onCollision(other);		
 			if(limit.x == 0.0f && limit.y == 0.0f){
-
-
+				otherP = other;
 				break;
 			}
 		}
 	}
+	float offset = 1.0f;
 	obj->position = obj->position + nite::Vec2(diff.x * limit.x, diff.y * limit.y);
+	if(limit.x == 0.0f){
+		if(normal.x > 0.0f){
+			obj->position.x = otherP->position.x - obj->size.x - offset;
+		}else
+		if(normal.x < 0.0f){
+			obj->position.x = otherP->position.x + otherP->size.x + offset;
+		}
+	}
+	if(limit.y == 0.0f){
+		if(normal.y > 0.0f){
+			obj->position.y = otherP->position.y - obj->size.y - offset;
+		}else
+		if(normal.y < 0.0f){
+			obj->position.y = otherP->position.y + otherP->size.y + offset;
+		}
+	}	
 	if(origp.x != obj->position.x || origp.y != obj->position.y){
 		obj->updateQuadrant();
 	}
@@ -394,6 +392,7 @@ void Game::NetWorld::update(){
 		// position changed, send updates to clients (client->side only)
 		if(current->position.x != lastPos.x || current->position.y != lastPos.y){
 			this->updateQueue[current->id] = current.get();
+			current->nextPosition.push_back(current->position);
 		}
 	}
 

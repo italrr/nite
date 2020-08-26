@@ -824,11 +824,14 @@ void Game::Server::update(){
             // TODO: check if the entity actually existits before pulling these values
             for(auto &it : queue){
                 auto &obj = world.objects[it.first];
+                UInt8 n = obj->nextPosition.size();
                 phys.write(&obj->id, sizeof(UInt16));
-                phys.write(&obj->position.x, sizeof(float));
-                phys.write(&obj->position.y, sizeof(float));
-                phys.write(&obj->speed.x, sizeof(float));
-                phys.write(&obj->speed.y, sizeof(float));
+                phys.write(&n, sizeof(n));
+                for(int j = 0; j < n; ++j){
+                    phys.write(&obj->nextPosition[j].x, sizeof(obj->nextPosition[j].x));
+                    phys.write(&obj->nextPosition[j].y, sizeof(obj->nextPosition[j].y));
+                }
+                obj->nextPosition.clear();
             }
             sendAll(phys);
             queue.clear();
@@ -1093,9 +1096,9 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
     float startx = me->map->startCell.x + nite::randomInt(-50, 50);
     float starty = me->map->startCell.y + nite::randomInt(-50, 50);   
 
-    // auto objMob = createMob(Game::ObjectSig::MobHumanoid, 10, startx, starty); 
-    // auto mob = static_cast<Game::EntityBase*>(objMob.get());
-    // mob->aidriver.add(Shared<Game::AI::DumbassBehavior>(new Game::AI::DumbassBehavior()));
+    auto objMob = createMob(Game::ObjectSig::MobHumanoid, 10, startx, starty); 
+    auto mob = static_cast<Game::EntityBase*>(objMob.get());
+    mob->aidriver.add(Shared<Game::AI::DumbassBehavior>(new Game::AI::DumbassBehavior()));
 }
 
 void Game::Server::restart(){

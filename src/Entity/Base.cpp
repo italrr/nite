@@ -12,7 +12,7 @@ static bool showHitboxes = false;
 static nite::Console::CreateProxy cpshowHitboxes("cl_show_hitbox", nite::Console::ProxyType::Bool, sizeof(bool), &showHitboxes);
 
 
-static UInt64 EntityDamageRecover = 200;
+static UInt64 EntityDamageRecover = 250;
 static nite::Console::CreateProxy cpEntityDamageRecover("gm_entity_damage_rcv_time", nite::Console::ProxyType::Int, sizeof(int), &EntityDamageRecover, true, true);
 
 static void notifyEntityDeath(Game::EntityBase *ent){
@@ -58,7 +58,7 @@ Game::EntityBase::EntityBase(){
 }
 
 bool Game::EntityBase::canDamage(){
-	return nite::getTicks()-lastDmgd > 1000;
+	return nite::getTicks()-lastDmgd > EntityDamageRecover;
 }
 
 void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // more like hold direction
@@ -75,7 +75,7 @@ void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // m
 		setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
 	}
 	isMoving = true;
-	move((nite::Vec2(8.0f) + nite::Vec2(complexStat.walkRate)) * dir);
+	move((nite::Vec2(5.8f) + nite::Vec2(complexStat.walkRate)) * dir);
 }
 
 void Game::EntityBase::kill(){
@@ -134,8 +134,7 @@ void Game::EntityBase::draw(){
 	UInt8 anims[AnimPart::total] = {bot, mid, AnimType::TOP_NEUTRAL};
 	UInt8 numbs[AnimPart::total] = {stNum[EntityStateSlot::BOTTOM], stNum[EntityStateSlot::MID], 0};
 	anim.setState(anims, numbs);
-	lerpPosition.lerpDiscrete(position, 0.15f);
-	nite::Vec2 rp = lerpPosition + size * 0.5f;
+	nite::Vec2 rp = position + size * 0.5f;
 
     nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setColor(1.0f, 1.0f, 1.0f, canDamage() ? 1.0f : 0.80f);

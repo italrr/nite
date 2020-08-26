@@ -72,12 +72,12 @@
 			bool unmovable;
 			bool collided;
             Vector<NetObject*> locals;
+            Vector<nite::Vec2> nextPosition;
             UInt8 objType;
             UInt16 sigId;
             nite::Vec2 lerpPosition; // client side position interpolation
             nite::Vec2 lerpSpeed;
-            nite::Vec2 nextPosition;
-            nite::Vec2 clNextPosition;
+            // nite::Vec2 nextPosition;
             Game::NetWorld *container;
             Game::Server *sv;
             Game::Net *net;

@@ -62,7 +62,6 @@ void Game::NetObject::setPosition(const nite::Vec2 &p){
     this->position.set(p);
     // snapPosition();
     this->lerpPosition.set(this->position);
-    this->nextPosition.set(this->position);
     updateQuadrant();
 }
 

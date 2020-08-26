@@ -464,16 +464,18 @@ void Game::Client::update(){
                 handler.read(&amnt, sizeof(UInt16));
                 for(int i = 0; i < amnt; ++i){
                     UInt16 id;
-                    float x, y, xspeed, yspeed;
+                    UInt8 n;
+                    float x, y;
                     handler.read(&id, sizeof(UInt16));
-                    handler.read(&x, sizeof(float));
-                    handler.read(&y, sizeof(float));
-                    handler.read(&xspeed, sizeof(float));
-                    handler.read(&yspeed, sizeof(float));
+                    handler.read(&n, sizeof(n));
                     auto obj = world.get(id);
                     if(obj != NULL){
-                        obj->position.set(x, y);
-                        obj->speed.set(xspeed, yspeed);
+                        obj->nextPosition.clear();
+                        for(int j = 0; j < n; ++j){
+                            handler.read(&x, sizeof(x));
+                            handler.read(&y, sizeof(y));
+                            obj->nextPosition.push_back(nite::Vec2(x, y));
+                        }
                     }
                 }
             } break;
@@ -1172,10 +1174,15 @@ void Game::Client::game(){
     }
 
 
-    for(auto &obj : world.objects){
-        if(obj.second->objType == ObjectType::Entity){
-            auto ent = static_cast<Game::EntityBase*>(obj.second.get());
+    for(auto &it : world.objects){
+        Game::NetObject *obj = it.second.get();
+        if(obj->objType == ObjectType::Entity){
+            auto ent = static_cast<Game::EntityBase*>(obj);
             ent->updateStance();
+
+            if(ent->nextPosition.size() > 0 && ent->position.lerpDiscrete(ent->nextPosition[0], 0.10f)){
+                ent->nextPosition.erase(ent->nextPosition.begin() + 0);
+            }
         }
     }
 

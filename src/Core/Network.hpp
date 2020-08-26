@@ -285,18 +285,30 @@
                 UINT16 AMOUNT
                 0: {
                     UINT16 ID
-                    FLOAT X
-                    FLOAT Y
-                    FLOAT XSPEED
-                    FLOAT YSPEED
+                    UINT8 FRAMES
+                    0: {
+                        FLOAT X
+                        FLOAT Y
+                    }
+                    ...
+                    n {
+                        FLOAT X
+                        FLOAT Y
+                    }
                 }
                 ...
                 n: {
                     UINT16 ID
-                    FLOAT X
-                    FLOAT Y
-                    FLOAT XSPEED
-                    FLOAT YSPEED
+                    UINT8 FRAMES
+                    0: {
+                        FLOAT X
+                        FLOAT Y
+                    }
+                    ...
+                    n {
+                        FLOAT X
+                        FLOAT Y
+                    }
                 }
             */
 
