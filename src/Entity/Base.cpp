@@ -1,12 +1,15 @@
 #include "../Engine/Graphics.hpp"
 #include "../Engine/Texture.hpp"
-#include "../Engine/UI/UI.hpp"
+// #include "../Engine/UI/UI.hpp"
 #include "../Engine/Console.hpp"
 
 #include "../Core/Network.hpp"
 #include "../Core/Server.hpp"
 
+#include "Vfx/Vfx.hpp"
+
 #include "Base.hpp"
+#include "../Engine/Font.hpp"
 
 static bool showHitboxes = false;
 static nite::Console::CreateProxy cpshowHitboxes("cl_show_hitbox", nite::Console::ProxyType::Bool, sizeof(bool), &showHitboxes);
@@ -188,56 +191,56 @@ void Game::EntityBase::draw(){
 
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	nite::setDepth(bodyDepth);
-	bool castingSt = state[EntityStateSlot::MID] == EntityState::CASTING && castingMsg.get() != NULL;
-	nite::cInterpDiscrete(castingMsgAlpha, castingSt ? 100.0f : 0.0f, 0.30f);
-	if(castingMsgAlpha > 0.0f){
-		if(!castingMsg->visible){
-			castingMsg->setVisible(true);
-		}
-		auto self = static_cast<nite::PanelUI*>(castingMsg.get());
-		auto renderPanel = [&](const nite::Vec2 &offset){
-			if(currentCasting.get() != NULL){
-				auto sk = skillStat.get(currentCasting->id);
-				if(sk != NULL){
-					auto cmp = self->getComponentByType("text");
-					if(cmp.get() != NULL && cmp->type == "text"){
-						static_cast<nite::TextUI*>(cmp.get())->setText(nite::toUpper(sk->name));
-					}
-				}
-			}
-			self->recalculate();
-			auto cps = self->computeSize();
-			nite::Vec2 rp = self->margin * 0.5f + offset; // offset
+	// bool castingSt = state[EntityStateSlot::MID] == EntityState::CASTING && castingMsg.get() != NULL;
+	// nite::cInterpDiscrete(castingMsgAlpha, castingSt ? 100.0f : 0.0f, 0.30f);
+	// if(castingMsgAlpha > 0.0f){
+	// 	if(!castingMsg->visible){
+	// 		castingMsg->setVisible(true);
+	// 	}
+	// 	auto self = static_cast<nite::PanelUI*>(castingMsg.get());
+	// 	auto renderPanel = [&](const nite::Vec2 &offset){
+	// 		if(currentCasting.get() != NULL){
+	// 			auto sk = skillStat.get(currentCasting->id);
+	// 			if(sk != NULL){
+	// 				auto cmp = self->getComponentByType("text");
+	// 				if(cmp.get() != NULL && cmp->type == "text"){
+	// 					static_cast<nite::TextUI*>(cmp.get())->setText(nite::toUpper(sk->name));
+	// 				}
+	// 			}
+	// 		}
+	// 		self->recalculate();
+	// 		auto cps = self->computeSize();
+	// 		nite::Vec2 rp = self->margin * 0.5f + offset; // offset
 
-			// rp = rp + nite::Vec2(nite::randomInt(-2, 2), nite::randomInt(-2, 2));
-			float an = 0.0f;
+	// 		// rp = rp + nite::Vec2(nite::randomInt(-2, 2), nite::randomInt(-2, 2));
+	// 		float an = 0.0f;
 
-			// Render batch
-			nite::setRenderTarget(nite::RenderTargetGame);
-			nite::setDepth(bodyDepth);
+	// 		// Render batch
+	// 		nite::setRenderTarget(nite::RenderTargetGame);
+	// 		nite::setDepth(bodyDepth);
 
-			nite::setColor(1.0f, 1.0f, 1.0f, castingMsgAlpha / 100.0f);
+	// 		nite::setColor(1.0f, 1.0f, 1.0f, castingMsgAlpha / 100.0f);
 
-			auto ref = self->batch.draw(rp.x, rp.y, self->size.x, self->size.y, 0.5f, 0.5f, an);
-			// static nite::Shader dummy("data/shaders/ui_ovw_channelingmsg_f.glsl", "data/shaders/ui_ovw_channelingmsg_v.glsl");
-			// if(ref != NULL){
-			// 	nite::Uniform uni;
-			// 	uni.add("p_size", self->size);
-			// 	uni.add("p_alpha", 1.0f);
-			// 	uni.add("p_cshade", nite::Color(0.90f, 0.10f, 0.10f));
-			// 	uni.add("p_cshade", nite::Color(1.0f, 1.0f, 1.0f));
-			// 	ref->apply(dummy, uni);
-			// }
-		};
-		renderPanel(rp + nite::Vec2(0.0f, -size.y * 0.55f));
-	}
-	if(state[EntityStateSlot::MID] != EntityState::CASTING && castingMsg.get() != NULL){
-		if(castingMsg->visible){
-			castingMsg->setVisible(false);
-		}
-	}
+	// 		auto ref = self->batch.draw(rp.x, rp.y, self->size.x, self->size.y, 0.5f, 0.5f, an);
+	// 		// static nite::Shader dummy("data/shaders/ui_ovw_channelingmsg_f.glsl", "data/shaders/ui_ovw_channelingmsg_v.glsl");
+	// 		// if(ref != NULL){
+	// 		// 	nite::Uniform uni;
+	// 		// 	uni.add("p_size", self->size);
+	// 		// 	uni.add("p_alpha", 1.0f);
+	// 		// 	uni.add("p_cshade", nite::Color(0.90f, 0.10f, 0.10f));
+	// 		// 	uni.add("p_cshade", nite::Color(1.0f, 1.0f, 1.0f));
+	// 		// 	ref->apply(dummy, uni);
+	// 		// }
+	// 	};
+	// 	renderPanel(rp + nite::Vec2(0.0f, -size.y * 0.55f));
+	// }
+	// if(state[EntityStateSlot::MID] != EntityState::CASTING && castingMsg.get() != NULL){
+	// 	if(castingMsg->visible){
+	// 		castingMsg->setVisible(false);
+	// 	}
+	// }
 
-	nite::cInterpDiscrete(castingBall.alpha, castingSt ? 100.f : 0.0f, 0.35f);
+	// nite::cInterpDiscrete(castingBall.alpha, castingSt ? 100.f : 0.0f, 0.35f);
 	if(castingBall.alpha > 0.0f){
 		castingBall.draw(rp + nite::Vec2(0.0f, -0.35f * size.y)); // TODO: load head position from json
 	}
@@ -282,13 +285,15 @@ void Game::EntityBase::entityStep(){
 	aidriver.update();
 }
 
-void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n){
-	if(nstate > EntityState::total || slot > EntityStateSlot::total){
+void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n, bool override){
+	if((!override && nstate > EntityState::total) || slot > EntityStateSlot::total){
 		return;
 	}
-	auto nanim = anim.getAnim(EntityState::stateToAnimType[nstate][slot]);
-	if(nanim != NULL && nanim->n > 0 && n > nanim->n){
-		n = n % nanim->n;
+	if(!override){
+		auto nanim = anim.getAnim(EntityState::stateToAnimType[nstate][slot]);
+		if(nanim != NULL && nanim->n > 0 && n > nanim->n){
+			n = n % nanim->n;
+		}
 	}
 	bool update = true;
 	// if(state[slot] != nstate){
@@ -304,10 +309,10 @@ void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n){
 		stance.setHeader(Game::PacketType::SV_UPDATE_ENTITY_STANCE_STATE);
 		stance.write(&this->id, sizeof(this->id));
 		stance.write(&faceDirection, sizeof(faceDirection));
-		stance.write(&state[EntityStateSlot::BOTTOM], sizeof(UInt8));
-		stance.write(&stNum[EntityStateSlot::BOTTOM], sizeof(UInt8));
-		stance.write(&state[EntityStateSlot::MID], sizeof(UInt8));
-		stance.write(&stNum[EntityStateSlot::MID], sizeof(UInt8));
+		for(int i = 0; i < EntityStateSlot::total; ++i){
+			stance.write(&state[i], sizeof(UInt8));
+			stance.write(&stNum[i], sizeof(UInt8));
+		}
 		// TODO: filter by whether this entity is actually in the clients view
 		sv->sendAll(stance);
 	}
@@ -444,6 +449,25 @@ void Game::EntityBase::updateStance(){
 					setState(EntityState::IDLE, EntityStateSlot::MID, 0);
 				}
 			} break;
+			case EntityState::SP_DASHING: {		
+				switch(stNum[EntityStateSlot::SPECIAL]){
+					case 0: {
+						
+						stNum[EntityStateSlot::SPECIAL] = 0;
+						state[EntityStateSlot::SPECIAL] = EntityState::IDLE;
+						lastStateTime[EntityStateSlot::SPECIAL] = nite::getTicks();
+						lastFrameTime[EntityStateSlot::SPECIAL] = nite::getTicks();	
+
+						if(this->sv == NULL){
+							auto ef = Shared<Game::VfxDash>(new Game::VfxDash());
+							ef->position = this->position + this->size * nite::Vec2(0.5f, 0.0f);
+							ef->height = anim.frameSize.y;
+							ef->length = 4.0f;
+							this->net->vfx.add(ef);
+						}
+					} break;
+				}
+			} break;			
 		}
 	}
 	isMoving = false;
@@ -582,11 +606,11 @@ void Game::EntityBase::loadAnim(){
 	// server cannot load textures (headless doesnt' run opengl)
 	if(sv == NULL){
 		anim.anim.load(anim.source.path, anim.transparency);
-		castingMsg = nite::UI::build("data/ui/overworld/entity_casting_messagebox.json");
-		castingMsg->onCreate();
-		castingMsg->setVisible(false);
-		castingMsgAlpha = 0.0f;
-		castingBall.init(position);
+		// castingMsg = nite::UI::build("data/ui/overworld/entity_casting_messagebox.json");
+		// castingMsg->onCreate();
+		// castingMsg->setVisible(false);
+		// castingMsgAlpha = 0.0f;
+		// castingBall.init(position);
 
 		if(!dmgFont.isLoaded()){
 			dmgFont.load("data/font/Exo2-Regular.ttf", 26, 5.0f);

@@ -24,7 +24,7 @@ nite::Console::CreateProxy cpRenText("ren_text", nite::Console::ProxyType::Bool,
 
 #define ASCII_MIN 32
 #define ASCII_MAX 128
-#define SCALING 2
+#define SCALING 1
 
 #include <cmath>
 
@@ -121,9 +121,9 @@ struct Single {
 		buffer = new unsigned char[size];
 		memset(buffer, 0, size);
 		for(int i = 0; i < w*h; ++i){
-			buffer[i*4 + 0] = src[i] > 0 ? 255 : 0;
-			buffer[i*4 + 1] = src[i] > 0 ? 255 : 0;
-			buffer[i*4 + 2] = src[i] > 0 ? 255 : 0;
+			buffer[i*4 + 0] = src[i];
+			buffer[i*4 + 1] = src[i];
+			buffer[i*4 + 2] = src[i];
 			buffer[i*4 + 3] = src[i];
 		}
 	}

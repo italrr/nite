@@ -205,14 +205,14 @@ set (nite_src
 	src/Engine/Object.cpp
 	src/Engine/nScript.cpp
 	src/Engine/Audio.cpp
-	src/Engine/UI/UI.cpp
-	src/Engine/UI/WindowUI.cpp
-	src/Engine/UI/PanelUI.cpp
-	src/Engine/UI/TextUI.cpp
-	src/Engine/UI/IconUI.cpp
-	src/Engine/UI/ButtonUI.cpp
-	src/Engine/UI/CheckboxUI.cpp	
-	src/Engine/UI/BaseUIComponent.cpp		
+	#src/Engine/UI/UI.cpp#
+	#src/Engine/UI/WindowUI.cpp#
+	#src/Engine/UI/PanelUI.cpp#
+	#src/Engine/UI/TextUI.cpp#
+	#src/Engine/UI/IconUI.cpp#
+	#src/Engine/UI/ButtonUI.cpp#
+	#src/Engine/UI/CheckboxUI.cpp#
+	#src/Engine/UI/BaseUIComponent.cpp#
 	src/Engine/Console.cpp		)
 
 add_library(nite ${nite_src})

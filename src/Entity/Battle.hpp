@@ -38,6 +38,7 @@
 			DamageInfo(){
 				this->isCrit = false;
 				this->truedmg = false;
+				this->position.set(-1.0f);
 			}
 		};     
 
@@ -76,7 +77,7 @@
 				}
 			}
 			// Effectiveness or uneffectiveness
-			// TODO: load this from a file (maybe long in the future actually)
+			// TODO: load this from a file
 			static const float EffectiveTable[8][8] = {
 				//neutral   	fire  		electric steel   		wind  		umbra 		celestial 	emerium
 				{1.0f,			1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f, 		1.0f},   // neutral

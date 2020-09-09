@@ -57,8 +57,8 @@
 		"baseDmg": 8
 	},
 	"4": {
-		"name": "Dodge",
-		"desc": "Makes a quick dash helping avoid hits",
+		"name": "Dash",
+		"desc": "Makes a short sprint towards the direction you're currently walking to.",
 		"reqs": [],
 		"iconId": 88,
 		"type": 0,

@@ -361,7 +361,14 @@ static inline float _parseRelSize(const String &v){
 // TODO: improve this method. it's ugly as sin
 static _RelSizeInfo _parseSize(const Jzon::Node &_node, Jzon::Node *style, const nite::Vec2 &contingency, Shared<nite::BaseUIComponent> &component){
     static const String name = "size";
-    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    auto node = _node;
+
+    if(style != NULL){
+        for(auto &it : *style){
+            node.add(it.first, it.second);
+        }
+    }
+
     _RelSizeInfo rv;
     
     auto wn = node.get("width");
@@ -402,7 +409,12 @@ static _RelSizeInfo _parseSize(const Jzon::Node &_node, Jzon::Node *style, const
 
 static nite::Vec2 _parsePosition(const Jzon::Node &_node, Jzon::Node *style, const nite::Vec2 &contingency, Shared<nite::BaseUIComponent> &component){
     static const String name = "position";
-    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    auto node = _node;
+    if(style != NULL){
+        for(auto &it : *style){
+            node.add(it.first, it.second);
+        }
+    }
     auto pnode = node.get(name);
     float width = _parseGenericFloat(pnode, "x", component);
     float height = _parseGenericFloat(pnode, "y", component);
@@ -411,7 +423,12 @@ static nite::Vec2 _parsePosition(const Jzon::Node &_node, Jzon::Node *style, con
 
 static Shared<nite::LayoutSystemUI> _parseLayout(const Jzon::Node &_node, Jzon::Node *style, Shared<nite::BaseUIComponent> &component){
     static const String name = "layout";
-    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    auto node = _node;
+    if(style != NULL){
+        for(auto &it : *style){
+            node.add(it.first, it.second);
+        }
+    }
     String layout = node.get(name).toString();
     if(layout == "vbox" || layout == ""){
         return Shared<nite::LayoutSystemUI>(new nite::Layout::VBox());
@@ -426,10 +443,15 @@ static Shared<nite::LayoutSystemUI> _parseLayout(const Jzon::Node &_node, Jzon::
 }
 
 static nite::Color _parseColor(const String &name, const Jzon::Node &_node, Jzon::Node *style, const nite::Color &contingency, Shared<nite::BaseUIComponent> &component){
-    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    auto node = _node;
+    if(style != NULL){
+        for(auto &it : *style){
+            node.add(it.first, it.second);
+        }
+    }
     nite::Color result(contingency);
     if(!node.has(name)){
-    return contingency;
+        return contingency;
     }
     auto obj = node.get(name);
     if(obj.isObject()){
@@ -455,28 +477,53 @@ static nite::Color _parseColor(const String &name, const Jzon::Node &_node, Jzon
 }
 
 static String _parseString(const String &name, Jzon::Node &_node, Jzon::Node *style, const String &contingency, Shared<nite::BaseUIComponent> &component){
-    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    auto node = _node;
+    if(style != NULL){
+        for(auto &it : *style){
+            node.add(it.first, it.second);
+        }
+    }
     String str = node.get(name).toString();
     return str == "" ? contingency : str;
 }
 
 static bool _parseBool(const String &name, Jzon::Node &_node, Jzon::Node *style, bool contingency, Shared<nite::BaseUIComponent> &component){
-    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    auto node = _node;
+    if(style != NULL){
+        for(auto &it : *style){
+            node.add(it.first, it.second);
+        }
+    }
     return node.has(name) ? node.get(name).toBool() : contingency;
 }
 
 static int _parseInt(const String &name, Jzon::Node &_node, Jzon::Node *style, int contingency, Shared<nite::BaseUIComponent> &component){
-    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    auto node = _node;
+    if(style != NULL){
+        for(auto &it : *style){
+            node.add(it.first, it.second);
+        }
+    }
     return node.has(name) ? _parseGenericInt(node, name, component) : contingency;
 }
 
 static float _parseFloat(const String &name, Jzon::Node &_node, Jzon::Node *style, float contingency, Shared<nite::BaseUIComponent> &component){
-    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    auto node = _node;
+    if(style != NULL){
+        for(auto &it : *style){
+            node.add(it.first, it.second);
+        }
+    }
     return node.has(name) ? _parseGenericFloat(node, name, component) : contingency;
 }
 
 static nite::Texture _parseImage(const String &name, Jzon::Node &_node, Jzon::Node *style, Shared<nite::BaseUIComponent> &component){
-    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    auto node = _node;
+    if(style != NULL){
+        for(auto &it : *style){
+            node.add(it.first, it.second);
+        }
+    }
     if(!node.has(name) || (node.has(name) && node.get(name).isObject())){
         return nite::Texture();
     }
@@ -493,7 +540,12 @@ struct ShaderPair {
 };
 
 static ShaderPair _parseShader(const String &name, Jzon::Node &_node, Jzon::Node *style, Shared<nite::BaseUIComponent> &component){
-    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    auto node = _node;
+    if(style != NULL){
+        for(auto &it : *style){
+            node.add(it.first, it.second);
+        }
+    }
     ShaderPair shader;
     if(node.has(name) && node.get(name).isObject()){
         String vert = node.get(name).get("vert").toString();
@@ -509,7 +561,12 @@ static ShaderPair _parseShader(const String &name, Jzon::Node &_node, Jzon::Node
 
 
 static nite::Vec2 _parseDimensions(const String &name, Jzon::Node &_node, Jzon::Node *style, const nite::Vec2 &contingency, Shared<nite::BaseUIComponent> &component){
-    auto &node = _node.has(name) || style == NULL ? _node : *style;
+    auto node = _node;
+    if(style != NULL){
+        for(auto &it : *style){
+            node.add(it.first, it.second);
+        }
+    }
     if(node.has(name) && node.get(name).isObject()){
         auto obj = node.get(name);
         return nite::Vec2( _parseFloat("hor", obj, style, contingency.x, component), _parseFloat("vert", obj, style, contingency.y, component));
@@ -631,6 +688,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto borderPattern = _parseString("borderPattern", node, NULL, "", base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto position = _parsePosition(node, NULL, nite::Vec2(0.0f, 0.0f), base);    
+        auto center = _parseBool("center", node, NULL, false, base);
         // auto userShader = _parseShader("shader", node, NULL, base);
         _parseOverflow("overflow", node, base);
         _parseNav("navigate", node, base);
@@ -651,6 +709,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         ref->onClickAnalogueKey = nite::translateKey(clickAnalogue);        
         ref->setSnapInterpRate(snapInterpRate);        
         ref->resizeable = resizeable;
+        ref->setCenter(center);
         ref->unmovable = unmovable;
         ref->setModal(modal);
         ref->setBorderThickness(borderthickness);

@@ -100,7 +100,7 @@
             // BASE [BA] 
             BA_ATTACK = 2,              // basic attack (arrow shoot, sword swing, bare hands punch)
             BA_BASH,                    // stronger 'attack', only close range
-            BA_DODGE,                   // dash movement to `dodge` attacks
+            BA_DASH,                   // dash movement to `dodge` attacks
             BA_PARRY,                   // block % of next physical attack received
             BA_FIRST_AID,               // heals 20% of a lv 1 entity *with less than 50% hp* over 30 seconds
 
@@ -177,8 +177,8 @@
                 BA_Bash(){ this->id = Game::SkillList::BA_BASH; }
                 bool use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };
-            struct BA_Dodge : Skill {
-                BA_Dodge(){ this->id = Game::SkillList::BA_DODGE; }
+            struct BA_Dash : Skill {
+                BA_Dash(){ this->id = Game::SkillList::BA_DASH; }
                 bool use(EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at);
             };             
             struct BA_Parry : Skill {

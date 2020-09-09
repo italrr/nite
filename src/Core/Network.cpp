@@ -152,9 +152,9 @@ void Game::Net::step(){
 
 
 void Game::Net::setCurrentMap(Shared<nite::Map> &m){
-    world.clearWallMasks();
-    world.clearGhostMasks();
     traps.clear();
+    world.clear();
+    map = Shared<nite::Map>(NULL);
     nite::Vec2 ws = m->size * m->tileSize;
     this->world.setSize(ws.x, ws.y, 64, 64);
     // wall masks
@@ -166,7 +166,6 @@ void Game::Net::setCurrentMap(Shared<nite::Map> &m){
         obj->solid = true;
         obj->unmovable = true;
         this->world.addWallMask(obj); // we use id 0 for wallmasks as these are not managed by the server
-        localMasks.push_back(obj);
     }
     this->map = m;
     // dynamic tiles

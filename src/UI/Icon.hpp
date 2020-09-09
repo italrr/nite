@@ -11,9 +11,6 @@
             nite::Vec2 iconSize;
             nite::Vec2 inTexPosition;
             void draw(float x, float y, float w, float h, float origx, float origy, float angle);
-            Icon(){
-                id = -1;
-            }
         };
 
         struct IconManager {

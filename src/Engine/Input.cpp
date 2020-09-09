@@ -3,7 +3,7 @@
 #include "Tools/Tools.hpp"
 #include "Input.hpp"
 #include "Console.hpp"
-#include "UI/UI.hpp"
+//#include "UI/UI.hpp"
 #include "Network.hpp"
 
 //#include "nite.h"
@@ -360,7 +360,7 @@ void nite::inputUpdate(){
 		}
 	}	
 	nite::Console::update();
-	nite::UI::update();	
+	// nite::UI::update();	
 	nite::AsyncTask::update();
 }
 

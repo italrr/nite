@@ -149,6 +149,8 @@ void nite::ButtonUI::onHover(){
     if(buttonState == 2) return;
     buttonState = 1; // on hover
     stateTimeout = nite::getTicks();
+    calculateSize();   
+    recalculate();    
 }
 
 void nite::ButtonUI::setOnHover(nite::ListenerLambda onHover){
@@ -168,8 +170,9 @@ void nite::ButtonUI::render(const nite::Vec2 &offset){
     nite::Color bc = baseColor;
     nite::Color tc = textColor;
     if(buttonState == 1){
-        bc = baseColor * 1.15f;
-        tc = textColor * 1.15f;
+        bc = baseColor * 0.5f;
+        tc = textColor * 0.5f;
+        nite::print("xD");
     }
     if(buttonState == 2){
         bc = baseColor * 1.0f;
@@ -189,8 +192,9 @@ void nite::ButtonUI::render(const nite::Vec2 &offset){
         nite::setColor(tc);  
         auto *ref = font.draw(text, p.x, p.y, 0.5f, 0.35f, 0.0f);
         if(ref != NULL){
-            nite::Color sc = bc.invert();
-            ref->setShadow(nite::Color(sc.r, sc.g, sc.b, 1.0f), nite::Vec2(1.0f));
+            ref->shadow = false;
+            // nite::Color sc = bc.invert();
+            // ref->setShadow(nite::Color(sc.r, sc.g, sc.b, 1.0f), nite::Vec2(1.0f));
         }  	
     }else{
         auto total = size.avg() * 0.65f;
@@ -219,17 +223,17 @@ void nite::ButtonUI::update(){
     // if(!realPosition.cInterpDiscrete(position, componentTranslationSpeed)){
     //     recalculate();    
     // }
-    if(!nite::cInterp(currentPressOffset, buttonState == 2 ? pressOffset : 0.0f, 0.70f)){
-        recalculate();
-    }
-    if(buttonState != 0){
-        recalculate();
-        if(nite::getTicks()-stateTimeout > 35 * (buttonState == 2 ? 4 : 1)){
-            if(buttonState == 2){
-                this->onClickMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);    
-            }
-            buttonState = 0;
-            recalculate();
-        }
-    }
+    // if(!nite::cInterp(currentPressOffset, buttonState == 2 ? pressOffset : 0.0f, 0.70f)){
+    //     recalculate();
+    // }
+    // if(buttonState != 0){
+    //     recalculate();
+    //     if(nite::getTicks()-stateTimeout > 35 * (buttonState == 2 ? 4 : 1)){
+    //         if(buttonState == 2){
+    //             this->onClickMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);    
+    //         }
+    //         buttonState = 0;
+    //         recalculate();
+    //     }
+    // }
 }

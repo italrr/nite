@@ -104,8 +104,8 @@ Shared<Game::Skill> Game::getSkill(UInt16 id, UInt8 lv){
         case Game::SkillList::BA_BASH: {
             sk = Shared<Game::Skill>(new Game::Skills::BA_Bash());
         } break;
-        case Game::SkillList::BA_DODGE: {
-            sk = Shared<Game::Skill>(new Game::Skills::BA_Dodge());
+        case Game::SkillList::BA_DASH: {
+            sk = Shared<Game::Skill>(new Game::Skills::BA_Dash());
         } break;
         case Game::SkillList::BA_PARRY: {
             sk = Shared<Game::Skill>(new Game::Skills::BA_Parry());
@@ -199,9 +199,26 @@ bool Game::Skills::BA_Bash::use(Game::EntityBase *who, Game::EntityBase *to, con
 /*
     SK_BA_Dodge
 */
-bool Game::Skills::BA_Dodge::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
+bool Game::Skills::BA_Dash::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
+    if(!isReady(who)){
+        return false;
+    }
     this->lastUse = nite::getTicks();
-    nite::print("dodge");
+    if(who == NULL){
+        return false;
+    } 
+    // nite::Vec2 origp = who->position;
+    float dist = 128.0f;
+    // float step = dist / 8.0f;
+    auto ang = nite::arctan(who->speed.y, who->speed.x);
+    // Game::NetObject *other;
+    // who->position = who->position + nite::Vec2(nite::cos(ang) * dist, nite::sin(ang) * dist);
+    // do {
+    //     who->position = who->position - nite::Vec2(nite::cos(ang) * step, nite::sin(ang) * step);
+    // } while(who->isCollidingWithSomething(&other));
+    // who->setState(EntityState::SP_DASHING, EntityStateSlot::SPECIAL, 0, true);
+    // who->setPosition(who->position);
+    who->push(nite::Vec2(nite::cos(ang) * dist, nite::sin(ang) * dist));
     return true;
 }
 

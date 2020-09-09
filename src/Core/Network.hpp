@@ -6,6 +6,7 @@
     #include "../Engine/Tools/Tools.hpp"
     #include "../Engine/Map.hpp"
     #include "../Entity/Traps/Trap.hpp"
+    #include "../Entity/Vfx/Vfx.hpp"
     #include "World.hpp"
 
     namespace Game {
@@ -95,11 +96,11 @@
             unsigned state;
             UInt64 lastState;
             Game::NetWorld world;
-            Vector<Game::NetObject*> localMasks;
             bool init;
             Game::TrapDevice traps;
             UInt16 lastInitTfId;
             nite::UDPSocket sock;
+            Game::VfxDevice vfx;
             Shared<nite::Map> map;
             nite::FileTransfer::UDPClient ft;
             void setCurrentMap(Shared<nite::Map> &map);
@@ -442,12 +443,12 @@
             /*
                 UINT16 ENTID
                 UINT8 FACEDIRECTION
-                0: { // ALWAYS BOT
+                0: {
                     UINT8 STATE
                     UINT8 NUMBER
                 }
                 ...
-                1: { // ALWAYS MID
+                1: {
                     UINT8 STATE
                     UINT8 NUMBER
                 }
@@ -546,6 +547,13 @@
                 FLOAT X
                 FLOAT Y
             */ 
+
+            SV_SET_OBJECT_POSITION,
+            /*
+                UINT16 ID
+                FLOAT X
+                FLOAT Y
+            */            
 
         };
 

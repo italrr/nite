@@ -1,6 +1,7 @@
 #include "Object.hpp"
 #include "Network.hpp"
 #include "World.hpp"
+#include "Server.hpp"
 
 #include "../Entity/Base.hpp"
 #include "../Entity/Mobs/Humanoid.hpp"
@@ -63,6 +64,14 @@ void Game::NetObject::setPosition(const nite::Vec2 &p){
     // snapPosition();
     this->lerpPosition.set(this->position);
     updateQuadrant();
+    if(sv != NULL){
+		nite::Packet updatepos;
+		updatepos.setHeader(Game::PacketType::SV_SET_OBJECT_POSITION);
+		updatepos.write(&id, sizeof(id));
+		updatepos.write(&position.x, sizeof(position.x));		
+		updatepos.write(&position.y, sizeof(position.y));		
+		sv->sendAll(updatepos);
+    }
 }
 
 
@@ -85,7 +94,10 @@ void Game::NetObject::updateQuadrant(){
             _y = lqPos.y;
         }
         UInt32 nq = _x + container->cwidth * _y;
-        if(quadrant != -1 && nq != quadrant && (objType == ObjectType::Ghost ? container->ghosts[quadrant] == this : container->cells[quadrant] == this)){
+        if(nq == quadrant || (objType == ObjectType::Ghost ? (container->ghosts[nq] != NULL) : (container->cells[nq] != NULL))) {
+            return;
+        }
+        if(quadrant != -1 && nq != quadrant && (objType == ObjectType::Ghost ? (container->ghosts[quadrant] == this) : (container->cells[quadrant] == this))){
             if(objType == ObjectType::Ghost){
                 container->ghosts[quadrant] = NULL;
             }else{
@@ -164,6 +176,9 @@ bool Game::NetObject::isCollidingWithSomething(Game::NetObject **who){
 
 	for (int i = 0; i < nearObjs.size(); ++i){
 		auto obj = nearObjs[i];
+        if(obj->objType == ObjectType::Ghost){
+            continue;
+        }
 		if(obj->id == this->id) continue;
 		if(!obj->solid) continue;
 		if(isCollidingWith(obj)){

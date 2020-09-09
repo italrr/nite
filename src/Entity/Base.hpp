@@ -5,10 +5,11 @@
     #include "../Core/Object.hpp"
     #include "../Core/Input.hpp"
     
+    #include "../Engine/Shader.hpp"
     #include "Stat.hpp"
     #include "Anim.hpp"
 
-    #include "../Engine/UI/PanelUI.hpp"
+    // #include "../Engine/UI/PanelUI.hpp"
     namespace Game {
 
         namespace ActionableType {
@@ -33,9 +34,10 @@
         namespace EntityStateSlot {
             enum EntityStateSlot : UInt8 {
                 MID = 0,
-                BOTTOM
+                BOTTOM,
+                SPECIAL
             };  
-            static const UInt8 total = 2;
+            static const UInt8 total = 3;
         }
         namespace EntityState {
             enum EntityState : UInt8 {
@@ -52,26 +54,28 @@
                 WAVING_SWORD,
                 MELEE_NOWEAP, // aka punching
                 CASTING,
-                IDLE_FIST
+                IDLE_FIST,
+                
+                SP_DASHING = 200
             };
             static const UInt8 total = 14;
             // top is not resolved here. we're gonna hard code it for now
             static const UInt8 stateToAnimType[total][EntityStateSlot::total] = {
-                // MID                              BOTTOM
-                { AnimType::MID_STANDING,           AnimType::BOT_STANDING  },    // IDLE
-                { AnimType::MID_STANDING,           AnimType::BOT_WALKING   },    // WALKING
-                { AnimType::MID_STANDING,           AnimType::BOT_JUMPING   },    // JUMPING
-                { AnimType::MID_SHOOTING_HANDGUN,   AnimType::BOT_STANDING  },    // SHOOTING_HANDGUN
-                { AnimType::MID_SHOOTING_BOW,       AnimType::BOT_STANDING  },    // SHOOTING_BOW
-                { AnimType::MID_HOLDING_HANDGUN,    AnimType::BOT_STANDING  },    // IDLE_HANDGUN
-                { AnimType::MID_HOLDING_BOW,        AnimType::BOT_STANDING  },    // IDLE_BOW
-                { AnimType::MID_HOLDING_SWORD,      AnimType::BOT_STANDING  },    // IDLE_SWORD
-                { AnimType::MID_HOLDING_KNIFE,      AnimType::BOT_STANDING  },    // IDLE_KNIFE
-                { AnimType::MID_WAVING_KNIFE,       AnimType::BOT_STANDING  },    // WAVING_KNIFE
-                { AnimType::MID_WAVING_SWORD,       AnimType::BOT_STANDING  },    // WAVING_SWORD
-                { AnimType::MID_MELEE_NOWEAP,       AnimType::BOT_STANDING  },    // MELEE_NOWEAP                
-                { AnimType::MID_CASTING,            AnimType::BOT_STANDING  },    // CASTING
-                { AnimType::MID_MELEE_NOWEAP,       AnimType::BOT_STANDING  }     // IDLE_FISTS
+                // MID                              BOTTOM                      SPECIAL                          
+                { AnimType::MID_STANDING,           AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // IDLE
+                { AnimType::MID_STANDING,           AnimType::BOT_WALKING,      AnimType::UNDEFINED,    },    // WALKING
+                { AnimType::MID_STANDING,           AnimType::BOT_JUMPING,      AnimType::UNDEFINED,    },    // JUMPING
+                { AnimType::MID_SHOOTING_HANDGUN,   AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // SHOOTING_HANDGUN
+                { AnimType::MID_SHOOTING_BOW,       AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // SHOOTING_BOW
+                { AnimType::MID_HOLDING_HANDGUN,    AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // IDLE_HANDGUN
+                { AnimType::MID_HOLDING_BOW,        AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // IDLE_BOW
+                { AnimType::MID_HOLDING_SWORD,      AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // IDLE_SWORD
+                { AnimType::MID_HOLDING_KNIFE,      AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // IDLE_KNIFE
+                { AnimType::MID_WAVING_KNIFE,       AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // WAVING_KNIFE
+                { AnimType::MID_WAVING_SWORD,       AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // WAVING_SWORD
+                { AnimType::MID_MELEE_NOWEAP,       AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // MELEE_NOWEAP                
+                { AnimType::MID_CASTING,            AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // CASTING
+                { AnimType::MID_MELEE_NOWEAP,       AnimType::BOT_STANDING,     AnimType::UNDEFINED,    },    // IDLE_FISTS
                 
             };
         }
@@ -131,7 +135,7 @@
             UInt8 stNum[EntityStateSlot::total];
             UInt64 lastStateTime[EntityStateSlot::total];
             UInt64 lastFrameTime[EntityStateSlot::total];
-            void setState(UInt8 nstate, UInt8 slot, UInt8 n);
+            void setState(UInt8 nstate, UInt8 slot, UInt8 n, bool override = false);
             void switchFrame(UInt8 slot, UInt8 n);
             Game::Actionable actionables[Game::EntityActionables]; // 1 2 3 4 5 keys + M1 + M2
             UInt8 faceDirection;
@@ -143,7 +147,7 @@
             bool dead;
             float castingMsgAlpha;
             Gfx_CastingBall castingBall;
-            Shared<nite::BaseUIComponent> castingMsg;
+            // Shared<nite::BaseUIComponent> castingMsg;
             Vector<nite::Hitbox> getHitbox();
             void throwMelee(float x, float y); // time recommended to be not more than 100ms
 			void kill();

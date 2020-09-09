@@ -29,6 +29,7 @@
             nite::Vec2 size;
             float mod;
             float ray;
+            float reduct;
             OvwVfxFrag(){
                 alpha = 100.0f;
             }
@@ -46,6 +47,40 @@
             void draw();
         };
 
+        struct VfxDash : OvwVfx {
+            float height;
+            float density;
+            float length;
+            Vector<OvwVfxFrag> frags;
+            void init();
+            void step();
+            void draw();
+            VfxDash(){
+                density = 0.2f;
+            }
+        };        
+
+        struct VfxTeleport : OvwVfx {
+            float spread;
+            bool start;
+            float refrad;
+            float radius;
+            float target;
+            float vert;
+            float alpha;
+            float lastAng;
+            nite::Color color;
+            int n;
+            Vector<OvwVfxFrag> frags;
+            void init();
+            void step();
+            void draw();
+            void addRay(float ang);
+            VfxTeleport(){
+                refrad = 64.9f;
+                start = false;
+            }
+        };
 
         struct VfxDevice {
             Vector<Shared<OvwVfx>> effects;

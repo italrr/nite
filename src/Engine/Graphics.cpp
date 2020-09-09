@@ -10,7 +10,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include "Network.hpp"
-#include "UI/UI.hpp"
+// #include "UI/UI.hpp"
 #include "Tools/Tools.hpp"
 #include "Input.hpp"
 #include "Shader.hpp"
@@ -37,7 +37,7 @@ static SDL_GLContext Context;
 static float targetExcess = 1.0f;
 static bool cl_showfps = false;
 static UInt64 lastFrameTick;
-static nite::Font debugFont;
+// static nite::Font debugFont;
 void flushTexture();
 void flushFont();
 
@@ -967,13 +967,13 @@ void nite::graphicsRender(){
 	initDelta = nite::getTicks();
 
 	if(cl_showfps){
-		UInt64 time = nite::getTicks()-lastFrameTick;
-		lastFrameTick = nite::getTicks();
-		String text = "delta "+nite::toStr((size_t)time)+" ms";
-		int w = debugFont.getWidth("delta 1000 ms");
-		nite::setRenderTarget(nite::RenderTargetPosterioriEngine);
-		nite::setColor(time < 16 ? nite::Color(1.0f, 0.0f, 0.0f, 1.0f) : nite::Color(0.0f, 1.0f, 0.0f, 1.0f));
-		debugFont.draw(text, nite::getWidth()-w * 2.0f, 0.0f + debugFont.getHeight());
+		// UInt64 time = nite::getTicks()-lastFrameTick;
+		// lastFrameTick = nite::getTicks();
+		// String text = "delta "+nite::toStr((size_t)time)+" ms";
+		// int w = debugFont.getWidth("delta 1000 ms");
+		// nite::setRenderTarget(nite::RenderTargetPosterioriEngine);
+		// nite::setColor(time < 16 ? nite::Color(1.0f, 0.0f, 0.0f, 1.0f) : nite::Color(0.0f, 1.0f, 0.0f, 1.0f));
+		// debugFont.draw(text, nite::getWidth()-w * 2.0f, 0.0f + debugFont.getHeight());
 	}
 
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1007,7 +1007,7 @@ void nite::graphicsRender(){
 	SDL_GL_SwapWindow(Window);
 
 	nite::Console::render();
-	nite::UI::render();	
+	// nite::UI::render();	
 }
 
 static void gameExit(){
@@ -1180,7 +1180,7 @@ void nite::graphicsInit(){
 
 	nite::print("nite engine | OS "+niteCurrentPlatform);
 	nite::print("graphics init "+size.str()+" ("+(enableFullscreen ? String("fullscreen") : String("windowed"))+")");
-	debugFont.load("data/font/VeraMono.ttf", 18 * nite::getGeneralScale());
+	// debugFont.load("data/font/VeraMono.ttf", 18 * nite::getGeneralScale());
 }
 
 void nite::graphicsEnd(){

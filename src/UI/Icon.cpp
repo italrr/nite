@@ -17,16 +17,16 @@ void Game::IconManager::load(const nite::Texture &source, nite::Vec2 iconSize){
     this->total = totalW * totalH;
     for(int i = 0; i < total; ++i){
         Game::Icon icon;
-        int w = i % totalW;
-        int h = i / totalW;
+        int x = i % totalW;
+        int y = i / totalW;
         icon.iconSize = iconSize;
-        icon.inTexPosition.set(w, h);
+        icon.inTexPosition = nite::Vec2(x, y) * iconSize;
         icon.id = i;
         icon.source = source;
-        icons[i] = icon;
+        this->icons[i] = icon;
     }
     nite::print("icon manager: loaded "+nite::toStr(total)+" icons from '"+this->source.getFilename()+"'");
-}
+}           
 
 Game::Icon Game::IconManager::getIcon(int id){
     auto it = icons.find(id);

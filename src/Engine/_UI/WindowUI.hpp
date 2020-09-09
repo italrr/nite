@@ -50,8 +50,10 @@
         nite::Vec2 origPosition;          
         bool toDestroy;
         float generalAlpha;
+        bool center;
         void rerenderDecoration();
         public:
+        void setCenter(bool v);
         void setOnRerenderListener(nite::ListenerLambda listener);
         void setBackgroundImage(const nite::Texture &bgi);
         nite::Texture getBackgroundImage();

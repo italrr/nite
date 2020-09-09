@@ -105,6 +105,7 @@
         float snapInterpRate;
         int zdepth;
         String literalId;
+        bool expand;
         bool fillUpType;
         String type;
         unsigned renderOnTarget;

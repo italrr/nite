@@ -37,6 +37,8 @@ int main(int argc, char* argv[]){
     // bp->generate(35, 35);
     // auto map = Game::RING::generateMap(bp, src, 4);
 
+	// nite::UI::build("data/ui/ingame_menu/main.json");
+
 	while(game.isRunning){	
 		game.update();
 		// __temp();

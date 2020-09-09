@@ -189,7 +189,8 @@ void Game::Client::connect(){
 void Game::Client::setup(const String &nickname){
     this->nickname = nickname;
     this->init = true;
-    this->icons.load(nite::Texture("data/texture/icons/test_icons.png"), nite::Vec2(32.0f));
+    nite::Texture icons = nite::Texture("data/texture/icons/test_icons.png");
+    this->icons.load(icons, nite::Vec2(32.0f));
 }
 
 void Game::Client::disconnect(){
@@ -437,21 +438,23 @@ void Game::Client::update(){
                 UInt8 faceDirection;
                 handler.read(&entId, sizeof(entId));
                 handler.read(&faceDirection, sizeof(faceDirection));
-                auto it = world.objects.find(entId);
-                if(it != world.objects.end()){
-                    auto obj = it->second;
-                    if(obj->objType != ObjectType::Entity){
-                        break;
-                    }
-                    auto ent = static_cast<Game::EntityBase*>(obj.get());
+                auto ent = getEntity(entId);
+                if(ent != NULL){
                     ent->faceDirection = faceDirection;
                     UInt8 nstate, n;
-                    handler.read(&nstate, sizeof(nstate));
-                    handler.read(&n, sizeof(n));
-                    ent->setState(nstate, EntityStateSlot::BOTTOM, n);
-                    handler.read(&nstate, sizeof(nstate));
-                    handler.read(&n, sizeof(n));
-                    ent->setState(nstate, EntityStateSlot::MID, n);
+                    for(int i = 0; i < EntityStateSlot::total; ++i){
+                        if(i == EntityStateSlot::SPECIAL){ //specials are passed directly since they don't involve animations                     
+                            handler.read(&ent->state[i], sizeof(ent->state[i]));
+                            handler.read(&ent->stNum[i], sizeof(ent->stNum[i]));
+	                        ent->lastStateTime[i] = nite::getTicks();
+	                        ent->lastFrameTime[i] = nite::getTicks();
+
+                        }else{
+                            handler.read(&nstate, sizeof(nstate));
+                            handler.read(&n, sizeof(n));
+                            ent->setState(nstate, i, n);
+                        }
+                    }
                 }
             } break;
             /*
@@ -532,7 +535,7 @@ void Game::Client::update(){
                 if(!isSv){ break; }
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 handler.read(&this->entityId, sizeof(UInt16));
-                this->hud.setFollow(this->entityId);
+                this->hud.follow(this->entityId);
                 this->camera.follow(this->entityId);
             } break;
 
@@ -925,6 +928,7 @@ void Game::Client::update(){
                 String hash;
                 handler.read(hash);
                 auto indexer = nite::getIndexer();
+                indexer->indexDir("./data/map/generated/"); // in case the map is already in this client's data folder
                 auto ifile = indexer->get(hash);
                 // TODO: handle other resources like tilesources and the actual bitmap
                 if(ifile == NULL){
@@ -1023,13 +1027,33 @@ void Game::Client::update(){
                 }
                 ent->markDamaged();
                 ent->addDamageCountShow(amnt);
-                auto ef = Shared<Game::VfxBang>(new Game::VfxBang());
-                ef->position = p;
-                this->vfx.add(ef);
+                if(p.x > 0 && p.y > 0){
+                    auto ef = Shared<Game::VfxBang>(new Game::VfxBang());
+                    ef->position = p;
+                    this->vfx.add(ef);
+                }
                 if(entId == entityId){
                     nite::shakeScreen(nite::RenderTargetGame, 0.55f, 200 * (amnt / 5));
                 }
-            } break;            
+            } break;  
+            /*
+                SV_SET
+            */
+            case Game::PacketType::SV_SET_OBJECT_POSITION: {
+                if(!isSv){ break; }
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 id;
+                nite::Vec2 p;
+                handler.read(&id, sizeof(id));
+                handler.read(&p.x, sizeof(p.x));
+                handler.read(&p.y, sizeof(p.y));
+                auto obj = world.get(id);
+                if(obj != NULL){
+                    obj->setPosition(p);
+                    obj->nextPosition.clear();
+                }
+
+            } break;                       
             /*
                 UNKNOWN
             */
@@ -1262,4 +1286,5 @@ void Game::Client::render(){
     }
     nite::setDepth(nite::DepthTop);
     vfx.draw();
+    hud.draw();
 }

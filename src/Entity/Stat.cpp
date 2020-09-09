@@ -232,7 +232,7 @@ void Game::Stat::setupStat(UInt16 lv){
 	skillStat.add(baAttackSk);
 	auto baBash = getSkill(Game::SkillList::BA_BASH, 1);
 	skillStat.add(baBash);
-	auto baDodge = getSkill(Game::SkillList::BA_DODGE, 1);
+	auto baDodge = getSkill(Game::SkillList::BA_DASH, 1);
 	skillStat.add(baDodge);
 	auto baParry = getSkill(Game::SkillList::BA_PARRY, 1);
 	skillStat.add(baParry);

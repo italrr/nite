@@ -2,7 +2,7 @@
 
 #include "../Engine/Tools/Tools.hpp"
 #include "../Engine/Console.hpp"
-#include "../Engine/UI/UI.hpp"
+// #include "../Engine/UI/UI.hpp"
 
 #include "../Game.hpp"
 #include "Server.hpp"
@@ -10,7 +10,7 @@
 #include "Object.hpp"
 #include "../Entity/Base.hpp"
 
-static Shared<nite::BaseUIComponent> debug = Shared<nite::BaseUIComponent>(NULL);
+// static Shared<nite::BaseUIComponent> debug = Shared<nite::BaseUIComponent>(NULL);
 static bool debugging = false;
 static UInt64 lastDebug = nite::getTicks();
 
@@ -357,13 +357,13 @@ void Game::Server::listen(const String &name, UInt8 maxClients, UInt16 port){
     setState(Game::ServerState::Idle);
 
     if(debugging){
-        debug = nite::UI::build("./data/ui/debug_window.json");
+        // debug = nite::UI::build("./data/ui/debug_window.json");
         auto json = Jzon::object();
         json.add("type", "text");
         json.add("fontColor", "#000000");
         json.add("fontSize", "16");
         json.add("text", "debug");
-        debug->add(nite::UI::build(json));
+        // debug->add(nite::UI::build(json));
     }
 }
 
@@ -481,9 +481,9 @@ void Game::Server::clear(){
     tilesets.clear();
     world.clear();
     setState(Game::ServerState::Off);
-    if(debugging && debug.get() != NULL){
-        static_cast<nite::WindowUI*>(debug.get())->close();
-    }    
+    // if(debugging && debug.get() != NULL){
+    //     static_cast<nite::WindowUI*>(debug.get())->close();
+    // }    
     for(int i = 0; i < maps.size(); ++i){
         maps[i]->unload();
     }
@@ -745,7 +745,7 @@ void Game::Server::update(){
                 SV_UPDATE_PHYSICS_OBJECT
             */            
             case Game::PacketType::SV_UPDATE_PHYSICS_OBJECT: {
-                nite::print("[server] SV_UPDATE_PHYSICS_OBJECT: discarded");
+                nite::print("[server] SV_UPDATE_PHYSICS_OBJECT: discarded handling");
                 break;
                 // if(!client || !isLast){
                 //     break;
@@ -813,7 +813,7 @@ void Game::Server::update(){
     }
 
     // update physics
-    if(nite::getTicks()-physicsUpdate > 5){
+    if(nite::getTicks()-physicsUpdate > 0){
         auto &queue = world.updateQueue;
         if(queue.size() > 0){      
             UInt16 amnt = queue.size();
@@ -1084,7 +1084,7 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
                     writeSkill(Game::SkillList::BA_ATTACK, 5);
                     writeSkill(Game::SkillList::BA_PARRY, 6);
                     writeSkill(Game::SkillList::BA_BASH, 0);
-                    writeSkill(Game::SkillList::BA_DODGE, 1);
+                    writeSkill(Game::SkillList::BA_DASH, 1);
                     writeSkill(Game::SkillList::BA_FIRST_AID, 2);
                     me->persSend(cl->cl, packet, 750, -1);
                 });                    
@@ -1096,9 +1096,9 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
     float startx = me->map->startCell.x + nite::randomInt(-50, 50);
     float starty = me->map->startCell.y + nite::randomInt(-50, 50);   
 
-    auto objMob = createMob(Game::ObjectSig::MobHumanoid, 10, startx, starty); 
-    auto mob = static_cast<Game::EntityBase*>(objMob.get());
-    mob->aidriver.add(Shared<Game::AI::DumbassBehavior>(new Game::AI::DumbassBehavior()));
+    // auto objMob = createMob(Game::ObjectSig::MobHumanoid, 10, startx, starty); 
+    // auto mob = static_cast<Game::EntityBase*>(objMob.get());
+    // mob->aidriver.add(Shared<Game::AI::DumbassBehavior>(new Game::AI::DumbassBehavior()));
 }
 
 void Game::Server::restart(){
@@ -1111,7 +1111,7 @@ void Game::Server::restart(){
     }
     players.clear();
     // clean up world
-    world.clear();
+    setCurrentMap(this->maps[0]);
     nite::Packet restart;
     restart.setHeader(Game::PacketType::SV_SET_GAME_RESTART);
     persSendAll(restart, 1000, -1);    

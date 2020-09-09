@@ -68,14 +68,7 @@ void Game::NetWorld::getQuadrant(int x, int y, int w, int h, Vector<Game::NetObj
 }
 
 Game::NetWorld::~NetWorld(){
-	clearWallMasks();
-	clearGhostMasks();
-	if(cells != NULL){
-		delete cells;
-	}
-	if(ghosts != NULL){
-		delete ghosts;
-	}
+	clear();
 }
 
 Game::NetWorld::NetWorld(){
@@ -172,6 +165,19 @@ void Game::NetWorld::clear(){
 	objects.clear();
 	clearWallMasks();
 	clearGhostMasks();
+	updateQueue.clear();
+	removeQueue.clear();
+	if(cells != NULL){
+		delete cells;
+	}
+	if(ghosts != NULL){
+		delete ghosts;
+	}	
+	cells = NULL;
+	ghosts = NULL;
+	seedNId = -1;
+	seedId = nite::randomInt(25, 50);
+	snapshotOrder = 0;	
 }
 
 void Game::NetWorld::remove(int objectId){
@@ -263,11 +269,11 @@ bool Game::NetWorld::testCollision(Game::NetObject *a, Game::NetObject *b, const
 	}
 
 	// normalize limit
-	// if(limit.x < 0.0f) limit.x = 0.0f;
-	// if(limit.x > 1.0f) limit.x = 1.0f;	
+	if(limit.x < 0.0f) limit.x = 0.0f;
+	if(limit.x > 1.0f) limit.x = 1.0f;	
 
-	// if(limit.y < 0.0f) limit.y = 0.0f;
-	// if(limit.y > 1.0f) limit.y = 1.0f;		
+	if(limit.y < 0.0f) limit.y = 0.0f;
+	if(limit.y > 1.0f) limit.y = 1.0f;		
 
 	return collision;
 }
@@ -287,7 +293,6 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	auto diff = nite::Vec2(xdiff, ydiff);
 	auto normal = nite::Vec2(0.0f);
 	auto limit = nite::Vec2(1.0f);
-	Game::NetObject *otherP;
 	for(int i = 0; i < nearObjs.size(); ++i){
 		auto other = nearObjs[i];
 		if(obj->id == other->id) continue;
@@ -302,29 +307,18 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 			obj->collided = true;
 			obj->onCollision(other);		
 			if(limit.x == 0.0f && limit.y == 0.0f){
-				otherP = other;
 				break;
 			}
 		}
 	}
-	float offset = 1.0f;
+	//float offset = 1.0f;
 	obj->position = obj->position + nite::Vec2(diff.x * limit.x, diff.y * limit.y);
-	if(limit.x == 0.0f){
-		if(normal.x > 0.0f){
-			obj->position.x = otherP->position.x - obj->size.x - offset;
-		}else
-		if(normal.x < 0.0f){
-			obj->position.x = otherP->position.x + otherP->size.x + offset;
-		}
-	}
-	if(limit.y == 0.0f){
-		if(normal.y > 0.0f){
-			obj->position.y = otherP->position.y - obj->size.y - offset;
-		}else
-		if(normal.y < 0.0f){
-			obj->position.y = otherP->position.y + otherP->size.y + offset;
-		}
-	}	
+	// if(limit.x == 0.0f){
+	// 	obj->speed.x *= -1.0f;
+	// }
+	// if(limit.y == 0.0f){
+	// 	obj->speed.y *= -1.0f;
+	// }	
 	if(origp.x != obj->position.x || origp.y != obj->position.y){
 		obj->updateQuadrant();
 	}
