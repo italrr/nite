@@ -287,7 +287,7 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	// TODO: this ^
 	
 	Vector<Game::NetObject*> nearObjs;
-	getQuadrant(obj->position.x - 3000,  obj->position.y - 3000, 6000, 6000, nearObjs);
+	getQuadrant(obj->position.x - 800,  obj->position.y - 800, 1600, 1600, nearObjs);
 	float xdiff = nite::cos(obj->direction) * obj->speed * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
 	float ydiff = nite::sin(obj->direction) * obj->speed * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
 	auto diff = nite::Vec2(xdiff, ydiff);

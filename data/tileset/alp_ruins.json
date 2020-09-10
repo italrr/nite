@@ -657,90 +657,11 @@
 		"wall_lower_bmiddle": 21,
 		"wall_lower_bright": 22,
 
-		
-		"wall_var01": 52,
-		"wall_var02": 53,
-		"wall_var03": 54,
-		"wall_var04": 55,
-		"wall_var05": 56,
-		"wall_var06": 57,
-
-		"wall_left_var01": 68,
-		"wall_left_var02": 69,
-		"wall_left_var03": 70,
-
-		"wall_right_var01": 84,
-		"wall_right_var02": 85,
-		"wall_right_var03": 86,
-
 		"trap_needle": 36
 	
 	},
 	"arbitraryVariance": [
-		{
-			"target": "wall_bot_middle",
-			"variant": "wall_var01",
-			"chance": 0.25
-		},
-		{
-			"target": "wall_bot_middle",
-			"variant": "wall_var02",
-			"chance": 0.25
-		},
-		{
-			"target": "wall_bot_middle",
-			"variant": "wall_var03",
-			"chance": 0.25
-		},
-		{
-			"target": "wall_bot_middle",
-			"variant": "wall_var04",
-			"chance": 0.25
-		},
-		{
-			"target": "wall_bot_middle",
-			"variant": "wall_var05",
-			"chance": 0.25
-		},
-		{
-			"target": "wall_bot_middle",
-			"variant": "wall_var06",
-			"chance": 0.25
-		},
 
-
-		{
-			"target": "wall_bot_right",
-			"variant": "wall_right_var01",
-			"chance": 0.50
-		},
-		{
-			"target": "wall_bot_right",
-			"variant": "wall_right_var02",
-			"chance": 0.50
-		},
-		{
-			"target": "wall_bot_right",
-			"variant": "wall_right_var03",
-			"chance": 0.50
-		},
-
-
-		{
-			"target": "wall_bot_left",
-			"variant": "wall_left_var01",
-			"chance": 0.50
-		},
-		{
-			"target": "wall_bot_left",
-			"variant": "wall_left_var02",
-			"chance": 0.50
-		},
-		{
-			"target": "wall_bot_left",
-			"variant": "wall_left_var03",
-			"chance": 0.50
-		}
 		
 	],
 	"dynamicTile": {
@@ -767,15 +688,7 @@
 	],
 	"floorDefault": "floor_",
 	"floorVariants": [
-		"floor_var01",
-		"floor_var02",
-		"floor_var03",
-		"floor_var04",
-		"floor_var05",
-		"floor_var06",
-		"floor_var07",
-		"floor_var08",
-		"floor_var09"
+
 	],
 	"specialWallMasks": {
 
