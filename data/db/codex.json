@@ -4,5 +4,47 @@
 		"desc": "According to the local legends, Nirigliss is a curse that turns its hosts into vicious monsters with deep guttural voices. These monsters sometimes speak in an unknown toungue.",
 		"offensive": "Nirigliss hosts are very aggressive and very, very fast. They are able to rush into their victims with an inhuman velocity and finese in matter of seconds. Rumors say these creatures burn their victims by merely gazing them with their blood eyected red eyes.",
 		"image": ""
+	},
+	"mon_madison": {
+		"title": "Monarch Madison",
+		"desc": "Madison is an interdimensional high-being. He's the first of the Monarchs. Madison created the network of demons, link and edo-link.",
+		"offensive": "",
+		"image": ""
+	},
+	"mon_eros": {
+		"title": "Monarch Eros",
+		"desc": "Eros is an interdimensional high-being. He's the second of the Monarchs. Eros ",
+		"offensive": "",
+		"image": ""
+	},
+	"mon_daedalus": {
+		"title": "Monarch Daedalus",
+		"desc": "",
+		"offensive": "",
+		"image": ""
+	},
+	"mon_midas": {
+		"title": "Monarch Midas",
+		"desc": "Midas is an interdimensional high-being. He's part of the Federation.",
+		"offensive": "",
+		"image": ""
+	},
+	"mon_calypso": {
+		"title": "Monarch Calypso",
+		"desc": "Calypso is an interdimensional high-being. She's the fith of the Monarchs. Calypso is the only female Monarch.",
+		"offensive": "",
+		"image": ""
+	},
+	"mon_roumann": {
+		"title": "Monarch Roumann",
+		"desc": "",
+		"offensive": "",
+		"image": ""
+	},
+	"Roh'Jask": {
+		"title": "Roh'Jask",
+		"desc": "Roh'Jask is an interdimensional-telekinetic-monster octupus.",
+		"offensive": "",
+		"image": ""
 	}
 }

@@ -61,9 +61,9 @@
             UInt16 id;
 			int localId;	
 			nite::Vec2 position;
-			nite::Vec2 speed;
+			float speed;
+            float direction;
 			nite::Vec2 size;
-			float direction;
 			float friction;
 			float mass;
 			virtual void destroy();
@@ -112,8 +112,7 @@
 
             }
 			
-			virtual bool move(const nite::Vec2 &dir);
-			virtual bool push(const nite::Vec2 &dir);
+			virtual bool push(float dir, float force);
 			bool isCollidingWith(Game::NetObject *other);
 			bool isCollidingWithSomething(Game::NetObject **who);
 			bool isCollidingWithExcept(const Vector<Game::NetObject*> &ignores);

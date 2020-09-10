@@ -310,7 +310,12 @@ nite::Texture::Texture(const String &path, const nite::Color &transparency){
 }
 
 nite::Texture::Texture(const nite::Texture &other){
-	if(other.objectId <= -1) return;
+	if(other.objectId <= -1){
+		objectId = -1;
+		smooth = false;
+		scale = nite::Vec2(1.0f);
+		return;
+	}
 	scale = other.scale;
 	region = other.region;
 	smooth = other.smooth;
@@ -320,7 +325,7 @@ nite::Texture::Texture(const nite::Texture &other){
 }
 
 void nite::Texture::unload(){
-	if (!isLoaded() || textureList.size() == 0) return;
+	if (objectId == -1 || textureList.size() == 0) return;
 	for(unsigned i=0; i<textureList[objectId].owners.size(); i++){
 		if (textureList[objectId].owners[i] == this){
 			textureList[objectId].owners.erase(textureList[objectId].owners.begin()+i);

@@ -288,8 +288,8 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	
 	Vector<Game::NetObject*> nearObjs;
 	getQuadrant(obj->position.x - 3000,  obj->position.y - 3000, 6000, 6000, nearObjs);
-	float xdiff = obj->speed.x * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
-	float ydiff = obj->speed.y * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
+	float xdiff = nite::cos(obj->direction) * obj->speed * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
+	float ydiff = nite::sin(obj->direction) * obj->speed * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
 	auto diff = nite::Vec2(xdiff, ydiff);
 	auto normal = nite::Vec2(0.0f);
 	auto limit = nite::Vec2(1.0f);
@@ -311,14 +311,14 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 			}
 		}
 	}
-	//float offset = 1.0f;
-	obj->position = obj->position + nite::Vec2(diff.x * limit.x, diff.y * limit.y);
-	// if(limit.x == 0.0f){
-	// 	obj->speed.x *= -1.0f;
-	// }
-	// if(limit.y == 0.0f){
-	// 	obj->speed.y *= -1.0f;
-	// }	
+	// push off by 1 unit of the total diff
+	if(limit.x == 0.0f && diff.x != 0.0f){
+		limit.x = (1.0f / diff.x) * nite::getSign(diff.x) * -1.0f;		
+	}
+	if(limit.y == 0.0f && diff.y != 0.0f){
+		limit.y = (1.0f / diff.y) * nite::getSign(diff.y) * -1.0f;
+	}
+	obj->position = obj->position + diff * limit;
 	if(origp.x != obj->position.x || origp.y != obj->position.y){
 		obj->updateQuadrant();
 	}
@@ -380,8 +380,7 @@ void Game::NetWorld::update(){
 		updateObject(it.second.get());
 		// friction
 		for(int i = 0; i < currentTickRate / tickrate; ++i){
-			current->speed.x *= 1.0f - (current->friction * nite::getTimescale() * timescale * current->relativeTimescale);
-			current->speed.y *= 1.0f - (current->friction * nite::getTimescale() * timescale * current->relativeTimescale);
+			current->speed *= 1.0f - (current->friction * nite::getTimescale() * timescale * current->relativeTimescale);
 		}
 		// position changed, send updates to clients (client->side only)
 		if(current->position.x != lastPos.x || current->position.y != lastPos.y){

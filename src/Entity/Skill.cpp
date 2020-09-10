@@ -210,7 +210,7 @@ bool Game::Skills::BA_Dash::use(Game::EntityBase *who, Game::EntityBase *to, con
     // nite::Vec2 origp = who->position;
     float dist = 128.0f;
     // float step = dist / 8.0f;
-    auto ang = nite::arctan(who->speed.y, who->speed.x);
+    auto ang = who->direction;
     // Game::NetObject *other;
     // who->position = who->position + nite::Vec2(nite::cos(ang) * dist, nite::sin(ang) * dist);
     // do {
@@ -218,7 +218,7 @@ bool Game::Skills::BA_Dash::use(Game::EntityBase *who, Game::EntityBase *to, con
     // } while(who->isCollidingWithSomething(&other));
     // who->setState(EntityState::SP_DASHING, EntityStateSlot::SPECIAL, 0, true);
     // who->setPosition(who->position);
-    who->push(nite::Vec2(nite::cos(ang) * dist, nite::sin(ang) * dist));
+    who->push(ang, dist);
     return true;
 }
 

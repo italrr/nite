@@ -8,6 +8,14 @@
 static String HUDMainPath = "data/ui/hud/main.json";
 static nite::Console::CreateProxy cpAnDatTo("hud_main_src", nite::Console::ProxyType::Literal, HUDMainPath.size(), (char*)HUDMainPath.c_str());
 
+
+Game::ActionableHUDObject::ActionableHUDObject(){
+    alpha = 100.0f;
+    recharge = 100.0f;
+    type = Game::ActionableType::None;
+    id = 0;                
+}
+
 Game::HUD::HUD(){
     this->followId = 0;
     // this->main = Shared<nite::BaseUIComponent>(NULL);
@@ -50,7 +58,17 @@ void Game::HUD::start(Game::Client *client){
     batch.init(nite::getWidth(), nite::getHeight());
     healthPos.set(8.0f);
     realPos = healthPos;
-    efSize = nite::Vec2(32.0f) * nite::getGeneralScale();
+    efSize = nite::Vec2(32.0f) * nite::Vec2(nite::getGeneralScale());
+    actSize = nite::Vec2(32.0f) * nite::Vec2(nite::getGeneralScale());
+    hlthSize = nite::Vec2(180.0f, 21.0f) * nite::Vec2(nite::getGeneralScale());
+
+    // add actionables
+    for(int i = 0; i < Game::EntityActionables; ++i){
+        auto act = Game::ActionableHUDObject();
+        act.position.x = 8.0f + (actSize.x + 8.0f) * i;
+        act.position.y = nite::getHeight() - (8.0f + actSize.y);
+        actionables.push_back(act);
+    }    
 }
 
 void Game::HUD::follow(UInt16 followId){
@@ -120,6 +138,31 @@ void Game::HUD::update(){
         this->rerender();
     }
 
+    // // // ACTIONABLES
+    auto &acts = ent->actionables;
+
+    // update
+    for(int i = 0; i < Game::EntityActionables; ++i){
+        auto &target = this->actionables[i];
+        if(acts[i].id != target.id || 
+           acts[i].type != target.type ){
+            target.id = acts[i].id;
+            target.type = acts[i].type;
+            // get icon
+            switch(target.type){
+                case ActionableType::Skill: {
+                    auto sk = ent->skillStat.get(target.id);
+                    if(sk != NULL){
+                        target.icon = client->icons.getIcon(sk->iconId);
+                    }
+                } break;
+                // TODO: item
+            }
+            rerender = true;
+        }
+    }   
+
+
 
     // // // UPDATE EFFECTS
     auto &effs = ent->effectStat.effects;
@@ -173,7 +216,7 @@ void Game::HUD::update(){
 void Game::HUD::rerender(){
     batch.begin();
 
-    nite::Vec2 size = nite::Vec2(180, 21) * nite::Vec2(nite::getGeneralScale());
+    // nite::Vec2 size = nite::Vec2(180, 21) * nite::Vec2(nite::getGeneralScale());
     nite::Vec2 &pos = realPos;
 
     float ltrw = healthFont.getWidth("HP");
@@ -186,16 +229,16 @@ void Game::HUD::rerender(){
     auto drawBar = [&](const String &lettr, const nite::Vec2 &p, float v, float m, float bthckness, const nite::Color &base){
         nite::Color bg = nite::Color(base) * 0.25f;
         nite::setColor(bg.r, bg.g, bg.b, 1.0f);
-        empty.draw(p.x + sep, p.y, size.x, size.y, 0.0f, 0.0f, 0.0f);
+        empty.draw(p.x + sep, p.y, hlthSize.x, hlthSize.y, 0.0f, 0.0f, 0.0f);
         nite::setColor(base);
         float diff = v / m;
-        empty.draw(p.x + bthckness + sep, p.y + bthckness, size.x * diff - bthckness * 2.0f, size.y - bthckness * 2.0f, 0.0f, 0.0f, 0.0f);
+        empty.draw(p.x + bthckness + sep, p.y + bthckness, hlthSize.x * diff - bthckness * 2.0f, hlthSize.y - bthckness * 2.0f, 0.0f, 0.0f, 0.0f);
         nite::Color txt = nite::Color(base) * 1.5f;
         nite::setColor(txt.r, txt.g, txt.b, 1.0f);
         healthFont.draw(lettr, p.x, p.y, 0.0f, 0.0f, 0.0f);
         nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
         String lit = nite::toStr(nite::round(v))+" / "+nite::toStr(nite::round(m));
-        healthSmallFont.draw(lit, p.x + bthckness + sep + size.x * 0.5f, p.y + size.y * 0.5f, 0.5f, 0.5f, 0.0f);
+        healthSmallFont.draw(lit, p.x + bthckness + sep + hlthSize.x * 0.5f, p.y + hlthSize.y * 0.5f, 0.5f, 0.5f, 0.0f);
         // healthFont.draw("/", p.x + size.x * 0.5f, p.y + size.y * 0.5f - healthFont.getHeight("/") * 0.5f, 0.5f, 0.0f, 0.0f);
         // healthFont.draw(nite::toStr(nite::round(m)), p.x + size.x * 0.75f, p.y + size.y * 0.5f - fh * 0.5f, 0.5f, 0.0f, 0.0f);
     
@@ -209,18 +252,40 @@ void Game::HUD::rerender(){
         empty.draw(obj.position.x, obj.position.y, efSize.x, efSize.y, 0.0f, 0.0f, 0.0f);
 
         nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        if(obj.icon.id == -1){
+            return;
+        }
         obj.icon.source.setRegion(obj.icon.inTexPosition.x, obj.icon.inTexPosition.y, obj.icon.iconSize.x, obj.icon.iconSize.y);
         obj.icon.source.draw(obj.position.x, obj.position.y, efSize.x, efSize.y, 0.0f, 0.0f, 0.0f);    
         
     };
     
+    auto drawActionable = [&](ActionableHUDObject &obj, float bthckness){
+        nite::setColor(0.0f, 0.0f, 0.0f, 1.0f);
+        empty.draw(obj.position.x - bthckness, obj.position.y - bthckness, actSize.x + bthckness * 2.0f, actSize.y + bthckness * 2.0f, 0.0f, 0.0f, 0.0f);
+
+        nite::setColor(0.0f, 0.0f, 0.0f, 1.0f);
+        empty.draw(obj.position.x, obj.position.y, actSize.x, actSize.y, 0.0f, 0.0f, 0.0f);
+
+        nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        if(obj.icon.id == -1){
+            return;
+        }        
+        obj.icon.source.setRegion(obj.icon.inTexPosition.x, obj.icon.inTexPosition.y, obj.icon.iconSize.x, obj.icon.iconSize.y);
+        obj.icon.source.draw(obj.position.x, obj.position.y, actSize.x, actSize.y, 0.0f, 0.0f, 0.0f);         
+    };
+
     drawBar("HP", pos, pHealth, pHealthMax, thickness, hpc);
-    drawBar("SP", pos + nite::Vec2(0.0f, size.y + 4), pMana, pManaMax, thickness, manac);
-    drawBar("ST", pos + nite::Vec2(0.0f, size.y * 2 + 4 * 2), pStamina, pStaminaMax, thickness, staminac);
+    drawBar("SP", pos + nite::Vec2(0.0f, hlthSize.y + 4), pMana, pManaMax, thickness, manac);
+    drawBar("ST", pos + nite::Vec2(0.0f, hlthSize.y * 2 + 4 * 2), pStamina, pStaminaMax, thickness, staminac);
 
 
     for(auto &it : this->effects){
         drawEffect(it.second, thickness);
+    }
+
+    for(int i = 0; i < this->actionables.size(); ++i){
+        drawActionable(this->actionables[i], thickness);
     }
 
     batch.end();

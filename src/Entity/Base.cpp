@@ -85,7 +85,10 @@ void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // m
 		setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
 	}
 	isMoving = true;
-	move((nite::Vec2(5.8f) + nite::Vec2(complexStat.walkRate)) * dir);
+	nite::Vec2 _dir = (nite::Vec2(5.8f) + nite::Vec2(complexStat.walkRate)) * dir;
+	float angle = nite::arctan(_dir.y, _dir.x);
+	float mod = nite::sqrt(_dir.x * _dir.x + _dir.y * _dir.y);
+	push(angle, mod);
 }
 
 void Game::EntityBase::kill(){

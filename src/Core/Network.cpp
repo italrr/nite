@@ -162,6 +162,7 @@ void Game::Net::setCurrentMap(Shared<nite::Map> &m){
         auto &mask = m->masks[i];
         auto obj = new Game::NetObject();
         obj->position = mask.position;
+        obj->objType = ObjectType::Prop;
         obj->size = mask.size;
         obj->solid = true;
         obj->unmovable = true;

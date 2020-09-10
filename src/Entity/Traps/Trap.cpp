@@ -43,7 +43,7 @@ void Game::TrapNeedles::damage(Game::NetObject *who){
     auto whoorigin = who->position + who->size  * 0.5f;
     auto *ent = static_cast<Game::EntityBase*>(who);
     float ang = nite::arctan(whoorigin.y - origin.y, whoorigin.x - origin.x);
-    ent->push(nite::Vec2(nite::cos(ang) * mod,  nite::sin(ang) * mod));
+    ent->push(ang, mod);
     auto dmg = Game::DamageInfo();
     dmg.emitter = 0;
     dmg.receiver = who->id;

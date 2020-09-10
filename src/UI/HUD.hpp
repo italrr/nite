@@ -15,13 +15,13 @@
         struct Client;
         
         struct ActionableHUDObject {
-
+            UInt8 type;
+            UInt32 id; // either slotId or skill id            
+            Game::Icon icon;
             float recharge;
             float alpha;
-            ActionableHUDObject(){
-                alpha = 100.0f;
-                recharge = 100.0f;
-            }
+            nite::Vec2 position;
+            ActionableHUDObject();
         };
 
         struct EffectHUDObject {
@@ -41,6 +41,8 @@
 
         struct HUD {
             nite::Vec2 efSize;
+            nite::Vec2 actSize;
+            nite::Vec2 hlthSize;
 
             nite::Batch batch;
             nite::Texture empty;
@@ -63,9 +65,9 @@
             nite::Vec2 realPos;
 
             Dict<UInt16, EffectHUDObject> effects;
+            Vector<ActionableHUDObject> actionables;
             UInt64 lastCheck;
             HUD();
-            Vector<Game::ActionableHUDObject> actionables;
             //Shared<nite::BaseUIComponent> main;
             UInt16 followId;
             nite::Shader actShader;

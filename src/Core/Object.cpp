@@ -44,6 +44,8 @@ Game::NetObject::NetObject(){
 	friction = 0.10f;
 	mass = 1.0f;
 	localId = 0;
+    speed = 0.0f;
+    direction = 0.0f;
 	container = NULL;
 	position.set(0.0f);
 
@@ -127,27 +129,11 @@ void Game::NetObject::clearQuadrant(){
     quadrant = -1;
 }
 
-bool Game::NetObject::move(const nite::Vec2 &dir){
-    float ang = nite::arctan(dir.y, dir.x);
-    float mod = nite::sqrt(dir.x * dir.x + dir.y * dir.y);
-    float smod = nite::sqrt(speed.x * speed.x + speed.y * speed.y);
-
-    if(smod > mod){
-        mod = 0.0f;
-    }else
-    if(mod > smod){
-        mod = mod - smod;
-    }
-
-    this->speed.x += nite::cos(ang) * mod;
-    this->speed.y += nite::sin(ang) * mod;
-
-	return true;
-}
-
-bool Game::NetObject::push(const nite::Vec2 &dir){
-    this->speed.x += dir.x;
-    this->speed.y += dir.y;
+bool Game::NetObject::push(float dir, float force){
+    auto add = nite::Vec2(nite::cos(dir) * force, nite::sin(dir) * force);
+    auto init = nite::Vec2(nite::cos(direction) * speed + add.x, nite::sin(direction) * speed + add.y);
+    this->direction = nite::arctan(init.y, init.x);
+    this->speed = nite::sqrt(init.x * init.x + init.y * init.y);
 	return true;
 }
 
