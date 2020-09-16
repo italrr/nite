@@ -409,8 +409,8 @@ static void drawText(nite::Renderable *object){
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	nite::Vec2 offset = obj.target == nite::RenderTargetDummy ? nite::Vec2(0.0f) : nite::getRenderOffset();
 	glPushMatrix();
-	glTranslatef(obj.position.x - nite::getViewX(obj.target) + offset.x, obj.position.y - nite::getViewY(obj.target) + offset.y, 0.f);
-	glRotatef(obj.angle, 0.0, 0.0, 1.0);
+	glTranslatef((int)(obj.position.x - nite::getViewX(obj.target) + offset.x), (int)(obj.position.y - nite::getViewY(obj.target) + offset.y), 0.f);
+	glRotatef((int)obj.angle, 0.0, 0.0, 1.0);
 	for(int i = 0; i < obj.programs.size(); ++i){
 		glUseProgram(obj.programs[i]->id);
 		for(const auto& Uniform : obj.programs[i]->uniforms.integers){
@@ -490,8 +490,9 @@ static void drawText(nite::Renderable *object){
 			}
 		}
 	}
-	obj.origin.set(origin);
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY);
+	// use rounded numbers to avoid atlas artifacts
+	obj.origin.set((int)origin.x, (int)origin.y);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	for(unsigned i=0; i<obj.text.size(); i++){
 		char current =  obj.text[i];

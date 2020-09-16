@@ -39,6 +39,10 @@ int main(int argc, char* argv[]){
 
 	// nite::UI::build("data/ui/ingame_menu/main.json");
 
+	nite::Font f("data/font/Exo2-Regular.ttf", 128, 4.0f);
+	nite::Texture empty("data/texture/empty.png");
+	nite::Vec2 p(0.0f);
+
 	while(game.isRunning){	
 		game.update();
 		// __temp();
@@ -60,6 +64,7 @@ int main(int argc, char* argv[]){
         // map->draw(nite::Vec2(0.0f), nite::Rect(pos.x - sizeDiffH.x, pos.y - sizeDiffH.y, nite::getWidth() + sizeDiff.x, nite::getHeight() + sizeDiff.y));
 
 		game.render();
+		
 	}
 	game.onEnd();
 

@@ -222,9 +222,10 @@ void Game::HUD::rerender(){
     float ltrw = healthFont.getWidth("HP");
     float sep = ltrw + 8;
     float thickness = 2.0f;
-    nite::Color hpc = nite::Color(1.0f, 0.0f, 0.0f, 1.0f);
-    nite::Color manac = nite::Color(0.15f, 0.15f, 1.0f, 1.0f);
-    nite::Color staminac = nite::Color(0.15f, 0.9f, 0.0f, 1.0f);
+    nite::Color hpc = nite::Color(0.53f, 0.18f, 0.18f, 1.0f);
+    nite::Color manac = nite::Color(0.18f, 0.26f, 0.53f, 1.0f);
+    nite::Color staminac = nite::Color(0.31f, 0.531f, 0.182f, 1.0f);
+    nite::Color filler = nite::Color(0.16f, 0.16f, 0.16f, 1.0f);
 
     auto drawBar = [&](const String &lettr, const nite::Vec2 &p, float v, float m, float bthckness, const nite::Color &base){
         nite::Color bg = nite::Color(base) * 0.25f;
@@ -248,7 +249,7 @@ void Game::HUD::rerender(){
         nite::setColor(obj.color.r, obj.color.g, obj.color.b, 1.0f);
         empty.draw(obj.position.x - bthckness, obj.position.y - bthckness, efSize.x + bthckness * 2.0f, efSize.y + bthckness * 2.0f, 0.0f, 0.0f, 0.0f);
 
-        nite::setColor(0.0f, 0.0f, 0.0f, 1.0f);
+        nite::setColor(filler);
         empty.draw(obj.position.x, obj.position.y, efSize.x, efSize.y, 0.0f, 0.0f, 0.0f);
 
         nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -261,10 +262,10 @@ void Game::HUD::rerender(){
     };
     
     auto drawActionable = [&](ActionableHUDObject &obj, float bthckness){
-        nite::setColor(0.0f, 0.0f, 0.0f, 1.0f);
+        nite::setColor(0.55f, 0.18f, 0.18f, 1.0f);
         empty.draw(obj.position.x - bthckness, obj.position.y - bthckness, actSize.x + bthckness * 2.0f, actSize.y + bthckness * 2.0f, 0.0f, 0.0f, 0.0f);
 
-        nite::setColor(0.0f, 0.0f, 0.0f, 1.0f);
+        nite::setColor(filler);
         empty.draw(obj.position.x, obj.position.y, actSize.x, actSize.y, 0.0f, 0.0f, 0.0f);
 
         nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
