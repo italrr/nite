@@ -1153,7 +1153,7 @@ void nite::graphicsInit(){
 		size.set(displayWidth, displayHeight);
 	}
 
-	const char *n = "ADRIFT IN OBLIVION";
+	const char *n = "R E D   B I A S";
 
 	Window = SDL_CreateWindow(n, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, size.x, size.y, Flags);
 	

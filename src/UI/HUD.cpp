@@ -222,10 +222,11 @@ void Game::HUD::rerender(){
     float ltrw = healthFont.getWidth("HP");
     float sep = ltrw + 8;
     float thickness = 2.0f;
-    nite::Color hpc = nite::Color(0.53f, 0.18f, 0.18f, 1.0f);
-    nite::Color manac = nite::Color(0.18f, 0.26f, 0.53f, 1.0f);
-    nite::Color staminac = nite::Color(0.31f, 0.531f, 0.182f, 1.0f);
-    nite::Color filler = nite::Color(0.16f, 0.16f, 0.16f, 1.0f);
+    nite::Color hpc = nite::Color(0.71f, 0.18f, 0.18f, 1.0f);
+    nite::Color manac = nite::Color(0.18f, 0.26f, 0.71f, 1.0f);
+    nite::Color staminac = nite::Color(0.31f, 0.731f, 0.182f, 1.0f);
+    nite::Color filler = nite::Color(0.11f, 0.11f, 0.11f, 1.0f);
+    nite::Color actPaddc = nite::Color(0.75f, 0.45f, 0.35f, 1.0f);
 
     auto drawBar = [&](const String &lettr, const nite::Vec2 &p, float v, float m, float bthckness, const nite::Color &base){
         nite::Color bg = nite::Color(base) * 0.25f;
@@ -239,7 +240,7 @@ void Game::HUD::rerender(){
         healthFont.draw(lettr, p.x, p.y, 0.0f, 0.0f, 0.0f);
         nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
         String lit = nite::toStr(nite::round(v))+" / "+nite::toStr(nite::round(m));
-        healthSmallFont.draw(lit, p.x + bthckness + sep + hlthSize.x * 0.5f, p.y + hlthSize.y * 0.5f, 0.5f, 0.5f, 0.0f);
+        healthSmallFont.draw(lit, p.x + bthckness + sep + hlthSize.x * 0.5f, p.y + hlthSize.y * 0.5f - thickness, 0.5f, 0.5f, 0.0f);
         // healthFont.draw("/", p.x + size.x * 0.5f, p.y + size.y * 0.5f - healthFont.getHeight("/") * 0.5f, 0.5f, 0.0f, 0.0f);
         // healthFont.draw(nite::toStr(nite::round(m)), p.x + size.x * 0.75f, p.y + size.y * 0.5f - fh * 0.5f, 0.5f, 0.0f, 0.0f);
     
@@ -262,7 +263,7 @@ void Game::HUD::rerender(){
     };
     
     auto drawActionable = [&](ActionableHUDObject &obj, float bthckness){
-        nite::setColor(0.55f, 0.18f, 0.18f, 1.0f);
+        nite::setColor(actPaddc);
         empty.draw(obj.position.x - bthckness, obj.position.y - bthckness, actSize.x + bthckness * 2.0f, actSize.y + bthckness * 2.0f, 0.0f, 0.0f, 0.0f);
 
         nite::setColor(filler);

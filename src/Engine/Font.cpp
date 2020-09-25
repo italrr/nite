@@ -450,7 +450,7 @@ static void drawText(nite::Renderable *object){
 			}
 		}
 	}
-	nite::Vec2 origin(obj.origin.x*obj.ref->getWidth(obj.text)*obj.scale.x, obj.origin.y*obj.ref->getHeight()*obj.scale.y);
+	nite::Vec2 origin(obj.origin.x*obj.ref->getWidth(obj.text)*obj.scale.x, obj.origin.y*obj.ref->getRealHeight(obj.text)*obj.scale.y);
 	if(obj.maxChars > 0 && obj.text.size() > obj.maxChars){
 		if(!obj.autobreak){
 			obj.text = obj.text.substr(0, obj.maxChars - 3);
@@ -461,7 +461,7 @@ static void drawText(nite::Renderable *object){
 			if(words.size() > 1){
 				String longest = "";
 				String current = "";
-				float base = obj.ref->getHeight();
+				float base = obj.ref->getHeight("A");
 				float height = base;
 				obj.text = "";
 				for(int i = 0; i < words.size(); ++i){
@@ -655,7 +655,12 @@ float nite::Font::getWidth(const String &str){
 }
 
 float nite::Font::getRealHeight(const String &str){
-	return fontList[objectId].glyphs['A'].coors.y * SCALING;
+	if(objectId <= -1) return 0;
+	float t = 0.0f;
+	for(int i = 0; i < str.size(); ++i){
+		t = std::max(t, fontList[objectId].glyphs[str[i]].coors.y * SCALING);
+	}
+	return t;
 }
 
 float nite::Font::getHeight(){

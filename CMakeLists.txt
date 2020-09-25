@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(LID_PRO CXX C)
+project(REDBIAS_PRO CXX C)
 
 set(CMAKE_C_FLAGS "-DGLEW_STATIC -g -m64")
 set(CMAKE_CXX_FLAGS "-DGLEW_STATIC -std=c++11 -g -m64")
@@ -280,7 +280,7 @@ ENDIF(MINGW)
 
 aux_source_directory(src/ SRC_LIST)
 
-add_executable(Game src/LID.cpp)
+add_executable(Game src/REDBIAS.cpp)
 #add_executable(Dedicated src/Server.cpp)#
 
 target_link_libraries(Game src)
