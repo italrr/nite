@@ -82,7 +82,7 @@ Game::NetWorld::NetWorld(){
 	tickrate = 1000 / 33;
 	int reserve = 1000 * 30;
 	objects.reserve(reserve);
-	nite::print("networld reserved "+nite::toStr(sizeof(Shared<Game::NetObject>) * reserve)+" bytes");
+	nite::print("networld reserved "+nite::toStr((long long unsigned int)(sizeof(Shared<Game::NetObject>) * reserve))+" bytes");
 }
 
 bool Game::NetWorld::exists(UInt16 id){

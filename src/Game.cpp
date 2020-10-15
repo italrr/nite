@@ -85,7 +85,7 @@ static nite::Console::Result cfRINGGenerateMap(Vector<String> params){
 		return nite::Console::Result("you cannot generate a map while in a game. disconnect first", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}
 	instance->client.clear();
-	// TODO: allow to provide blueprint specs, tilesource and scale
+	// TODO: allow user to provide blueprint specs, tilesource and scale
 	// may require to create other commands
 	auto indexer = nite::getIndexer();
 	auto *file = indexer->getByName(tilesource);
@@ -161,7 +161,7 @@ void Game::GameCore::spawnServerThread(){
 
 void Game::GameCore::killServerThread(){
 	pthread_cancel(svThread);
-	pthread_join(svThread, NULL);
+	// pthread_join(svThread, NULL); // causes it to hang on windows
 	nite::print("killed local server thread");
 	this->localSv.close();
 }

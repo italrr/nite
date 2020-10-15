@@ -813,7 +813,7 @@ void Game::Server::update(){
     }
 
     // update physics
-    if(nite::getTicks()-physicsUpdate > 0){
+    if(nite::getTicks()-physicsUpdate > 16){
         auto &queue = world.updateQueue;
         if(queue.size() > 0){      
             UInt16 amnt = queue.size();

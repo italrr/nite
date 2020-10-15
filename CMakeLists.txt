@@ -112,8 +112,8 @@ else ()
 endif ()
 
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different
- 	src/Engine/FreeType/include/freetype/config/ftconfig.h-new"
-	src/Engine/FreeType/include/freetype/config/ftconfig.h")
+ 	"src/Engine/FreeType/include/freetype/config/ftconfig.h-new"
+	"src/Engine/FreeType/include/freetype/config/ftconfig.h")
 
 include_directories("src/Engine/FreeType/include")
 include_directories(BEFORE "src/Engine/FreeType/include")	

@@ -1037,7 +1037,7 @@ void Game::Client::update(){
                 }
             } break;  
             /*
-                SV_SET
+                SV_SET_OBJECT_POSITION
             */
             case Game::PacketType::SV_SET_OBJECT_POSITION: {
                 if(!isSv){ break; }
@@ -1214,7 +1214,7 @@ void Game::Client::game(){
             auto ent = static_cast<Game::EntityBase*>(obj);
             ent->updateStance();
 
-            if(ent->nextPosition.size() > 0 && ent->position.lerpDiscrete(ent->nextPosition[0], 0.10f)){
+            if(ent->nextPosition.size() > 0 && ent->position.lerpDiscrete(ent->nextPosition[0], 0.75f)){
                 ent->nextPosition.erase(ent->nextPosition.begin() + 0);
             }
         }

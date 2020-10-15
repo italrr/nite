@@ -97,28 +97,28 @@ void Game::Camera::update(nite::Vec2 &towards, float mu){
 	// if(std::isnan(v.x) || std::isnan(v.y)){
 	// 	return;
 	// }
-	p.cInterpDiscrete(np, mu);
+	p.lerpDiscrete(np, mu);
 	setViewPosition(p, nite::RenderTargetGame);	
 }
 
 void Game::Camera::update(nite::Vec2 &v){
-	update(v, 0.14f);
+	update(v, 0.08f);
 }
 
 void Game::Camera::update(){	
 	if(cameraFreeroam){
 		nite::Vec2 np = nite::getView(nite::RenderTargetGame);
 		nite::Vec2 lnp = np;
-		if(nite::keyboardCheck(nite::keyA)){
+		if(nite::keyboardCheck(nite::keyLEFT)){
 			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(64.0f, 0.0f));
 		}
-		if(nite::keyboardCheck(nite::keyD)){
+		if(nite::keyboardCheck(nite::keyRIGHT)){
 			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(64.0f, 0.0f));
 		}		
-		if(nite::keyboardCheck(nite::keyW)){
+		if(nite::keyboardCheck(nite::keyUP)){
 			np.set(nite::getView(nite::RenderTargetGame) - nite::Vec2(0.0f, 64.0f));			
 		}
-		if(nite::keyboardCheck(nite::keyS)){
+		if(nite::keyboardCheck(nite::keyDOWN)){
 			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(0.0f, 64.0f));						
 		}		
 		lnp.lerpDiscrete(np, 0.35f);

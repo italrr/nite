@@ -79,7 +79,7 @@ void Game::Stat::recalculateComplexStats(){
 	complexStat.magicAtk += nite::ceil(baseStat.intelAdd * 8.5f);
 	complexStat.def += nite::ceil(baseStat.enduAdd * 5.8f + healthStat.lv * 0.7f);
 	complexStat.magicDef += nite::ceil(baseStat.intelAdd * 4.5f + baseStat.enduAdd * 1.2f);		
-	complexStat.walkRate += nite::ceil(0.08f * baseStat.agiAdd); // TODO: take weight into account
+	complexStat.walkRate += nite::ceil(0.03f * baseStat.agiAdd); // TODO: take weight into account
 	complexStat.critRate += (float)baseStat.lukAdd / (float)GAME_MAX_STAT;
 	complexStat.precsRate += baseStat.dexAdd * 1.25f;
 	complexStat.atkRate += baseStat.agiAdd * (3.85f + healthStat.lv * 0.15f) + baseStat.dexAdd * (1.1f + healthStat.lv * 0.1f);

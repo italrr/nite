@@ -10,6 +10,9 @@
 #include "Engine/Graphics.hpp"
 #include "Engine/Console.hpp"
 
+static int forceStepRate = -1;
+static UInt64 lastStep = 0;
+static nite::Console::CreateProxy cpFrStpR8("core_force_steprate", nite::Console::ProxyType::Int, sizeof(forceStepRate), &forceStepRate, false, false);
 
 namespace DEFAULT_MAPPING {
 	void __exportall(const String &path);
@@ -44,6 +47,13 @@ int main(int argc, char* argv[]){
 	nite::Vec2 p(0.0f);
 
 	while(game.isRunning){	
+		if(forceStepRate > 0){
+			UInt64 diffrate = 1000 / forceStepRate;
+			if(nite::getTicks()-lastStep < diffrate){
+				continue;
+			}
+			lastStep = nite::getTicks();
+		}
 		game.update();
 		// __temp();
 		// if(nite::keyboardPress(nite::keySPACE)){

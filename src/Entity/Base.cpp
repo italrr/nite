@@ -148,8 +148,9 @@ void Game::EntityBase::draw(){
 	UInt8 anims[AnimPart::total] = {bot, mid, AnimType::TOP_NEUTRAL};
 	UInt8 numbs[AnimPart::total] = {stNum[EntityStateSlot::BOTTOM], stNum[EntityStateSlot::MID], 0};
 	anim.setState(anims, numbs);
-	nite::Vec2 rp = position + size * 0.5f;
-	nite::lerpDiscrete(entityAlpha, canDamage() ? 100.0f : 55.0f, 0.15f);
+	lerpPosition.lerpDiscrete(position, 0.21f);
+	nite::Vec2 rp = lerpPosition + size * 0.5f;
+	nite::lerpDiscrete(entityAlpha, canDamage() ? 100.0f : 55.0f, 0.25f);
     nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setColor(1.0f, 1.0f, 1.0f, entityAlpha / 100.0f);
 	int bodyDepth = -rp.y - anim.bodyDepthOffset;

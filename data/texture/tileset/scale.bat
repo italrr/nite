@@ -1,0 +1,1 @@
+ffmpeg -i alk_ruins_beta.png -vf scale=2048:2048:flags=neighbor alk_ruins.png -y

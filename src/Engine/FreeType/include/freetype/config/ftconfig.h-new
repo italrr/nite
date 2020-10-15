@@ -1,8 +1,8 @@
 /***************************************************************************/
 /*                                                                         */
-/*  ftconfig.in                                                            */
+/*  ftconfig.h                                                             */
 /*                                                                         */
-/*    UNIX-specific configuration file (specification only).               */
+/*    ANSI-specific configuration file (specification only).               */
 /*                                                                         */
 /*  Copyright 1996-2018 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
@@ -31,8 +31,9 @@
   /* system-specific files that are always included first when building    */
   /* the library.                                                          */
   /*                                                                       */
+  /* This ANSI version should stay in `include/config/'.                   */
+  /*                                                                       */
   /*************************************************************************/
-
 
 #ifndef FTCONFIG_H_
 #define FTCONFIG_H_
@@ -57,11 +58,6 @@ FT_BEGIN_HEADER
   /*************************************************************************/
 
 
-#undef HAVE_UNISTD_H
-#undef HAVE_FCNTL_H
-#undef HAVE_STDINT_H
-
-
   /* There are systems (like the Texas Instruments 'C54x) where a `char' */
   /* has 16 bits.  ANSI C says that sizeof(char) is always 1.  Since an  */
   /* `int' has 16 bits also for this system, sizeof(int) gives 1 which   */
@@ -75,29 +71,13 @@ FT_BEGIN_HEADER
 #endif
 
 
-#undef FT_USE_AUTOCONF_SIZEOF_TYPES
-#ifdef FT_USE_AUTOCONF_SIZEOF_TYPES
-
-#undef SIZEOF_INT
-#undef SIZEOF_LONG
-#define FT_SIZEOF_INT  SIZEOF_INT
-#define FT_SIZEOF_LONG SIZEOF_LONG
-
-#else /* !FT_USE_AUTOCONF_SIZEOF_TYPES */
-
-  /* Following cpp computation of the bit length of int and long */
-  /* is copied from default include/freetype/config/ftconfig.h.  */
-  /* If any improvement is required for this file, it should be  */
-  /* applied to the original header file for the builders that   */
-  /* do not use configure script.                                */
-
   /* The size of an `int' type.  */
 #if                                 FT_UINT_MAX == 0xFFFFUL
-#define FT_SIZEOF_INT  (16 / FT_CHAR_BIT)
+#define FT_SIZEOF_INT  ( 16 / FT_CHAR_BIT )
 #elif                               FT_UINT_MAX == 0xFFFFFFFFUL
-#define FT_SIZEOF_INT  (32 / FT_CHAR_BIT)
+#define FT_SIZEOF_INT  ( 32 / FT_CHAR_BIT )
 #elif FT_UINT_MAX > 0xFFFFFFFFUL && FT_UINT_MAX == 0xFFFFFFFFFFFFFFFFUL
-#define FT_SIZEOF_INT  (64 / FT_CHAR_BIT)
+#define FT_SIZEOF_INT  ( 64 / FT_CHAR_BIT )
 #else
 #error "Unsupported size of `int' type!"
 #endif
@@ -105,16 +85,14 @@ FT_BEGIN_HEADER
   /* The size of a `long' type.  A five-byte `long' (as used e.g. on the */
   /* DM642) is recognized but avoided.                                   */
 #if                                  FT_ULONG_MAX == 0xFFFFFFFFUL
-#define FT_SIZEOF_LONG  (32 / FT_CHAR_BIT)
+#define FT_SIZEOF_LONG  ( 32 / FT_CHAR_BIT )
 #elif FT_ULONG_MAX > 0xFFFFFFFFUL && FT_ULONG_MAX == 0xFFFFFFFFFFUL
-#define FT_SIZEOF_LONG  (32 / FT_CHAR_BIT)
+#define FT_SIZEOF_LONG  ( 32 / FT_CHAR_BIT )
 #elif FT_ULONG_MAX > 0xFFFFFFFFUL && FT_ULONG_MAX == 0xFFFFFFFFFFFFFFFFUL
-#define FT_SIZEOF_LONG  (64 / FT_CHAR_BIT)
+#define FT_SIZEOF_LONG  ( 64 / FT_CHAR_BIT )
 #else
 #error "Unsupported size of `long' type!"
 #endif
-
-#endif /* !FT_USE_AUTOCONF_SIZEOF_TYPES */
 
 
   /* FT_UNUSED is a macro used to indicate that a given parameter is not  */
@@ -258,12 +236,12 @@ FT_BEGIN_HEADER
 
 #endif
 
-#if FT_SIZEOF_INT == 4
+#if FT_SIZEOF_INT == ( 32 / FT_CHAR_BIT )
 
   typedef signed int      FT_Int32;
   typedef unsigned int    FT_UInt32;
 
-#elif FT_SIZEOF_LONG == 4
+#elif FT_SIZEOF_LONG == ( 32 / FT_CHAR_BIT )
 
   typedef signed long     FT_Int32;
   typedef unsigned long   FT_UInt32;
@@ -274,12 +252,12 @@ FT_BEGIN_HEADER
 
 
   /* look up an integer type that is at least 32 bits */
-#if FT_SIZEOF_INT >= 4
+#if FT_SIZEOF_INT >= ( 32 / FT_CHAR_BIT )
 
   typedef int            FT_Fast;
   typedef unsigned int   FT_UFast;
 
-#elif FT_SIZEOF_LONG >= 4
+#elif FT_SIZEOF_LONG >= ( 32 / FT_CHAR_BIT )
 
   typedef long           FT_Fast;
   typedef unsigned long  FT_UFast;
@@ -287,24 +265,14 @@ FT_BEGIN_HEADER
 #endif
 
 
-  /* determine whether we have a 64-bit int type  */
-  /* (mostly for environments without `autoconf') */
-#if FT_SIZEOF_LONG == 8
+  /* determine whether we have a 64-bit int type for platforms without */
+  /* Autoconf                                                          */
+#if FT_SIZEOF_LONG == ( 64 / FT_CHAR_BIT )
 
   /* FT_LONG64 must be defined if a 64-bit type is available */
 #define FT_LONG64
 #define FT_INT64   long
 #define FT_UINT64  unsigned long
-
-  /* we handle the LLP64 scheme separately for GCC and clang, */
-  /* suppressing the `long long' warning                      */
-#elif ( FT_SIZEOF_LONG == 4 )       && \
-      defined( HAVE_LONG_LONG_INT ) && \
-      defined( __GNUC__ )
-#pragma GCC diagnostic ignored "-Wlong-long"
-#define FT_LONG64
-#define FT_INT64   long long int
-#define FT_UINT64  unsigned long long int
 
   /*************************************************************************/
   /*                                                                       */
@@ -357,7 +325,7 @@ FT_BEGIN_HEADER
 
 #endif /* __STDC_VERSION__ >= 199901L */
 
-#endif /* FT_SIZEOF_LONG == 8 */
+#endif /* FT_SIZEOF_LONG == (64 / FT_CHAR_BIT) */
 
 #ifdef FT_LONG64
   typedef FT_INT64   FT_Int64;
@@ -493,6 +461,15 @@ FT_BEGIN_HEADER
 #define FT_EXPORT( x )  extern  x
 #endif
 
+#ifdef _MSC_VER
+#undef FT_EXPORT
+#ifdef _DLL
+#define FT_EXPORT( x )  __declspec( dllexport )  x
+#else
+#define FT_EXPORT( x )  __declspec( dllimport )  x
+#endif
+#endif
+
 #endif /* !FT_EXPORT */
 
 
@@ -516,6 +493,7 @@ FT_BEGIN_HEADER
 #endif
 
 #endif /* !FT_EXPORT_VAR */
+
 
   /* The following macros are needed to compile the library with a   */
   /* C++ compiler and with 16bit compilers.                          */
