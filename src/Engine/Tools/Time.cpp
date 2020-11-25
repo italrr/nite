@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <sys/time.h>
+#include <chrono>
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -101,9 +102,7 @@ Returns seconds since epoch
 ================
 */
 UInt32 nite::getTocks(){
-    static timeval t;
-    gettimeofday(&t, 0);
-    return t.tv_sec;
+	return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 /*
@@ -112,17 +111,7 @@ Returns milliseconds since an arbitrary time
 ================
 */
 UInt64 nite::getTicks(){
-    static timeval t;
-
-    gettimeofday(&t, 0);
-
-    //time_t currentTime;
-    //time (&currentTime);
-    //tm * ptm= localtime(&currentTime);
-
-   // unsigned d = ptm->tm_sec*1000.0 + ptm->tm_min*60.0*1000.0 + ptm->tm_hour*3600.0*1000.0;
-
-    return t.tv_sec*1000.0 + (t.tv_usec/1000.0);
+	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 /*

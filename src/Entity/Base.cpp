@@ -158,6 +158,11 @@ void Game::EntityBase::draw(){
 	float reversed = faceDirection == EntityFacing::Left ? -1.0f : 1.0f;
 	auto ref = anim.batch.draw(rp.x, rp.y, anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);
 
+	anim.update();
+
+	if(ref != NULL){
+		ref->smooth = false;
+	}
 
 	if(dmgCountShow > 0){
 		dmgCountShowPos.lerpDiscrete(nite::Vec2(0.0f, -anim.frameSize.y  * 0.5f), 0.25f);

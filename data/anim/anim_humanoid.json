@@ -1,28 +1,57 @@
 {
 	"frameSize": {
 		"w": 128,
-		"h": 192
+		"h": 184
 	},
 	"maskSize": {
 		"w": 72,
 		"h": 150
 	},
+	"useLooseLimb": true,
+	"looseLimb": {
+		"framesize": {
+			"w": 32,
+			"h": 32		
+		},
+		"types": {
+			"closed_hand": {
+				"x": 128,
+				"y": 0
+			},
+			"open_hand": {
+				"x": 160,
+				"y": 0
+			}
+		},		
+		"limbs": {
+			"left_hand": {
+				"depth": 1
+			},
+			"right_hand": {
+				"depth": -1
+			}
+		}
+	},	
 	"bodyDepthOffset": 64.0,
-	"transparency": "#ffffff",
-	"source": "3fafb8ea3751d7c2ce7a9568ac6624c7",
-	"filename": "humanoid_sheet.png",
+	"transparency": "#ff0000",
+	"source": "29146b034740b41701f9d5ccc9c3851a",
+	"textureSize": {
+		"w": 1280,
+		"h": 1280
+	},
+	"filename": "humanoid.png",
 	"bodyHitbox": [
 		{
 			"x": 52,
 			"y": 12,
-			"w": 56,
+			"w": 40,
 			"h": 48,
 			"name": "high",
 		},
 		{
-			"x": 20,
+			"x": 30,
 			"y": 58,
-			"w": 76,
+			"w": 58,
 			"h": 92,
 			"name": "mid",
 		}
@@ -36,46 +65,120 @@
 	"frames": {
 		"bot_walking": {
 			"x": 0,
-			"y": 0,
+			"y": 1,
 			"n": 2,
-			"spd": 250
+			"spd": 250,
+			"limbs": {
+				"left_hand": [
+					{
+						"pos": {
+							"x": 30,
+							"y": 111
+						},
+						"angle": 115
+					},
+					{
+						"pos": {
+							"x": 85,
+							"y": 113
+						},
+						"angle": 35
+					}					
+				],
+				"right_hand": {
+					{
+						"pos": {
+							"x": 100,
+							"y": 115
+						},
+						"angle": 35
+					},
+					{
+						"pos": {
+							"x": 28,
+							"y": 120
+						},
+						"angle": 115
+					}				
+				}				
+			}
 		},
 		"bot_standing": {
 			"x": 0,
-			"y": 1,
+			"y": 0,
 			"n": 1,
-			"spd": 0
+			"spd": 0,
+			"limbs": {
+				"left_hand": [
+					{
+						"pos": {
+							"x": 85,
+							"y": 118
+						},
+						"angle": 90
+					}					
+				],
+				"right_hand": {
+					{
+						"pos": {
+							"x": 35,
+							"y": 118
+						},
+						"angle": 90
+					}				
+				}				
+			}			
 		},
 		"mid_melee_noweap": {
 			"x": 0,
 			"y": 2,
-			"n": 2,
+			"n": 1,
 			"spd": 120,
 			"kf": 1
 		},
 		"mid_standing": {
 			"x": 0,
-			"y": 3,
+			"y": 2,
 			"n": 1,
 			"spd": 0
 		},
 		"mid_parry_noweap": {
 			"x": 0,
-			"y": 4,
+			"y": 2,
 			"n": 1,
 			"spd": 0,
 			"kf": 0
 		},
 		"mid_casting": {
 			"x": 0,
-			"y": 5,
+			"y": 2,
 			"n": 1,
 			"spd": 0,
-			"kf": 0
+			"kf": 0,
+			"limbs": {
+				"left_hand": [
+					{
+						"pos": {
+							"x": 112,
+							"y": 77
+						},
+						"angle": 270
+					}					
+				],
+				"right_hand": {
+					{
+						"pos": {
+							"x": 35,
+							"y": 118
+						},
+						"angle": 90
+					}				
+				}				
+			}
 		},		
 		"top_neutral": {
 			"x": 0,
-			"y": 6,
+			"y": 3,
 			"n": 1,
 			"spd": 0
 		}

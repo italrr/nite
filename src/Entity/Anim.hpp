@@ -62,6 +62,21 @@
             }
         }        
 
+        struct AnimLimbFrame {
+            String type;
+            String limb;
+            nite::Vec2 p;
+            float an;
+            bool xflip;
+            bool yflip;
+            AnimLimbFrame(){
+                yflip = false;
+                xflip = false;
+                an = 90;
+                p.set(0.0f);
+            }
+        };
+
         struct AnimFrame {
             UInt8 id; // nite::Animation id
             UInt8 n;
@@ -70,6 +85,25 @@
             UInt8 type;
             UInt64 spd;
             UInt8 keyframe;
+            Dict<String, Vector<Game::AnimLimbFrame>> limbs; 
+        };
+
+        struct AnimTypeLimb {
+            String name;
+            nite::Vec2 inTexCoors;
+            nite::Vec2 inTexSize;
+        };
+
+        struct AnimLimb {
+            String name;
+            nite::Vec2 pos;
+            nite::Vec2 npos;
+            float angle;
+            float nangle;
+            String type;
+            int depth;
+            bool xflip;
+            bool yflip;
         };
 
         namespace AnimPart {
@@ -82,13 +116,19 @@
         }
 
         struct Anim {
+            UInt8 lastSFrame[AnimPart::total];
+            Game::AnimFrame lastAnim[AnimPart::total];
             Vector<nite::Hitbox> hitboxes;
+            Dict<String, Game::AnimTypeLimb> limbTypes;
+            Dict<String, Game::AnimLimb> limbs;
+            nite::Vec2 limbSize;
             nite::Hitbox meleeNoWeapHb;
             nite::Vec2 maskSize;
             UInt8 parts[AnimPart::total];
             nite::Vec2 frameSize;
             nite::Animation anim;
             nite::Batch batch;
+            bool useLooseLimbs;
             float bodyDepthOffset;
             String path;
             void reload();
@@ -98,6 +138,8 @@
             nite::IndexedFile source;
             nite::Color transparency;
             Anim();
+            void rerender();
+            void update();
             void setState(UInt8 anims[AnimPart::total], UInt8 sframes[AnimPart::total]);
         };
 

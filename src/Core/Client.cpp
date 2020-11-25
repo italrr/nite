@@ -1033,7 +1033,7 @@ void Game::Client::update(){
                     this->vfx.add(ef);
                 }
                 if(entId == entityId){
-                    nite::shakeScreen(nite::RenderTargetGame, 0.55f, 200 * (amnt / 5));
+                    nite::shakeScreen(nite::RenderTargetGame, 0.55f, 300 * (amnt / 5));
                 }
             } break;  
             /*

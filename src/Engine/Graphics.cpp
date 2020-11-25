@@ -1155,6 +1155,10 @@ void nite::graphicsInit(){
 
 	const char *n = "R E D   B I A S";
 
+   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+   SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
+   glEnable(GL_MULTISAMPLE);
+
 	Window = SDL_CreateWindow(n, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, size.x, size.y, Flags);
 	
 	if(Window == NULL){
