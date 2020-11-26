@@ -1096,9 +1096,9 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
     float startx = me->map->startCell.x + nite::randomInt(-50, 50);
     float starty = me->map->startCell.y + nite::randomInt(-50, 50);   
 
-    // auto objMob = createMob(Game::ObjectSig::MobHumanoid, 10, startx, starty); 
-    // auto mob = static_cast<Game::EntityBase*>(objMob.get());
-    // mob->aidriver.add(Shared<Game::AI::DumbassBehavior>(new Game::AI::DumbassBehavior()));
+    auto objMob = createMob(Game::ObjectSig::MobHumanoid, 10, startx, starty); 
+    auto mob = static_cast<Game::EntityBase*>(objMob.get());
+    mob->aidriver.add(Shared<Game::AI::DumbassBehavior>(new Game::AI::DumbassBehavior()));
 }
 
 void Game::Server::restart(){
@@ -1575,10 +1575,10 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv, float 
     auto effect = getEffect(Game::EffectList::EF_HEAL);
     auto efHeal = static_cast<Game::Effects::EffHeal*>(effect.get());
     efHeal->setup(100, 5 * 1000);
-
     this->addEffect(obj->id, effect);
-
     player->printInfo(); // for debugging
+    auto item = Game::getItem(ItemList::W_BOW, 1);
+    player->invStat.add(item);
     return obj;
 }
 

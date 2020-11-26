@@ -4,6 +4,7 @@
 	#include "../Engine/Types.hpp"
 	#include "../Engine/Texture.hpp"
 	#include "../Engine/Animation.hpp"
+	#include "../Engine/Indexer.hpp"
 	#include "../Core/Object.hpp"
 	#include "Battle.hpp"
   	#include <memory>
@@ -22,8 +23,8 @@
 			enum EffectList : UInt16 {
 				NONE = 0,
 				NONE_EQUIP = 1,
-
 				U_APPLE,
+				W_BOW
 
 
 
@@ -67,6 +68,17 @@
 			};
 			static const UInt8 TOTAL = 8;
 		}	
+
+		namespace WeaponType {
+			enum WeaponType : UInt8 {
+				Bow,
+				Crossbow,
+				Sword,
+				Knife,
+				Katar
+			};
+			static const UInt8 TOTAL = 5;
+		}
 
 		struct ItemBase {
 			UInt16 id;
@@ -126,12 +138,28 @@
 			}
 		};
 
+		struct EquipAnim {
+			nite::Vec2 textureSize;
+			nite::Texture texture;
+			nite::IndexedFile source;
+			nite::Vec2 frameSize;
+			Vector<nite::Vec2> inTexCoors;
+			nite::Vec2 origin;
+			Dict<String, UInt8> modes;
+			bool load(const String &path);
+		};
+
 		struct EquipItem : ItemBase {
 			UInt8 equipType;
 			UInt16 dmg;
 			UInt16 mdmg;
 			UInt16 def;
 			UInt16 mdef;
+			
+			EquipItem(){
+				type = ItemType::Equip;	
+			}
+			
 			virtual void onEquip(EntityBase *owner){
 				
 			}
@@ -146,6 +174,15 @@
 			}
 			void parseSpecial(Jzon::Node &obj);
 		};
+
+		struct EquipWeapon : EquipItem {
+			UInt8 weaponType;
+			Game::EquipAnim anim;
+			EquipWeapon(){
+				equipType = EquipType::Weapon;
+			}
+			void parseSpecial(Jzon::Node &obj);
+		}; 
 
 		Shared<Game::ItemBase> getItem(UInt16 id, UInt16 qty);
 		void DBLoadInventory(const String &path);
@@ -175,6 +212,9 @@
 					id = ItemList::U_APPLE;
 				}
 			};
+			struct BowWeapon : EquipWeapon {
+
+			};			
 		}
 	}
 

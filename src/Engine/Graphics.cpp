@@ -1099,6 +1099,7 @@ void nite::graphicsInit(){
     indexer->indexDir("./data/tileset/");
     indexer->indexDir("./data/texture/tileset/");
 	indexer->indexDir("./data/texture/overworld/");
+	indexer->indexDir("./data/texture/weaps/");
 	signal(SIGINT, ctrlC);
 
 	int Flags = SDL_WINDOW_OPENGL;

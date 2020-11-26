@@ -192,6 +192,7 @@ void Game::EntityBase::draw(){
 		static nite::Texture empty("data/texture/empty.png");
 		nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
 		auto hitboxes = getHitbox();
+		nite::setDepth(nite::DepthTop);
 		for(int i = 0; i < hitboxes.size(); ++i){
 			auto &hb = hitboxes[i];
 			empty.draw(hb.position.x, hb.position.y, hb.size.x, hb.size.y, 0.0f, 0.0f, 0.0f);
@@ -442,8 +443,8 @@ void Game::EntityBase::updateStance(){
 					default:
 					case 1: {
 						throwMelee(0.0f, 0.0f);
-						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 400){ // 200 hard coded for now
-							setState(EntityState::IDLE_FIST, EntityStateSlot::MID, 0);
+						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 350){ // 200 hard coded for now
+							setState(EntityState::IDLE, EntityStateSlot::MID, 0);
 						}
 					} break;
 				}
@@ -701,12 +702,14 @@ void Game::EntityBase::writeAllStatState(nite::Packet &packet){
 	packet.write(&healthStat, sizeof(healthStat));
 	packet.write(&baseStat, sizeof(baseStat));
 	packet.write(&complexStat, sizeof(complexStat));
+	// TODO: add inventory
 }
 
 void Game::EntityBase::readAllStatState(nite::Packet &packet){
 	packet.read(&healthStat, sizeof(healthStat));
 	packet.read(&baseStat, sizeof(baseStat));
 	packet.read(&complexStat, sizeof(complexStat));
+	// TODO: add inventory
 }
 
 void Game::EntityBase::writeHealthStatState(nite::Packet &packet){

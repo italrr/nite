@@ -77,11 +77,21 @@ bool Game::Anim::load(const String &path){
                     nframe.p.y = frame.second.get("pos").get("y").toFloat();
                     nframe.xflip = frame.second.get("xflip").toBool(false);
                     nframe.yflip = frame.second.get("yflip").toBool(false);
+                    nframe.shakeMag = frame.second.get("shake").toFloat(0.0f);
+                    nframe.type = frame.second.get("type").toString("open_hand");
                     frames.push_back(nframe);
                 }
                 frame.limbs[name] = frames;
             }
-        }        
+        }    
+        if(useLooseLimbs && fnode.second.has("limbOverride")){
+            auto lonode = fnode.second.get("limbOverride");
+            frame.useLimbOverride = true;
+            Game::AnimLimbFrameOverride lOverride;
+            lOverride.n = lonode.get("n").toInt(frame.n);
+            lOverride.spd = lonode.get("spd").toInt(frame.spd);
+            frame.limbOverride = lOverride;
+        }            
         frame.id = this->anim.add(frame.x * frameSize.x, frame.y * frameSize.y, frameSize.x, frameSize.y, frame.n, frame.spd, false, false);
         this->anim.setManualClicking(frame.id, true);
         this->frames[frame.type] = frame;
@@ -116,21 +126,32 @@ bool Game::Anim::load(const String &path){
 Game::Anim::Anim(){
     for(int i = 0; i < AnimPart::total; ++i){
         this->parts[i] = AnimType::UNDEFINED;
+        this->lastAnim[i] = NULL;
     }
     useLooseLimbs = false;
 }
 
 void Game::Anim::setState(UInt8 anims[AnimPart::total], UInt8 sframes[AnimPart::total]){
+    bool dorerender = false;
     for(int i = 0; i < AnimPart::total; ++i){
         auto it = this->frames.find(anims[i]);
         if(it == this->frames.end()){
             lastSFrame[i] = -1;
             continue;
         }        
-        lastAnim[i] = it->second;
-        lastSFrame[i] = sframes[i] % lastAnim[i].n;
+        int nf = lastAnim[i] == NULL || lastAnim[i]->n == 0 ? 0 : sframes[i] % lastAnim[i]->n;
+        if(lastAnim[i] != NULL && it->second.id != lastAnim[i]->id || lastSFrame[i] != nf){
+            dorerender = true;
+            auto &lOvrr = it->second.limbOverride;
+            lOvrr.st = 0;
+            lOvrr.lastThick = nite::getTicks();
+        }
+        lastAnim[i] = &it->second;
+        lastSFrame[i] = nf;
     }
-    rerender();
+    if(dorerender){
+        rerender();
+    }
 }
 
 void Game::Anim::rerender(){
@@ -138,18 +159,35 @@ void Game::Anim::rerender(){
     batch.begin();
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     for(int i = 0; i < AnimPart::total; ++i){
-        if(lastSFrame[i] == -1){
+        if(lastSFrame[i] == -1 || lastAnim[i] == NULL){
             continue;
         }
-        auto &frame = lastAnim[i];
+        auto &frame = *lastAnim[i];
         int nf = lastSFrame[i];
         if(frame.limbs.size() > 0){
+            int _nf = nf;
+            if(frame.useLimbOverride){
+                auto &lOvrr = frame.limbOverride;
+                if(lOvrr.st < _nf){
+                    lOvrr.st = nf;
+                }
+                if(lOvrr.st > (lOvrr.n-1)){
+                    lOvrr.st = (lOvrr.n-1);
+                }
+                if(lOvrr.st < (lOvrr.n-1) && nite::getTicks()-lOvrr.lastThick > lOvrr.spd){
+                    lOvrr.st++;
+                    lOvrr.lastThick = nite::getTicks();
+                }
+                _nf = lOvrr.st;
+            }
             for(auto &limb : limbs){
-                auto &frameLimb = frame.limbs[limb.first][nf];
+                auto &frameLimb = frame.limbs[limb.first][_nf];
                 limb.second.npos = frameLimb.p;
                 limb.second.nangle = frameLimb.an;
                 limb.second.xflip = frameLimb.xflip;
                 limb.second.yflip = frameLimb.yflip;
+                limb.second.shakeMag = frameLimb.shakeMag;
+                limb.second.type = frameLimb.type;
             }
         }
         nite::setDepth(0);
@@ -161,7 +199,9 @@ void Game::Anim::rerender(){
             auto &type = limbTypes[limb.second.type];
             nite::setDepth(limb.second.depth);
             anim.texture.setRegion(type.inTexCoors, type.inTexSize);
-            anim.texture.draw(limb.second.pos.x, limb.second.pos.y, limbSize.x * (limb.second.xflip ? -1.0f: 1.0f), limbSize.y * (limb.second.yflip ? -1.0f: 1.0f), 0.5f, 0.5f, limb.second.angle);
+	        float targetx = limb.second.pos.x + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f);
+	        float targety = limb.second.pos.y + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f);
+            anim.texture.draw(targetx, targety, limbSize.x * (limb.second.xflip ? -1.0f: 1.0f), limbSize.y * (limb.second.yflip ? -1.0f: 1.0f), 0.5f, 0.5f, limb.second.angle);
         }
     }
     batch.end();
@@ -171,7 +211,11 @@ void Game::Anim::rerender(){
 void Game::Anim::update(){
     bool dorerender = false;
     for(auto &limb : limbs){
-        dorerender = limb.second.pos.lerpDiscrete(limb.second.npos, 0.25f) || nite::lerpDiscrete(limb.second.angle, limb.second.nangle, 0.25f);
+        bool lpos = limb.second.pos.lerpDiscrete(limb.second.npos, 0.25f);
+        bool langle = nite::lerpDiscrete(limb.second.angle, limb.second.nangle, 0.25f);
+        if(!(lpos && langle)){
+            dorerender = true;
+        }
     }
     if(dorerender){
         rerender();

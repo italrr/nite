@@ -10,8 +10,8 @@
 	"useLooseLimb": true,
 	"looseLimb": {
 		"framesize": {
-			"w": 32,
-			"h": 32		
+			"w": 48,
+			"h": 48		
 		},
 		"types": {
 			"closed_hand": {
@@ -19,7 +19,7 @@
 				"y": 0
 			},
 			"open_hand": {
-				"x": 160,
+				"x": 176,
 				"y": 0
 			}
 		},		
@@ -34,7 +34,7 @@
 	},	
 	"bodyDepthOffset": 64.0,
 	"transparency": "#ff0000",
-	"source": "29146b034740b41701f9d5ccc9c3851a",
+	"source": "59b64b38a07529023bd0ba19fcc8dd9a",
 	"textureSize": {
 		"w": 1280,
 		"h": 1280
@@ -134,7 +134,64 @@
 			"y": 2,
 			"n": 1,
 			"spd": 120,
-			"kf": 1
+			"kf": 1,
+			"limbOverride": {
+				"n": 3,
+				"spd": 80
+			},			
+			"limbs": {
+				"left_hand": [
+					{
+						"pos": {
+							"x": 35,
+							"y": 77
+						},
+						"type": "open_hand",
+						"angle": 0
+					},
+					{
+						"pos": {
+							"x": 100,
+							"y": 77
+						},
+						"shake": 0.4,
+						"type": "closed_hand",
+						"angle": 0
+					},
+					{
+						"pos": {
+							"x": 112,
+							"y": 77
+						},
+						"shake": 0.7,
+						"type": "closed_hand",
+						"angle": 0
+					}						
+				],
+				"right_hand": {
+					{
+						"pos": {
+							"x": 35,
+							"y": 118
+						},
+						"angle": 90
+					},
+					{
+						"pos": {
+							"x": 35,
+							"y": 118
+						},
+						"angle": 90
+					},
+					{
+						"pos": {
+							"x": 35,
+							"y": 118
+						},
+						"angle": 90
+					}					
+				}				
+			}			
 		},
 		"mid_standing": {
 			"x": 0,
@@ -155,6 +212,10 @@
 			"n": 1,
 			"spd": 0,
 			"kf": 0,
+			"limbOverride": {
+				"n": 2,
+				"spd": 80
+			},
 			"limbs": {
 				"left_hand": [
 					{
@@ -162,6 +223,14 @@
 							"x": 112,
 							"y": 77
 						},
+						"angle": 270
+					},
+					{
+						"pos": {
+							"x": 110,
+							"y": 77
+						},
+						"shake": 0.8,
 						"angle": 270
 					}					
 				],
@@ -172,7 +241,14 @@
 							"y": 118
 						},
 						"angle": 90
-					}				
+					},
+					{
+						"pos": {
+							"x": 35,
+							"y": 118
+						},
+						"angle": 90
+					}					
 				}				
 			}
 		},		

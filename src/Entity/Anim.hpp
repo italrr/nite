@@ -69,11 +69,23 @@
             float an;
             bool xflip;
             bool yflip;
+            float shakeMag;
             AnimLimbFrame(){
                 yflip = false;
                 xflip = false;
+                shakeMag = 0.0f;
                 an = 90;
                 p.set(0.0f);
+            }
+        };
+
+        struct AnimLimbFrameOverride {
+            UInt64 spd;
+            UInt8 n;
+            UInt8 st; 
+            UInt64 lastThick;
+            AnimLimbFrameOverride(){
+                st = 0;
             }
         };
 
@@ -85,7 +97,12 @@
             UInt8 type;
             UInt64 spd;
             UInt8 keyframe;
+            bool useLimbOverride;
+            Game::AnimLimbFrameOverride limbOverride;
             Dict<String, Vector<Game::AnimLimbFrame>> limbs; 
+            AnimFrame(){
+                useLimbOverride = false;
+            }
         };
 
         struct AnimTypeLimb {
@@ -104,6 +121,11 @@
             int depth;
             bool xflip;
             bool yflip;
+            float shakeMag;
+            AnimLimb(){
+                nangle = 0;
+                angle = 0;
+            }
         };
 
         namespace AnimPart {
@@ -117,7 +139,7 @@
 
         struct Anim {
             UInt8 lastSFrame[AnimPart::total];
-            Game::AnimFrame lastAnim[AnimPart::total];
+            Game::AnimFrame *lastAnim[AnimPart::total];
             Vector<nite::Hitbox> hitboxes;
             Dict<String, Game::AnimTypeLimb> limbTypes;
             Dict<String, Game::AnimLimb> limbs;

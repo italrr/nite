@@ -56,6 +56,44 @@ void Game::DBLoadInventory(const String &path){
     nite::print("loaded Inventory Db '"+path+"': added "+nite::toStr(root.getCount()-1)+" object(s)");
 }
 
+bool Game::EquipAnim::load(const String &path){
+	String errmsg = "failed to load '"+path+"': ";
+	if(!nite::fileExists(path)){
+		nite::print(errmsg+"it doesn't exist");
+		return false;
+	}
+    Jzon::Parser parser;
+    Jzon::Node node = parser.parseFile(path);
+    if(!node.isValid()){
+        nite::print(errmsg+"invalid json: "+parser.getError());
+        return false;
+    }	
+	auto indexer = nite::getIndexer();
+	frameSize.set(node.get("frameSize").get("w").toInt(128), node.get("frameSize").get("h").toInt(192));
+	String hash = node.get("source").toString("");
+	auto ifile = indexer->get(hash);
+    if(ifile == NULL){
+        nite::print(errmsg+"source file '"+hash+"' was not found");
+        return false;
+    }
+    if(ifile != NULL && !ifile->isIt("spritesheet")){
+        nite::print(errmsg+"source file is not a spritesheet");
+        return false;
+    }		
+	this->source = *ifile;
+	this->texture.load(this->source.path);
+	this->textureSize = nite::Vec2(node.get("textureSize").get("w").toInt(0), node.get("textureSize").get("h").toInt(0));
+	this->origin = nite::Vec2(node.get("origin").get("x").toInt(0), node.get("origin").get("y").toInt(0));
+	for(auto &it : node.get("frames")){
+		auto frame = it.second;
+		this->inTexCoors.push_back(nite::Vec2(frame.get("x").toInt(0), frame.get("y").toInt(0)));
+	}
+	for(auto &it : node.get("modes")){
+		this->modes[it.first] = it.second.get("n").toInt(0);;
+	}
+	return true;
+}
+
 void Game::ItemBase::parse(Jzon::Node &obj){
 	// we won't be doing sanity checks here (maybe TODO)
 	name = obj.get("name").toString("Undefined");
@@ -220,6 +258,9 @@ Shared<Game::ItemBase> Game::getItem(UInt16 id, UInt16 qty){
 		case Game::ItemList::U_APPLE: {
 			it = Shared<Game::ItemBase>(new Items::HealthPotion());
 		} break;
+		case Game::ItemList::W_BOW: {
+			it = Shared<Game::ItemBase>(new Items::BowWeapon());
+		} break;		
 	}
 	if(it.get() != NULL){
 		it->qty = qty;
@@ -237,4 +278,14 @@ void Game::EquipItem::parseSpecial(Jzon::Node &obj){
 	mdmg = obj.get("mdmg").toInt(0);
 	def = obj.get("def").toInt(0);
 	mdef = obj.get("mdef").toInt(0);
+}
+
+void Game::EquipWeapon::parseSpecial(Jzon::Node &obj){
+	equipType = obj.get("equipType").toInt(0);
+	weaponType = obj.get("weaponType").toInt(0);
+	dmg = obj.get("dmg").toInt(0);
+	mdmg = obj.get("mdmg").toInt(0);
+	def = obj.get("def").toInt(0);
+	mdef = obj.get("mdef").toInt(0);
+	this->anim.load("data/anim/"+obj.get("anim").toString("weap_bow.json"));
 }
