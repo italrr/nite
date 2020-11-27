@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "../Engine/Graphics.hpp"
 #include "../Engine/Texture.hpp"
 // #include "../Engine/UI/UI.hpp"
@@ -710,6 +712,36 @@ void Game::EntityBase::readAllStatState(nite::Packet &packet){
 	packet.read(&baseStat, sizeof(baseStat));
 	packet.read(&complexStat, sizeof(complexStat));
 	// TODO: add inventory
+}
+
+void Game::EntityBase::writeInvSlotsState(nite::Packet &packet){
+	size_t size = sizeof(UInt16) * EquipSlot::TOTAL;
+	char buffer[size];
+	memset(buffer, '0', size);
+	for(int i = 0; i < EquipSlot::TOTAL; ++i){
+		auto &item = invStat.slots[i];
+		UInt16 id = item.get() == NULL ? 0 : item->slotId;
+		memcpy(buffer + i * sizeof(UInt16), &id, sizeof(id));
+	}
+	packet.write(buffer, size);
+}
+
+void Game::EntityBase::readInvSlotsState(nite::Packet &packet){
+	size_t size = sizeof(UInt16) * EquipSlot::TOTAL;
+	char buffer[size];
+	packet.read(buffer, size);
+	for(int i = 0; i < EquipSlot::TOTAL; ++i){
+		UInt16 id;
+		memcpy(&id, buffer + i * sizeof(UInt16), sizeof(id));
+		auto item = invStat.get(id);
+		if(item.get() == NULL){
+			if(id != 0){
+				nite::print("failed to equip slotId '"+nite::toStr(id)+"': it's not in the backpack");
+			}
+			continue;
+		}
+		invStat.slots[i] = item;
+	}	
 }
 
 void Game::EntityBase::writeHealthStatState(nite::Packet &packet){

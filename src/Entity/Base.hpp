@@ -173,7 +173,8 @@
             virtual void readInitialState(nite::Packet &packet);     
             virtual void writeAllStatState(nite::Packet &packet);       
             virtual void readAllStatState(nite::Packet &packet); 
-
+            virtual void writeInvSlotsState(nite::Packet &packet);
+            virtual void readInvSlotsState(nite::Packet &packet);
             virtual void writeHealthStatState(nite::Packet &packet);       
             virtual void readHealthStatState(nite::Packet &packet);           
         };

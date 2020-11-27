@@ -118,6 +118,11 @@
             void notifyDeath(UInt64 uid);
             void notifyGameOver(UInt64 uid);
             void notifyGameRestart(UInt64 uid);
+
+            void notifyEquipItem(UInt64 uid, UInt16 itemId, UInt16 slotId);
+            void notifyUnequipItem(UInt64 uid, UInt16 itemId, UInt16 slotId);      
+
+            void notifyUpdateInvList(UInt64 uid);       
             
             // core
             Shared<Game::NetObject> spawn(Shared<Game::NetObject> obj);

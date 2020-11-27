@@ -21,6 +21,22 @@ static void notifyRemoveItem(Game::EntityBase *ent, UInt16 itemId, UInt16 slotId
     }
 }
 
+static void notifyEquipItem(Game::EntityBase *ent, UInt16 itemId, UInt16 slotId){
+    if(ent != NULL && ent->sv != NULL){
+        if(auto cl = ent->sv->getClientByEntityId(ent->id)){
+            ent->sv->notifyEquipItem(cl->clientId, itemId, slotId);
+        }
+    }
+}
+
+static void notifyUnequipItem(Game::EntityBase *ent, UInt16 itemId, UInt16 slotId){
+    if(ent != NULL && ent->sv != NULL){
+        if(auto cl = ent->sv->getClientByEntityId(ent->id)){
+            ent->sv->notifyUnequipItem(cl->clientId, itemId, slotId);
+        }
+    }
+}
+
 Game::InventoryStat::InventoryStat(){
 	seedIndex = nite::randomInt(5, 35);
 	for(int i = 0; i < EquipSlot::TOTAL; ++i){
@@ -151,6 +167,7 @@ bool Game::InventoryStat::equip(Shared<Game::ItemBase> &item){
 	equip->onEquip(owner);
 	owner->recalculateStats();
 	nite::print("equipped "+item->name);
+	notifyEquipItem(this->owner, item->id, item->slotId);
 	return true;
 }
 
@@ -162,11 +179,12 @@ bool Game::InventoryStat::unequip(UInt16 itemId){
 				equip->onUnequip(owner);
 				slots[equip->equipType] = Shared<Game::EquipItem>(NULL);
 				owner->recalculateStats();
+				notifyEquipItem(this->owner, equip->id, equip->slotId);
 				return true;
 			}
 		}
 	}
-	nite::print("failure: no item with such id to unequip");
+	nite::print("failure: no item with such slotId '"+nite::toStr(itemId)+"' to unequip");
 	return false;
 }
 

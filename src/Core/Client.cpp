@@ -732,10 +732,16 @@ void Game::Client::update(){
                 if(!isSv){ break; }
                 sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 UInt16 entId, itemId, slotId, qty;
+                UInt8 upgLv;
+                UInt16 compound[GAME_ITEM_MAX_COMPOUND_SLOTS];
                 handler.read(&entId, sizeof(UInt16));
                 handler.read(&itemId, sizeof(UInt16));
                 handler.read(&slotId, sizeof(UInt16));
                 handler.read(&qty, sizeof(UInt16));
+                handler.read(&upgLv, sizeof(upgLv));
+                for(int i = 0; i < GAME_ITEM_MAX_COMPOUND_SLOTS; ++i){
+                    handler.read(&compound[i], sizeof(compound[i]));
+                }
                 auto it = world.objects.find(entId);
                 if(it == world.objects.end()){
                     nite::print("[client] fail SV_ADD_ITEM: entity id doesn't exist");
@@ -746,6 +752,10 @@ void Game::Client::update(){
                     nite::print("[client] fail SV_ADD_ITEM: item id "+nite::toStr(itemId)+" doesn't exist");
                     break;
                 }
+                for(int i = 0; i < GAME_ITEM_MAX_COMPOUND_SLOTS; ++i){
+                    item->compound[i] = compound[i];
+                }
+                item->upgradelv = upgLv;
                 auto ent = static_cast<Game::EntityBase*>(it->second.get());
                 ent->invStat.add(item, slotId);
             } break;

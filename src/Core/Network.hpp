@@ -431,13 +431,15 @@
                 UINT16 ITEMID
                 UINT16 SLOTID
                 UINT16 AMNT
+                UINT8 UPGRADELV
+                UINT16[GAME_ITEM_MAX_COMPOUND_SLOTS] COMPOUND
             */
             SV_REMOVE_ITEM, // ACK
             /*
                 UINT16 ENTID
                 UINT16 ITEMID
                 UINT16 SLOTID
-                UINT16 AMNT
+                UINT16 AMNT                
             */
             SV_UPDATE_ENTITY_STANCE_STATE,
             /*
@@ -493,6 +495,35 @@
                 UINT16 ENTID
                 {
                     sizeof(ComplexStat)
+                }
+           */
+           SV_UPDATE_ENTITY_INVENTORY_SLOTS, // ACK
+           /*
+                UINT16 ENTID
+                {
+                    sizeof(UINT16) * EquipSlot::TOTAL (16 bytes)
+                }
+           */
+            SV_UPDATE_ENTITY_INVENTORY_CARRY,
+            /*
+                UINT16 ENTID
+                {
+                    sizeof(UINT16) * EquipSlot::TOTAL (16 bytes)
+                }                
+	            {
+                    UINT16 SLOTID
+                    UINT16 ITEMID
+                    UINT32 QTY
+                    UINT8 UPGLV
+                    UINT16[4] COMPOUND
+                }
+                ...
+                n: {
+                    UINT16 SLOTID
+                    UINT16 ITEMID
+                    UINT32 QTY
+                    UINT8 UPGLV
+                    UINT[4] COMPOUND
                 }
             */
             SV_UPDATE_SKILL_STATE, // ACK

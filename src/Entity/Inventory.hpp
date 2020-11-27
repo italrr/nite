@@ -89,11 +89,13 @@
 			UInt16 weight; // 1 unit = 1 gram
 			Int32 qty;
 			UInt16 elemnt;
+			UInt8 upgradelv;
 			bool amnt;
 			UInt16 compound[GAME_ITEM_MAX_COMPOUND_SLOTS]; // item ids
 			int iconId;
 
 			ItemBase(){
+				this->upgradelv = 1; // usually for equips
 				this->iconId = 0;
 				this->id = ItemList::NONE;
 				this->slotId = 0; // it can never be 0
@@ -188,7 +190,7 @@
 		void DBLoadInventory(const String &path);
 
 		struct InventoryStat {
-			EntityBase *owner;
+			Game::EntityBase *owner;
 			UInt16 seedIndex;
 			Shared<Game::ItemBase> slots[EquipSlot::TOTAL];
 			Dict<UInt16, Shared<Game::ItemBase>> carry;

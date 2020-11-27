@@ -1265,12 +1265,26 @@ void Game::Server::notifyAddItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UInt1
     if(cl == NULL){
         return;
     }
+    auto ent = getEntity(cl->entityId);
+    if(ent == NULL){
+        nite::print("notifyAddItem: failed to find entity by id '"+nite::toStr(cl->entityId)+"'");
+        return;
+    }
+    auto item = ent->invStat.get(slotId);
+    if(item.get() == NULL){
+        nite::print("notifyAddItem: failed to find item by slotId '"+nite::toStr(slotId)+"'");
+        return;
+    }
     nite::Packet packet(++cl->svOrder);
     packet.setHeader(Game::PacketType::SV_ADD_ITEM);
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&itemId, sizeof(itemId));
     packet.write(&slotId, sizeof(slotId));
     packet.write(&qty, sizeof(qty));
+    packet.write(&item->upgradelv, sizeof(item->upgradelv));
+    for(int i = 0; i < GAME_ITEM_MAX_COMPOUND_SLOTS; ++i){
+        packet.write(&item->compound[i], sizeof(item->compound[i]));
+    }
     persSend(cl->cl, packet, 750, -1);    
 }
 
@@ -1308,6 +1322,24 @@ void Game::Server::notifyRemoveSkill(UInt64 uid, UInt16 skillId){
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&skillId, sizeof(skillId));
     persSend(cl->cl, packet, 750, -1);
+}
+
+
+void Game::Server::notifyUpdateInvList(UInt64 uid){
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        return;
+    }    
+    auto ent = getEntity(cl->entityId);
+    if(ent == NULL){
+        return;
+    }
+    nite::Packet packet(++cl->svOrder);
+    packet.setHeader(Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_CARRY);
+
+    
+
+    persSend(cl->cl, packet, 1500, -1);
 }
 
 void Game::Server::notifyAddEffect(UInt64 uid, UInt16 type, UInt16 insId){
@@ -1350,6 +1382,14 @@ void Game::Server::notifyRemoveEffect(UInt64 uid, UInt16 insId){
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&insId, sizeof(insId));
     persSend(cl->cl, packet, 750, -1);  
+}
+
+void Game::Server::notifyEquipItem(UInt64 uid, UInt16 itemId, UInt16 slotId){
+
+}
+
+void Game::Server::notifyUnequipItem(UInt64 uid, UInt16 itemId, UInt16 slotId){
+
 }
 
 void Game::Server::notifyUpdateEffect(UInt64 uid, UInt16 insId){
