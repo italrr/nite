@@ -225,6 +225,19 @@ void Game::Client::update(){
     if(state == Game::NetState::Disconnected || !init){
         return;
     }
+
+    if(removeQueue.size() > 0){
+        for(int i = 0; i < removeQueue.size(); ++i){
+            auto *obj = world.get(removeQueue[i]);
+            if(obj == NULL){
+                continue;
+            }
+            if(obj->nextPosition.size() == 0){
+                world.objects.erase(obj->id);
+            }
+        }
+    }
+
     nite::Packet handler;
     nite::IP_Port sender;
     if(sock.recv(sender, handler) > 0){
@@ -425,7 +438,7 @@ void Game::Client::update(){
                     nite::print("[client] fail SV_DESTROY_OBJECT: object id "+nite::toStr(id)+" doesn't exist");
                     break;
                 }
-                obj->second->destroy();
+                removeQueue.push_back(obj->second->id);
             } break;
             //
             /*
@@ -472,7 +485,7 @@ void Game::Client::update(){
                     handler.read(&id, sizeof(UInt16));
                     handler.read(&n, sizeof(n));
                     auto obj = world.get(id);
-                    if(obj != NULL){
+                    if(obj != NULL){                       
                         obj->nextPosition.clear();
                         for(int j = 0; j < n; ++j){
                             handler.read(&x, sizeof(x));
@@ -1141,7 +1154,7 @@ void __temp();
 
 void Game::Client::game(){
     // __temp();
-    input.update(igmenu.open);
+    input.update(false);
     hud.update();
     igmenu.update();
     auto ent = getEntity(this->entityId);
@@ -1271,11 +1284,10 @@ void Game::Client::game(){
         if(obj->objType == ObjectType::Entity){
             auto ent = static_cast<Game::EntityBase*>(obj);
             ent->updateStance();
-
-            if(ent->nextPosition.size() > 0 && ent->position.lerpDiscrete(ent->nextPosition[0], 0.75f)){
-                ent->nextPosition.erase(ent->nextPosition.begin() + 0);
-            }
         }
+        if(obj->nextPosition.size() > 0 && obj->position.lerpDiscrete(obj->nextPosition[0], 0.75f)){
+            obj->nextPosition.erase(obj->nextPosition.begin() + 0);
+        }        
     }
 
     // if(nite::getTicks()-physicsUpdate > 5){

@@ -246,7 +246,7 @@ void Game::Anim::update(){
         if(step < 0.05f){
             step = 0.05f;
         }
-        nite::print(nite::toStr(step)+" "+nite::toStr(limb.second.spd));
+        // nite::print(nite::toStr(step)+" "+nite::toStr(limb.second.spd));
         bool lpos = limb.second.pos.lerpDiscrete(limb.second.npos, step);
         bool langle = nite::lerpDiscrete(limb.second.angle, limb.second.nangle, step);
         if(!(lpos && langle)){

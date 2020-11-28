@@ -239,6 +239,7 @@ set(src_files
 	src/Entity/Battle.cpp
 	src/Entity/Stat.cpp
 	src/Entity/Skill.cpp
+	src/Entity/Projectile.cpp
 	src/Entity/Effect.cpp
 	# UI #
 	src/UI/HUD.cpp

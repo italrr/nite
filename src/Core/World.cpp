@@ -1,5 +1,6 @@
 #include <string.h>
 #include <limits>
+#include  <algorithm>
 
 #include "../Engine/Shapes.hpp"
 #include "../Engine/Tools/Tools.hpp"
@@ -181,15 +182,11 @@ void Game::NetWorld::clear(){
 }
 
 void Game::NetWorld::remove(int objectId){
-	auto search = objects.find(objectId);
-	if(search != objects.end()) {
-		for(int i = 0; i < removeQueue.size(); ++i){
-			if(removeQueue[i] == objectId) return;
-		}
-		removeQueue.push_back(objectId);
-	}else{
+	auto it = objects.find(objectId);
+	if(it == objects.end()) {
 		nite::print("[NetWorld] unable to remove object id '"+nite::toStr(objectId)+"': it doesn't exist.");
 	}
+	removeQueue.push_back(objectId);
 }
 
 void Game::NetWorld::remove(Game::NetObject *obj){
@@ -280,6 +277,7 @@ bool Game::NetWorld::testCollision(Game::NetObject *a, Game::NetObject *b, const
 
 void Game::NetWorld::updateObject(Game::NetObject *obj){
 	if(obj->unmovable || obj == NULL) return;
+
 	nite::Vec2 origp = obj->position;
 
 	// we're gonna use a fixed size to look for quadrants for now(3000x3000 from center/origin)
@@ -295,9 +293,9 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 	auto limit = nite::Vec2(1.0f);
 	for(int i = 0; i < nearObjs.size(); ++i){
 		auto other = nearObjs[i];
-		if(obj->id == other->id) continue;
-		if(!other->solid && other->objType != ObjectType::Ghost) continue;
-		if(testCollision(obj, other, diff, limit, normal)){
+		if(obj->id == other->id) continue;		
+		if(!other->solid && other->objType != ObjectType::Ghost) continue;		
+		if(testCollision(obj, other, diff, limit, normal)){				
 			if(other->objType == ObjectType::Ghost){
 				auto ghost = static_cast<Game::GhostMask*>(other);
 				ghost->callback(obj);
@@ -305,7 +303,9 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 				continue; // we do not handle collision if it's a ghost object
 			}
 			obj->collided = true;
-			obj->onCollision(other);		
+			if(!obj->destroyed){
+				obj->onCollision(other);
+			}
 			if(limit.x == 0.0f && limit.y == 0.0f){
 				break;
 			}
@@ -364,6 +364,18 @@ void Game::NetWorld::renderDbug(){
 void Game::NetWorld::update(){
 	renderDbug();
 
+	// clean up
+	if(removeQueue.size() > 0){
+		std::sort(removeQueue.begin(), removeQueue.end());
+		removeQueue.erase(std::unique(removeQueue.begin(), removeQueue.end()), removeQueue.end());		
+		for(int i = 0; i < removeQueue.size(); ++i){
+			objects[removeQueue[i]]->onDestroy();
+			objects[removeQueue[i]]->id = 0;
+			objects.erase(removeQueue[i]);
+		}
+		removeQueue.clear();
+	}
+
 	if(nite::getTicks()-lastTick < tickrate){
 		return;
 	}
@@ -376,6 +388,7 @@ void Game::NetWorld::update(){
 		auto current = it.second;
 		nite::Vec2 lastPos = current->position;
 		current->collided = false;
+
 		// movement
 		updateObject(it.second.get());
 		// friction
@@ -390,15 +403,6 @@ void Game::NetWorld::update(){
 	}
 
 	++snapshotOrder;
-	// clean up
-	if(removeQueue.size() > 0){
-		for(int i = 0; i < removeQueue.size(); ++i){
-			objects[removeQueue[i]]->onDestroy();
-			objects[removeQueue[i]]->id = 0;
-			objects.erase(removeQueue[i]);
-		}
-		removeQueue.clear();
-	}
 }
 
 void Game::NetWorld::render(){

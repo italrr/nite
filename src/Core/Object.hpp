@@ -12,7 +12,8 @@
                 Base,
                 Entity,
                 Ghost,
-                Prop
+                Prop,
+                Projectile
             };
             static String name(UInt16 type){
                 switch(type){
@@ -24,6 +25,8 @@
                         return "Ghost";                        
                     case Prop:
                         return "Prop";
+                    case Projectile:
+                        return "Projectile";                        
                     default:
                         return "Undefined";
                 }
@@ -34,7 +37,8 @@
             enum ObjectSig :  UInt16 {
                 Base = 0,
                 Player,
-                MobHumanoid
+                MobHumanoid,
+                Projectile
             };
             static String name(UInt16 sig){
                 switch(sig){
@@ -42,6 +46,8 @@
                         return "Player";
                     case MobHumanoid:
                         return "MobHumanoid";
+                    case Projectile:
+                        return "Projectile";                        
                     default:
                         return "Undefined";
                 }
@@ -67,6 +73,7 @@
 			float friction;
 			float mass;
 			virtual void destroy();
+            bool destroyed;
 			float relativeTimescale;
 			bool solid;
 			bool unmovable;

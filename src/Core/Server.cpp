@@ -823,7 +823,7 @@ void Game::Server::update(){
             // TODO: scope it for visible areas only            
             // TODO: check if the entity actually existits before pulling these values
             for(auto &it : queue){
-                auto &obj = world.objects[it.first];
+                auto &obj = world.objects[it.first];                
                 UInt8 n = obj->nextPosition.size();
                 phys.write(&obj->id, sizeof(UInt16));
                 phys.write(&n, sizeof(n));

@@ -12,6 +12,7 @@
 
 #include "Base.hpp"
 #include "Inventory.hpp"
+#include "Projectile.hpp"
 #include "../Engine/Font.hpp"
 
 static bool showHitboxes = false;
@@ -63,6 +64,8 @@ Game::EntityBase::EntityBase(){
 	this->lastDmgd = nite::getTicks();
 	this->currentCasting = Shared<Game::EntityCasting>(NULL);
 	this->anim.owner = this;
+	this->solid = true;
+	this->objType = ObjectType::Entity;
 	setState(EntityState::IDLE, EntityStateSlot::MID, 0);
 	setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);	
 	walkStepTick = 0;
@@ -485,6 +488,23 @@ void Game::EntityBase::updateStance(){
 					}
 					lastExpectedTime[EntityStateSlot::MID] = 250;
 					setState(EntityState::IDLE, EntityStateSlot::MID, 0);
+					if(this->sv != NULL){
+
+						nite::Vec2 p = this->position;
+						if(this->faceDirection == EntityFacing::Right){
+							p.x += this->size.x * 2.0f; 
+						}else{
+							p.x -= this->size.x * 2.0f; 
+						}
+						float ang = nite::toDegrees(nite::arctan(p.y - position.y, p.x - position.x));
+						auto obj = Game::createNetObject(container->generateId(), Game::ObjectSig::Projectile, p.x, p.y); 
+						auto prj = static_cast<Game::Projectile*>(obj.get());
+						prj->dir = ang;
+						prj->spd = 35.0f;
+						this->sv->spawn(obj);
+						nite::print("[server] created projectile with id "+nite::toStr(obj->id));							
+					}
+
 				}				
 			} break;
 			case EntityState::IDLE_HANDGUN: {
@@ -514,6 +534,13 @@ void Game::EntityBase::updateStance(){
 					case 1: {
 						throwMelee(0.0f, 0.0f);
 						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 350){ // 200 hard coded for now
+							// unlock basic attack
+							auto sk = skillStat.get(SkillList::BA_ATTACK);
+							if(sk != NULL){
+								sk->locked = false;
+							}else{
+								nite::print("EntityBase::updateStance: failed to find basic attack");
+							}						
 							setState(EntityState::IDLE, EntityStateSlot::MID, 0);
 						}
 					} break;

@@ -5,6 +5,7 @@
 
 #include "../Entity/Base.hpp"
 #include "../Entity/Mobs/Humanoid.hpp"
+#include "../Entity/Projectile.hpp"
 
 /*
     All the different types of objects must be created from here
@@ -25,6 +26,13 @@ Shared<Game::NetObject> Game::createNetObject(UInt16 id, UInt16 sig, float x, fl
             mob->sigId = Game::ObjectSig::MobHumanoid;
             return mob;
         } break;
+        case Game::ObjectSig::Projectile: {
+            auto proj = Shared<Game::NetObject>(new Projectile());
+            proj->setPosition(x, y);
+            proj->id = id;
+            proj->sigId = Game::ObjectSig::Projectile;
+            return proj;
+        } break;        
         default:
             nite::print("[netplay] failed to created object of sig '"+nite::toStr(sig)+"': it's undefined");
             return Shared<Game::NetObject>(NULL);
@@ -38,6 +46,7 @@ Game::NetObject::NetObject(){
     quadrant = -1;
     frictionRate = 30;
     net = NULL;
+    solid = true;
     objType = Game::ObjectType::Base;
     sigId = Game::ObjectSig::Base;
 	relativeTimescale = 1.0f;
@@ -48,17 +57,26 @@ Game::NetObject::NetObject(){
     direction = 0.0f;
 	container = NULL;
 	position.set(0.0f);
+    destroyed = false;
 
 }
 
 void Game::NetObject::destroy(){
-	if(container == NULL) return;
+	if(container == NULL) return; 
     clearQuadrant();
+    UInt16 _id = this->id;
     if(id == 0 && localId < 0){
         container->removeWallMask(this);
     }else{
 	    container->remove(this->id);
-    }
+        if(sv != NULL){
+            nite::Packet desUpt;
+            desUpt.setHeader(Game::PacketType::SV_DESTROY_OBJECT);
+            desUpt.write(&_id, sizeof(_id));	
+            sv->sendAll(desUpt);
+        }          
+    }   
+    destroyed = true;  
 }
 
 void Game::NetObject::setPosition(const nite::Vec2 &p){
@@ -123,6 +141,9 @@ void Game::NetObject::clearQuadrant(){
         if(objType == ObjectType::Ghost){
             container->ghosts[quadrant] = NULL;
         }else{
+            // if(this->sigId == ObjectSig::Projectile){
+            //     nite::print("meow");
+            // }
             container->cells[quadrant] = NULL;
         }
     }

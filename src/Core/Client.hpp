@@ -35,6 +35,7 @@
             Game::Camera camera;
             Game::InGameMenu igmenu;
             Dict<UInt64, Game::ClClient> clients;
+            Vector<UInt16> removeQueue;
             nite::IP_Port sv;
             UInt64 clientId;
             UInt64 serverId;

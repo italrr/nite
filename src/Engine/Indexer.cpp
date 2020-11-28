@@ -65,7 +65,10 @@ void nite::IndexedFile::autotag(){
     }   
     if(path.find("data/texture/weaps/") != -1 && isIt("image")){
         tags.push_back("spritesheet");
-    }            
+    }   
+    if(path.find("data/texture/ammo/") != -1 && isIt("image")){
+        tags.push_back("spritesheet");
+    }                 
     if(path.find("data/map/") != -1 && isIt("json")){
         tags.push_back("map");
     }   
