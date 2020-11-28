@@ -1531,25 +1531,25 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
     // solve position  
     Game::NetObject *who;
     int trial = 0;
-    while(obj->isCollidingWithSomething(&who)){
-        if(trial > 3 || who == NULL){
-            break;
-        }
-        // hardcoded for now
-        if(trial == 0){
-            obj->setPosition(who->position.x + who->size.x, who->position.y);
-        }else
-        if(trial == 1){
-            obj->setPosition(who->position.x - obj->size.x, who->position.y);
-        }else
-        if(trial == 2){
-            obj->setPosition(who->position.x, who->position.y - obj->size.y);
-        }else
-        if(trial == 3){
-            obj->setPosition(who->position.x, who->position.y + who->size.y);
-        }
-        ++trial;
-    }
+    // while(obj->isCollidingWithSomething(&who) && obj->objType != ObjectType::Ghost){
+    //     if(trial > 3 || who == NULL){
+    //         break;
+    //     }
+    //     // hardcoded for now
+    //     if(trial == 0){
+    //         obj->setPosition(who->position.x + who->size.x, who->position.y);
+    //     }else
+    //     if(trial == 1){
+    //         obj->setPosition(who->position.x - obj->size.x, who->position.y);
+    //     }else
+    //     if(trial == 2){
+    //         obj->setPosition(who->position.x, who->position.y - obj->size.y);
+    //     }else
+    //     if(trial == 3){
+    //         obj->setPosition(who->position.x, who->position.y + who->size.y);
+    //     }
+    //     ++trial;
+    // }
 
     nite::Packet crt;
     crt.setHeader(Game::PacketType::SV_CREATE_OBJECT);

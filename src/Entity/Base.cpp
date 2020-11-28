@@ -422,7 +422,6 @@ void Game::EntityBase::throwMelee(float x, float y){
 }
 
 void Game::EntityBase::useBaseAttack(){
-	lastExpectedTime[EntityStateSlot::MID] = 0;
 	if(invStat.activeWeapon == NULL){
 		setState(EntityState::MELEE_NOWEAP, EntityStateSlot::MID, 0);
 		return;
@@ -434,7 +433,6 @@ void Game::EntityBase::useBaseAttack(){
 				break;
 			}
 			lastExpectedTime[EntityStateSlot::MID] = 1000 - (900.0f * ((float)baseStat.agi / (float)GAME_MAX_STAT));
-			nite::print(nite::toStr(lastExpectedTime[EntityStateSlot::MID])+" "+nite::toStr(baseStat.agi)+" "+nite::toStr(GAME_MAX_STAT));
 			setState(EntityState::SHOOTING_BOW, EntityStateSlot::MID, 0);
 		} break;
 		default: {
@@ -489,7 +487,6 @@ void Game::EntityBase::updateStance(){
 					lastExpectedTime[EntityStateSlot::MID] = 250;
 					setState(EntityState::IDLE, EntityStateSlot::MID, 0);
 					if(this->sv != NULL){
-
 						nite::Vec2 p = this->position;
 						if(this->faceDirection == EntityFacing::Right){
 							p.x += this->size.x * 2.0f; 
@@ -501,8 +498,7 @@ void Game::EntityBase::updateStance(){
 						auto prj = static_cast<Game::Projectile*>(obj.get());
 						prj->dir = ang;
 						prj->spd = 35.0f;
-						this->sv->spawn(obj);
-						nite::print("[server] created projectile with id "+nite::toStr(obj->id));							
+						this->sv->spawn(obj);						
 					}
 
 				}				
@@ -586,7 +582,6 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 	}
 	switch(type){
 		case ActionableType::Skill: {
-			lastExpectedTime[EntityStateSlot::MID] = 0;
 			auto sk = skillStat.get(id);
 			if(sk != NULL && sk->isReady(this)){
 				currentCasting = Shared<Game::EntityCasting>(new Game::EntityCasting());
@@ -597,7 +592,7 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 				currentCasting->startTime = nite::getTicks();
 				currentCasting->time = sk->castDelay;
 				if(sk->castDelay > 0){
-					lastExpectedTime[EntityStateSlot::MID] = 250;
+					lastExpectedTime[EntityStateSlot::MID] = 350;
 					setState(EntityState::CASTING, EntityStateSlot::MID, 0);
 					isCasting = true;
 				}

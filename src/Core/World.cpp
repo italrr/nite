@@ -370,6 +370,8 @@ void Game::NetWorld::update(){
 		removeQueue.erase(std::unique(removeQueue.begin(), removeQueue.end()), removeQueue.end());		
 		for(int i = 0; i < removeQueue.size(); ++i){
 			objects[removeQueue[i]]->onDestroy();
+			objects[removeQueue[i]]->updateQuadrant();
+    		objects[removeQueue[i]]->clearQuadrant();			
 			objects[removeQueue[i]]->id = 0;
 			objects.erase(removeQueue[i]);
 		}

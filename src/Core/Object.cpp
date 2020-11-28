@@ -62,8 +62,7 @@ Game::NetObject::NetObject(){
 }
 
 void Game::NetObject::destroy(){
-	if(container == NULL) return; 
-    clearQuadrant();
+	if(container == NULL || destroyed) return; 
     UInt16 _id = this->id;
     if(id == 0 && localId < 0){
         container->removeWallMask(this);
@@ -141,9 +140,6 @@ void Game::NetObject::clearQuadrant(){
         if(objType == ObjectType::Ghost){
             container->ghosts[quadrant] = NULL;
         }else{
-            // if(this->sigId == ObjectSig::Projectile){
-            //     nite::print("meow");
-            // }
             container->cells[quadrant] = NULL;
         }
     }

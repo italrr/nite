@@ -6,7 +6,7 @@ Game::Projectile::Projectile(){
     mass = 1.0f;
     solid =  true;
     size.set(140, 68);
-    type = ObjectType::Projectile;
+    type = ObjectType::Ghost;
     unmovable = false;
 }
 
