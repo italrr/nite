@@ -12,6 +12,7 @@
 	namespace Game {
 
 		#define GAME_ITEM_MAX_COMPOUND_SLOTS 4
+		#define GAME_HANDS_MAX_NUMBER 2
 		struct EntityBase;
 
 		// some naming conventions for items:
@@ -66,6 +67,37 @@
                 LeftAcc,
                 RightAcc
 			};
+			static String name(UInt8 v){
+				switch(v){
+					case EquipSlot::Head: {
+						return "Head";
+					} break;
+					case EquipSlot::Chest: {
+						return "Chest";
+					} break;
+					case EquipSlot::Body: {
+						return "Body";
+					} break;
+					case EquipSlot::Footwear: {
+						return "Footwear";
+					} break;
+					case EquipSlot::LeftHand: {
+						return "LeftHand";
+					} break;
+					case EquipSlot::RightHand: {
+						return "RightHand";
+					} break;	
+					case EquipSlot::LeftAcc: {
+						return "LeftAcc";
+					} break;
+					case EquipSlot::RightAcc: {
+						return "RightAcc";
+					} break;																																			
+					default: {
+						return "Undefined";
+					} break;
+				}
+			}
 			static const UInt8 TOTAL = 8;
 		}	
 
@@ -75,7 +107,8 @@
 				Crossbow,
 				Sword,
 				Knife,
-				Katar
+				Katar,
+				None
 			};
 			static const UInt8 TOTAL = 5;
 		}
@@ -140,19 +173,33 @@
 			}
 		};
 
+		struct EquipAnimFrame {
+			nite::Vec2 inTexCoors;
+			String key;
+		};
+
 		struct EquipAnim {
 			nite::Vec2 textureSize;
 			nite::Texture texture;
 			nite::IndexedFile source;
 			nite::Vec2 frameSize;
-			Vector<nite::Vec2> inTexCoors;
+			Vector<Game::EquipAnimFrame> frames;
+			nite::Vec2 inTexSize;
 			nite::Vec2 origin;
-			Dict<String, UInt8> modes;
+			bool loadedTexture;
+			nite::Color transparency;
 			bool load(const String &path);
+			bool loadTexture();
+			EquipAnim(){
+				transparency = nite::Color("#ffffff");
+				loadedTexture = false;	
+			}
 		};
 
 		struct EquipItem : ItemBase {
 			UInt8 equipType;
+			UInt8 equipSlot;
+			UInt8 weaponType;
 			UInt16 dmg;
 			UInt16 mdmg;
 			UInt16 def;
@@ -160,6 +207,7 @@
 			
 			EquipItem(){
 				type = ItemType::Equip;	
+				weaponType = WeaponType::None;
 			}
 			
 			virtual void onEquip(EntityBase *owner){
@@ -178,7 +226,6 @@
 		};
 
 		struct EquipWeapon : EquipItem {
-			UInt8 weaponType;
 			Game::EquipAnim anim;
 			EquipWeapon(){
 				equipType = EquipType::Weapon;
@@ -194,6 +241,7 @@
 			UInt16 seedIndex;
 			Shared<Game::ItemBase> slots[EquipSlot::TOTAL];
 			Dict<UInt16, Shared<Game::ItemBase>> carry;
+			Game::EquipWeapon *activeWeapon;
 			InventoryStat();
 			UInt16 add(Shared<Game::ItemBase> &item);
 			UInt16 add(Shared<Game::ItemBase> &item, UInt16 slotId);
@@ -215,7 +263,9 @@
 				}
 			};
 			struct BowWeapon : EquipWeapon {
-
+				BowWeapon(){
+					id = ItemList::W_BOW;
+				}
 			};			
 		}
 	}

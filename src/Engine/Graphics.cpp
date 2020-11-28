@@ -789,6 +789,10 @@ RenderableBatch *nite::Batch::draw(float x, float y, float w, float h, float ori
 	return obj;
 }
 
+nite::Vec2 nite::Batch::getSize(){
+	return size;
+}
+
 void nite::Batch::flush(){
 	if(objectId <= -1) return;
 	if(currentBatch != NULL){

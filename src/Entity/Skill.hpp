@@ -69,7 +69,9 @@
             UInt16 skPointsPerLv; // how many skill points cost one level
             int iconId;
             UInt16 baseDmg;
+            bool locked;
             Skill(){
+                locked = false;
                 id = 0;
                 lastUse = 0;
             }
@@ -121,14 +123,14 @@
             // RANGER [RE] 
             RE_MASTERY_RANGER,          // 10% dmg inc with bows | ability to craft complex items | 5 points + 12% agi inc
             RE_BOW_MASTERY,             // 4% dmg inc with bows (per lv, max lv 5)
-            RE_DIRECT_BLOW,             // shoots 3 arros with 0.5 msecs delay. 1st normal dmg, 2nd double (*2), 3rd double of the triple (2 * 2) | 5% chance of causing stun on target
-            RE_VISION_TORCH,            // spawns torch on the floor (only). everything around a 40px radius is visible. lasts 3 mins
+            RE_DIRECT_BLOW,             // shoots 3 arros with 0.5 msecs delay. 1st normal dmg, 2nd double (*2), 3rd double damage + 30% knockback | 5% chance of causing stun on target
+            RE_VISION_TORCH,            // spawns torch on the floor (only). everything around a 40px radius is visible. lasts 5 mins | 20 secs cooldown
             
             // BARD [BD] 
             BD_MASTERY_BARD,            // 8% dmg inc with bows | 75% charm rate inc | ability to spell by typing in chat | ability of dealing dmg by playing instruments
             BD_ENCORE,                  // 5% dmg inc with next "music attack" | if there's another player using encore, it's 10%
             BD_SING,                    // does not require an instrument | does a sing attack
-            BD_WAR_OVERTUDE,            // requires guitar, flute or bagpipes. 10% dmg inc, 8% movement spd inc, complete immunity to magic for 4 secs for all party members in 40px radius
+            BD_WAR_OVERTUDE,            // requires guitar, flute or bagpipes. 10% dmg inc, 8% movement spd inc, magic damage reduction to 90% for 4 secs for all party members in 40px radius
             BD_SONG_OF_MEDUSA,          // sings a song, entities within 90px radius proximity of the user have a  25% chance of being stunt (bosses and minibosses are immune)
             BD_WILLIAM_TELL,            // sings a song, party members within a 45px of the user are granted 50% movement increment and 5 point inc for agi for 12 secs
             BD_TAROT,                   // users pick a random card and applies its effect on target
@@ -137,7 +139,7 @@
             NE_MASTERY_NECROMANCER,     // 80% dmg reduction from undead | 4% movement spd | 4 points inc agi | inability to be buffed from cleric's powers
             NE_SUMMON,                  // summons a dead entity with 15% of its original stats as slave. doesn't work on bosses (max 4 slaves). cannot resummon a dead summoned
             NE_AFTERLIFE,               // grants the user an extra life when it dies
-            NE_CORPSE_ABSORD,           // consume a dead body (within 45px radius of user) and gain 5% hp and sp
+            NE_CORPSE_ABSORD,           // consume a dead body (within 45px radius of user) and gain 5% hp and sp | make slave consume corpses
             NE_CORPSE_EXPLODE,          // makes a dead body (within 45px radius of user) explode dealing damage to surrouding entities
             NE_DEVILS_CALL,             // spawns a mini demon as slave (max 3 slave)
             

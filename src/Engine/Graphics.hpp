@@ -107,7 +107,8 @@
 				RenderableBatch *draw(const nite::Vec2 &P, float angle);
 				RenderableBatch *draw(const nite::Vec2 &P, const nite::Vec2 &S, const nite::Vec2 &orig, float angle);
 				RenderableBatch *draw(float x, float y, float w, float h, float origX, float origY, float angle);
-				Batch& operator= (const Batch &other);				
+				Batch& operator= (const Batch &other);
+				nite::Vec2 getSize();				
 				void flush();
 			private:
 				void clearBuffer();

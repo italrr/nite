@@ -5,34 +5,34 @@
 #include "../Engine/Tools/Tools.hpp"
 #include "Base.hpp"
 
-static void notifyAddItem(Game::EntityBase *ent, UInt16 itemId, UInt16 slotId, UInt16 qty){
+// static void notifyAddItem(Game::EntityBase *ent, UInt16 itemId, UInt16 slotId, UInt16 qty){
+//     if(ent != NULL && ent->sv != NULL){
+//         if(auto cl = ent->sv->getClientByEntityId(ent->id)){
+//             ent->sv->notifyAddItem(cl->clientId, itemId, slotId, qty);
+//         }
+//     }
+// }
+
+// static void notifyRemoveItem(Game::EntityBase *ent, UInt16 itemId, UInt16 slotId, UInt16 qty){
+//     if(ent != NULL && ent->sv != NULL){
+//         if(auto cl = ent->sv->getClientByEntityId(ent->id)){
+//             ent->sv->notifyRemoveItem(cl->clientId, itemId, slotId, qty);
+//         }
+//     }
+// }
+
+static void notifyUpdateEquipSlots(Game::EntityBase *ent){
     if(ent != NULL && ent->sv != NULL){
         if(auto cl = ent->sv->getClientByEntityId(ent->id)){
-            ent->sv->notifyAddItem(cl->clientId, itemId, slotId, qty);
+            ent->sv->notifyUpdateEquipSlots(cl->clientId);
         }
     }
 }
 
-static void notifyRemoveItem(Game::EntityBase *ent, UInt16 itemId, UInt16 slotId, UInt16 qty){
+static void notifyUpdateInvList(Game::EntityBase *ent){
     if(ent != NULL && ent->sv != NULL){
         if(auto cl = ent->sv->getClientByEntityId(ent->id)){
-            ent->sv->notifyRemoveItem(cl->clientId, itemId, slotId, qty);
-        }
-    }
-}
-
-static void notifyEquipItem(Game::EntityBase *ent, UInt16 itemId, UInt16 slotId){
-    if(ent != NULL && ent->sv != NULL){
-        if(auto cl = ent->sv->getClientByEntityId(ent->id)){
-            ent->sv->notifyEquipItem(cl->clientId, itemId, slotId);
-        }
-    }
-}
-
-static void notifyUnequipItem(Game::EntityBase *ent, UInt16 itemId, UInt16 slotId){
-    if(ent != NULL && ent->sv != NULL){
-        if(auto cl = ent->sv->getClientByEntityId(ent->id)){
-            ent->sv->notifyUnequipItem(cl->clientId, itemId, slotId);
+            ent->sv->notifyUpdateInvList(cl->clientId);
         }
     }
 }
@@ -42,6 +42,8 @@ Game::InventoryStat::InventoryStat(){
 	for(int i = 0; i < EquipSlot::TOTAL; ++i){
 		slots[i] = Shared<Game::EquipItem>(NULL);
 	}
+	activeWeapon = NULL;
+
 }
 
 static Jzon::Node db = Jzon::object();
@@ -72,6 +74,11 @@ void Game::DBLoadInventory(const String &path){
     nite::print("loaded Inventory Db '"+path+"': added "+nite::toStr(root.getCount()-1)+" object(s)");
 }
 
+bool Game::EquipAnim::loadTexture(){
+	this->texture.load(this->source.path, this->transparency);
+	this->loadedTexture = true;
+}
+
 bool Game::EquipAnim::load(const String &path){
 	String errmsg = "failed to load '"+path+"': ";
 	if(!nite::fileExists(path)){
@@ -97,15 +104,16 @@ bool Game::EquipAnim::load(const String &path){
         return false;
     }		
 	this->source = *ifile;
-	this->texture.load(this->source.path);
 	this->textureSize = nite::Vec2(node.get("textureSize").get("w").toInt(0), node.get("textureSize").get("h").toInt(0));
-	this->origin = nite::Vec2(node.get("origin").get("x").toInt(0), node.get("origin").get("y").toInt(0));
+	this->transparency = nite::Color(node.get("transparency").toString("#ffffff"));
+	this->origin = nite::Vec2(node.get("origin").get("x").toInt(0) / frameSize.x, node.get("origin").get("y").toInt(0) / frameSize.y);
+	this->inTexSize = frameSize;
 	for(auto &it : node.get("frames")){
 		auto frame = it.second;
-		this->inTexCoors.push_back(nite::Vec2(frame.get("x").toInt(0), frame.get("y").toInt(0)));
-	}
-	for(auto &it : node.get("modes")){
-		this->modes[it.first] = it.second.get("n").toInt(0);;
+		EquipAnimFrame _frame;
+		_frame.inTexCoors = nite::Vec2(frame.get("x").toInt(0), frame.get("y").toInt(0));
+		_frame.key = frame.get("key").toString("");
+		this->frames.push_back(_frame);
 	}
 	return true;
 }
@@ -138,12 +146,14 @@ UInt16 Game::InventoryStat::add(Shared<Game::ItemBase> &item, UInt16 slotId){
 		item->onCarryAdd(owner);
 		finalId = _seedIndex;
 		owner->complexStat.carry += item->weight;
-		notifyAddItem(owner, item->id, item->slotId, item->qty);
+		// notifyAddItem(owner, item->id, item->slotId, item->qty);
+		notifyUpdateInvList(owner);
 	}else{
 		ins->qty += item->qty;
 		finalId = ins->slotId;
 		owner->complexStat.carry += ins->weight * item->qty;
-		notifyAddItem(owner, ins->id, ins->slotId, item->qty);
+		// notifyAddItem(owner, ins->id, ins->slotId, item->qty);
+		notifyUpdateInvList(owner);
 	}
 	if(finalId > 0){
 		owner->recalculateStats();
@@ -163,11 +173,11 @@ bool Game::InventoryStat::equip(Shared<Game::ItemBase> &item){
 		return false;
 	}
 	auto equip = static_cast<Game::EquipItem*>(item.get());
-	slots[equip->equipType] = item;
+	slots[equip->equipSlot] = item;
 	equip->onEquip(owner);
 	owner->recalculateStats();
 	nite::print("equipped "+item->name);
-	notifyEquipItem(this->owner, item->id, item->slotId);
+	notifyUpdateEquipSlots(this->owner);
 	return true;
 }
 
@@ -179,7 +189,8 @@ bool Game::InventoryStat::unequip(UInt16 itemId){
 				equip->onUnequip(owner);
 				slots[equip->equipType] = Shared<Game::EquipItem>(NULL);
 				owner->recalculateStats();
-				notifyEquipItem(this->owner, equip->id, equip->slotId);
+				nite::print("unequipped "+equip->name);
+				notifyUpdateEquipSlots(this->owner);
 				return true;
 			}
 		}
@@ -238,7 +249,8 @@ bool Game::InventoryStat::remove(UInt16 id, UInt16 qty){
                 item.slotId = 0;
                 carry.erase(it.first);
 			}
-			notifyRemoveItem(owner, id, origSlot, qty);
+			// notifyRemoveItem(owner, id, origSlot, qty);
+			notifyUpdateInvList(owner);
 			owner->recalculateStats();
 			return true;
         }
@@ -263,7 +275,8 @@ bool Game::InventoryStat::removeBySlotId(UInt16 slotId, UInt16 qty){
 		item->slotId = 0;
 		carry.erase(it->first);
 	}
-	notifyRemoveItem(owner, item->id, slotId, qty);
+	// notifyRemoveItem(owner, item->id, slotId, qty);
+	notifyUpdateInvList(owner);
 	owner->recalculateStats();
 	return true;
 }
@@ -292,6 +305,7 @@ Shared<Game::ItemBase> Game::getItem(UInt16 id, UInt16 qty){
 
 void Game::EquipItem::parseSpecial(Jzon::Node &obj){
 	equipType = obj.get("equipType").toInt(0);
+	equipSlot = obj.get("equipSlot").toInt(0);
 	dmg = obj.get("dmg").toInt(0);
 	mdmg = obj.get("mdmg").toInt(0);
 	def = obj.get("def").toInt(0);
@@ -300,6 +314,7 @@ void Game::EquipItem::parseSpecial(Jzon::Node &obj){
 
 void Game::EquipWeapon::parseSpecial(Jzon::Node &obj){
 	equipType = obj.get("equipType").toInt(0);
+	equipSlot = obj.get("equipSlot").toInt(0);
 	weaponType = obj.get("weaponType").toInt(0);
 	dmg = obj.get("dmg").toInt(0);
 	mdmg = obj.get("mdmg").toInt(0);

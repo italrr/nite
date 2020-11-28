@@ -11,6 +11,7 @@
 #include "Vfx/Vfx.hpp"
 
 #include "Base.hpp"
+#include "Inventory.hpp"
 #include "../Engine/Font.hpp"
 
 static bool showHitboxes = false;
@@ -61,12 +62,16 @@ Game::EntityBase::EntityBase(){
 	this->objType = ObjectType::Entity;
 	this->lastDmgd = nite::getTicks();
 	this->currentCasting = Shared<Game::EntityCasting>(NULL);
+	this->anim.owner = this;
 	setState(EntityState::IDLE, EntityStateSlot::MID, 0);
-	setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);
+	setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);	
 	walkStepTick = 0;
 	lastDmgCountShow = nite::getTicks();
 	dmgCountShow = 0;
 	aidriver.set(this);
+	for(int i = 0; i < EntityStateSlot::total; ++i){
+		lastExpectedTime[i] = 0;
+	}	
 }
 
 bool Game::EntityBase::canDamage(){
@@ -149,7 +154,8 @@ void Game::EntityBase::draw(){
 	UInt8 mid = EntityState::stateToAnimType[state[EntityStateSlot::MID]][EntityStateSlot::MID];
 	UInt8 anims[AnimPart::total] = {bot, mid, AnimType::TOP_NEUTRAL};
 	UInt8 numbs[AnimPart::total] = {stNum[EntityStateSlot::BOTTOM], stNum[EntityStateSlot::MID], 0};
-	anim.setState(anims, numbs);
+	UInt64 times[AnimPart::total] = {lastExpectedTime[EntityStateSlot::BOTTOM], lastExpectedTime[EntityStateSlot::MID], 0};
+	anim.setState(anims, numbs, times);
 	lerpPosition.lerpDiscrete(position, 0.21f);
 	nite::Vec2 rp = lerpPosition + size * 0.5f;
 	nite::lerpDiscrete(entityAlpha, canDamage() ? 100.0f : 55.0f, 0.25f);
@@ -158,7 +164,7 @@ void Game::EntityBase::draw(){
 	int bodyDepth = -rp.y - anim.bodyDepthOffset;
 	nite::setDepth(bodyDepth);
 	float reversed = faceDirection == EntityFacing::Left ? -1.0f : 1.0f;
-	auto ref = anim.batch.draw(rp.x, rp.y, anim.frameSize.x * reversed, anim.frameSize.y, 0.5f, 0.5f, 0.0f);
+	auto ref = anim.batch.draw(rp.x, rp.y, anim.batch.getSize().x * reversed, anim.batch.getSize().y, 0.5f, 0.5f, 0.0f);
 
 	anim.update();
 
@@ -301,6 +307,29 @@ void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n, bool override
 	if((!override && nstate > EntityState::total) || slot > EntityStateSlot::total){
 		return;
 	}
+	int weaponType = WeaponType::None;
+	invStat.activeWeapon = NULL;
+	for(int i = 0; i < EquipSlot::TOTAL; ++i){
+		if(invStat.slots[i].get() == NULL || invStat.slots[i]->type != ItemType::Equip){
+			continue;
+		}
+		auto *equip = static_cast<Game::EquipItem*>(invStat.slots[i].get());
+		if(equip->weaponType == WeaponType::None){
+			continue;
+		}
+		weaponType = equip->weaponType;
+		invStat.activeWeapon = static_cast<Game::EquipWeapon*>(equip);
+		// load weap textures on demand
+		// TODO: maybe this is not the best place to have this
+		if(this->sv == NULL && !invStat.activeWeapon->anim.loadedTexture){
+			invStat.activeWeapon->anim.loadTexture();
+		}
+		break;
+	}
+	auto MID_IDLE_STATE = weaponType == WeaponType::None ? EntityState::IDLE : EntityState::IDLE_BOW;
+	if(slot == EntityStateSlot::MID && nstate == EntityState::IDLE){
+		nstate = MID_IDLE_STATE;
+	}
 	if(!override){
 		auto nanim = anim.getAnim(EntityState::stateToAnimType[nstate][slot]);
 		if(nanim != NULL && nanim->n > 0 && n > nanim->n){
@@ -324,6 +353,7 @@ void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n, bool override
 		for(int i = 0; i < EntityStateSlot::total; ++i){
 			stance.write(&state[i], sizeof(UInt8));
 			stance.write(&stNum[i], sizeof(UInt8));
+			stance.write(&lastExpectedTime[i], sizeof(lastExpectedTime[i]));
 		}
 		// TODO: filter by whether this entity is actually in the clients view
 		sv->sendAll(stance);
@@ -388,8 +418,30 @@ void Game::EntityBase::throwMelee(float x, float y){
 	}
 }
 
+void Game::EntityBase::useBaseAttack(){
+	lastExpectedTime[EntityStateSlot::MID] = 0;
+	if(invStat.activeWeapon == NULL){
+		setState(EntityState::MELEE_NOWEAP, EntityStateSlot::MID, 0);
+		return;
+	}
+	auto *weap = invStat.activeWeapon;
+	switch(weap->weaponType){
+		case WeaponType::Bow: {
+			if(state[EntityStateSlot::MID] == EntityState::SHOOTING_BOW){
+				break;
+			}
+			lastExpectedTime[EntityStateSlot::MID] = 5 - (700.0f * ((float)baseStat.agi / (float)GAME_MAX_STAT));
+			setState(EntityState::SHOOTING_BOW, EntityStateSlot::MID, 0);
+		} break;
+		default: {
+			nite::print("entity Id '"+nite::toStr(id)+"' issued base attack with a weapon: weapon is of none type");
+			return;
+		} break;
+	}
+}
+
 void Game::EntityBase::updateStance(){
-	// this is for humanoid basically
+	// this is for humanoid
 	for(int i = 0; i < EntityStateSlot::total; ++i){
 		auto &part = i;
 		switch(state[i]){
@@ -418,6 +470,21 @@ void Game::EntityBase::updateStance(){
 			case EntityState::SHOOTING_HANDGUN: {
 			} break;
 			case EntityState::SHOOTING_BOW: {
+				if(part != EntityStateSlot::MID){
+					break;
+				}
+				auto canim = this->anim.getAnim(EntityState::stateToAnimType[EntityState::SHOOTING_BOW][EntityStateSlot::MID]);
+				if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > lastExpectedTime[EntityStateSlot::MID]){
+					// unlock basic attack
+					auto sk = skillStat.get(SkillList::BA_ATTACK);
+					if(sk != NULL){
+						sk->locked = false;
+					}else{
+						nite::print("EntityBase::updateStance: failed to find basic attack");
+					}
+					lastExpectedTime[EntityStateSlot::MID] = 250;
+					setState(EntityState::IDLE, EntityStateSlot::MID, 0);
+				}				
 			} break;
 			case EntityState::IDLE_HANDGUN: {
 			} break;
@@ -439,7 +506,7 @@ void Game::EntityBase::updateStance(){
 				switch(stNum[EntityStateSlot::MID]){
 					case 0:{
 						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > canim->spd){
-							switchFrame(EntityStateSlot::MID, stNum[EntityStateSlot::MID] + 1);
+							switchFrame(EntityState::IDLE, stNum[EntityStateSlot::MID] + 1);
 						}
 					} break;
 					default:
@@ -457,7 +524,7 @@ void Game::EntityBase::updateStance(){
 				}
 			} break;
 			case EntityState::CASTING: {
-				if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 500 && !isCasting){
+				if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > lastExpectedTime[EntityStateSlot::MID] && !isCasting){
 					setState(EntityState::IDLE, EntityStateSlot::MID, 0);
 				}
 			} break;
@@ -491,6 +558,7 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 	}
 	switch(type){
 		case ActionableType::Skill: {
+			lastExpectedTime[EntityStateSlot::MID] = 0;
 			auto sk = skillStat.get(id);
 			if(sk != NULL && sk->isReady(this)){
 				currentCasting = Shared<Game::EntityCasting>(new Game::EntityCasting());
@@ -501,6 +569,7 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 				currentCasting->startTime = nite::getTicks();
 				currentCasting->time = sk->castDelay;
 				if(sk->castDelay > 0){
+					lastExpectedTime[EntityStateSlot::MID] = 800;
 					setState(EntityState::CASTING, EntityStateSlot::MID, 0);
 					isCasting = true;
 				}
@@ -715,32 +784,60 @@ void Game::EntityBase::readAllStatState(nite::Packet &packet){
 }
 
 void Game::EntityBase::writeInvSlotsState(nite::Packet &packet){
-	size_t size = sizeof(UInt16) * EquipSlot::TOTAL;
-	char buffer[size];
-	memset(buffer, '0', size);
 	for(int i = 0; i < EquipSlot::TOTAL; ++i){
-		auto &item = invStat.slots[i];
-		UInt16 id = item.get() == NULL ? 0 : item->slotId;
-		memcpy(buffer + i * sizeof(UInt16), &id, sizeof(id));
+		auto &slot = invStat.slots[i];
+		UInt16 id = slot.get() == NULL ? 0 : slot->slotId;
+		packet.write(&id, sizeof(id));
 	}
-	packet.write(buffer, size);
 }
 
 void Game::EntityBase::readInvSlotsState(nite::Packet &packet){
-	size_t size = sizeof(UInt16) * EquipSlot::TOTAL;
-	char buffer[size];
-	packet.read(buffer, size);
 	for(int i = 0; i < EquipSlot::TOTAL; ++i){
 		UInt16 id;
-		memcpy(&id, buffer + i * sizeof(UInt16), sizeof(id));
-		auto item = invStat.get(id);
+		packet.read(&id, sizeof(id));
+		invStat.slots[i] = invStat.get(id);
+	}	
+	invStat.activeWeapon = NULL;
+}
+
+void Game::EntityBase::writeInvListState(nite::Packet &packet){
+	UInt8 n;
+	n = invStat.carry.size();
+	packet.write(&n, sizeof(n));
+	for(auto &it : invStat.carry){
+		auto &item = it.second;
+		packet.write(&item->slotId, sizeof(item->slotId));
+		packet.write(&item->id, sizeof(item->id));
+		packet.write(&item->qty, sizeof(UInt16));
+		packet.write(&item->upgradelv, sizeof(item->upgradelv));
+		for(int j = 0; j < GAME_ITEM_MAX_COMPOUND_SLOTS; ++j){
+			packet.write(&item->compound[j], sizeof(item->compound[j]));
+		}
+	}
+}
+
+void Game::EntityBase::readInvListState(nite::Packet &packet){
+	UInt8 n;
+	packet.read(&n, sizeof(n));
+	invStat.carry.clear(); // remember to update slots!
+	for(int i = 0; i < n; ++i){
+		UInt16 slotId, itemId;
+		UInt32 qty;
+		UInt8 upgLv;
+		packet.read(&slotId, sizeof(slotId));
+		packet.read(&itemId, sizeof(itemId));
+		packet.read(&qty, sizeof(UInt16));
+		packet.read(&upgLv, sizeof(upgLv));
+		auto item = Game::getItem(itemId, qty);
 		if(item.get() == NULL){
-			if(id != 0){
-				nite::print("failed to equip slotId '"+nite::toStr(id)+"': it's not in the backpack");
-			}
+			nite::print("writeInvListState: fail to find itemId '"+nite::toStr(itemId)+"'");
 			continue;
 		}
-		invStat.slots[i] = item;
+		item->upgradelv = upgLv;
+		for(int j = 0; j < GAME_ITEM_MAX_COMPOUND_SLOTS; ++j){
+			packet.read(&item->compound[j], sizeof(item->compound[j]));
+		}	
+		invStat.carry[slotId] = item;
 	}	
 }
 

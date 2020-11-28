@@ -32,7 +32,7 @@
 		"usageType": 0,
 		"family": 0,
 		"range": 2,
-		"cooldown": 480,
+		"cooldown": 0,
 		"castDelay": 0,
 		"minUseLv": 1,
 		"skPointsPerLv": 1,

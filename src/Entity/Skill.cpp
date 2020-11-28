@@ -176,14 +176,15 @@ bool Game::SkillStat::lvUp(UInt16 id){
     SK_BA_Attack
 */
 bool Game::Skills::BA_Attack::use(Game::EntityBase *who, Game::EntityBase *to, const nite::Vec2 &at){
-    if(!isReady(who)){
+    if(!isReady(who) || this->locked){
         return false;
     }
     this->lastUse = nite::getTicks();
     if(who == NULL){
         return false;
     }
-    who->setState(EntityState::MELEE_NOWEAP, EntityStateSlot::MID, 0);
+    who->useBaseAttack();
+    this->locked = true;
     return true;
 }
 

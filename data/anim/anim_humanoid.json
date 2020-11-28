@@ -25,9 +25,10 @@
 		},		
 		"limbs": {
 			"left_hand": {
-				"depth": 1
+				"depth": 1,
 			},
 			"right_hand": {
+				"active": true,
 				"depth": -1
 			}
 		}
@@ -46,14 +47,14 @@
 			"y": 12,
 			"w": 40,
 			"h": 48,
-			"name": "high",
+			"name": "high"
 		},
 		{
 			"x": 30,
 			"y": 58,
 			"w": 58,
 			"h": 92,
-			"name": "mid",
+			"name": "mid"
 		}
 	],
 	"meleeNoWeapHitbox": {
@@ -85,7 +86,7 @@
 						"angle": 35
 					}					
 				],
-				"right_hand": {
+				"right_hand": [
 					{
 						"pos": {
 							"x": 100,
@@ -100,7 +101,7 @@
 						},
 						"angle": 115
 					}				
-				}				
+				]				
 			}
 		},
 		"bot_standing": {
@@ -118,7 +119,7 @@
 						"angle": 90
 					}					
 				],
-				"right_hand": {
+				"right_hand": [
 					{
 						"pos": {
 							"x": 35,
@@ -126,7 +127,7 @@
 						},
 						"angle": 90
 					}				
-				}				
+				]				
 			}			
 		},
 		"mid_melee_noweap": {
@@ -168,7 +169,7 @@
 						"angle": 0
 					}						
 				],
-				"right_hand": {
+				"right_hand": [
 					{
 						"pos": {
 							"x": 35,
@@ -190,7 +191,7 @@
 						},
 						"angle": 90
 					}					
-				}				
+				]			
 			}			
 		},
 		"mid_standing": {
@@ -199,6 +200,128 @@
 			"n": 1,
 			"spd": 0
 		},
+		
+		"mid_weap_bow_idle": {
+			"x": 0,
+			"y": 2,
+			"n": 1,
+			"spd": 0,
+			"limbOverride": {
+				"n": 1,
+				"spd": 500
+			},				
+			"limbs": {
+				"left_hand": [
+					{
+						"pos": {
+							"x": 70,
+							"y": 118
+						},
+						"angle": 90
+					}					
+				],
+				"right_hand": [
+					{
+						"pos": {
+							"x": 85,
+							"y": 118
+						},
+						"angle": 45
+					}			
+				]					
+			}			
+		},
+		"mid_weap_bow_shoot": {
+			"x": 0,
+			"y": 2,
+			"n": 1,
+			"spd": 0,
+			"limbOverride": {
+				"n": 5,
+				"spd": 60
+			},			
+			"limbs": {
+				"left_hand": [
+					{
+						"pos": {
+							"x": 70,
+							"y": 118
+						},
+						"angle": 90
+					},
+					{
+						"pos": {
+							"x": 110,
+							"y": 92
+						},
+						"angle": 90
+					},
+					{
+						"pos": {
+							"x": 105,
+							"y": 77
+						},
+						"type": "closed_hand",
+						"angle": 0
+					},
+					{
+						"pos": {
+							"x": 90,
+							"y": 77
+						},
+						"type": "closed_hand",
+						"angle": 0
+					},
+					{
+						"pos": {
+							"x": 85,
+							"y": 77
+						},
+						"angle": 0
+					}					
+				],
+				"right_hand": [
+					{
+						"pos": {
+							"x": 125,
+							"y": 77
+						},
+						"angle": 0
+					},
+					{
+						"pos": {
+							"x": 125,
+							"y": 77
+						},
+						"angle": 0
+					},
+					{
+						"pos": {
+							"x": 125,
+							"y": 77
+						},
+						"angle": 0
+					},
+					{
+						"pos": {
+							"x": 118,
+							"y": 77
+						},
+						"weapKeyFrame": "shoot",
+						"angle": 0
+					},
+					{
+						"pos": {
+							"x": 125,
+							"y": 77
+						},
+						"angle": 0
+					}						
+					
+				]
+			}	
+		},
+		
 		"mid_parry_noweap": {
 			"x": 0,
 			"y": 2,
@@ -214,7 +337,7 @@
 			"kf": 0,
 			"limbOverride": {
 				"n": 2,
-				"spd": 80
+				"spd": 100
 			},
 			"limbs": {
 				"left_hand": [
@@ -234,7 +357,7 @@
 						"angle": 270
 					}					
 				],
-				"right_hand": {
+				"right_hand": [
 					{
 						"pos": {
 							"x": 35,
@@ -249,7 +372,7 @@
 						},
 						"angle": 90
 					}					
-				}				
+				]				
 			}
 		},		
 		"top_neutral": {

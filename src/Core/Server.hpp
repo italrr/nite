@@ -119,8 +119,7 @@
             void notifyGameOver(UInt64 uid);
             void notifyGameRestart(UInt64 uid);
 
-            void notifyEquipItem(UInt64 uid, UInt16 itemId, UInt16 slotId);
-            void notifyUnequipItem(UInt64 uid, UInt16 itemId, UInt16 slotId);      
+            void notifyUpdateEquipSlots(UInt64 uid);
 
             void notifyUpdateInvList(UInt64 uid);       
             

@@ -54,6 +54,12 @@
                 if(name == "mid_parry_noweap"){
                     return AnimType::MID_PARRY_NOWEAP;
                 }else
+                if(name == "mid_weap_bow_idle"){
+                    return AnimType::MID_HOLDING_BOW;
+                }else                      
+                if(name == "mid_weap_bow_shoot"){
+                    return AnimType::MID_SHOOTING_BOW;
+                }else
                 if(name == "top_neutral"){
                     return AnimType::TOP_NEUTRAL;
                 }else{
@@ -70,10 +76,12 @@
             bool xflip;
             bool yflip;
             float shakeMag;
+            String weapKeyFrame;
             AnimLimbFrame(){
                 yflip = false;
                 xflip = false;
                 shakeMag = 0.0f;
+                weapKeyFrame = "";
                 an = 90;
                 p.set(0.0f);
             }
@@ -81,6 +89,7 @@
 
         struct AnimLimbFrameOverride {
             UInt64 spd;
+            UInt64 espd;
             UInt8 n;
             UInt8 st; 
             UInt64 lastThick;
@@ -122,7 +131,12 @@
             bool xflip;
             bool yflip;
             float shakeMag;
+            bool active = false;
+            String weapKeyFrame;
+            Int64 spd;
             AnimLimb(){
+                spd = -1;
+                active = true;
                 nangle = 0;
                 angle = 0;
             }
@@ -137,7 +151,9 @@
             static const UInt8 total = 3;
         }
 
+        struct EntityBase;
         struct Anim {
+            Game::EntityBase *owner;
             UInt8 lastSFrame[AnimPart::total];
             Game::AnimFrame *lastAnim[AnimPart::total];
             Vector<nite::Hitbox> hitboxes;
@@ -162,7 +178,7 @@
             Anim();
             void rerender();
             void update();
-            void setState(UInt8 anims[AnimPart::total], UInt8 sframes[AnimPart::total]);
+            void setState(UInt8 anims[AnimPart::total], UInt8 sframes[AnimPart::total], UInt64 exTime[AnimPart::total]);
         };
 
     }

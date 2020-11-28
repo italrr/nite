@@ -115,14 +115,12 @@
         };
 
         struct EntityBase : Game::NetObject, Game::Stat {
-
             void addDamageCountShow(int n);
             unsigned dmgCountShow;
             float dmgCountShowAngle;
             float dmgCountShowAlpha;
             nite::Vec2 dmgCountShowPos;
             UInt64 lastDmgCountShow;
-
             float entityAlpha;
             bool canDamage();
             UInt64 lastDmgd;
@@ -135,8 +133,10 @@
             UInt8 stNum[EntityStateSlot::total];
             UInt64 lastStateTime[EntityStateSlot::total];
             UInt64 lastFrameTime[EntityStateSlot::total];
+            UInt64 lastExpectedTime[EntityStateSlot::total];
             void setState(UInt8 nstate, UInt8 slot, UInt8 n, bool override = false);
             void switchFrame(UInt8 slot, UInt8 n);
+            void useBaseAttack();
             Game::Actionable actionables[Game::EntityActionables]; // 1 2 3 4 5 keys + M1 + M2
             UInt8 faceDirection;
             Game::Anim anim;
@@ -173,8 +173,13 @@
             virtual void readInitialState(nite::Packet &packet);     
             virtual void writeAllStatState(nite::Packet &packet);       
             virtual void readAllStatState(nite::Packet &packet); 
+            
             virtual void writeInvSlotsState(nite::Packet &packet);
             virtual void readInvSlotsState(nite::Packet &packet);
+            
+            virtual void writeInvListState(nite::Packet &packet);
+            virtual void readInvListState(nite::Packet &packet);
+
             virtual void writeHealthStatState(nite::Packet &packet);       
             virtual void readHealthStatState(nite::Packet &packet);           
         };

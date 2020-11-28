@@ -43,6 +43,7 @@
 		"iconId": 0,
 		"amnt": false,
 		"equipType": 1,
+		"equipSlot": 4,
 		"weaponType": 0,
 		"dmg": 0,
 		"mdmg": 0,

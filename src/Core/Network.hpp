@@ -448,11 +448,13 @@
                 0: {
                     UINT8 STATE
                     UINT8 NUMBER
+                    UINT64 EXPECTEDTIME
                 }
                 ...
                 1: {
                     UINT8 STATE
                     UINT8 NUMBER
+                    UINT64 EXPECTEDTIME
                 }
 
             */
@@ -504,27 +506,28 @@
                     sizeof(UINT16) * EquipSlot::TOTAL (16 bytes)
                 }
            */
-            SV_UPDATE_ENTITY_INVENTORY_CARRY,
+            SV_UPDATE_ENTITY_INVENTORY_CARRY, // ACK
             /*
-                UINT16 ENTID
-                {
-                    sizeof(UINT16) * EquipSlot::TOTAL (16 bytes)
-                }                
+                UINT16 ENTID      
+                UINT8 N     
 	            {
                     UINT16 SLOTID
                     UINT16 ITEMID
-                    UINT32 QTY
+                    UINT16 QTY
                     UINT8 UPGLV
-                    UINT16[4] COMPOUND
+                    UINT16[GAME_ITEM_MAX_COMPOUND_SLOTS] COMPOUND
                 }
                 ...
                 n: {
                     UINT16 SLOTID
                     UINT16 ITEMID
-                    UINT32 QTY
+                    UINT16 QTY
                     UINT8 UPGLV
-                    UINT[4] COMPOUND
+                    UINT[GAME_ITEM_MAX_COMPOUND_SLOTS] COMPOUND
                 }
+                {
+                    sizeof(UINT16) * EquipSlot::TOTAL (16 bytes)
+                }                   
             */
             SV_UPDATE_SKILL_STATE, // ACK
             /*

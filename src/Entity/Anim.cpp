@@ -1,4 +1,5 @@
 #include "Anim.hpp"
+#include "Base.hpp"
 #include "../Engine/Tools/Tools.hpp"
 #include "../Engine/Indexer.hpp"
 
@@ -52,6 +53,7 @@ bool Game::Anim::load(const String &path){
             limb.name = limbnode.first;
             limb.type = "open_hand";
             limb.depth = limbnode.second.get("depth").toInt();
+            limb.active = limbnode.second.get("active").toBool(false);
             limbs[limb.name] = limb;
         }        
     }    
@@ -79,6 +81,7 @@ bool Game::Anim::load(const String &path){
                     nframe.yflip = frame.second.get("yflip").toBool(false);
                     nframe.shakeMag = frame.second.get("shake").toFloat(0.0f);
                     nframe.type = frame.second.get("type").toString("open_hand");
+                    nframe.weapKeyFrame = frame.second.get("weapKeyFrame").toString("");
                     frames.push_back(nframe);
                 }
                 frame.limbs[name] = frames;
@@ -129,9 +132,10 @@ Game::Anim::Anim(){
         this->lastAnim[i] = NULL;
     }
     useLooseLimbs = false;
+    owner = NULL;
 }
 
-void Game::Anim::setState(UInt8 anims[AnimPart::total], UInt8 sframes[AnimPart::total]){
+void Game::Anim::setState(UInt8 anims[AnimPart::total], UInt8 sframes[AnimPart::total], UInt64 exTime[AnimPart::total]){
     bool dorerender = false;
     for(int i = 0; i < AnimPart::total; ++i){
         auto it = this->frames.find(anims[i]);
@@ -144,6 +148,7 @@ void Game::Anim::setState(UInt8 anims[AnimPart::total], UInt8 sframes[AnimPart::
             dorerender = true;
             auto &lOvrr = it->second.limbOverride;
             lOvrr.st = 0;
+            lOvrr.espd = exTime[AnimPart::MIDDLE] > 0 ? (exTime[AnimPart::MIDDLE] / lOvrr.n) : lOvrr.spd; 
             lOvrr.lastThick = nite::getTicks();
         }
         lastAnim[i] = &it->second;
@@ -155,9 +160,10 @@ void Game::Anim::setState(UInt8 anims[AnimPart::total], UInt8 sframes[AnimPart::
 }
 
 void Game::Anim::rerender(){
-    batch.init(frameSize.x, frameSize.y);
+    batch.init(frameSize.x * 2, frameSize.y * 2);
     batch.begin();
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+    nite::Vec2 offset(batch.getSize() * nite::Vec2(0.5f) - frameSize * nite::Vec2(0.5f));
     for(int i = 0; i < AnimPart::total; ++i){
         if(lastSFrame[i] == -1 || lastAnim[i] == NULL){
             continue;
@@ -166,6 +172,7 @@ void Game::Anim::rerender(){
         int nf = lastSFrame[i];
         if(frame.limbs.size() > 0){
             int _nf = nf;
+            Int64 mspd = frame.spd;
             if(frame.useLimbOverride){
                 auto &lOvrr = frame.limbOverride;
                 if(lOvrr.st < _nf){
@@ -174,10 +181,11 @@ void Game::Anim::rerender(){
                 if(lOvrr.st > (lOvrr.n-1)){
                     lOvrr.st = (lOvrr.n-1);
                 }
-                if(lOvrr.st < (lOvrr.n-1) && nite::getTicks()-lOvrr.lastThick > lOvrr.spd){
+                if(lOvrr.st < (lOvrr.n-1) && nite::getTicks()-lOvrr.lastThick > lOvrr.espd){
                     lOvrr.st++;
                     lOvrr.lastThick = nite::getTicks();
                 }
+                mspd = lOvrr.espd;
                 _nf = lOvrr.st;
             }
             for(auto &limb : limbs){
@@ -188,19 +196,35 @@ void Game::Anim::rerender(){
                 limb.second.yflip = frameLimb.yflip;
                 limb.second.shakeMag = frameLimb.shakeMag;
                 limb.second.type = frameLimb.type;
+                limb.second.weapKeyFrame = frameLimb.weapKeyFrame;
+                limb.second.spd = mspd;
             }
         }
         nite::setDepth(0);
         anim.setFrame(frame.id, nf);
-        auto ref = anim.draw(frame.id, 0.0f, 0.0f, frameSize.x, frameSize.y, 0.0f, 0.0f, 0.0f);
+        auto ref = anim.draw(frame.id, offset.x, offset.y, frameSize.x, frameSize.y, 0.0f, 0.0f, 0.0f);
     }    
     if(useLooseLimbs){
         for(auto &limb : limbs){
             auto &type = limbTypes[limb.second.type];
             nite::setDepth(limb.second.depth);
+	        float targetx = (limb.second.pos.x + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f)) + offset.x;
+	        float targety = (limb.second.pos.y + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f)) + offset.y;
+            if(owner != NULL && owner->invStat.activeWeapon != NULL && limb.second.active){
+                auto *weap = owner->invStat.activeWeapon;
+                auto &wanim = owner->invStat.activeWeapon->anim;
+                nite::Vec2 inTexCoors = wanim.frames[0].inTexCoors;
+                if(limb.second.weapKeyFrame.length() > 0){
+                    for(int i = 0; i <  wanim.frames.size(); ++i){
+                        if(wanim.frames[i].key == limb.second.weapKeyFrame){
+                            inTexCoors = wanim.frames[i].inTexCoors;
+                        }
+                    }
+                }
+                wanim.texture.setRegion(inTexCoors, wanim.inTexSize); 
+                wanim.texture.draw(targetx, targety, wanim.frameSize.x, wanim.frameSize.y, wanim.origin.x, wanim.origin.y, limb.second.angle);
+            }
             anim.texture.setRegion(type.inTexCoors, type.inTexSize);
-	        float targetx = limb.second.pos.x + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f);
-	        float targety = limb.second.pos.y + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f);
             anim.texture.draw(targetx, targety, limbSize.x * (limb.second.xflip ? -1.0f: 1.0f), limbSize.y * (limb.second.yflip ? -1.0f: 1.0f), 0.5f, 0.5f, limb.second.angle);
         }
     }
@@ -211,8 +235,15 @@ void Game::Anim::rerender(){
 void Game::Anim::update(){
     bool dorerender = false;
     for(auto &limb : limbs){
-        bool lpos = limb.second.pos.lerpDiscrete(limb.second.npos, 0.25f);
-        bool langle = nite::lerpDiscrete(limb.second.angle, limb.second.nangle, 0.25f);
+        float step = 1.0f - ((float)limb.second.spd / 250.0f) * 0.75;
+        if(step > 0.9f){
+            step = 0.9f;
+        }
+        if(step < 0.05f){
+            step = 0.05f;
+        }
+        bool lpos = limb.second.pos.lerpDiscrete(limb.second.npos, step);
+        bool langle = nite::lerpDiscrete(limb.second.angle, limb.second.nangle, step);
         if(!(lpos && langle)){
             dorerender = true;
         }

@@ -448,12 +448,12 @@ void Game::Client::update(){
                             handler.read(&ent->stNum[i], sizeof(ent->stNum[i]));
 	                        ent->lastStateTime[i] = nite::getTicks();
 	                        ent->lastFrameTime[i] = nite::getTicks();
-
                         }else{
                             handler.read(&nstate, sizeof(nstate));
                             handler.read(&n, sizeof(n));
                             ent->setState(nstate, i, n);
                         }
+                        handler.read(&ent->lastExpectedTime[i], sizeof(ent->lastExpectedTime[i])); // pass expected time directly
                     }
                 }
             } break;
@@ -782,6 +782,40 @@ void Game::Client::update(){
                 }
                 auto ent = static_cast<Game::EntityBase*>(it->second.get());
                 ent->invStat.removeBySlotId(slotId, qty);
+            } break;
+
+            /*
+                SV_UPDATE_ENTITY_INVENTORY_SLOTS
+            */
+            case Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_SLOTS: {
+                if(!isSv){ break; }
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_UPDATE_ENTITY_INVENTORY_SLOTS: entity id doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->readInvSlotsState(handler);
+            } break;
+            /*
+                SV_UPDATE_ENTITY_INVENTORY_CARRY
+            */
+            case Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_CARRY: {
+                if(!isSv){ break; }
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_UPDATE_ENTITY_INVENTORY_CARRY: entity id doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->readInvListState(handler);
+                ent->readInvSlotsState(handler);
             } break;
             /*
                 SV_UPDATE_ENTITY_ALL_STAT
@@ -1114,6 +1148,20 @@ void Game::Client::game(){
     bool isSpace = input.isKeyPress(Game::Key::SPACE);
     // local input
     if(ent != NULL){
+        if(nite::keyboardPressed(nite::keyNUMPAD0)){
+            String inv = "inv ";
+            String wear = "wear ";
+            for(auto &it : ent->invStat.carry){
+                inv += it.second->name+"(x"+nite::toStr(it.second->qty)+"), ";
+            }
+            for(int i = 0; i < EquipSlot::TOTAL; ++i){
+                if(ent->invStat.slots[i] == NULL){
+                    continue;
+                }
+                wear += ent->invStat.slots[i]->name+"("+EquipSlot::name(i)+"), ";
+            }
+            nite::print(inv+"\n"+wear);
+        } 
         if(input.isKeyPress(Game::Key::UP) && input.isKeyPress(Game::Key::RIGHT)){
             ent->entityMove(nite::Vec2(1.0f, -1.0f), isSpace);
         }else
@@ -1260,7 +1308,7 @@ void Game::Client::game(){
     //     physicsUpdate = nite::getTicks();
     // }
 
-    vfx.step();
+    vfx.step();   
 }
 
 Game::EntityBase *Game::Client::getEntity(UInt16 id){

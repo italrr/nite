@@ -1093,12 +1093,12 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
     }); 
 
 
-    float startx = me->map->startCell.x + nite::randomInt(-50, 50);
-    float starty = me->map->startCell.y + nite::randomInt(-50, 50);   
+    // float startx = me->map->startCell.x + nite::randomInt(-50, 50);
+    // float starty = me->map->startCell.y + nite::randomInt(-50, 50);   
 
-    auto objMob = createMob(Game::ObjectSig::MobHumanoid, 10, startx, starty); 
-    auto mob = static_cast<Game::EntityBase*>(objMob.get());
-    mob->aidriver.add(Shared<Game::AI::DumbassBehavior>(new Game::AI::DumbassBehavior()));
+    // auto objMob = createMob(Game::ObjectSig::MobHumanoid, 10, startx, starty); 
+    // auto mob = static_cast<Game::EntityBase*>(objMob.get());
+    // mob->aidriver.add(Shared<Game::AI::DumbassBehavior>(new Game::AI::DumbassBehavior()));
 }
 
 void Game::Server::restart(){
@@ -1324,6 +1324,21 @@ void Game::Server::notifyRemoveSkill(UInt64 uid, UInt16 skillId){
     persSend(cl->cl, packet, 750, -1);
 }
 
+void Game::Server::notifyUpdateEquipSlots(UInt64 uid){
+    auto cl = getClient(uid);
+    if(cl == NULL){
+        return;
+    }    
+    auto ent = getEntity(cl->entityId);
+    if(ent == NULL){
+        return;
+    }    
+    nite::Packet packet(++cl->svOrder);
+    packet.setHeader(Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_SLOTS);
+    packet.write(&cl->entityId, sizeof(cl->entityId));
+    ent->writeInvSlotsState(packet);
+    persSend(cl->cl, packet, 1000, -1);
+}
 
 void Game::Server::notifyUpdateInvList(UInt64 uid){
     auto cl = getClient(uid);
@@ -1336,10 +1351,10 @@ void Game::Server::notifyUpdateInvList(UInt64 uid){
     }
     nite::Packet packet(++cl->svOrder);
     packet.setHeader(Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_CARRY);
-
-    
-
-    persSend(cl->cl, packet, 1500, -1);
+    packet.write(&cl->entityId, sizeof(cl->entityId));
+    ent->writeInvListState(packet);
+    ent->writeInvSlotsState(packet);
+    persSend(cl->cl, packet, 1000, -1);
 }
 
 void Game::Server::notifyAddEffect(UInt64 uid, UInt16 type, UInt16 insId){
@@ -1382,14 +1397,6 @@ void Game::Server::notifyRemoveEffect(UInt64 uid, UInt16 insId){
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&insId, sizeof(insId));
     persSend(cl->cl, packet, 750, -1);  
-}
-
-void Game::Server::notifyEquipItem(UInt64 uid, UInt16 itemId, UInt16 slotId){
-
-}
-
-void Game::Server::notifyUnequipItem(UInt64 uid, UInt16 itemId, UInt16 slotId){
-
 }
 
 void Game::Server::notifyUpdateEffect(UInt64 uid, UInt16 insId){
@@ -1619,6 +1626,7 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv, float 
     player->printInfo(); // for debugging
     auto item = Game::getItem(ItemList::W_BOW, 1);
     player->invStat.add(item);
+    player->invStat.equip(item);
     return obj;
 }
 
