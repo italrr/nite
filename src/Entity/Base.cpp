@@ -430,7 +430,8 @@ void Game::EntityBase::useBaseAttack(){
 			if(state[EntityStateSlot::MID] == EntityState::SHOOTING_BOW){
 				break;
 			}
-			lastExpectedTime[EntityStateSlot::MID] = 5 - (700.0f * ((float)baseStat.agi / (float)GAME_MAX_STAT));
+			lastExpectedTime[EntityStateSlot::MID] = 1000 - (900.0f * ((float)baseStat.agi / (float)GAME_MAX_STAT));
+			nite::print(nite::toStr(lastExpectedTime[EntityStateSlot::MID])+" "+nite::toStr(baseStat.agi)+" "+nite::toStr(GAME_MAX_STAT));
 			setState(EntityState::SHOOTING_BOW, EntityStateSlot::MID, 0);
 		} break;
 		default: {
@@ -569,7 +570,7 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 				currentCasting->startTime = nite::getTicks();
 				currentCasting->time = sk->castDelay;
 				if(sk->castDelay > 0){
-					lastExpectedTime[EntityStateSlot::MID] = 800;
+					lastExpectedTime[EntityStateSlot::MID] = 250;
 					setState(EntityState::CASTING, EntityStateSlot::MID, 0);
 					isCasting = true;
 				}

@@ -235,13 +235,18 @@ void Game::Anim::rerender(){
 void Game::Anim::update(){
     bool dorerender = false;
     for(auto &limb : limbs){
-        float step = 1.0f - ((float)limb.second.spd / 250.0f) * 0.75;
+        float v = 250.0f;
+        if(limb.second.spd > 250){
+            v = 500.0f;
+        }    
+        float step = 1.0f - ((float)limb.second.spd / v) * 0.75;
         if(step > 0.9f){
             step = 0.9f;
         }
         if(step < 0.05f){
             step = 0.05f;
         }
+        nite::print(nite::toStr(step)+" "+nite::toStr(limb.second.spd));
         bool lpos = limb.second.pos.lerpDiscrete(limb.second.npos, step);
         bool langle = nite::lerpDiscrete(limb.second.angle, limb.second.nangle, step);
         if(!(lpos && langle)){
