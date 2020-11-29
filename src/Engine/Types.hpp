@@ -132,7 +132,7 @@
 			bool cInterpDiscrete(const Vec2 &v, float step);
 			// cInterpAbsolute doesn't use any ticks for interpolation, meaning any slowdowns will directly affect the transitions
 			bool cInterpAbsolute(const Vec2 &v, float step);
-
+			bool lerp(const Vec2 &v, float step, float limit = 0.0f);
 			bool lerpDiscrete(const Vec2 &v, float step, float limit = 0.0f);
 			String str();
 			operator String();

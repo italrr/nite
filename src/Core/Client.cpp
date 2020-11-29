@@ -489,16 +489,40 @@ void Game::Client::update(){
                     float x, y;
                     handler.read(&id, sizeof(UInt16));
                     handler.read(&spd, sizeof(spd));
-                    handler.read(&n, sizeof(n));
+                    // handler.read(&n, sizeof(n));
                     auto obj = world.get(id);
                     if(obj != NULL){                       
-                        obj->nextPosition.clear();
+                        // obj->nextPosition.clear();
                         obj->speed = spd;
-                        for(int j = 0; j < n; ++j){
-                            handler.read(&x, sizeof(x));
-                            handler.read(&y, sizeof(y));
-                            obj->nextPosition.push_back(nite::Vec2(x, y));
-                        }
+                        handler.read(&x, sizeof(x));
+                        handler.read(&y, sizeof(y));                
+                        // for(int j = 0; j < n; ++j){
+                        //     handler.read(&x, sizeof(x));
+                        //     handler.read(&y, sizeof(y));
+                        //     obj->nextPosition.push_back(nite::Vec2(x, y));
+                        // }
+                        // if(obj->nextPosition.size() > 5){
+                        //     obj->nextPosition.erase(obj->nextPosition.begin() + 0);
+                        // }
+                        // obj->nextPosition.push_back(nite::Vec2(x, y));
+
+                        obj->nextPosition.clear();
+                        nite::Vec2 mid = obj->position;
+
+                        mid.lerp(nite::Vec2(x, y), 0.25f);
+                        obj->nextPosition.push_back(mid);
+
+                        mid.lerp(nite::Vec2(x, y), 0.25f);
+                        obj->nextPosition.push_back(mid);        
+
+                        mid.lerp(nite::Vec2(x, y), 0.25f);
+                        obj->nextPosition.push_back(mid);     
+
+                        mid.lerp(nite::Vec2(x, y), 0.25f);
+                        obj->nextPosition.push_back(mid);                                                                     
+                                               
+                        obj->nextPosition.push_back(nite::Vec2(x, y));
+
                     }
                 }
             } break;
@@ -1292,7 +1316,7 @@ void Game::Client::game(){
             auto ent = static_cast<Game::EntityBase*>(obj);
             ent->updateStance();
         }
-        if(obj->nextPosition.size() > 0 && obj->position.lerpDiscrete(obj->nextPosition[0], 0.75f, 0.005f)){
+        if(obj->nextPosition.size() > 0 && obj->position.lerp(obj->nextPosition[0], 0.80f, 1.0f)){
             obj->nextPosition.erase(obj->nextPosition.begin() + 0);
         }        
     }

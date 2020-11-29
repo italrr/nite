@@ -150,6 +150,7 @@
 		float distance(float x1, float y1, float x2, float y2);
 		float fractional (float number);
 		// lerp
+		bool lerp(float &x1, float x2, float step, float limit = 0.0f);
 		bool lerpDiscrete(float &x1, float x2, float step, float limit = 0.0f);
 		// c-cInterp
 		bool cInterp(float &x1, float x2, float Step);

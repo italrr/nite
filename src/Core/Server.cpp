@@ -824,15 +824,17 @@ void Game::Server::update(){
             // TODO: check if the entity actually existits before pulling these values
             for(auto &it : queue){
                 auto &obj = world.objects[it.first];                
-                UInt8 n = obj->nextPosition.size();
+                // UInt8 n = obj->nextPosition.size();
                 phys.write(&obj->id, sizeof(UInt16));
                 phys.write(&obj->speed, sizeof(obj->speed));
-                phys.write(&n, sizeof(n));
-                for(int j = 0; j < n; ++j){
-                    phys.write(&obj->nextPosition[j].x, sizeof(obj->nextPosition[j].x));
-                    phys.write(&obj->nextPosition[j].y, sizeof(obj->nextPosition[j].y));
-                }
-                obj->nextPosition.clear();
+                phys.write(&obj->position.x, sizeof(obj->position.x));
+                phys.write(&obj->position.y, sizeof(obj->position.y));
+                // phys.write(&n, sizeof(n));
+                // for(int j = 0; j < n; ++j){
+                //     phys.write(&obj->nextPosition[j].x, sizeof(obj->nextPosition[j].x));
+                //     phys.write(&obj->nextPosition[j].y, sizeof(obj->nextPosition[j].y));
+                // }
+                // obj->nextPosition.clear();
             }
             sendAll(phys);
             queue.clear();

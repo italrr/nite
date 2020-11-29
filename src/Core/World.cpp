@@ -378,10 +378,10 @@ void Game::NetWorld::update(){
 		removeQueue.clear();
 	}
 
-	if(nite::getTicks()-lastTick < tickrate){
-		return;
-	}
-
+	// if(nite::getTicks()-lastTick < tickrate){
+	// 	return;
+	// }
+	
 	delta = nite::getTicks() - lastTick;
 	lastTick = nite::getTicks();
 	currentTickRate = delta;
@@ -398,9 +398,12 @@ void Game::NetWorld::update(){
 			current->speed *= 1.0f - (current->friction * nite::getTimescale() * timescale * current->relativeTimescale);
 		}
 		// position changed, send updates to clients (client->side only)
-		if(current->position.x != lastPos.x || current->position.y != lastPos.y){
+		if(nite::abs(current->position.x-lastPos.x) > 1 || nite::abs(current->position.y-lastPos.y) > 1){
 			this->updateQueue[current->id] = current.get();
-			current->nextPosition.push_back(current->position);
+			// nite::Vec2 mid = lastPos; // add a mid
+			// mid.lerp(current->position, 0.5f);
+			// current->nextPosition.push_back(mid);
+			// current->nextPosition.push_back(current->position);
 		}
 	}
 

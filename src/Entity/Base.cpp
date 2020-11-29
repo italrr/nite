@@ -163,8 +163,8 @@ void Game::EntityBase::draw(){
 	if(lrprate > 0.9f){
 		lrprate = 0.9f;
 	}
-	if(lrprate < 0.10f){
-		lrprate = 0.10f;
+	if(lrprate < 0.08f){
+		lrprate = 0.08f;
 	}
 	lerpPosition.lerpDiscrete(position, lrprate);
 	nite::Vec2 rp = lerpPosition + size * 0.5f;
@@ -178,9 +178,9 @@ void Game::EntityBase::draw(){
 
 	anim.update();
 
-	if(ref != NULL){
-		ref->smooth = false;
-	}
+	// if(ref != NULL){
+	// 	ref->smooth = false;
+	// }
 
 	if(dmgCountShow > 0){
 		dmgCountShowPos.lerpDiscrete(nite::Vec2(0.0f, -anim.frameSize.y  * 0.5f), 0.25f);
@@ -208,12 +208,17 @@ void Game::EntityBase::draw(){
 	
 	if(showHitboxes){
 		static nite::Texture empty("data/texture/empty.png");
-		nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
-		auto hitboxes = getHitbox();
+		// nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
+		// auto hitboxes = getHitbox();
+		// nite::setDepth(nite::DepthTop);
+		// for(int i = 0; i < hitboxes.size(); ++i){
+		// 	auto &hb = hitboxes[i];
+		// 	empty.draw(hb.position.x, hb.position.y, hb.size.x, hb.size.y, 0.0f, 0.0f, 0.0f);
+		// }
 		nite::setDepth(nite::DepthTop);
-		for(int i = 0; i < hitboxes.size(); ++i){
-			auto &hb = hitboxes[i];
-			empty.draw(hb.position.x, hb.position.y, hb.size.x, hb.size.y, 0.0f, 0.0f, 0.0f);
+		nite::setColor(nite::Color(0.15f, 0.85f, 0.08f, 1.0f));
+		for(int i = 0; i < nextPosition.size(); ++i){
+			empty.draw(nextPosition[i].x + anim.frameSize.x * 0.5f, nextPosition[i].y + anim.frameSize.y * 0.5f, 64, 64, 0.5f, 0.5f, 0.0f);
 		}
 	}
 
@@ -480,7 +485,8 @@ void Game::EntityBase::updateStance(){
 					break;
 				}
 				UInt64 walkRateDiff = complexStat.walkRate * 8;
-				UInt64 walkAnimTime = canim->spd - (walkRateDiff > walkAnimTime ? ((UInt64)canim->spd*0.05f) : walkRateDiff);
+				// UInt64 walkAnimTime = canim->spd - (walkRateDiff > walkAnimTime ? ((UInt64)canim->spd*0.05f) : walkRateDiff);
+				UInt64 walkAnimTime = 300 - (150.0f * ((float)baseStat.agi / (float)GAME_MAX_STAT)) ;
 				UInt64 currentTime = nite::getTicks()-lastStateTime[EntityStateSlot::BOTTOM];
 				if(!isMoving && currentTime > walkAnimTime){
 					setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);

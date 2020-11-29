@@ -132,18 +132,20 @@ bool nite::cInterpAbsolute(float &x1, float x2, float Step){
 	return false;
 }
 
+bool nite::lerp(float &x1, float x2, float step, float limit){
+	if(x1 == x2) return true;	
+	x1 = x1 + step * (x2 - x1);		
+	return nite::abs(x1-x2) < limit;
+}
+
 bool nite::lerpDiscrete(float &x1, float x2, float step, float limit){
-	if(x1 == x2) return true;
-	float cpy = x1;
+	if(x1 == x2) return true;	
 	if(step > 1.0f || step <= 0.0f || std::isnan(step)){
 		step = 1.0f;
 	}	
 	float f = (1.0f - nite::pow(1.0f - step, nite::getDelta() * 0.077f));
-	x1 = (x1 * (1.0 - f)) + (x2 * f);
-	if(nite::abs(x1-x2) < limit){
-		x1 = x2;
-	}		
-	return false;
+	x1 = (x1 * (1.0 - f)) + (x2 * f);	
+	return nite::abs(x1-x2) < limit;
 }
 
 UInt64 nite::timescaled(UInt64 t){
