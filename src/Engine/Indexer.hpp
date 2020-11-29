@@ -10,12 +10,14 @@
             String hash;
             UInt32 size;
             UInt64 lastRead;
+            bool prefetched;
             Vector<String> tags;
             IndexedFile();
             void refresh(const String &path);
             void refresh();
             void autotag();
             bool isIt(const String &tag);
+            void setPrefetch(bool v);
         };
 
         struct Indexer {

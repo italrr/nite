@@ -473,11 +473,10 @@ bool nite::Vec2::cInterpAbsolute(const Vec2 &v, float step){
 	return false;
 }
 
-bool nite::Vec2::lerpDiscrete(const Vec2 &v, float step){
-	if (x == v.x && y == v.y) return true;
-	nite::lerpDiscrete(x, v.x, step);
-	nite::lerpDiscrete(y, v.y, step);
-	return false;
+bool nite::Vec2::lerpDiscrete(const Vec2 &v, float step, float limit){
+	auto a = nite::lerpDiscrete(x, v.x, step, limit);
+	auto b = nite::lerpDiscrete(y, v.y, step, limit);
+	return a && b;
 }
 
 float nite::Vec2::avg(){

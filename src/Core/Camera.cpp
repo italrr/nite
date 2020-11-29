@@ -97,7 +97,7 @@ void Game::Camera::update(nite::Vec2 &towards, float mu){
 	// if(std::isnan(v.x) || std::isnan(v.y)){
 	// 	return;
 	// }
-	p.lerpDiscrete(np, mu);
+	p.lerpDiscrete(np, mu, 0.1f);
 	setViewPosition(p, nite::RenderTargetGame);	
 }
 
@@ -121,7 +121,7 @@ void Game::Camera::update(){
 		if(nite::keyboardCheck(nite::keyDOWN)){
 			np.set(nite::getView(nite::RenderTargetGame) + nite::Vec2(0.0f, 64.0f));						
 		}		
-		lnp.lerpDiscrete(np, 0.35f);
+		lnp.lerpDiscrete(np, 0.35f, 0.1f);
 		nite::setView(true, nite::RenderTargetGame);
 		nite::setViewPosition(lnp, nite::RenderTargetGame);
 		return;

@@ -826,6 +826,7 @@ void Game::Server::update(){
                 auto &obj = world.objects[it.first];                
                 UInt8 n = obj->nextPosition.size();
                 phys.write(&obj->id, sizeof(UInt16));
+                phys.write(&obj->speed, sizeof(obj->speed));
                 phys.write(&n, sizeof(n));
                 for(int j = 0; j < n; ++j){
                     phys.write(&obj->nextPosition[j].x, sizeof(obj->nextPosition[j].x));
@@ -998,6 +999,7 @@ void Game::Server::game(){
     
     // update local physics
     world.update();
+    world.step();
 
     // update traps
     auto changed = traps.update();
@@ -1624,9 +1626,15 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv, float 
     efHeal->setup(100, 5 * 1000);
     this->addEffect(obj->id, effect);
     player->printInfo(); // for debugging
-    auto item = Game::getItem(ItemList::W_BOW, 1);
-    player->invStat.add(item);
-    player->invStat.equip(item);
+    auto bow = Game::getItem(ItemList::W_BOW, 1);
+    auto arrows = Game::getItem(ItemList::AM_ARROW, 200);
+    auto sword = Game::getItem(ItemList::W_SWORD, 1);
+    player->invStat.add(bow);
+    player->invStat.add(arrows);
+    player->invStat.add(sword);
+    // player->invStat.equip(sword);
+    player->invStat.equip(bow);
+    player->invStat.equip(arrows);
     return obj;
 }
 

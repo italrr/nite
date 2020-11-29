@@ -13,6 +13,7 @@
                 Entity,
                 Ghost,
                 Prop,
+                Wall,
                 Projectile
             };
             static String name(UInt16 type){
@@ -24,7 +25,7 @@
                     case Ghost:
                         return "Ghost";                        
                     case Prop:
-                        return "Prop";
+                        return "Prop";                      
                     case Projectile:
                         return "Projectile";                        
                     default:
@@ -38,10 +39,13 @@
                 Base = 0,
                 Player,
                 MobHumanoid,
-                Projectile
+                Projectile,
+                Wall
             };
             static String name(UInt16 sig){
                 switch(sig){
+                    case Wall:
+                        return "Wall";                      
                     case Player:
                         return "Player";
                     case MobHumanoid:

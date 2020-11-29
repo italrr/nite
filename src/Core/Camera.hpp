@@ -10,6 +10,8 @@
 			UInt16 followId;
 			nite::Vec2 np;
 			Game::Client *client;
+			float dir;
+			float spd;
 			void update();
 			void update(nite::Vec2 &v, float mu);
 			void update(nite::Vec2 &v);

@@ -7,6 +7,10 @@
 		"w": 72,
 		"h": 150
 	},
+	"arrowShootPos":{
+		"x": 90,
+		"y": 67	
+	},
 	"useLooseLimb": true,
 	"looseLimb": {
 		"framesize": {
@@ -201,6 +205,87 @@
 			"spd": 0
 		},
 		
+		
+		"mid_weap_sword_idle": {
+			"x": 0,
+			"y": 2,
+			"n": 1,
+			"spd": 0,
+			"limbOverride": {
+				"n": 1,
+				"spd": 250
+			},				
+			"limbs": {
+				"left_hand": [
+					{
+						"pos": {
+							"x": 45,
+							"y": 118
+						},
+						"angle": 90
+					}					
+				],
+				"right_hand": [
+					{
+						"pos": {
+							"x": 85,
+							"y": 118
+						},
+						"angle": 45
+					}			
+				]					
+			}			
+		},
+		
+
+		"mid_weap_sword_waving": {
+			"x": 0,
+			"y": 2,
+			"n": 1,
+			"spd": 0,
+			"limbOverride": {
+				"n": 2,
+				"spd": 100
+			},				
+			"limbs": {
+				"left_hand": [
+					{
+						"pos": {
+							"x": 70,
+							"y": 118
+						},
+						"angle": 90
+					},
+					{
+						"pos": {
+							"x": 70,
+							"y": 118
+						},
+						"angle": 90
+					}					
+				],
+				"right_hand": [
+					{
+						"pos": {
+							"x": 75,
+							"y": 75
+						},
+						"angle": -15
+					},
+					{
+						"pos": {
+							"x": 105,
+							"y": 125
+						},
+						"angle": 100,
+						"shake": 0.4,
+					}						
+				]					
+			}			
+		},		
+
+		
+		
 		"mid_weap_bow_idle": {
 			"x": 0,
 			"y": 2,
@@ -208,7 +293,7 @@
 			"spd": 0,
 			"limbOverride": {
 				"n": 1,
-				"spd": 500
+				"spd": 250
 			},				
 			"limbs": {
 				"left_hand": [
@@ -259,24 +344,27 @@
 					{
 						"pos": {
 							"x": 105,
-							"y": 77
+							"y": 67
 						},
 						"type": "closed_hand",
+						"hold": "ammo",
 						"angle": 0
 					},
 					{
 						"pos": {
 							"x": 90,
-							"y": 77
+							"y": 67
 						},
 						"type": "closed_hand",
+						"hold": "ammo",
 						"angle": 0
 					},
 					{
 						"pos": {
 							"x": 85,
-							"y": 77
+							"y": 67
 						},
+						"hold": "ammo",
 						"angle": 0
 					}					
 				],

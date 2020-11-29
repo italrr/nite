@@ -232,8 +232,11 @@ void Game::Client::update(){
             if(obj == NULL){
                 continue;
             }
-            if(obj->nextPosition.size() == 0){
+            if(obj->nextPosition.size() < 1){
                 world.objects.erase(obj->id);
+                removeQueue.erase(removeQueue.begin() + i);
+                --i;
+                continue;
             }
         }
     }
@@ -430,14 +433,15 @@ void Game::Client::update(){
             */
             case Game::PacketType::SV_DESTROY_OBJECT: {
                 if(!isSv){ break; }
+                sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 UInt16 id;
                 handler.read(&id, sizeof(UInt16));
-                sendAck(this->sv, handler.getOrder(), ++sentOrder);
                 auto obj = world.objects.find(id);
                 if(obj == world.objects.end()){
                     nite::print("[client] fail SV_DESTROY_OBJECT: object id "+nite::toStr(id)+" doesn't exist");
                     break;
                 }
+                nite::print("received destroy obj id "+nite::toStr(obj->second->id));
                 removeQueue.push_back(obj->second->id);
             } break;
             //
@@ -481,12 +485,15 @@ void Game::Client::update(){
                 for(int i = 0; i < amnt; ++i){
                     UInt16 id;
                     UInt8 n;
+                    float spd;
                     float x, y;
                     handler.read(&id, sizeof(UInt16));
+                    handler.read(&spd, sizeof(spd));
                     handler.read(&n, sizeof(n));
                     auto obj = world.get(id);
                     if(obj != NULL){                       
                         obj->nextPosition.clear();
+                        obj->speed = spd;
                         for(int j = 0; j < n; ++j){
                             handler.read(&x, sizeof(x));
                             handler.read(&y, sizeof(y));
@@ -1285,7 +1292,7 @@ void Game::Client::game(){
             auto ent = static_cast<Game::EntityBase*>(obj);
             ent->updateStance();
         }
-        if(obj->nextPosition.size() > 0 && obj->position.lerpDiscrete(obj->nextPosition[0], 0.75f)){
+        if(obj->nextPosition.size() > 0 && obj->position.lerpDiscrete(obj->nextPosition[0], 0.75f, 0.005f)){
             obj->nextPosition.erase(obj->nextPosition.begin() + 0);
         }        
     }

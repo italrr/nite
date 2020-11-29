@@ -147,10 +147,10 @@ void Game::NetObject::clearQuadrant(){
 }
 
 bool Game::NetObject::push(float dir, float force){
-    auto add = nite::Vec2(nite::cos(dir) * force, nite::sin(dir) * force);
-    auto init = nite::Vec2(nite::cos(direction) * speed + add.x, nite::sin(direction) * speed + add.y);
-    this->direction = nite::arctan(init.y, init.x);
-    this->speed = nite::sqrt(init.x * init.x + init.y * init.y);
+    // auto add = nite::Vec2(nite::cos(dir) * force, nite::sin(dir) * force);
+    // auto init = nite::Vec2(nite::cos(direction) * speed + add.x, nite::sin(direction) * speed + add.y);
+    this->direction = dir;
+    this->speed = force;
 	return true;
 }
 

@@ -33,6 +33,10 @@ void nite::IndexedFile::refresh(){
     refresh(path);
 }
 
+void nite::IndexedFile::setPrefetch(bool v){
+
+}
+
 void nite::IndexedFile::autotag(){
     tags.clear();
     if(!nite::fileExists(path)){

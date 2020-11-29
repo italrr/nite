@@ -286,6 +286,7 @@
                 UINT16 AMOUNT
                 0: {
                     UINT16 ID
+                    FLOAT SPD
                     UINT8 FRAMES
                     0: {
                         FLOAT X
@@ -300,6 +301,7 @@
                 ...
                 n: {
                     UINT16 ID
+                    FLOAT SPD
                     UINT8 FRAMES
                     0: {
                         FLOAT X

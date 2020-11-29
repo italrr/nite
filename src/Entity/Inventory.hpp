@@ -25,21 +25,29 @@
 				NONE = 0,
 				NONE_EQUIP = 1,
 				U_APPLE,
-				W_BOW
+				W_BOW,
+				AM_ARROW,
+				W_SWORD
 
 
 
 			};
 		}
 
-
 		namespace ItemType {
 			enum ItemType : UInt8 {
 				None = 0,
 				Equip, // weapons
 				Armor, // armor, shield, footwear, etc
+				Ammo, // arows, bullets
 				Usable, // potions, scrolls
 				Etc // everything else
+			};
+		}
+
+		namespace AmmoType {
+			enum AmmoType : UInt8 {
+				Arrow = 0,	
 			};
 		}
 
@@ -65,7 +73,8 @@
                 LeftHand,
                 RightHand,
                 LeftAcc,
-                RightAcc
+                RightAcc,
+				Ammo
 			};
 			static String name(UInt8 v){
 				switch(v){
@@ -92,13 +101,16 @@
 					} break;
 					case EquipSlot::RightAcc: {
 						return "RightAcc";
-					} break;																																			
+					} break;		
+					case EquipSlot::Ammo: {
+						return "Ammo";
+					} break;																																						
 					default: {
 						return "Undefined";
 					} break;
 				}
 			}
-			static const UInt8 TOTAL = 8;
+			static const UInt8 TOTAL = 9;
 		}	
 
 		namespace WeaponType {
@@ -173,6 +185,33 @@
 			}
 		};
 
+		struct AmmoAnim {
+			nite::Vec2 inTexCoors;
+			nite::Vec2 inTexSize;
+			nite::Vec2 textureSize;
+			nite::Texture texture;
+			nite::IndexedFile source;
+			nite::Vec2 origin;
+			nite::Vec2 holdOrigin;
+			nite::Vec2 frameSize;
+			nite::Color transparency;
+			bool loadedTexture;
+			bool load(const String &path);
+			bool loadTexture();			
+			AmmoAnim(){
+				loadedTexture = false;
+			}
+		};
+
+		struct AmmoItem : ItemBase {
+			Game::AmmoAnim anim;
+			UInt8 ammoType;
+			AmmoItem(){
+				type = ItemType::Ammo;
+			}
+			void parseSpecial(Jzon::Node &obj);
+		}; 		
+
 		struct EquipAnimFrame {
 			nite::Vec2 inTexCoors;
 			String key;
@@ -242,6 +281,7 @@
 			Shared<Game::ItemBase> slots[EquipSlot::TOTAL];
 			Dict<UInt16, Shared<Game::ItemBase>> carry;
 			Game::EquipWeapon *activeWeapon;
+			Game::AmmoItem *activeAmmo;
 			InventoryStat();
 			UInt16 add(Shared<Game::ItemBase> &item);
 			UInt16 add(Shared<Game::ItemBase> &item, UInt16 slotId);
@@ -257,8 +297,8 @@
 		};
 
 		namespace Items {
-			struct HealthPotion : ItemBase {
-				HealthPotion(){
+			struct HealthPotionUsable : ItemBase {
+				HealthPotionUsable(){
 					id = ItemList::U_APPLE;
 				}
 			};
@@ -266,7 +306,17 @@
 				BowWeapon(){
 					id = ItemList::W_BOW;
 				}
-			};			
+			};	
+			struct ArrowAmmo : AmmoItem {
+				ArrowAmmo(){
+					id = ItemList::AM_ARROW;
+				}
+			};		
+			struct SwordWeapon : EquipWeapon {
+				SwordWeapon(){
+					id = ItemList::W_SWORD;
+				}
+			};								
 		}
 	}
 

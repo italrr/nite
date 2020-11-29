@@ -17,6 +17,7 @@ bool Game::Anim::load(const String &path){
     }
     auto indexer = nite::getIndexer();
     frameSize.set(node.get("frameSize").get("w").toInt(128), node.get("frameSize").get("h").toInt(192));
+    arrowShootPos.set(node.get("arrowShootPos").get("x").toInt(0), node.get("arrowShootPos").get("y").toInt(0));
     String hash = node.get("source").toString("");
     auto ifile = indexer->get(hash);
     this->transparency = nite::Color(node.get("transparency").toString("#ffffff"));
@@ -82,6 +83,7 @@ bool Game::Anim::load(const String &path){
                     nframe.shakeMag = frame.second.get("shake").toFloat(0.0f);
                     nframe.type = frame.second.get("type").toString("open_hand");
                     nframe.weapKeyFrame = frame.second.get("weapKeyFrame").toString("");
+                    nframe.hold = frame.second.get("hold").toString("");
                     frames.push_back(nframe);
                 }
                 frame.limbs[name] = frames;
@@ -160,7 +162,7 @@ void Game::Anim::setState(UInt8 anims[AnimPart::total], UInt8 sframes[AnimPart::
 }
 
 void Game::Anim::rerender(){
-    batch.init(frameSize.x * 2, frameSize.y * 2);
+    batch.init(frameSize.x * 3, frameSize.y * 3);
     batch.begin();
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     nite::Vec2 offset(batch.getSize() * nite::Vec2(0.5f) - frameSize * nite::Vec2(0.5f));
@@ -197,6 +199,7 @@ void Game::Anim::rerender(){
                 limb.second.shakeMag = frameLimb.shakeMag;
                 limb.second.type = frameLimb.type;
                 limb.second.weapKeyFrame = frameLimb.weapKeyFrame;
+                limb.second.hold = frameLimb.hold;
                 limb.second.spd = mspd;
             }
         }
@@ -210,6 +213,7 @@ void Game::Anim::rerender(){
             nite::setDepth(limb.second.depth);
 	        float targetx = (limb.second.pos.x + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f)) + offset.x;
 	        float targety = (limb.second.pos.y + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f)) + offset.y;
+            // render active weapon
             if(owner != NULL && owner->invStat.activeWeapon != NULL && limb.second.active){
                 auto *weap = owner->invStat.activeWeapon;
                 auto &wanim = owner->invStat.activeWeapon->anim;
@@ -224,6 +228,14 @@ void Game::Anim::rerender(){
                 wanim.texture.setRegion(inTexCoors, wanim.inTexSize); 
                 wanim.texture.draw(targetx, targety, wanim.frameSize.x, wanim.frameSize.y, wanim.origin.x, wanim.origin.y, limb.second.angle);
             }
+            // render ammo (maybe arrows i guess)
+            if(owner != NULL && owner->invStat.activeAmmo != NULL && limb.second.hold == "ammo"){
+                auto *weap = owner->invStat.activeAmmo;
+                auto &aanim = owner->invStat.activeAmmo->anim;
+                nite::Vec2 inTexCoors = aanim.inTexCoors;
+                aanim.texture.setRegion(inTexCoors, aanim.inTexSize); 
+                aanim.texture.draw(targetx, targety, aanim.frameSize.x, aanim.frameSize.y, aanim.holdOrigin.x, aanim.holdOrigin.y, limb.second.angle);
+            }            
             anim.texture.setRegion(type.inTexCoors, type.inTexSize);
             anim.texture.draw(targetx, targety, limbSize.x * (limb.second.xflip ? -1.0f: 1.0f), limbSize.y * (limb.second.yflip ? -1.0f: 1.0f), 0.5f, 0.5f, limb.second.angle);
         }

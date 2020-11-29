@@ -96,8 +96,8 @@ void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // m
 	}
 	isMoving = true;
 	nite::Vec2 _dir = (nite::Vec2(5.8f) + nite::Vec2(complexStat.walkRate)) * dir;
-	float angle = nite::arctan(_dir.y, _dir.x);
-	float mod = nite::sqrt(_dir.x * _dir.x + _dir.y * _dir.y);
+	float angle = nite::arctan(dir.y, dir.x);
+	float mod = 12.8f + complexStat.walkRate;
 	push(angle, mod);
 }
 
@@ -159,7 +159,14 @@ void Game::EntityBase::draw(){
 	UInt8 numbs[AnimPart::total] = {stNum[EntityStateSlot::BOTTOM], stNum[EntityStateSlot::MID], 0};
 	UInt64 times[AnimPart::total] = {lastExpectedTime[EntityStateSlot::BOTTOM], lastExpectedTime[EntityStateSlot::MID], 0};
 	anim.setState(anims, numbs, times);
-	lerpPosition.lerpDiscrete(position, 0.21f);
+	float lrprate = (this->speed / 100.0f);
+	if(lrprate > 0.9f){
+		lrprate = 0.9f;
+	}
+	if(lrprate < 0.10f){
+		lrprate = 0.10f;
+	}
+	lerpPosition.lerpDiscrete(position, lrprate);
 	nite::Vec2 rp = lerpPosition + size * 0.5f;
 	nite::lerpDiscrete(entityAlpha, canDamage() ? 100.0f : 55.0f, 0.25f);
     nite::setRenderTarget(nite::RenderTargetGame);
@@ -312,6 +319,7 @@ void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n, bool override
 	}
 	int weaponType = WeaponType::None;
 	invStat.activeWeapon = NULL;
+	invStat.activeAmmo = NULL;
 	for(int i = 0; i < EquipSlot::TOTAL; ++i){
 		if(invStat.slots[i].get() == NULL || invStat.slots[i]->type != ItemType::Equip){
 			continue;
@@ -329,6 +337,13 @@ void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n, bool override
 		}
 		break;
 	}
+	if(invStat.slots[EquipSlot::Ammo].get() != NULL && invStat.slots[EquipSlot::Ammo]->type == ItemType::Ammo){
+		invStat.activeAmmo = static_cast<Game::AmmoItem*>(invStat.slots[EquipSlot::Ammo].get());
+		// load ammo textures on demand
+		if(this->sv == NULL && !invStat.activeAmmo->anim.loadedTexture){
+			invStat.activeAmmo->anim.loadTexture();
+		}		
+	}		
 	auto MID_IDLE_STATE = weaponType == WeaponType::None ? EntityState::IDLE : EntityState::IDLE_BOW;
 	if(slot == EntityStateSlot::MID && nstate == EntityState::IDLE){
 		nstate = MID_IDLE_STATE;
@@ -435,8 +450,15 @@ void Game::EntityBase::useBaseAttack(){
 			lastExpectedTime[EntityStateSlot::MID] = 1000 - (900.0f * ((float)baseStat.agi / (float)GAME_MAX_STAT));
 			setState(EntityState::SHOOTING_BOW, EntityStateSlot::MID, 0);
 		} break;
+		case WeaponType::Sword: {
+			if(state[EntityStateSlot::MID] == EntityState::WAVING_SWORD){
+				break;
+			}
+			lastExpectedTime[EntityStateSlot::MID] = 300 - (100.0f * ((float)baseStat.agi / (float)GAME_MAX_STAT));
+			setState(EntityState::WAVING_SWORD, EntityStateSlot::MID, 0);
+		} break;		
 		default: {
-			nite::print("entity Id '"+nite::toStr(id)+"' issued base attack with a weapon: weapon is of none type");
+			nite::print("entity Id '"+nite::toStr(id)+"' issued base attack with a weapon which is of none type");
 			return;
 		} break;
 	}
@@ -486,21 +508,28 @@ void Game::EntityBase::updateStance(){
 					}
 					lastExpectedTime[EntityStateSlot::MID] = 250;
 					setState(EntityState::IDLE, EntityStateSlot::MID, 0);
-					if(this->sv != NULL){
-						nite::Vec2 p = this->position;
-						if(this->faceDirection == EntityFacing::Right){
-							p.x += this->size.x * 2.0f; 
+					if(this->sv != NULL && this->invStat.activeAmmo != NULL){
+						if(this->invStat.activeAmmo->ammoType != AmmoType::Arrow){
+							nite::print("can't shoot '"+this->invStat.activeAmmo->name+"' with a bow");
 						}else{
-							p.x -= this->size.x * 2.0f; 
-						}
-						float ang = nite::toDegrees(nite::arctan(p.y - position.y, p.x - position.x));
-						auto obj = Game::createNetObject(container->generateId(), Game::ObjectSig::Projectile, p.x, p.y); 
-						auto prj = static_cast<Game::Projectile*>(obj.get());
-						prj->dir = ang;
-						prj->spd = 35.0f;
-						this->sv->spawn(obj);						
+							nite::Vec2 p = this->position + nite::Vec2(this->anim.arrowShootPos.x, 0.0f);
+							if(faceDirection == EntityFacing::Left){
+								p.x -= this->anim.frameSize.y;
+							}
+							float ang = nite::toDegrees(nite::arctan(p.y - position.y, p.x - position.x));
+							p.y += this->anim.arrowShootPos.y - this->invStat.activeAmmo->anim.frameSize.y * 0.75f;
+							auto obj = Game::createNetObject(container->generateId(), Game::ObjectSig::Projectile, p.x, p.y); 
+							auto prj = static_cast<Game::Projectile*>(obj.get());
+							prj->setup(this->invStat.activeAmmo);
+							prj->owner = this->id;
+							prj->dir = ang;
+							prj->spd = 50.0f;
+							this->sv->spawn(obj);	
+							this->invStat.remove(this->invStat.activeAmmo->id, 1);
+						}					
+					}else{
+						nite::print("no ammo");
 					}
-
 				}				
 			} break;
 			case EntityState::IDLE_HANDGUN: {
@@ -514,6 +543,21 @@ void Game::EntityBase::updateStance(){
             case EntityState::WAVING_KNIFE: {
 			} break;
 			case EntityState::WAVING_SWORD: {
+				if(part != EntityStateSlot::MID){
+					break;
+				}
+				auto canim = this->anim.getAnim(EntityState::stateToAnimType[EntityState::SHOOTING_BOW][EntityStateSlot::MID]);
+				if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > lastExpectedTime[EntityStateSlot::MID]){
+					// unlock basic attack
+					auto sk = skillStat.get(SkillList::BA_ATTACK);
+					if(sk != NULL){
+						sk->locked = false;
+					}else{
+						nite::print("EntityBase::updateStance: failed to find basic attack");
+					}
+					lastExpectedTime[EntityStateSlot::MID] = 250;
+					setState(EntityState::IDLE, EntityStateSlot::MID, 0);
+				}
 			} break;
             case EntityState::MELEE_NOWEAP: {
 				if(part != EntityStateSlot::MID){
@@ -820,7 +864,8 @@ void Game::EntityBase::readInvSlotsState(nite::Packet &packet){
 		packet.read(&id, sizeof(id));
 		invStat.slots[i] = invStat.get(id);
 	}	
-	invStat.activeWeapon = NULL;
+	// refresh mid state
+	setState(state[EntityStateSlot::MID], EntityStateSlot::MID, stNum[EntityStateSlot::MID]);
 }
 
 void Game::EntityBase::writeInvListState(nite::Packet &packet){

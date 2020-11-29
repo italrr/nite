@@ -60,6 +60,12 @@
                 if(name == "mid_weap_bow_shoot"){
                     return AnimType::MID_SHOOTING_BOW;
                 }else
+                if(name == "mid_weap_sword_idle"){
+                    return AnimType::MID_HOLDING_SWORD;
+                }else       
+                if(name == "mid_weap_sword_waving"){
+                    return AnimType::MID_WAVING_SWORD;
+                }else                             
                 if(name == "top_neutral"){
                     return AnimType::TOP_NEUTRAL;
                 }else{
@@ -77,9 +83,11 @@
             bool yflip;
             float shakeMag;
             String weapKeyFrame;
+            String hold;
             AnimLimbFrame(){
                 yflip = false;
                 xflip = false;
+                hold = "";
                 shakeMag = 0.0f;
                 weapKeyFrame = "";
                 an = 90;
@@ -133,6 +141,7 @@
             float shakeMag;
             bool active = false;
             String weapKeyFrame;
+            String hold;
             Int64 spd;
             AnimLimb(){
                 spd = -1;
@@ -162,6 +171,7 @@
             nite::Vec2 limbSize;
             nite::Hitbox meleeNoWeapHb;
             nite::Vec2 maskSize;
+            nite::Vec2 arrowShootPos;
             UInt8 parts[AnimPart::total];
             nite::Vec2 frameSize;
             nite::Animation anim;
