@@ -46,8 +46,9 @@
             UInt64 ping;
             nite::Packet lastPacket;
             UInt64 lastPacketTimeout;
+            UInt64 lastSentPing;
             UInt64 lastPing;
-            UInt32 svOrder;
+            UInt32 svAck;
             UInt32 rcvOrder;
             UInt32 sentOrder;
             bool connected;

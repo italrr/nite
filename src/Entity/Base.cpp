@@ -652,8 +652,10 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 				}
 				auto cl = sv->getClientByEntityId(this->id);
 				if(cl != NULL){
-					nite::Packet update(++cl->svOrder);
+					nite::Packet update;
 					update.setHeader(Game::PacketType::SV_UPDATE_ENTITY_SET_CASTING_STATE);
+					update.setAck(++cl->svAck);
+					update.setOrder(++cl->lastSentOrder);
 					update.write(&this->id, sizeof(this->id));
 					update.write(&id, sizeof(id));
 					update.write(&type, sizeof(type));
@@ -685,8 +687,10 @@ void Game::EntityBase::solveCasting(){
 		if(cl == NULL){
 			return;
 		}
-		nite::Packet update(++cl->svOrder);
+		nite::Packet update;
 		update.setHeader(Game::PacketType::SV_UPDATE_SKILL_STATE);
+		update.setAck(++cl->svAck);
+		update.setOrder(++cl->lastSentOrder);		
 		update.write(&this->id, sizeof(UInt16));
 		update.write(&sk->id, sizeof(UInt16));
 		sk->writeUpdate(update);
@@ -749,8 +753,10 @@ void Game::EntityBase::recalculateStats(){
 		if(cl == NULL){
 			return;
 		}
-		nite::Packet notify(++cl->svOrder);
+		nite::Packet notify;
 		notify.setHeader(Game::PacketType::SV_UPDATE_ENTITY_ALL_STAT);
+		notify.setAck(++cl->svAck);
+		notify.setOrder(++cl->lastSentOrder);
 		notify.write(&id, sizeof(id));
 		writeAllStatState(notify);
 		sv->persSend(cl->cl, notify, 750, -1);
@@ -831,7 +837,7 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 	if(orig != health && sv != NULL){
 		// send new health
 		nite::Packet notify;
-		notify.setHeader(Game::PacketType::SV_UPDATE_ENTITY_HEALTH_STAT);
+		notify.setHeader(Game::PacketType::SV_UPDATE_ENTITY_HEALTH_STAT);		
 		notify.write(&id, sizeof(id));
 		writeHealthStatState(notify);
 		sv->persSendAll(notify, 750, -1);

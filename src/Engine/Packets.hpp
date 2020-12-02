@@ -5,9 +5,10 @@
 
 		static const size_t NetworkHeaderSize = sizeof(UInt16);
 		static const size_t NetworkOrderSize = sizeof(UInt32);
-		static const size_t NetworkPacketSize = 1024 * 10;
-		static const size_t NetworkMaxPacketSize = NetworkHeaderSize + NetworkOrderSize + NetworkPacketSize;
+		static const size_t NetworkAckSize = sizeof(UInt32);
 		static const size_t NetworkMaxReliablePacketSize = 512;
+		static const size_t NetworkPacketSize = NetworkMaxReliablePacketSize - (NetworkHeaderSize + NetworkOrderSize + NetworkAckSize);
+		static const size_t NetworkMaxPacketSize = NetworkHeaderSize + NetworkOrderSize + NetworkAckSize + NetworkPacketSize;
 
 		// Normal Packet
 		struct Packet {
@@ -16,10 +17,11 @@
 				char data[nite::NetworkMaxPacketSize];
 				Packet(UInt16 header);
 				Packet();
-				Packet(UInt32 order);
-				~Packet();				
+				~Packet();
 				UInt32 getOrder();
 				void setOrder(UInt32 order);
+				UInt32 getAck();
+				void setAck(UInt32 ack);
 				UInt16 getHeader();
 				void setHeader(UInt16 header);
 				void copy(const Packet &other);

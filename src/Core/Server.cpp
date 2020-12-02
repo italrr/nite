@@ -407,13 +407,14 @@ void Game::Server::dropClient(UInt64 uid, String reason){
     if(cl->entityId != 0){
         destroy(cl->entityId); // destroy player's entity
     }
-    nite::Packet drop(++cl->lastSentOrder);
+    nite::Packet drop;
     drop.setHeader(Game::PacketType::SV_CLIENT_DROP);
+    drop.setOrder(++cl->lastSentOrder);
     drop.write(reason);
     sock.send(cl->cl, drop);
     removeClient(uid);
     // notify client dropped to others
-    nite::Packet noti(++cl->svOrder);
+    nite::Packet noti;
     noti.setHeader(Game::PacketType::SV_NOTI_CLIENT_DROP);
     noti.write(&uid, sizeof(UInt64));
     noti.write(reason);
@@ -426,8 +427,10 @@ void Game::Server::sendRemoteCmdMsg(UInt64 uid, const String &msg, const nite::C
         nite::print("[server] cannot send remote cmd msg to client "+nite::toStr(uid)+": it's not connected");
         return;
     }
-    nite::Packet msgPacket(++cl->svOrder);
+    nite::Packet msgPacket;
     msgPacket.setHeader(Game::PacketType::SV_REMOTE_CMD_MSG);
+    msgPacket.setOrder(++cl->lastSentOrder);
+    msgPacket.setAck(++cl->svAck);
     msgPacket.write(msg);
     msgPacket.write(&color.r, sizeof(float));
     msgPacket.write(&color.g, sizeof(float));
@@ -557,8 +560,9 @@ void Game::Server::update(){
                 if(!client){
                     break;
                 }
-                nite::Packet pong(++client->lastSentOrder);
+                nite::Packet pong;
                 pong.setHeader(Game::PacketType::SV_PONG);
+                pong.setOrder(++client->lastSentOrder);
                 sock.send(client->cl, pong);                
             } break;                             
             /*
@@ -577,7 +581,8 @@ void Game::Server::update(){
                 }
                 // TODO: add option to allow campaigns to let players join midgame
                 if(state == Game::ServerState::InGame){
-                    nite::Packet reject((UInt32)0);
+                    nite::Packet reject;
+                    reject.setOrder(0);
                     reject.setHeader(Game::PacketType::SV_CONNECT_REJECT);
                     String msg = "game already started";
                     reject.write(msg);
@@ -600,10 +605,12 @@ void Game::Server::update(){
                     cl.role = Game::SvClientRole::Player;
                     cl.cl = sender;
                     clients[netId] = cl;
-                    nite::Packet accepted(++clients[netId].svOrder);
+                    nite::Packet accepted;
                     accepted.setHeader(Game::PacketType::SV_CONNECT_ACCEPT);
                     accepted.write(&netId, sizeof(UInt64));
                     accepted.write(this->name);
+                    accepted.setAck(++clients[netId].svAck);
+                    accepted.setOrder(++clients[netId].lastSentOrder);
                     nite::SmallPacket netIdPack;
                     netIdPack.write(&netId, sizeof(UInt64));
                     nite::print("[server] accepted clientId "+nite::toStr(netId)+" | nickname '"+nick+"'");
@@ -618,14 +625,16 @@ void Game::Server::update(){
                             nite::print("[server] SV_CONNECT_REQUEST -> bindOnAckFor::SV_CONNECT_ACCEPT: fatal failure: client doesn't exist anymore?");
                             return;
                         }
-                        nite::Packet await(++client->svOrder);
+                        nite::Packet await(++client->svAck);
                         await.setHeader(Game::PacketType::SV_AWAIT_CLIENT_LOAD);
+                        await.setOrder(++client->lastSentOrder);
+                        await.setAck(++client->svAck);                        
                         await.write(map->hash);
                         persSend(cl, await, 1000, -1);
                         bindOnAckFor(Game::PacketType::SV_AWAIT_CLIENT_LOAD, [&](nite::SmallPacket &payload, nite::IP_Port &cl){
                             auto client = getClientByIp(cl);
                             nite::Packet notify;
-                            notify.setHeader(Game::PacketType::SV_CLIENT_JOIN);
+                            notify.setHeader(Game::PacketType::SV_CLIENT_JOIN);                          
                             notify.write(&client->clientId, sizeof(client->clientId));
                             notify.write(client->nickname);
                             persSendAll(notify, 1000, -1);     
@@ -639,7 +648,7 @@ void Game::Server::update(){
                 SV_CHAT_MESSAGE
             */             
             case Game::PacketType::SV_CHAT_MESSAGE: {
-                if(!client){
+                if(!client || !isLast){
                     break;
                 }
                 sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
@@ -675,7 +684,7 @@ void Game::Server::update(){
                 SV_RCON
             */
             case Game::PacketType::SV_RCON: {
-                if(!client){
+                if(!client || !isLast){
                     break;
                 }
                 sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
@@ -696,7 +705,7 @@ void Game::Server::update(){
                 SV_REMOTE_CMD_EXEC
             */
             case Game::PacketType::SV_REMOTE_CMD_EXEC: {
-                if(!client){
+                if(!client || !isLast){
                     break;
                 }
                 sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
@@ -709,7 +718,7 @@ void Game::Server::update(){
                 SV_CLIENT_LOAD_READY
             */             
             case Game::PacketType::SV_CLIENT_LOAD_READY: {
-                if(!client){
+                if(!client || !isLast){
                     break;
                 }
                 sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
@@ -719,7 +728,7 @@ void Game::Server::update(){
                 SV_ENTITY_USE_SKILL_ITEM
             */             
             case Game::PacketType::SV_ENTITY_USE_SKILL_ITEM: {
-                if(!client){
+                if(!client || !isLast){
                     break;
                 }
                 sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
@@ -811,7 +820,8 @@ void Game::Server::update(){
         auto &client = cl.second;
         if(nite::getTicks()-client.lastPing > 1000){
             client.lastPing = nite::getTicks();
-            nite::Packet ping(++client.lastSentOrder);
+            nite::Packet ping;
+            ping.setOrder(++client.lastSentOrder);
             ping.setHeader(Game::PacketType::SV_PING);
             UInt64 ticks = nite::getTicks();
             ping.write(&ticks, sizeof(ticks));
@@ -844,6 +854,7 @@ void Game::Server::sendAll(nite::Packet &packet){
     for(auto &cl : clients){
         nite::Packet cpy = packet;
         cpy.setOrder(++cl.second.lastSentOrder);
+        cpy.setAck(++cl.second.svAck);
         sock.send(cl.second.cl, cpy);
     }
 }
@@ -854,7 +865,8 @@ void Game::Server::persSendAll(nite::Packet &packet, UInt64 timeout, int retries
     }    
     for(auto &cl : clients){
         nite::Packet cpy = packet;
-        cpy.setOrder(++cl.second.svOrder); // pers expect ack
+        cpy.setOrder(++cl.second.lastSentOrder);
+        cpy.setAck(++cl.second.svAck); // pers expect ack
         persSend(cl.second.cl, cpy, timeout, retries);
     }
 }
@@ -1318,8 +1330,10 @@ void Game::Server::notifyAddItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UInt1
         nite::print("notifyAddItem: failed to find item by slotId '"+nite::toStr(slotId)+"'");
         return;
     }
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_ADD_ITEM);
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&itemId, sizeof(itemId));
     packet.write(&slotId, sizeof(slotId));
@@ -1336,8 +1350,10 @@ void Game::Server::notifyRemoveItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UI
     if(cl == NULL){
         return;
     }
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_REMOVE_ITEM);
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&itemId, sizeof(itemId));
     packet.write(&slotId, sizeof(slotId));
@@ -1350,8 +1366,10 @@ void Game::Server::notifyAddSkill(UInt64 uid, UInt16 skillId, UInt8 lv){
     if(cl == NULL){
         return;
     }
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_ADD_ENTITY_SKILL);
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&skillId, sizeof(skillId));
     packet.write(&lv, sizeof(lv));
@@ -1360,8 +1378,10 @@ void Game::Server::notifyAddSkill(UInt64 uid, UInt16 skillId, UInt8 lv){
 
 void Game::Server::notifyRemoveSkill(UInt64 uid, UInt16 skillId){
     auto cl = getClient(uid);
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_REMOVE_ENTITY_SKILL);
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&skillId, sizeof(skillId));
     persSend(cl->cl, packet, 750, -1);
@@ -1376,9 +1396,11 @@ void Game::Server::notifyUpdateEquipSlots(UInt64 uid){
     if(ent == NULL){
         return;
     }    
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_SLOTS);
-    packet.write(&cl->entityId, sizeof(cl->entityId));
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
+    packet.write(&cl->entityId, sizeof(cl->entityId));    
     ent->writeInvSlotsState(packet);
     persSend(cl->cl, packet, 1000, -1);
 }
@@ -1392,9 +1414,11 @@ void Game::Server::notifyUpdateInvList(UInt64 uid){
     if(ent == NULL){
         return;
     }
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_CARRY);
     packet.write(&cl->entityId, sizeof(cl->entityId));
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
     ent->writeInvListState(packet);
     ent->writeInvSlotsState(packet);
     persSend(cl->cl, packet, 1000, -1);
@@ -1419,8 +1443,10 @@ void Game::Server::notifyAddEffect(UInt64 uid, UInt16 type, UInt16 insId){
         return;
     }
     auto ef = ent->effectStat.effects[insId];
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_ADD_EFFECT);
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&type, sizeof(type));
     packet.write(&insId, sizeof(insId));
@@ -1435,8 +1461,10 @@ void Game::Server::notifyRemoveEffect(UInt64 uid, UInt16 insId){
         nite::print(msg+"it doesn't exist");
         return;
     }
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_REMOVE_EFFECT);
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&insId, sizeof(insId));
     persSend(cl->cl, packet, 750, -1);  
@@ -1461,8 +1489,10 @@ void Game::Server::notifyUpdateEffect(UInt64 uid, UInt16 insId){
         return;
     }
     auto ef = ent->effectStat.effects[insId];
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_UPDATE_EFFECT);
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&insId, sizeof(insId));
     ef->writeState(packet);
@@ -1476,8 +1506,10 @@ void Game::Server::notifyGameOver(UInt64 uid){
         nite::print(msg+"it doesn't exist");
         return;
     }
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_SET_GAME_OVER);
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
     persSend(cl->cl, packet, 750, -1);   
 }
 
@@ -1489,8 +1521,10 @@ void Game::Server::notifyGameRestart(UInt64 uid){
         nite::print(msg+"it doesn't exist");
         return;
     }
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_SET_GAME_RESTART);
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
     persSend(cl->cl, packet, 750, -1);   
 }
 
@@ -1508,8 +1542,10 @@ void Game::Server::notifyDeath(UInt64 uid){
         return;
     }
     auto ent = static_cast<Game::EntityBase*>(world.objects[it->first].get());
-    nite::Packet packet(++cl->svOrder);
+    nite::Packet packet;
     packet.setHeader(Game::PacketType::SV_NOTIFY_ENTITY_DEATH);
+    packet.setOrder(++cl->lastSentOrder);
+    packet.setAck(++cl->svAck);      
     packet.write(&cl->entityId, sizeof(cl->entityId));
     ent->writeHealthStatState(packet);
     persSend(cl->cl, packet, 750, -1);
@@ -1522,8 +1558,10 @@ void Game::Server::sendPlayerList(UInt64 uid){
         return;
     }
     UInt16 total = clients.size();
-    nite::Packet info(++cl->svOrder);
+    nite::Packet info;
     info.setHeader(Game::PacketType::SV_CLIENT_LIST);
+    info.setOrder(++cl->lastSentOrder);
+    info.setAck(++cl->svAck);      
     info.write(&total, sizeof(UInt16));
     for(auto cl : clients){
         info.write(&cl.second.clientId, sizeof(UInt64));
@@ -1547,10 +1585,12 @@ void Game::Server::sendSkillList(UInt64 uid, UInt16 entityId){
     auto ent = static_cast<Game::EntityBase*>(itent->second.get()); // we're gonna assume this is indeed an entity
     // auto &sklst = ent->skillStat.skills;
     // UInt8 skamnt = sklst.size();
-    // nite::Packet pck(++cl->svOrder);
+    // nite::Packet pck;
     // pck.setHeader(Game::PacketType::SV_SET_ENTITY_SKILLS);
     // pck.write(&ent->id, sizeof(UInt16));
     // pck.write(&skamnt, sizeof(UInt8));
+    // pck.setOrder(++cl->lastSentOrder);
+    // pck.setAck(++cl->svAck);  
     // for(auto sk : ent->skillStat.skills){
     //     pck.write(&sk.first, sizeof(UInt16));
     //     pck.write(&sk.second, sizeof(UInt8));

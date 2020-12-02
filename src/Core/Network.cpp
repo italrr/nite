@@ -32,7 +32,8 @@ Shared<Game::PersisentDelivey> Game::Net::persSend(nite::IP_Port &client, nite::
     pd->netId = netId;
     pd->packet = packet;
     pd->cl = client;
-    pd->order = packet.getOrder();
+    // pd->order = 
+    pd->ack = packet.getAck();
     pd->lastRetry = nite::getTicks();
     pd->created = nite::getTicks();
     sock.send(client, packet);
@@ -106,11 +107,11 @@ void Game::Net::ack(nite::Packet &packet){
     if(!init){
         return;
     }    
-    UInt32 order;
-    packet.read(&order, nite::NetworkOrderSize);
+    UInt32 _ack = packet.getAck();
+    // packet.read(&order, nite::NetworkOrderSize);
     for(int i = 0; i < deliveries.size(); ++i){
         auto pck = deliveries[i].get();
-        if(!pck->stale && pck->order == order){
+        if(!pck->stale && pck->ack == _ack){
             pck->onAck(pck->onAckPayload, pck->cl);
             pck->markStale();
         }
@@ -142,9 +143,9 @@ void Game::Net::sendAck(nite::IP_Port &client, UInt32 ackId, UInt32 order){
         return;
     }
     nite::Packet ack;
-    ack.setOrder(order);
     ack.setHeader(Game::PacketType::SV_ACK);
-    ack.write(&ackId, nite::NetworkOrderSize);
+    ack.setAck(ackId);
+    ack.setOrder(order);
     sock.send(client, ack);
 }
 

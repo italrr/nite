@@ -36,7 +36,7 @@
             UInt64 ping;
             UInt8 role;
             nite::Packet lastPacket;
-            UInt32 svOrder;    // id for packets that require an ACK from client
+            UInt32 svAck;    // id for packets that require an ACK from client
             UInt32 lastRecvOrder; 
             UInt32 lastSentOrder;  
             UInt64 lastPing;    
@@ -47,7 +47,7 @@
                 role = Game::SvClientRole::Player;
                 lastRecvOrder = 0;
                 lastSentOrder = 1;
-                svOrder = 0;
+                svAck = 0;
                 entityId = 0;
                 ready = false;
             }

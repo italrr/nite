@@ -14,11 +14,6 @@ nite::Packet::Packet(){
 	clear();
 }
 
-nite::Packet::Packet(UInt32 order){
-	clear();
-	setOrder(order);
-}
-
 nite::Packet::~Packet(){
 
 }
@@ -36,13 +31,13 @@ nite::Packet& nite::Packet::operator= (const nite::Packet &other){
 
 void nite::Packet::clear(){
 	memset(data, '0', nite::NetworkMaxPacketSize);
-	index = nite::NetworkHeaderSize + nite::NetworkOrderSize; // starts from the send byte mark
+	index = nite::NetworkHeaderSize + nite::NetworkOrderSize + nite::NetworkAckSize; // starts from the send byte mark
 	maxSize = index;
 	setOrder(0);
 }
 
 size_t nite::Packet::getSize(){
-	return maxSize - (nite::NetworkHeaderSize + nite::NetworkOrderSize);
+	return maxSize - (nite::NetworkHeaderSize + nite::NetworkOrderSize + nite::NetworkAckSize);
 }
 
 void nite::Packet::setHeader(UInt16 header){
@@ -65,8 +60,18 @@ void nite::Packet::setOrder(UInt32 order){
 	memcpy(data + nite::NetworkHeaderSize, &order, nite::NetworkOrderSize);
 }
 
+UInt32 nite::Packet::getAck(){
+	UInt32 ack;
+	memcpy(&ack, data + nite::NetworkHeaderSize + nite::NetworkOrderSize, nite::NetworkAckSize);
+	return ack;
+}
+
+void nite::Packet::setAck(UInt32 ack){
+	memcpy(data + nite::NetworkHeaderSize + nite::NetworkOrderSize, &ack, nite::NetworkAckSize);
+}
+
 void nite::Packet::reset(){
-	index = nite::NetworkHeaderSize + nite::NetworkOrderSize; 
+	index = nite::NetworkHeaderSize + nite::NetworkOrderSize + nite::NetworkAckSize; 
 }
 
 void nite::Packet::setIndex(size_t index){

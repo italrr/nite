@@ -28,7 +28,7 @@
         static const UInt32 CLIENT_VERSION = 0x0; // TODO: This is temporary
 
        /*
-            There are two types of packets. The ones that need to be ACK (svOrder from sender increase)
+            There are two types of packets. The ones that need to be ACK (svAck from sender increase)
             and the ones that are to be received in order (lastOrder from sender is set)
        */
 
@@ -51,7 +51,8 @@
             int retries;
             int retry;
             nite::Packet packet;
-            UInt32 order;
+            // UInt32 order;
+            UInt32 ack;
             UInt64 netId;
             nite::IP_Port cl;
             UInt64 lastRetry;
