@@ -9,10 +9,8 @@ Game::InputCompacter::InputCompacter(){
 
 UInt16 Game::InputCompacter::getCompat(){
     UInt16 compat = 0;
-    int bit = 1;
     for(int i = 0; i < Key::total; ++i){
-        compat =  compat | ((states[i] == PressType::Pressed) ? (1 << bit) : 0);
-        bit *= 2;
+        compat =  compat | ((states[i] == PressType::Pressed) ? (1 << (i+1)) : 0);
     }
     return compat;
 }
@@ -32,10 +30,8 @@ void Game::InputCompacter::setAll(UInt16 v){
 }
 
 void Game::InputCompacter::loadCompat(UInt16 v){
-    int bit = 1;
     for(int i = 0; i < Key::total; ++i){
-        states[i] = v & (1 << bit) ? PressType::Pressed : PressType::Released;
-        bit *= 2;
+        states[i] = v & (1 << (i+1)) ? PressType::Pressed : PressType::Released;
     }
 }
 
@@ -52,6 +48,7 @@ Game::Input::Input(){
 }
 
 void Game::Input::update(bool ignore){
+    auto nmp = nite::mousePosition();
     for(auto key : this->mapping){
         bool check = !ignore && (key.first > 200 ? nite::mouseCheck(key.first) : nite::keyboardCheck(key.first));
         auto nv = check ? Game::PressType::Pressed : Game::PressType::Released;
@@ -60,5 +57,9 @@ void Game::Input::update(bool ignore){
             lastChange = nite::getTicks();
             changed = true;
         }
+    }
+    if(nmp.x != mpos.x || nmp.y != mpos.y){
+        mpos.set(nmp);
+        lastChange = nite::getTicks();
     }
 }

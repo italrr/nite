@@ -67,7 +67,22 @@
             UInt32 order;
         };
 
+        namespace DeltaUpdateType {
+            enum DeltaUpdateType : UInt8 {
+                ANIMATION = 1,
+                PHYSICS,
+                SPECIAL
+            };
+            static const unsigned Total = 3;
+            static const bool hasIssuedDeltaStateUpdate(UInt8 type, UInt8 state){  
+                return state & (1 << type);                
+            }
+        }
+
         struct NetObject : nite::BaseObject {
+            UInt8 deltaUpdates;
+            void issueDeltaUpdate(UInt8 type);
+            void clearDeltaUpdates();
             UInt16 id;
 			int localId;	
 			nite::Vec2 position;

@@ -85,12 +85,12 @@ void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // m
 	if(healthStat.dead){
 		return;
 	}
-	if(!holdStance && dir.x > 0){
-		faceDirection = EntityFacing::Right;
-	}
-	if(!holdStance && dir.x < 0){
-		faceDirection = EntityFacing::Left;
-	}
+	// if(!holdStance && dir.x > 0){
+	// 	faceDirection = EntityFacing::Right;
+	// }
+	// if(!holdStance && dir.x < 0){
+	// 	faceDirection = EntityFacing::Left;
+	// }
 	if(state[EntityStateSlot::BOTTOM] != EntityState::WALKING){
 		setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
 	}
@@ -159,19 +159,20 @@ void Game::EntityBase::draw(){
 	UInt8 numbs[AnimPart::total] = {stNum[EntityStateSlot::BOTTOM], stNum[EntityStateSlot::MID], 0};
 	UInt64 times[AnimPart::total] = {lastExpectedTime[EntityStateSlot::BOTTOM], lastExpectedTime[EntityStateSlot::MID], 0};
 	anim.setState(anims, numbs, times);
-	float lrprate = (this->speed / 100.0f);
-	if(lrprate > 0.9f){
-		lrprate = 0.9f;
-	}
-	if(lrprate < 0.08f){
-		lrprate = 0.08f;
-	}
-	lerpPosition.lerpDiscrete(position, lrprate);
+	// float lrprate = (this->speed / 100.0f);
+	// if(lrprate > 0.9f){
+	// 	lrprate = 0.9f;
+	// }
+	// if(lrprate < 0.08f){
+	// 	lrprate = 0.08f;
+	// }
+	lerpPosition.lerpDiscrete(position, 0.08f);
 	nite::Vec2 rp = lerpPosition + size * 0.5f;
 	nite::lerpDiscrete(entityAlpha, canDamage() ? 100.0f : 55.0f, 0.25f);
     nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setColor(1.0f, 1.0f, 1.0f, entityAlpha / 100.0f);
-	int bodyDepth = -rp.y - anim.bodyDepthOffset;
+	int bodyDepth = -(rp.y - size.y * 0.5f);
+	// int bodyDepth = -rp.y;
 	nite::setDepth(bodyDepth);
 	float reversed = faceDirection == EntityFacing::Left ? -1.0f : 1.0f;
 	auto ref = anim.batch.draw(rp.x, rp.y, anim.batch.getSize().x * reversed, anim.batch.getSize().y, 0.5f, 0.5f, 0.0f);
@@ -308,14 +309,29 @@ void Game::Gfx_CastingBall::init(const nite::Vec2 &p){
 
 
 void Game::EntityBase::entityStep(){
+	if(input.mpos.x > position.x){
+		faceDirection = EntityFacing::Right;
+		issueDeltaUpdate(Game::DeltaUpdateType::ANIMATION);
+		
+	}else
+	if(input.mpos.x < position.x){
+		faceDirection = EntityFacing::Left;
+		issueDeltaUpdate(Game::DeltaUpdateType::ANIMATION);
+	}	
+
 	if(healthStat.health == 0 && !healthStat.dead){
 		healthStat.dead = true;
 		notifyEntityDeath(this);
 		onDeath();
 	}
+	pointingAt = input.mpos;
 	updateStance();
 	solveCasting();
 	aidriver.update();
+}
+
+void Game::EntityBase::refreshState(){
+	setState(state[EntityStateSlot::MID], EntityStateSlot::MID, stNum[EntityStateSlot::MID]);
 }
 
 void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n, bool override){
@@ -359,28 +375,16 @@ void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n, bool override
 			n = n % nanim->n;
 		}
 	}
-	bool update = true;
-	// if(state[slot] != nstate){
-	// 	update = true;
-	// }
+
+	if(nstate == EntityState::WALKING && stNum[slot] != n){
+		++nsteps;
+	}
+
 	state[slot] = nstate;
 	lastStateTime[slot] = nite::getTicks();
 	lastFrameTime[slot] = nite::getTicks();
 	stNum[slot] = n;
-	// issue anim update to clients
-	if(update && sv != NULL){
-		nite::Packet stance;
-		stance.setHeader(Game::PacketType::SV_UPDATE_ENTITY_STANCE_STATE);
-		stance.write(&this->id, sizeof(this->id));
-		stance.write(&faceDirection, sizeof(faceDirection));
-		for(int i = 0; i < EntityStateSlot::total; ++i){
-			stance.write(&state[i], sizeof(UInt8));
-			stance.write(&stNum[i], sizeof(UInt8));
-			stance.write(&lastExpectedTime[i], sizeof(lastExpectedTime[i]));
-		}
-		// TODO: filter by whether this entity is actually in the clients view
-		sv->sendAll(stance);
-	}
+	issueDeltaUpdate(DeltaUpdateType::ANIMATION);
 }
 
 void Game::EntityBase::switchFrame(UInt8 slot, UInt8 n){
@@ -760,6 +764,7 @@ void Game::EntityBase::loadAnim(){
 	// server cannot load textures (headless doesnt' run opengl)
 	if(sv == NULL){
 		anim.anim.load(anim.source.path, anim.transparency);
+		anim.shadow.load("data/texture/overworld/shadow.png");
 		// castingMsg = nite::UI::build("data/ui/overworld/entity_casting_messagebox.json");
 		// castingMsg->onCreate();
 		// castingMsg->setVisible(false);

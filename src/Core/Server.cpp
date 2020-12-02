@@ -469,7 +469,7 @@ void Game::Server::close(){
 
 void Game::Server::clear(){
     this->init = false;
-    physicsUpdate = nite::getTicks();
+    delta = 0;
     sock.close();
     world.clearWallMasks();
     world.clearGhostMasks();
@@ -660,8 +660,15 @@ void Game::Server::update(){
                 auto ent = getEntity(client->entityId);
                 if(ent != NULL){
                     UInt16 compat;
+                    float mx, my;
                     handler.read(&compat, sizeof(compat));
+                    handler.read(&mx, sizeof(mx));
+                    handler.read(&my, sizeof(my));
                     ent->input.loadCompat(compat);
+                    if(ent->input.mpos.x != mx || ent->input.mpos.y != my){
+                        ent->input.mpos.set(mx, my);
+                        ent->refreshState();
+                    }
                 }
             } break;       
             /*
@@ -742,10 +749,10 @@ void Game::Server::update(){
                 }
             } break; 
             /*
-                SV_UPDATE_PHYSICS_OBJECT
+                SV_UPDATE_STATE_OBJECT
             */            
-            case Game::PacketType::SV_UPDATE_PHYSICS_OBJECT: {
-                nite::print("[server] SV_UPDATE_PHYSICS_OBJECT: discarded handling");
+            case Game::PacketType::SV_STATE_DELTA: {
+                nite::print("[server] SV_UPDATE_STATE_OBJECT: discarded handling");
                 break;
                 // if(!client || !isLast){
                 //     break;
@@ -811,39 +818,6 @@ void Game::Server::update(){
             sock.send(client.cl, ping);
         }
     }
-
-    // update physics
-    if(nite::getTicks()-physicsUpdate > 16){
-        auto &queue = world.updateQueue;
-        if(queue.size() > 0){      
-            UInt16 amnt = queue.size();
-            nite::Packet phys;
-            phys.setHeader(Game::PacketType::SV_UPDATE_PHYSICS_OBJECT);
-            phys.write(&amnt, sizeof(UInt16));
-            // TODO: scope it for visible areas only            
-            // TODO: check if the entity actually existits before pulling these values
-            for(auto &it : queue){
-                auto &obj = world.objects[it.first];                
-                // UInt8 n = obj->nextPosition.size();
-                phys.write(&obj->id, sizeof(UInt16));
-                phys.write(&obj->speed, sizeof(obj->speed));
-                phys.write(&obj->position.x, sizeof(obj->position.x));
-                phys.write(&obj->position.y, sizeof(obj->position.y));
-                // phys.write(&n, sizeof(n));
-                // for(int j = 0; j < n; ++j){
-                //     phys.write(&obj->nextPosition[j].x, sizeof(obj->nextPosition[j].x));
-                //     phys.write(&obj->nextPosition[j].y, sizeof(obj->nextPosition[j].y));
-                // }
-                // obj->nextPosition.clear();
-            }
-            sendAll(phys);
-            queue.clear();
-        }
-        physicsUpdate = nite::getTicks();
-    }  
-
-    //TODO: update animations
-
     game();
     updateDeliveries();
 }
@@ -964,9 +938,16 @@ void Game::Server::game(){
         restart();
     }
 
-    // update entity specifics
-    for(auto &obj : world.objects){
-        if(obj.second->objType == ObjectType::Entity){
+    static UInt64 lastTick = nite::getTicks();
+    static int sent = 0;
+    static size_t bytes = 0;
+
+    auto runDelta = [&](){
+       // update entities specifies
+        for(auto &obj : world.objects){
+            if(obj.second->objType != ObjectType::Entity){
+                continue;
+            }
             auto ent = static_cast<Game::EntityBase*>(obj.second.get());
             auto &in = ent->input;
             bool isSpace = in.isKeyPress(Game::Key::SPACE);
@@ -995,28 +976,123 @@ void Game::Server::game(){
                 ent->entityMove(nite::Vec2(-1.0f, 0.0f), isSpace);
             }
             ent->effectStat.update();
-            ent->entityStep();
+            ent->entityStep();            
         }
-    }
-    
-    // update local physics
-    world.update();
-    world.step();
 
-    // update traps
-    auto changed = traps.update();
-    if(changed.size() > 0){
-        UInt16 n = changed.size();
-        nite::Packet updTrps;
-        updTrps.setHeader(PacketType::SV_UPDATE_MANY_TRAPS_STATE);
-        updTrps.write(&n, sizeof(n));
-        for(int i = 0; i < n; ++i){
-            UInt16 id = changed[i];
-            updTrps.write(&id, sizeof(id));
-            UInt8 st = traps.traps[changed[i]]->state;
-            updTrps.write(&st, sizeof(st));
+        // update world
+        world.update();
+        world.step();
+
+        // update traps
+        auto changed = traps.update();
+        if(changed.size() > 0){
+            UInt16 n = changed.size();
+            nite::Packet updTrps;
+            updTrps.setHeader(PacketType::SV_UPDATE_MANY_TRAPS_STATE);
+            updTrps.write(&n, sizeof(n));
+            for(int i = 0; i < n; ++i){
+                UInt16 id = changed[i];
+                updTrps.write(&id, sizeof(id));
+                UInt8 st = traps.traps[changed[i]]->state;
+                updTrps.write(&st, sizeof(st));
+            }
+            this->sendAll(updTrps);
+        }  
+
+        // send deltas
+        UInt8 total = this->world.objects.size() + this->stateDeltas.size();
+        for(auto &cl : clients){
+            nite::Packet delta;
+            delta.setHeader(Game::PacketType::SV_STATE_DELTA);
+            delta.setOrder(++cl.second.lastSentOrder);
+            delta.write(&total, sizeof(total));
+            for(int i = 0; i < this->stateDeltas.size(); ++i){
+                auto &cmd = this->stateDeltas[i];
+                delta.write(&cmd.type, sizeof(cmd.type));
+                switch(cmd.type){
+                    case StateDeltaType::CREATE_OBJECT: {
+                        delta.write(&cmd.objId, sizeof(cmd.objId));
+                        delta.write(&cmd.sigId, sizeof(cmd.sigId));
+                        delta.write(&cmd.position.x, sizeof(cmd.position.x));
+                        delta.write(&cmd.position.y, sizeof(cmd.position.y));
+                        delta.write(&cmd.psize, sizeof(cmd.psize));
+                        delta.write(cmd.payload, cmd.psize);
+                    } break;    
+                    case StateDeltaType::DESTROY_OBJECT: {
+                        delta.write(&cmd.objId, sizeof(cmd.objId));
+                    } break;                           
+                    case StateDeltaType::SET_ENTITY_OWNER: {
+                        delta.write(&cmd.objId, sizeof(cmd.objId));                        
+                        delta.write(&cmd.clientId, sizeof(cmd.clientId));     
+                    } break;
+                    case StateDeltaType::SET_ENTITY_ACTIONABLES: {
+                        UInt8 n = cmd.skills.size();
+                        delta.write(&cmd.objId, sizeof(cmd.objId));        
+                        delta.write(&n, sizeof(n));
+                        for(int i = 0; i < n; ++i){
+                            delta.write(&cmd.skills[i].id, sizeof(cmd.skills[i].id));
+                            delta.write(&cmd.skills[i].type, sizeof(cmd.skills[i].type));
+                            delta.write(&cmd.skills[i].slot, sizeof(cmd.skills[i].slot));
+                        }
+                    } break;                      
+                    case StateDeltaType::SET_ENTITY_SKILL_LIST: {
+                        UInt8 n = cmd.skills.size();
+                        delta.write(&cmd.objId, sizeof(cmd.objId));        
+                        delta.write(&n, sizeof(n));
+                        for(int i = 0; i < n; ++i){
+                            delta.write(&cmd.skills[i].id, sizeof(cmd.skills[i].id));
+                            delta.write(&cmd.skills[i].lv, sizeof(cmd.skills[i].lv));
+                        }
+                    } break;                
+                }
+            }
+            for(auto &it : this->world.objects){
+                auto obj = it.second.get();
+                UInt8 dtype = Game::StateDeltaType::UPDATE_OBJECT;
+                delta.write(&dtype, sizeof(dtype));
+                delta.write(&obj->id, sizeof(obj->id));
+                delta.write(&obj->deltaUpdates, sizeof(obj->deltaUpdates));
+                for(int i = 0; i < DeltaUpdateType::Total; ++i){
+                    // ANIMATION
+                    if(hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, obj->deltaUpdates) && (obj->objType == ObjectType::Entity)){
+                        auto ent = static_cast<Game::EntityBase*>(obj);
+                        delta.write(&ent->faceDirection, sizeof(ent->faceDirection));
+                        delta.write(&ent->pointingAt.x, sizeof(ent->pointingAt.x));
+                        delta.write(&ent->pointingAt.y, sizeof(ent->pointingAt.y));
+                        for(int i = 0; i < EntityStateSlot::total; ++i){
+                            delta.write(&ent->state[i], sizeof(UInt8));
+                            delta.write(&ent->stNum[i], sizeof(UInt8));
+                            delta.write(&ent->lastExpectedTime[i], sizeof(ent->lastExpectedTime[i]));
+                        }                    
+                    }
+                    // PHYSICS
+                    if(hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, obj->deltaUpdates)){
+                        delta.write(&obj->direction, sizeof(obj->direction));
+                        delta.write(&obj->speed, sizeof(obj->speed));                    
+                        delta.write(&obj->position.x, sizeof(obj->position.x));
+                        delta.write(&obj->position.y, sizeof(obj->position.y));                                    
+                    }                
+                }
+                obj->clearDeltaUpdates();
+            }
+            bytes += sock.send(cl.second.cl, delta);
         }
-        this->sendAll(updTrps);
+        // sendAll(delta);
+        stateDeltas.clear();    
+    };
+
+    // run delta
+    if(nite::getTicks()-deltaUpdate > 32){
+        runDelta();
+        ++sent;
+        deltaUpdate = nite::getTicks();    
+    } 
+    
+    if(nite::getTicks()-lastTick > 1000){
+        // nite::print("elapsed "+nite::toStr(nite::getTicks()-lastTick)+" | total "+nite::toStr(sent)+" | sent "+nite::toStr(bytes));
+        sent = 0;
+        bytes = 0;
+        lastTick = nite::getTicks();
     }
 }
 
@@ -1026,76 +1102,39 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
     simProps.write(&world.timescale, sizeof(world.timescale));
     simProps.write(&world.tickrate, sizeof(world.tickrate));
     persSendAll(simProps, 750, -1);
-    auto me = this;
-    // and now some chained-deliveries craziness... (apologies in advance)
+    // auto me = this;
 
-    // [0] bind on the initialHeader before we start creating players and asigning
-    me->bindOnAckFor(initialHeader, [me](nite::SmallPacket &pck, nite::IP_Port &ip){
-        auto cl = me->getClientByIp(ip);
-        if(cl == NULL){
-            nite::print("[server] failed to notify clients their respective entity. ip was not found in the list");
-            return;
-        }
+    float startx = map->startCell.x;
+    float starty = map->startCell.y;   
 
-        float startx = me->map->startCell.x + nite::randomInt(-50, 50);
-        float starty = me->map->startCell.y + nite::randomInt(-50, 50);    
-
-        me->createPlayer(cl->clientId, 1, startx, starty);
-        // [1] notify clients of their respective owners
-        me->bindOnAckFor(Game::PacketType::SV_CREATE_OBJECT, [me](nite::SmallPacket &pck, nite::IP_Port &ip){   
-            auto cl = me->getClientByIp(ip);
-            if(cl == NULL){
-                nite::print("[server] failed to notify clients their respective entity. ip was not found in the list");
-                return;
-            }
-            nite::Packet noti(++cl->svOrder);
-            noti.setHeader(Game::PacketType::SV_NOTI_ENTITY_OWNER);
-            noti.write(&cl->entityId, sizeof(UInt16));
-            me->persSend(cl->cl, noti);         
-            // [2] send respective clients their default skill list
-            me->bindOnAckFor(Game::PacketType::SV_NOTI_ENTITY_OWNER, [me](nite::SmallPacket &pck, nite::IP_Port &ip){   
-                auto cl = me->getClientByIp(ip);
-                if(cl == NULL){
-                    nite::print("[server] failed to send skill list. ip was not found in the list");
-                    return;
-                }
-                me->sendSkillList(cl->clientId, cl->entityId);
-                // [3] send respective clients their default keybinds
-                me->bindOnAckFor(Game::PacketType::SV_SET_ENTITY_SKILLS, [me](nite::SmallPacket &pck, nite::IP_Port &ip){  
-                    auto cl = me->getClientByIp(ip);
-                    if(cl == NULL){
-                        nite::print("[server] failed to send default keybinds: ip was not found in the list");
-                        return;
-                    }
-                    auto itent = me->world.objects.find(cl->entityId);
-                    if(itent == me->world.objects.end()){
-                        nite::print("[server] failed to send default keybinds: ent id "+nite::toStr(cl->entityId)+" doesn't exist");
-                        return;
-                    }
-                    auto ent = static_cast<Game::EntityBase*>(itent->second.get()); // we're gonna assume this is indeed an entity
-                    auto &sklst = ent->skillStat.skills;
-                    UInt8 skamnt = 5;
-                    nite::Packet packet(++cl->svOrder);
-                    packet.setHeader(Game::PacketType::SV_SET_ENTITY_ACTIONABLES);
-                    packet.write(&ent->id, sizeof(UInt16));
-                    packet.write(&skamnt, sizeof(UInt8));
-                    auto writeSkill = [&](UInt32 skilId, UInt8 slot){
-                        static const UInt8 sktype = Game::ActionableType::Skill;
-                        packet.write(&slot, sizeof(slot));
-                        packet.write(&sktype, sizeof(UInt8));
-                        packet.write(&skilId, sizeof(UInt32));
-                    };
-                    writeSkill(Game::SkillList::BA_ATTACK, 5);
-                    writeSkill(Game::SkillList::BA_PARRY, 6);
-                    writeSkill(Game::SkillList::BA_BASH, 0);
-                    writeSkill(Game::SkillList::BA_DASH, 1);
-                    writeSkill(Game::SkillList::BA_FIRST_AID, 2);
-                    me->persSend(cl->cl, packet, 750, -1);
-                });                    
-            });             
-        });             
-    }); 
-
+    for(auto &client : clients){
+        auto &cl = client.second;
+        // create object
+        auto ent = createPlayer(cl.clientId, 1, startx, starty);
+        // entity owner
+        auto enowner = Game::StateDelta(Game::StateDeltaType::SET_ENTITY_OWNER);
+        enowner.clientId = cl.clientId;
+        enowner.objId = ent->id;
+        issueStateDeltaUpdate(enowner);
+        // skill list
+        sendSkillList(cl.clientId, cl.entityId);
+        // actionables
+        auto actionables = Game::StateDelta(Game::StateDeltaType::SET_ENTITY_OWNER);
+        actionables.objId = ent->id;        
+        auto addSkill = [&](UInt16 skilId, UInt8 slot){
+            auto sk = Game::SkillChangeDelta();
+            sk.id = skilId;
+            sk.type = Game::ActionableType::Skill;
+            sk.slot = slot;
+            actionables.skills.push_back(sk);
+        };
+        addSkill(Game::SkillList::BA_ATTACK, 5);
+        addSkill(Game::SkillList::BA_PARRY, 6);
+        addSkill(Game::SkillList::BA_BASH, 0);
+        addSkill(Game::SkillList::BA_DASH, 1);
+        addSkill(Game::SkillList::BA_FIRST_AID, 2);
+        issueStateDeltaUpdate(actionables);
+    }
 
     // float startx = me->map->startCell.x + nite::randomInt(-50, 50);
     // float starty = me->map->startCell.y + nite::randomInt(-50, 50);   
@@ -1506,17 +1545,29 @@ void Game::Server::sendSkillList(UInt64 uid, UInt16 entityId){
         return;
     }
     auto ent = static_cast<Game::EntityBase*>(itent->second.get()); // we're gonna assume this is indeed an entity
-    auto &sklst = ent->skillStat.skills;
-    UInt8 skamnt = sklst.size();
-    nite::Packet pck(++cl->svOrder);
-    pck.setHeader(Game::PacketType::SV_SET_ENTITY_SKILLS);
-    pck.write(&ent->id, sizeof(UInt16));
-    pck.write(&skamnt, sizeof(UInt8));
-    for(auto sk : ent->skillStat.skills){
-        pck.write(&sk.first, sizeof(UInt16));
-        pck.write(&sk.second, sizeof(UInt8));
+    // auto &sklst = ent->skillStat.skills;
+    // UInt8 skamnt = sklst.size();
+    // nite::Packet pck(++cl->svOrder);
+    // pck.setHeader(Game::PacketType::SV_SET_ENTITY_SKILLS);
+    // pck.write(&ent->id, sizeof(UInt16));
+    // pck.write(&skamnt, sizeof(UInt8));
+    // for(auto sk : ent->skillStat.skills){
+    //     pck.write(&sk.first, sizeof(UInt16));
+    //     pck.write(&sk.second, sizeof(UInt8));
+    // }
+    // persSend(cl->cl, pck, 750, -1);
+
+    Game::StateDelta delta(StateDeltaType::SET_ENTITY_SKILL_LIST);
+    delta.objId = entityId;
+    for(auto &skill : ent->skillStat.skills){
+        auto sk = Game::SkillChangeDelta();
+        sk.id = skill.first;
+        sk.lv = skill.second->lv;
+        delta.skills.push_back(sk);
     }
-    persSend(cl->cl, pck, 750, -1);
+    issueStateDeltaUpdate(delta);
+
+
 }
 
 Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
@@ -1555,30 +1606,32 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
     //     ++trial;
     // }
 
-    nite::Packet crt;
-    crt.setHeader(Game::PacketType::SV_CREATE_OBJECT);
-    crt.write(&id, sizeof(UInt16));
-    crt.write(&obj->sigId, sizeof(UInt16));
-    crt.write(&obj->position.x, sizeof(float));
-    crt.write(&obj->position.y, sizeof(float));
-    obj->writeInitialState(crt);
-    persSendAll(crt, 1000, -1);
+    Game::StateDelta delta(StateDeltaType::CREATE_OBJECT);
+    delta.objId = obj->id;
+    delta.sigId = obj->sigId;
+    delta.position.x = obj->position.x;
+    delta.position.y = obj->position.y;
+    nite::Packet dummy;
+    size_t size;
+    obj->writeInitialState(dummy);
+    size = dummy.getSize();
+    dummy.read(delta.payload, size);
+    issueStateDeltaUpdate(delta);
     return obj;
 }
 
-bool Game::Server::destroy(UInt32 id){
-    if(!world.exists(id)){
-        nite::print("failed to destroy object id '"+nite::toStr(id)+"': it doesn't exist");
+bool Game::Server::destroy(UInt16 id){
+    auto obj = world.get(id);
+    if(obj == NULL){
+        nite::print("[server] failed to destroy object id '"+nite::toStr(id)+"': it doesn't exist");
         return false;
     }
-    auto &obj = world.objects[id];
-    nite::Packet des;
-    des.setHeader(Game::PacketType::SV_DESTROY_OBJECT);
-    des.write(&id, sizeof(UInt32));
+    Game::StateDelta delta(StateDeltaType::DESTROY_OBJECT);
+    delta.objId = obj->id;
+    issueStateDeltaUpdate(delta);
     obj->destroy();
     obj->sv = NULL;
-    obj->container = NULL;
-    persSendAll(des, 1000, -1);    
+    obj->container = NULL; 
     return true;
 }
 

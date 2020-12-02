@@ -41,6 +41,10 @@ void nite::Packet::clear(){
 	setOrder(0);
 }
 
+size_t nite::Packet::getSize(){
+	return maxSize - (nite::NetworkHeaderSize + nite::NetworkOrderSize);
+}
+
 void nite::Packet::setHeader(UInt16 header){
 	memcpy(data, &header, nite::NetworkHeaderSize);
 }
@@ -99,6 +103,9 @@ bool nite::Packet::read(String &str){
 }
 
 bool nite::Packet::write(const void *data, size_t size){
+	if(size == 0){
+		return false;
+	}
 	if((index >= nite::NetworkMaxPacketSize) || (index + size > nite::NetworkMaxPacketSize)){
 		nite::print("failed to write to packet: too big");
 		return false;

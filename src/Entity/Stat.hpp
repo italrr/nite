@@ -97,6 +97,14 @@
 			UInt32 currentExp;
 			UInt32 nextExp;
 			UInt16 lv;
+			HealthStat(){
+				health = 0;
+				maxHealth = 0;
+				mana = 0;
+				maxMana = 0;
+				stamina = 0;
+				maxStamina = 0;
+			}
 		};
 
 		struct BaseStat {

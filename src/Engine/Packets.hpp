@@ -7,6 +7,7 @@
 		static const size_t NetworkOrderSize = sizeof(UInt32);
 		static const size_t NetworkPacketSize = 1024 * 10;
 		static const size_t NetworkMaxPacketSize = NetworkHeaderSize + NetworkOrderSize + NetworkPacketSize;
+		static const size_t NetworkMaxReliablePacketSize = 512;
 
 		// Normal Packet
 		struct Packet {
@@ -22,6 +23,7 @@
 				UInt16 getHeader();
 				void setHeader(UInt16 header);
 				void copy(const Packet &other);
+				size_t getSize();
 				void reset();
 				void clear();
 				void setIndex(size_t index);

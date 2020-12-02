@@ -30,6 +30,7 @@ bool Game::Anim::load(const String &path){
         return false;
     }
     this->bodyDepthOffset = node.get("bodyDepthOffset").toFloat(0.0f);
+    this->shadowYOffset = node.get("shadowYOffset").toFloat(0.0f);
     this->source = *ifile;
     if(!node.has("frames") || node.has("frames") && !node.get("frames").isObject()){
         nite::print(errmsg+"'frames' was not found or it's not an object");
@@ -166,6 +167,14 @@ void Game::Anim::rerender(){
     batch.begin();
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     nite::Vec2 offset(batch.getSize() * nite::Vec2(0.5f) - frameSize * nite::Vec2(0.5f));
+
+    nite::setDepth(0);
+    nite::setColor(1.0f, 1.0f, 1.0f, 0.5f);
+    // float stepvar = owner->nsteps % 2 == 0 ? -2.0f : 0;
+    float stepvar  = 0.0f;
+    shadow.draw(offset.x + frameSize.x * 0.5f, offset.y + shadowYOffset + shadow.getHeight() * 0.5f, frameSize.x + stepvar, shadow.getHeight() + stepvar, 0.5f, 0.5f, 0.0f);
+
+
     for(int i = 0; i < AnimPart::total; ++i){
         if(lastSFrame[i] == -1 || lastAnim[i] == NULL){
             continue;
@@ -204,15 +213,33 @@ void Game::Anim::rerender(){
             }
         }
         nite::setDepth(0);
+        nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
         anim.setFrame(frame.id, nf);
         auto ref = anim.draw(frame.id, offset.x, offset.y, frameSize.x, frameSize.y, 0.0f, 0.0f, 0.0f);
     }    
     if(useLooseLimbs){
+        nite::Vec2 ownpscent = owner->position + frameSize * nite::Vec2(0.5f);
+        float diffx = (owner->pointingAt.x - ownpscent.x) * (owner->faceDirection == EntityFacing::Left ? -1.0f : 1.0f);
+        float diffy = owner->pointingAt.y - ownpscent.y;
+        lerpLookingAtAngle = nite::arctan(diffy, diffx);
         for(auto &limb : limbs){
             auto &type = limbTypes[limb.second.type];
+            
             nite::setDepth(limb.second.depth);
-	        float targetx = (limb.second.pos.x + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f)) + offset.x;
-	        float targety = (limb.second.pos.y + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f)) + offset.y;
+	        float targetx = (limb.second.pos.x + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f));
+	        float targety = (limb.second.pos.y + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f));
+
+            nite::Vec2 tadjusted = owner->position + nite::Vec2(targetx, targety);
+            float modcenter = nite::distance(tadjusted, ownpscent);
+            
+            // targetx += offset.x;
+            // targety += offset.y;
+
+            // if(limb.second.active){
+            targetx = frameSize.x * 0.5f + nite::cos(lookingAtAngle) * modcenter + offset.x;   
+            targety = frameSize.y * 0.5f + nite::sin(lookingAtAngle) * modcenter + offset.y;                
+            // }
+
             // render active weapon
             if(owner != NULL && owner->invStat.activeWeapon != NULL && limb.second.active){
                 auto *weap = owner->invStat.activeWeapon;
@@ -226,18 +253,18 @@ void Game::Anim::rerender(){
                     }
                 }
                 wanim.texture.setRegion(inTexCoors, wanim.inTexSize); 
-                wanim.texture.draw(targetx, targety, wanim.frameSize.x, wanim.frameSize.y, wanim.origin.x, wanim.origin.y, limb.second.angle);
+                wanim.texture.draw(targetx, targety, wanim.frameSize.x, wanim.frameSize.y, wanim.origin.x, wanim.origin.y, nite::toDegrees(lookingAtAngle));
             }
-            // render ammo (maybe arrows i guess)
+            // render ammo (arrows)
             if(owner != NULL && owner->invStat.activeAmmo != NULL && limb.second.hold == "ammo"){
                 auto *weap = owner->invStat.activeAmmo;
                 auto &aanim = owner->invStat.activeAmmo->anim;
                 nite::Vec2 inTexCoors = aanim.inTexCoors;
                 aanim.texture.setRegion(inTexCoors, aanim.inTexSize); 
-                aanim.texture.draw(targetx, targety, aanim.frameSize.x, aanim.frameSize.y, aanim.holdOrigin.x, aanim.holdOrigin.y, limb.second.angle);
+                aanim.texture.draw(targetx, targety, aanim.frameSize.x, aanim.frameSize.y, aanim.holdOrigin.x, aanim.holdOrigin.y, nite::toDegrees(lookingAtAngle));
             }            
             anim.texture.setRegion(type.inTexCoors, type.inTexSize);
-            anim.texture.draw(targetx, targety, limbSize.x * (limb.second.xflip ? -1.0f: 1.0f), limbSize.y * (limb.second.yflip ? -1.0f: 1.0f), 0.5f, 0.5f, limb.second.angle);
+            anim.texture.draw(targetx, targety, limbSize.x * (limb.second.xflip ? -1.0f: 1.0f), limbSize.y * (limb.second.yflip ? -1.0f: 1.0f), 0.5f, 0.5f, nite::toDegrees(lookingAtAngle));
         }
     }
     batch.end();
@@ -261,7 +288,12 @@ void Game::Anim::update(){
         // nite::print(nite::toStr(step)+" "+nite::toStr(limb.second.spd));
         bool lpos = limb.second.pos.lerpDiscrete(limb.second.npos, step);
         bool langle = nite::lerpDiscrete(limb.second.angle, limb.second.nangle, step);
-        if(!(lpos && langle)){
+        lerpLookingAtAngle *= 100.0f;
+        lookingAtAngle *= 100.0f;
+        bool lLAtAngle = nite::lerpDiscrete(lookingAtAngle, lerpLookingAtAngle, step);
+        lerpLookingAtAngle /= 100.0f;
+        lookingAtAngle /= 100.0f;
+        if(!(lpos && langle && lLAtAngle)){
             dorerender = true;
         }
     }

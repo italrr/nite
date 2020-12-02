@@ -126,6 +126,7 @@
             UInt64 lastDmgd;
             UInt64 lastMeleeHit;
             Game::InputCompacter input;
+            nite::Vec2 pointingAt;
             EntityBase();
             Game::AIDriver aidriver;
             Shared<Game::EntityCasting> currentCasting;
@@ -133,13 +134,15 @@
             UInt8 stNum[EntityStateSlot::total];
             UInt64 lastStateTime[EntityStateSlot::total];
             UInt64 lastFrameTime[EntityStateSlot::total];
-            UInt64 lastExpectedTime[EntityStateSlot::total];
+            UInt16 lastExpectedTime[EntityStateSlot::total];
             void setState(UInt8 nstate, UInt8 slot, UInt8 n, bool override = false);
             void switchFrame(UInt8 slot, UInt8 n);
             void useBaseAttack();
+            void refreshState();
             Game::Actionable actionables[Game::EntityActionables]; // 1 2 3 4 5 keys + M1 + M2
             UInt8 faceDirection;
             Game::Anim anim;
+            int nsteps;
             bool isMoving;
             bool isCasting;
             String name;

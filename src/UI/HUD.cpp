@@ -21,6 +21,18 @@ Game::HUD::HUD(){
     // this->main = Shared<nite::BaseUIComponent>(NULL);
     this->lastCheck = nite::getTicks();
     effects.reserve(100);
+
+    pHealth = 0;
+    pHealthTarget = 0;
+    pHealthMax = 0;
+    
+    pMana = 0;
+    pManaTarget = 0;
+    pManaMax = 0;
+    
+    pStamina = 0;
+    pStaminaTarget = 0;
+    pStaminaMax = 0;    
 }
 
 void Game::HUD::start(Game::Client *client){

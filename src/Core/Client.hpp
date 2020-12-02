@@ -28,6 +28,7 @@
         };
 
         struct Client : Game::Net {
+            nite::Vec2 pointer;
             UInt64 physicsUpdate;
             Game::IconManager icons;
             Game::Input input;

@@ -162,6 +162,8 @@
 
         struct EntityBase;
         struct Anim {
+            float lookingAtAngle;
+            float lerpLookingAtAngle;
             Game::EntityBase *owner;
             UInt8 lastSFrame[AnimPart::total];
             Game::AnimFrame *lastAnim[AnimPart::total];
@@ -176,6 +178,9 @@
             nite::Vec2 frameSize;
             nite::Animation anim;
             nite::Batch batch;
+            nite::Batch looseLimbsBatch;
+            nite::Texture shadow;
+            float shadowYOffset;
             bool useLooseLimbs;
             float bodyDepthOffset;
             String path;

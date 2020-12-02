@@ -7,6 +7,7 @@
     #include "../Engine/Map.hpp"
     #include "../Entity/Traps/Trap.hpp"
     #include "../Entity/Vfx/Vfx.hpp"
+    #include "../Entity/Anim.hpp"
     #include "World.hpp"
 
     namespace Game {
@@ -89,7 +90,57 @@
             }
         };
 
+        namespace StateDeltaType {
+            enum StateDeltaType : UInt8{
+                UPDATE_OBJECT = 0,
+                CREATE_OBJECT,
+                DESTROY_OBJECT,
+                SET_ENTITY_OWNER,
+                SET_ENTITY_SKILL_LIST,
+                SET_ENTITY_ACTIONABLES
+            };            
+        }
+
+        struct SkillChangeDelta {
+            UInt16 id;
+            UInt8 lv;
+            UInt8 slot;
+            UInt8 type;
+        };
+
+        struct StateDelta {            
+            UInt8 type;
+            UInt16 objId;
+            UInt16 sigId;
+            UInt8 updateType;
+            UInt64 clientId;
+            // PHYSICS
+            float direction;
+            float speed;
+            nite::Vec2 position;
+            // ANIM
+            UInt8 faceDirection;
+            nite::Vec2 pointingAt;
+            UInt8 state[AnimPart::total];
+            UInt8 num[AnimPart::total];
+            UInt16 exptime[AnimPart::total];
+            // usually initial read state stuff
+            char payload[nite::NetworkMaxReliablePacketSize];
+            UInt8 psize;
+            Vector<Game::SkillChangeDelta> skills;
+            StateDelta(){
+                type = 100;
+            }
+            StateDelta(UInt8 type){
+                this->type = type;
+            }
+        };
+
         struct Net {
+            UInt32 delta;
+            UInt64 deltaUpdate;            
+            Vector<Game::StateDelta> stateDeltas;
+            void issueStateDeltaUpdate(const StateDelta &cmd);
             bool isServer;
             Game::RemoteClock clock;
             Vector<Shared<Game::PersisentDelivey>> deliveries;
@@ -117,8 +168,6 @@
             void bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda);
             virtual void step();
         };
-
-
 
 
         /*
@@ -279,40 +328,69 @@
              SV_CLIENT_INPUT,
             /*
                 UINT16 COMPAT
+                FLOAT MX
+                FLOAT MY
             */
 
-            SV_UPDATE_PHYSICS_OBJECT,
+            SV_STATE_DELTA,
             /*
-                UINT16 AMOUNT
+                UInt8 AMOUNT
                 0: {
-                    UINT16 ID
-                    FLOAT SPD
-                    UINT8 FRAMES
-                    0: {
-                        FLOAT X
-                        FLOAT Y
-                    }
-                    ...
-                    n {
-                        FLOAT X
-                        FLOAT Y
-                    }
+                    UINT8 COMMANDTYPE
+
+                    // SET_ENTITY_OWNER
+                        UINT16 ENTID
+                        UINT64 CLIENTID
+
+                    // SET_ENTITY_SKILL_LIST
+                        UINT16 ENTID
+                        UINT8 N
+                        {
+                            UINT16 SKILLID
+                            UINT8 SKILLVL
+                        } ... n                        
+
+                    // ENTITY_ACTIONABLES
+                        UINT16 ENTID
+                        FLOAT POINTINGATX
+                        FLOAT POINTINGATY
+                        UINT8 N
+                        {
+                            UInt16 ITEMID
+                            UInt8 TYPE
+                            UInt8 SLOT
+                        } ... n
+
+                    // CREATE_OBJECT
+                        // UINT16 OBJID
+                        // UINT16 SIGID
+                        // FLOAT X
+                        // FLOAT Y
+                        // UINT8 PAYLOADISZE
+                        // (custom payload)
+
+                    // DESTROY_OBJECT
+                        // INT16 OBJID
+
+                    // UPDATE_OBJECT
+                        UINT8 N
+                        {
+                            UINT16 ID
+                            UINT8 STATES
+                            // ANIMATION
+                            UINT8 FACEDIRECTION
+                            UINT8 STATE[3]
+                            UINT8 NUM[3]
+                            UINT16 EXTIME[3]
+                            
+                            // PHYSICS
+                            FLOAT DIRECTION
+                            FLOAT SPEED
+                            FLOAT X
+                            FLOAT Y
+                        } .. n
                 }
-                ...
-                n: {
-                    UINT16 ID
-                    FLOAT SPD
-                    UINT8 FRAMES
-                    0: {
-                        FLOAT X
-                        FLOAT Y
-                    }
-                    ...
-                    n {
-                        FLOAT X
-                        FLOAT Y
-                    }
-                }
+                ... n
             */
 
             SV_UPDATE_WORLD_SIMULATION_PROPS, // ACK

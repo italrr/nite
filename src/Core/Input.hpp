@@ -49,6 +49,7 @@
         };
 
         struct InputCompacter {
+            nite::Vec2 mpos;
             UInt8 states[Key::total];
             bool changed;
             bool set(UInt8 key, UInt16 v);
@@ -60,6 +61,7 @@
         };
 
         struct Input : InputCompacter {
+            nite::Vec2 mpos;
             UInt64 lastChange;
             UInt64 lastCheck;
             Dict<unsigned, UInt8> mapping; // nite key -> game key

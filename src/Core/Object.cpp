@@ -58,7 +58,7 @@ Game::NetObject::NetObject(){
 	container = NULL;
 	position.set(0.0f);
     destroyed = false;
-
+    clearDeltaUpdates();
 }
 
 void Game::NetObject::destroy(){
@@ -191,6 +191,14 @@ bool Game::NetObject::isCollidingWithSomething(Game::NetObject **who){
 	}
 	collided = true;
 	return false;
+}
+
+void Game::NetObject::clearDeltaUpdates(){
+    deltaUpdates = 0;
+}
+
+void Game::NetObject::issueDeltaUpdate(UInt8 type){
+    deltaUpdates |= (1 << type);
 }
 
 bool Game::NetObject::isCollidingWithExcept(const Vector<Game::NetObject*> &ignores){

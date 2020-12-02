@@ -6,6 +6,8 @@ Game::Net::Net(){
     lastInitTfId = 0;
     setState(Game::NetState::Disconnected);
     clock.set(nite::getTicks());
+    stateDeltas.reserve(1000);
+    deltaUpdate = nite::getTicks();
 }
 
 void Game::Net::setState(unsigned state){
@@ -150,6 +152,9 @@ void Game::Net::step(){
 
 }
 
+void Game::Net::issueStateDeltaUpdate(const Game::StateDelta &cmd){
+    this->stateDeltas.push_back(cmd);
+}
 
 void Game::Net::setCurrentMap(Shared<nite::Map> &m){
     traps.clear();

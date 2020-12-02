@@ -4,7 +4,7 @@
 #include <cmath>
 #include <random>
 
-# define M_PI 3.14159265358979323846  /* pi -> lol you dont say? */
+# define M_PI 3.14159265358979323846
 
 float nite::toRadians(float an){
 	return (-an * M_PI) / 180.0f; // inverted y
@@ -15,8 +15,7 @@ float nite::getSign(float n){
 }
 
 float nite::toDegrees(float an){
-	auto rads = -an * (180.0f / M_PI); // inverted y again
-	return rads < 0 ? rads * -1.0f : rads; // from 0 to 360 
+	return an * (180.0f/nite::PI);
 }
 
 float nite::sin(float an){

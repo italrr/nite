@@ -5,7 +5,7 @@
 	},
 	"maskSize": {
 		"w": 72,
-		"h": 150
+		"h": 160
 	},
 	"arrowShootPos":{
 		"x": 90,
@@ -37,7 +37,8 @@
 			}
 		}
 	},	
-	"bodyDepthOffset": 64.0,
+	"bodyDepthOffset": 16.0,
+	"shadowYOffset": 145.0,
 	"transparency": "#ff0000",
 	"source": "59b64b38a07529023bd0ba19fcc8dd9a",
 	"textureSize": {

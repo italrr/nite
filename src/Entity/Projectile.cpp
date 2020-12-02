@@ -55,19 +55,21 @@ void Game::Projectile::onCollision(Game::NetObject *obj){
 }
 
 void Game::Projectile::draw(){
-	float lrprate = (this->speed / 100.0f);
-	if(lrprate > 0.9f){
-		lrprate = 0.9f;
-	}
-	if(lrprate < 0.08f){
-		lrprate = 0.08f;
-	}
-    if(this->speed == 0.0f){
-        lrprate = 0.45f;
-    }
+	// float lrprate = (this->speed / 100.0f);
+	// if(lrprate > 0.9f){
+	// 	lrprate = 0.9f;
+	// }
+	// if(lrprate < 0.08f){
+	// 	lrprate = 0.08f;
+	// }
+    // if(this->speed == 0.0f){
+    //     lrprate = 0.45f;
+    // }
     nite::Vec2 offset(frameSize.x * 0.5f, frameSize.y* 0.5f);
-	lerpPosition.lerpDiscrete(position, lrprate, 0.01f);
-    texture.setRegion(inTexCoors, inTexSize); 
+	lerpPosition.lerpDiscrete(position, 0.08f);
+    int depth = -(position.y - size.y * 0.5f);
+    nite::setDepth(depth);  
+    texture.setRegion(inTexCoors, inTexSize);   
     texture.draw(offset.x + lerpPosition.x, offset.y + lerpPosition.y, frameSize.x, frameSize.y, origin.x, origin.y, dir);
 }
 

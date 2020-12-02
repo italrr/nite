@@ -64,7 +64,6 @@
             Dict<String, Game::SvTilesetSource> tilesets;
             Dict<UInt64, Game::SvClient> clients;
             UInt8 maxClients;
-            UInt64 physicsUpdate;
             UInt64 lastPlayerInfoSent;
             Dict<UInt64, UInt16> players;
             Vector<Shared<nite::Map>> maps;
@@ -125,7 +124,7 @@
             
             // core
             Shared<Game::NetObject> spawn(Shared<Game::NetObject> obj);
-            bool destroy(UInt32 id);            
+            bool destroy(UInt16 id);            
             void setupGame(const String &name, int maxClients, int maps);
             Shared<Game::NetObject> createPlayer(UInt64 uid, UInt32 lv, float x, float y);
             Shared<Game::NetObject> createMob(UInt16 sig, UInt32 lv, float x, float y);
