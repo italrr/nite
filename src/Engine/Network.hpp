@@ -2,8 +2,8 @@
 	#define NITE_NETWORK_HPP
 
 	#include "Tools/Tools.hpp"
-	#include "Packets.hpp"
 	#include "Indexer.hpp"
+	#include "Packets.hpp"
 
 	namespace nite {
 		static const UInt16 NetworkDefaultPort = 14101; 
@@ -11,20 +11,6 @@
 
 		void socketInit();
 		void socketEnd();
-
-		struct IP_Port {
-			IP_Port();
-			IP_Port(const String &ip, UInt16 port);
-			IP_Port(const nite::IP_Port &ip, UInt16 nport);
-			String ip;
-			UInt16 port;
-			Int32 address;
-			String str();
-			void set(const String &ip, UInt16 port);
-			operator std::string() const;
-			bool operator== (IP_Port &other);
-			bool isSame(IP_Port &other);
-		};
 
 		struct UDPSocket {
 			Int32 sock;
@@ -68,7 +54,7 @@
 				bool sender;
 				UInt64 lastPing;
 				UInt64 initTime;
-				char buffer[nite::NetworkPacketSize];
+				char buffer[nite::NetworkMaxPacketSize];
 				nite::FileTransfer::FTCallback callback;
 				String id;
 				UInt64 lastResend;

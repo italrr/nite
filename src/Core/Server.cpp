@@ -194,8 +194,6 @@ static auto cfRmItemEntityIns = nite::Console::CreateFunction("ent_rm_item", &cf
 static auto cfRemoveItemEntityIns = nite::Console::CreateFunction("ent_remove_item", &cfRemoveItemEntity, true, true);
 
 
-
-
 static nite::Console::Result cfEntityStats(Vector<String> params){
     auto core = Game::getGameCoreInstance();
     auto &sv = core->localSv;    
@@ -301,7 +299,7 @@ static nite::Console::Result cfKick(Vector<String> params){
     if(client == NULL){
         return nite::Console::Result("cannot kick '"+nick+"': doesn't exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
     }
-    sv.dropClient(client->clientId, reason);
+    sv.dropClient(client->ip, reason);
     return nite::Console::Result();
 }
 static auto cfKickIns = nite::Console::CreateFunction("kick", &cfKick, true, true);
@@ -310,6 +308,7 @@ static auto cfKickIns = nite::Console::CreateFunction("kick", &cfKick, true, tru
 Game::Server::Server(){
     this->init = false;
     this->isServer = true;
+    lastClientId = 0;
     setState(Game::ServerState::Off);
     traps.start(this);
 }
@@ -321,6 +320,22 @@ void Game::Server::setState(unsigned state){
 
 Game::Server::~Server(){
 
+}
+
+Vector<nite::IP_Port> Game::Server::getAllClientsIps(){
+    Vector<nite::IP_Port> ips;
+    for(auto &it : clients){
+        ips.push_back(it.second.ip);
+    }
+    return ips;    
+}
+
+Vector<UInt32> Game::Server::getAllClientsAcks(){
+    Vector<UInt32> acks;
+    for(auto &it : clients){
+        acks.push_back(++it.second.svAck);
+    }
+    return acks;
 }
 
 void Game::Server::preinit(){
@@ -380,9 +395,9 @@ Game::SvClient *Game::Server::getClient(const String &nick){
     return NULL;
 }
 
-Game::SvClient *Game::Server::getClientByIp(nite::IP_Port &ip){
+Game::SvClient *Game::Server::getClientByIp(const nite::IP_Port &ip){
     for(auto _cl : clients){
-        if(_cl.second.cl.isSame(ip)){
+        if(_cl.second.ip.isSame(ip)){
             return &clients[_cl.first];
         }
     }
@@ -398,27 +413,25 @@ Game::SvClient *Game::Server::getClientByEntityId(UInt16 entityId){
     return NULL;
 }
 
-void Game::Server::dropClient(UInt64 uid, String reason){
-    auto cl = this->getClient(uid);
+void Game::Server::dropClient(const nite::IP_Port &ip, String reason){
+    auto cl = this->getClientByIp(ip);
     if(cl == NULL){
-        nite::print("[server] cannot drop client "+nite::toStr(uid)+": it's not connected");
+        nite::print("[server] cannot drop client "+(String)ip+": it's not connected");
         return;
     }
     if(cl->entityId != 0){
         destroy(cl->entityId); // destroy player's entity
     }
-    nite::Packet drop;
-    drop.setHeader(Game::PacketType::SV_CLIENT_DROP);
-    drop.setOrder(++cl->lastSentOrder);
+    nite::Packet drop(Game::PacketType::SV_CLIENT_DROP);
     drop.write(reason);
-    sock.send(cl->cl, drop);
-    removeClient(uid);
+    sock.send(cl->ip, drop);
+    removeClient(cl->ip);
     // notify client dropped to others
     nite::Packet noti;
     noti.setHeader(Game::PacketType::SV_NOTI_CLIENT_DROP);
-    noti.write(&uid, sizeof(UInt64));
+    noti.write(&cl->clientId, sizeof(UInt64));
     noti.write(reason);
-    persSendAll(noti, 750, -1);
+    sendPersPacketForMany(getAllClientsIps(), noti, getAllClientsAcks());
 }
 
 void Game::Server::sendRemoteCmdMsg(UInt64 uid, const String &msg, const nite::Color &color){
@@ -435,20 +448,20 @@ void Game::Server::sendRemoteCmdMsg(UInt64 uid, const String &msg, const nite::C
     msgPacket.write(&color.r, sizeof(float));
     msgPacket.write(&color.g, sizeof(float));
     msgPacket.write(&color.b, sizeof(float));
-    persSend(cl->cl, msgPacket, 500, -1);    
+    sendPersPacketFor(cl->ip, msgPacket, ++cl->svAck);
 }
 
-void Game::Server::dropClient(UInt64 uid){
-    dropClient(uid, "no reason");
+void Game::Server::dropClient(const nite::IP_Port &ip){
+    dropClient(ip, "no reason");
 }
 
-void Game::Server::removeClient(UInt64 uid){
-    dropPersFor(uid);
-    auto client = getClient(uid);
+void Game::Server::removeClient(const nite::IP_Port &ip){
+    dropPersFor(ip);
+    auto client = getClientByIp(ip);
     if(!client){
         return;
     }
-    auto it = clients.find(uid);
+    auto it = clients.find(client->clientId);
     clients.erase(it);
 }
 
@@ -459,12 +472,12 @@ void Game::Server::close(){
     setState(Game::ServerState::ShuttingDown);
     broadcast("server is closing down");
     nite::print("[server] closing server down, dropping clients...");
-    Vector<UInt32> ids;
+    Vector<nite::IP_Port> ips;
     for(auto cl : clients){
-        ids.push_back(cl.first);
+        ips.push_back(cl.second.ip);
     }
-    for(int i = 0; i < ids.size(); ++i){
-        dropClient(ids[i], "server closing down");
+    for(int i = 0; i < ips.size(); ++i){
+        dropClient(ips[i], "server closing down");
     }
     clear();
     broadcast("[server] closed server down");
@@ -508,30 +521,97 @@ void Game::Server::update(){
     nite::IP_Port sender;
     nite::Packet handler;
     if(sock.recv(sender, handler) > 0){
-        UInt64 netId = sender.address+sender.port+sock.sock;
-        auto client = this->getClient(netId);
+        auto client = this->getClientByIp(sender);
         bool isLast = client && handler.getOrder() > client->lastRecvOrder;
         if(client && isLast){
             client->lastPacketTimeout = nite::getTicks();
             client->lastPacket = handler;
             client->lastRecvOrder = handler.getOrder();
         }
+        // respond immediate packets
         switch(handler.getHeader()){
-            /*
-                SV_ACK
-            */            
-            case Game::PacketType::SV_ACK: {
-                ack(handler);
-            } break;
             /*
                 SV_PONG
             */      
             case Game::PacketType::SV_PONG: {
-                if(!client){
+                if(!client || !isLast){
                     break;
                 }
                 client->ping = nite::getTicks() - client->lastPing; 
             } break; 
+            /*
+                SV_PING
+            */             
+            case Game::PacketType::SV_PING: {
+                if(!client || !isLast){
+                    break;
+                }
+                nite::Packet pong;
+                pong.setHeader(Game::PacketType::SV_PONG);
+                pong.setOrder(++client->lastSentOrder);
+                sock.send(client->ip, pong);                
+            } break;   
+            /*
+                SV_CONNECT_REQUEST
+            */
+            case Game::PacketType::SV_CONNECT_REQUEST : {
+                nite::print("[server] incoming connection...");
+                if(clients.size() == maxClients){
+                    static const String msg = "server is full";
+                    nite::Packet reject(Game::PacketType::SV_CONNECT_REJECT);
+                    reject.setOrder(0);
+                    reject.write(msg);
+                    nite::print("[server] rejected client "+sender.str()+": "+msg);
+                    sock.send(sender, reject); 
+                    break;
+                }
+                // TODO: add option to allow campaigns to let players join midgame
+                if(state == Game::ServerState::InGame){
+                    nite::Packet reject(Game::PacketType::SV_CONNECT_REJECT);
+                    String msg = "game already started";
+                    reject.setOrder(0);
+                    reject.write(msg);
+                    nite::print("[server] rejected client "+sender.str()+": "+msg);
+                    sock.send(sender, reject); 
+                    break;
+                }
+                UInt32 clVer;
+                String nick;
+                handler.read(&clVer, sizeof(UInt32));
+                handler.read(nick);
+                Game::SvClient nclient(nick, ++lastClientId, sender);
+                clients[nclient.clientId] = nclient;
+                auto client = &clients[nclient.clientId];
+                nite::print("[server] accepted clientId "+sender.str()+" | nickname '"+nick+"'");
+                if(clients.size() > 0 && state == Game::ServerState::Idle){
+                    nite::print("[server] awaiting for client to load...");
+                    setState(Game::ServerState::Waiting);
+                }
+                nite::Packet accepted(Game::PacketType::SV_CONNECT_ACCEPT);
+                accepted.write(&client->clientId, sizeof(client->clientId));
+                accepted.write(this->name);                
+                UInt32 ack = ++client->svAck;
+                sendPersPacketFor(sender, accepted, ack);
+                bindOnAckFor(ack, [&](nite::SmallPacket &payload, nite::IP_Port &ip){
+                    auto client = getClientByIp(ip);
+                    if(client == NULL){
+                        nite::print("[server] SV_CONNECT_REQUEST -> SV_CONNECT_ACCEPT: fatal failure: client doesn't exist anymore?");
+                        return;
+                    }
+                    nite::print("[server] :^)");
+                    nite::Packet await(Game::PacketType::SV_AWAIT_CLIENT_LOAD);
+                    await.write(map->hash);
+                    sendPersPacketFor(ip, await, ++client->svAck);
+                    bindOnAckFor(client->svAck, [&](nite::SmallPacket &payload, nite::IP_Port &ip){
+                        auto client = getClientByIp(ip);
+                        nite::Packet notify(Game::PacketType::SV_CLIENT_JOIN);
+                        notify.write(&client->clientId, sizeof(client->clientId));
+                        notify.write(client->nickname);
+                        sendPersPacketForMany(getAllClientsIps(), notify, getAllClientsAcks());
+                        sendPlayerList(client->clientId);                            
+                    });
+                });
+            } break;       
             /*
                 SV_CLIENT_DISCONNECT
             */             
@@ -544,275 +624,40 @@ void Game::Server::update(){
                 if(reason.length() == 0){
                     reason = "no reason";
                 }
-                nite::print("[server] disconnected clientId "+nite::toStr(netId)+": "+reason);
-                removeClient(netId);   
+                nite::print("[server] disconnected client "+sender.str()+": "+reason);
+                removeClient(sender);   
                 // notify client dropped to others
                 nite::Packet noti;
                 noti.setHeader(Game::PacketType::SV_NOTI_CLIENT_DROP);
-                noti.write(&netId, sizeof(UInt64));
+                noti.write(&client->clientId, sizeof(UInt64));
                 noti.write(reason);
-                persSendAll(noti, 750, -1);                                      
-            } break;                  
-            /*
-                SV_PING
-            */             
-            case Game::PacketType::SV_PING: {
-                if(!client){
-                    break;
-                }
-                nite::Packet pong;
-                pong.setHeader(Game::PacketType::SV_PONG);
-                pong.setOrder(++client->lastSentOrder);
-                sock.send(client->cl, pong);                
-            } break;                             
-            /*
-                SV_CONNECT_REQUEST
-            */
-            case Game::PacketType::SV_CONNECT_REQUEST : {
-                nite::print("[server] incoming connection...");
-                if(clients.size() == maxClients){
-                    nite::Packet reject((UInt32)0);
-                    reject.setHeader(Game::PacketType::SV_CONNECT_REJECT);
-                    String msg = "server is full";
-                    reject.write(msg);
-                    nite::print("[server] rejected client "+nite::toStr(netId)+": "+msg);
-                    sock.send(sender, reject); 
-                    break;
-                }
-                // TODO: add option to allow campaigns to let players join midgame
-                if(state == Game::ServerState::InGame){
-                    nite::Packet reject;
-                    reject.setOrder(0);
-                    reject.setHeader(Game::PacketType::SV_CONNECT_REJECT);
-                    String msg = "game already started";
-                    reject.write(msg);
-                    nite::print("[server] rejected client "+nite::toStr(netId)+": "+msg);
-                    sock.send(sender, reject); 
-                    break;
-                }
-                UInt32 clVer;
-                String nick;
-                handler.read(&clVer, sizeof(UInt32));
-                handler.read(nick);
-                // TODO: handle repeated nicks
-                if(client){
-                    dropClient(netId, "client of same of origin");
-                }else{
-                    Game::SvClient cl;
-                    cl.nickname = nick;
-                    cl.clientId = netId;
-                    cl.lastPacketTimeout = nite::getTicks();
-                    cl.role = Game::SvClientRole::Player;
-                    cl.cl = sender;
-                    clients[netId] = cl;
-                    nite::Packet accepted;
-                    accepted.setHeader(Game::PacketType::SV_CONNECT_ACCEPT);
-                    accepted.write(&netId, sizeof(UInt64));
-                    accepted.write(this->name);
-                    accepted.setAck(++clients[netId].svAck);
-                    accepted.setOrder(++clients[netId].lastSentOrder);
-                    nite::SmallPacket netIdPack;
-                    netIdPack.write(&netId, sizeof(UInt64));
-                    nite::print("[server] accepted clientId "+nite::toStr(netId)+" | nickname '"+nick+"'");
-                    if(clients.size() > 0 && state == Game::ServerState::Idle){
-                        nite::print("[server] awaiting for client to load...");
-                        setState(Game::ServerState::Waiting);
-                    }
-                    persSend(clients[netId].cl, accepted);
-                    bindOnAckFor(Game::PacketType::SV_CONNECT_ACCEPT, [&](nite::SmallPacket &payload, nite::IP_Port &cl){
-                        auto client = getClientByIp(cl);
-                        if(client == NULL){
-                            nite::print("[server] SV_CONNECT_REQUEST -> bindOnAckFor::SV_CONNECT_ACCEPT: fatal failure: client doesn't exist anymore?");
-                            return;
-                        }
-                        nite::Packet await(++client->svAck);
-                        await.setHeader(Game::PacketType::SV_AWAIT_CLIENT_LOAD);
-                        await.setOrder(++client->lastSentOrder);
-                        await.setAck(++client->svAck);                        
-                        await.write(map->hash);
-                        persSend(cl, await, 1000, -1);
-                        bindOnAckFor(Game::PacketType::SV_AWAIT_CLIENT_LOAD, [&](nite::SmallPacket &payload, nite::IP_Port &cl){
-                            auto client = getClientByIp(cl);
-                            nite::Packet notify;
-                            notify.setHeader(Game::PacketType::SV_CLIENT_JOIN);                          
-                            notify.write(&client->clientId, sizeof(client->clientId));
-                            notify.write(client->nickname);
-                            persSendAll(notify, 1000, -1);     
-                            sendPlayerList(client->clientId);                            
-                        });
-                    });
-                    
-                }
+                sendPersPacketForMany(getAllClientsIps(), noti, getAllClientsAcks());                             
             } break; 
-            /*
-                SV_CHAT_MESSAGE
-            */             
-            case Game::PacketType::SV_CHAT_MESSAGE: {
-                if(!client || !isLast){
-                    break;
-                }
-                sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
-                UInt64 uid;
-                String msg;
-                handler.read(&uid, sizeof(UInt64));
-                handler.read(msg);
-                nite::print("SERVER ["+client->nickname+"] "+msg);
-                persSendAll(handler, 1500, 4);
-            } break; 
-            /*
-                SV_CLIENT_INPUT
-            */
-            case Game::PacketType::SV_CLIENT_INPUT: {
-                if(!client || !isLast){
-                    break;
-                }
-                auto ent = getEntity(client->entityId);
-                if(ent != NULL){
-                    UInt16 compat;
-                    float mx, my;
-                    handler.read(&compat, sizeof(compat));
-                    handler.read(&mx, sizeof(mx));
-                    handler.read(&my, sizeof(my));
-                    ent->input.loadCompat(compat);
-                    if(ent->input.mpos.x != mx || ent->input.mpos.y != my){
-                        ent->input.mpos.set(mx, my);
-                        ent->refreshState();
-                    }
-                }
-            } break;       
-            /*
-                SV_RCON
-            */
-            case Game::PacketType::SV_RCON: {
-                if(!client || !isLast){
-                    break;
-                }
-                sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
-                String pwd;
-                handler.read(pwd);
-                static const String hash = nite::hashString("pwd");
-                if(pwd == hash){ // TODO: temporary
-                    client->role = Game::SvClientRole::Admin;
-                    nite::print("rcond client id "+nite::toStr(client->clientId)+" as admin");
-                    sendRemoteCmdMsg(client->clientId, "you're now rcond as admin", nite::Color(0.16f, 0.85f, 0.12f, 1.0f));
-                }else{
-                    client->role = Game::SvClientRole::Admin;
-                    nite::print("client id "+nite::toStr(client->clientId)+" failed to rcon");
-                    sendRemoteCmdMsg(client->clientId, "wrong password", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
-                }
-            } break;               
-            /*
-                SV_REMOTE_CMD_EXEC
-            */
-            case Game::PacketType::SV_REMOTE_CMD_EXEC: {
-                if(!client || !isLast){
-                    break;
-                }
-                sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
-                String cmd;
-                handler.read(cmd);
-                auto result = nite::Console::interpret(cmd, false, true, client->role == Game::SvClientRole::Admin);
-                sendRemoteCmdMsg(client->clientId, result.msg, result.color);
-            } break;  
-            /*
-                SV_CLIENT_LOAD_READY
-            */             
-            case Game::PacketType::SV_CLIENT_LOAD_READY: {
-                if(!client || !isLast){
-                    break;
-                }
-                sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
-                client->ready = true;
-            } break;             
-            /*
-                SV_ENTITY_USE_SKILL_ITEM
-            */             
-            case Game::PacketType::SV_ENTITY_USE_SKILL_ITEM: {
-                if(!client || !isLast){
-                    break;
-                }
-                sendAck(client->cl, handler.getOrder(), ++client->lastSentOrder);
-                UInt16 userId, targetId;                
-                UInt8 type;
-                UInt32 id;
-                float x, y;
-                handler.read(&userId, sizeof(userId));
-                handler.read(&type, sizeof(type));
-                handler.read(&id, sizeof(id));
-                handler.read(&targetId, sizeof(targetId));
-                handler.read(&x, sizeof(x));
-                handler.read(&y, sizeof(y));
-                auto user = this->getEntity(userId);
-                if(user == NULL){
-                    nite::print("[server] failed to invokeUse for entity id '"+nite::toStr(userId)+"': doesn't exist");
-                    break;
-                }
-                switch(type){
-                    case ActionableType::Skill:
-                    case ActionableType::Item: {
-                        user->invokeUse(targetId, type, id, x, y);
-                    } break;
-                    default: {
-                        nite::print("[server] entity id '"+nite::toStr(userId)+"' invoked usage of undefined type '"+nite::toStr(type)+"'");
-                    } break;
-                }
-            } break; 
-            /*
-                SV_UPDATE_STATE_OBJECT
-            */            
-            case Game::PacketType::SV_STATE_DELTA: {
-                nite::print("[server] SV_UPDATE_STATE_OBJECT: discarded handling");
-                break;
-                // if(!client || !isLast){
-                //     break;
-                // }
-                // UInt16 amnt;
-                // handler.read(&amnt, sizeof(UInt16));
-                // for(int i = 0; i < amnt; ++i){
-                //     UInt16 id;
-                //     float x, y, xspeed, yspeed;
-                //     handler.read(&id, sizeof(UInt16));
-                //     handler.read(&x, sizeof(float));
-                //     handler.read(&y, sizeof(float));
-                //     handler.read(&xspeed, sizeof(float));
-                //     handler.read(&yspeed, sizeof(float));                    
-                //     auto obj = world.get(id);
-                //     if(obj != NULL && obj->id == client->entityId){
-                //         obj->position.set(x, y);
-                //         obj->speed.set(xspeed, yspeed);
-                //     }
-                // }
-            } break;              
-            /* 
-                UNKNOWN
-            */
             default: {
-                if(!client){
-                    break;
-                } 
-                nite::print("[server] unknown packet type '"+nite::toStr(handler.getHeader())+"'");
-            } break;            
-        }
-    }
+                rcvPackets.push_back(handler);
+            };
 
-    // refresh player info
-    if(nite::getTicks()-lastPlayerInfoSent > 1000){
-        lastPlayerInfoSent = nite::getTicks();
-        for(auto cl : clients){
-            sendPlayerList(cl.first);
         }        
     }
 
+    // refresh player info
+    // if(nite::getTicks()-lastPlayerInfoSent > 1000){
+    //     lastPlayerInfoSent = nite::getTicks();
+    //     for(auto cl : clients){
+    //         sendPlayerList(cl.first);
+    //     }        
+    // }
+
     // timeout
-    Vector<UInt64> timedoutClients;
+    Vector<nite::IP_Port> timedoutClients;
     for(auto cl : clients){
         if(nite::getTicks()-cl.second.lastPacketTimeout > ClientTimeout){
-            timedoutClients.push_back(cl.first);
+            timedoutClients.push_back(cl.second.ip);
         }
     }
     for(int i = 0; i < timedoutClients.size(); ++i){
         dropClient(timedoutClients[i], "timeout");
-        nite::print("[server] dropped clientId "+nite::toStr(timedoutClients[i])+": timeout");
+        nite::print("[server] dropped clientId "+timedoutClients[i].str()+": timeout");
     }
 
     // ping
@@ -820,12 +665,9 @@ void Game::Server::update(){
         auto &client = cl.second;
         if(nite::getTicks()-client.lastPing > 1000){
             client.lastPing = nite::getTicks();
-            nite::Packet ping;
+            nite::Packet ping(Game::PacketType::SV_PING);
             ping.setOrder(++client.lastSentOrder);
-            ping.setHeader(Game::PacketType::SV_PING);
-            UInt64 ticks = nite::getTicks();
-            ping.write(&ticks, sizeof(ticks));
-            sock.send(client.cl, ping);
+            sock.send(client.ip, ping);
         }
     }
     game();
@@ -846,31 +688,6 @@ Game::EntityBase *Game::Server::getEntity(UInt16 id){
     return static_cast<Game::EntityBase*>(obj);
 }
 
-
-void Game::Server::sendAll(nite::Packet &packet){
-    if(!init){
-        return;
-    }    
-    for(auto &cl : clients){
-        nite::Packet cpy = packet;
-        cpy.setOrder(++cl.second.lastSentOrder);
-        cpy.setAck(++cl.second.svAck);
-        sock.send(cl.second.cl, cpy);
-    }
-}
-
-void Game::Server::persSendAll(nite::Packet &packet, UInt64 timeout, int retries){
-    if(!init){
-        return;
-    }    
-    for(auto &cl : clients){
-        nite::Packet cpy = packet;
-        cpy.setOrder(++cl.second.lastSentOrder);
-        cpy.setAck(++cl.second.svAck); // pers expect ack
-        persSend(cl.second.cl, cpy, timeout, retries);
-    }
-}
-
 void Game::Server::broadcast(const String &message){
     if(!init){
         return;
@@ -879,11 +696,11 @@ void Game::Server::broadcast(const String &message){
         nite::print("[server] cannot broadcast an empty message");
         return;
     }
-    nite::Packet msg;
-    msg.setHeader(Game::PacketType::SV_BROADCAST_MESSAGE);
+    nite::Packet msg(Game::PacketType::SV_BROADCAST_MESSAGE);
     msg.write(message);
     nite::print("[BROADCAST] "+message);
-    persSendAll(msg, 750, 4);
+    // persSendAll(msg, 750, 4);
+    sendPersPacketForMany(getAllClientsIps(), msg, getAllClientsAcks());
 }
 
 void Game::Server::game(){
@@ -955,38 +772,212 @@ void Game::Server::game(){
     static size_t bytes = 0;
 
     auto runDelta = [&](){
-       // update entities specifies
+
+        // process rcvPackets
+        std::function<void(nite::Packet &handler, bool ignoreOrder)> processPacket = [&](nite::Packet &handler, bool ignoreOrder){
+            auto sender = handler.sender;
+            auto client = this->getClientByIp(sender);
+            bool isLast = client && handler.getOrder() > client->lastRecvOrder;
+            if(client && isLast){
+                client->lastPacketTimeout = nite::getTicks();
+                client->lastPacket = handler;
+                client->lastRecvOrder = handler.getOrder();
+            }            
+            // for multi-part packets
+            if(ignoreOrder){
+                isLast = true;
+            }
+            switch(handler.getHeader()){
+                /*
+                    SV_MULTI_PART_PACKET    
+                */
+                case Game::PacketType::SV_MULTI_PART_PACKET: {
+                    if(!client){
+                        break;
+                    }                    
+                    Vector<UInt16> sizes;
+                    UInt8 total;
+                    handler.read(&total, sizeof(total));
+                    for(int i = 0; i < total; ++i){
+                        UInt16 size;
+                        handler.read(&size, sizeof(size));
+                        sizes.push_back(size);
+                    }
+                    for(int i = 0; i < total; ++i){
+                        nite::Packet holder;
+                        handler.read(holder.data, sizes[i]);
+                        holder.sender = client->ip;
+                        processPacket(holder, true);
+                    }
+                } break;
+                /*
+                    SV_ACK
+                */            
+                case Game::PacketType::SV_ACK: {
+                    ack(handler);
+                } break; 
+                /*
+                    SV_CHAT_MESSAGE
+                */             
+                case Game::PacketType::SV_CHAT_MESSAGE: {
+                    if(!client || !isLast){
+                        break;
+                    }
+                    sendAck(client->ip, handler.getAck());
+                    UInt64 uid;
+                    String msg;
+                    handler.read(&uid, sizeof(UInt64));
+                    handler.read(msg);
+                    nite::print("SERVER ["+client->nickname+"] "+msg);
+                    sendPersPacketForMany(getAllClientsIps(), handler, getAllClientsAcks());
+                } break; 
+                /*
+                    SV_CLIENT_INPUT
+                */
+                case Game::PacketType::SV_CLIENT_INPUT: {
+                    if(!client || !isLast){
+                        break;
+                    }
+                    auto ent = getEntity(client->entityId);
+                    if(ent != NULL){
+                        UInt16 compat;
+                        float mx, my;
+                        handler.read(&compat, sizeof(compat));
+                        handler.read(&mx, sizeof(mx));
+                        handler.read(&my, sizeof(my));
+                        ent->input.loadCompat(compat);
+                        if(ent->input.mpos.x != mx || ent->input.mpos.y != my){
+                            ent->input.mpos.set(mx, my);
+                            ent->refreshState();
+                        }
+                    }
+                } break;       
+                /*
+                    SV_RCON
+                */
+                case Game::PacketType::SV_RCON: {
+                    if(!client || !isLast){
+                        break;
+                    }
+                    sendAck(client->ip, handler.getAck());
+                    String pwd;
+                    handler.read(pwd);
+                    static const String hash = nite::hashString("pwd");
+                    if(pwd == hash){ // TODO: temporary
+                        client->role = Game::SvClientRole::Admin;
+                        nite::print("rcond client id "+nite::toStr(client->clientId)+" as admin");
+                        sendRemoteCmdMsg(client->clientId, "you're now rcond as admin", nite::Color(0.16f, 0.85f, 0.12f, 1.0f));
+                    }else{
+                        client->role = Game::SvClientRole::Admin;
+                        nite::print("client id "+nite::toStr(client->clientId)+" failed to rcon");
+                        sendRemoteCmdMsg(client->clientId, "wrong password", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
+                    }
+                } break;               
+                /*
+                    SV_REMOTE_CMD_EXEC
+                */
+                case Game::PacketType::SV_REMOTE_CMD_EXEC: {
+                    if(!client || !isLast){
+                        break;
+                    }
+                    sendAck(client->ip, handler.getAck());
+                    String cmd;
+                    handler.read(cmd);
+                    auto result = nite::Console::interpret(cmd, false, true, client->role == Game::SvClientRole::Admin);
+                    sendRemoteCmdMsg(client->clientId, result.msg, result.color);
+                } break;  
+                /*
+                    SV_CLIENT_LOAD_READY
+                */             
+                case Game::PacketType::SV_CLIENT_LOAD_READY: {
+                    if(!client || !isLast){
+                        break;
+                    }
+                    sendAck(client->ip, handler.getAck());
+                    client->ready = true;
+                } break;             
+                /*
+                    SV_ENTITY_USE_SKILL_ITEM
+                */             
+                case Game::PacketType::SV_ENTITY_USE_SKILL_ITEM: {
+                    if(!client || !isLast){
+                        break;
+                    }
+                    sendAck(client->ip, handler.getAck());
+                    UInt16 userId, targetId;                
+                    UInt8 type;
+                    UInt32 id;
+                    float x, y;
+                    handler.read(&userId, sizeof(userId));
+                    handler.read(&type, sizeof(type));
+                    handler.read(&id, sizeof(id));
+                    handler.read(&targetId, sizeof(targetId));
+                    handler.read(&x, sizeof(x));
+                    handler.read(&y, sizeof(y));
+                    auto user = this->getEntity(userId);
+                    if(user == NULL){
+                        nite::print("[server] failed to invokeUse for entity id '"+nite::toStr(userId)+"': doesn't exist");
+                        break;
+                    }
+                    switch(type){
+                        case ActionableType::Skill:
+                        case ActionableType::Item: {
+                            user->invokeUse(targetId, type, id, x, y);
+                        } break;
+                        default: {
+                            nite::print("[server] entity id '"+nite::toStr(userId)+"' invoked usage of undefined type '"+nite::toStr(type)+"'");
+                        } break;
+                    }
+                } break; 
+                /*
+                    SV_UPDATE_STATE_OBJECT
+                */            
+                case Game::PacketType::SV_STATE_DELTA: {
+                    nite::print("[server] SV_UPDATE_STATE_OBJECT: discarded handling");
+                    break;
+                    // if(!client || !isLast){
+                    //     break;
+                    // }
+                    // UInt16 amnt;
+                    // handler.read(&amnt, sizeof(UInt16));
+                    // for(int i = 0; i < amnt; ++i){
+                    //     UInt16 id;
+                    //     float x, y, xspeed, yspeed;
+                    //     handler.read(&id, sizeof(UInt16));
+                    //     handler.read(&x, sizeof(float));
+                    //     handler.read(&y, sizeof(float));
+                    //     handler.read(&xspeed, sizeof(float));
+                    //     handler.read(&yspeed, sizeof(float));                    
+                    //     auto obj = world.get(id);
+                    //     if(obj != NULL && obj->id == client->entityId){
+                    //         obj->position.set(x, y);
+                    //         obj->speed.set(xspeed, yspeed);
+                    //     }
+                    // }
+                } break;              
+                /* 
+                    UNKNOWN
+                */
+                default: {
+                    if(!client){
+                        break;
+                    } 
+                    nite::print("[server] unknown packet type '"+nite::toStr(handler.getHeader())+"'");
+                } break;  
+            }
+        };
+
+        for(int i = 0; i < rcvPackets.size(); ++i){
+            processPacket(rcvPackets[i], false);
+        }
+        rcvPackets.clear();
+
+        // update entities specifies
         for(auto &obj : world.objects){
             if(obj.second->objType != ObjectType::Entity){
                 continue;
             }
             auto ent = static_cast<Game::EntityBase*>(obj.second.get());
-            auto &in = ent->input;
-            bool isSpace = in.isKeyPress(Game::Key::SPACE);
-            if(in.isKeyPress(Game::Key::UP) && in.isKeyPress(Game::Key::RIGHT)){
-                ent->entityMove(nite::Vec2(1.0f, -1.0f), isSpace);
-            }else
-            if(in.isKeyPress(Game::Key::DOWN) && in.isKeyPress(Game::Key::RIGHT)){
-                ent->entityMove(nite::Vec2(1.0f, 1.0f), isSpace);
-            }else
-            if(in.isKeyPress(Game::Key::UP) && in.isKeyPress(Game::Key::LEFT)){
-                ent->entityMove(nite::Vec2(-1.0f, -1.0f), isSpace);
-            }else		
-            if(in.isKeyPress(Game::Key::DOWN) && in.isKeyPress(Game::Key::LEFT)){
-                ent->entityMove(nite::Vec2(-1.0f, 1.0f), isSpace);
-            }else				
-            if(in.isKeyPress(Game::Key::UP)){
-                ent->entityMove(nite::Vec2(0.0f, -1.0f), isSpace);
-            }else
-            if(in.isKeyPress(Game::Key::RIGHT)){
-                ent->entityMove(nite::Vec2(1.0f, 0.0f), isSpace);
-            }else
-            if(in.isKeyPress(Game::Key::DOWN)){
-                ent->entityMove(nite::Vec2(0.0f, 1.0f), isSpace);
-            }else
-            if(in.isKeyPress(Game::Key::LEFT)){
-                ent->entityMove(nite::Vec2(-1.0f, 0.0f), isSpace);
-            }
             ent->effectStat.update();
             ent->entityStep();            
         }
@@ -996,101 +987,77 @@ void Game::Server::game(){
         world.step();
 
         // update traps
-        auto changed = traps.update();
-        if(changed.size() > 0){
-            UInt16 n = changed.size();
-            nite::Packet updTrps;
-            updTrps.setHeader(PacketType::SV_UPDATE_MANY_TRAPS_STATE);
-            updTrps.write(&n, sizeof(n));
-            for(int i = 0; i < n; ++i){
-                UInt16 id = changed[i];
-                updTrps.write(&id, sizeof(id));
-                UInt8 st = traps.traps[changed[i]]->state;
-                updTrps.write(&st, sizeof(st));
-            }
-            this->sendAll(updTrps);
-        }  
+        // auto changed = traps.update();
+        // if(changed.size() > 0){
+        //     UInt16 n = changed.size();
+        //     nite::Packet updTrps;
+        //     updTrps.setHeader(PacketType::SV_UPDATE_MANY_TRAPS_STATE);
+        //     updTrps.write(&n, sizeof(n));
+        //     for(int i = 0; i < n; ++i){
+        //         UInt16 id = changed[i];
+        //         updTrps.write(&id, sizeof(id));
+        //         UInt8 st = traps.traps[changed[i]]->state;
+        //         updTrps.write(&st, sizeof(st));
+        //     }
+        //     this->sendAll(updTrps);
+        // }  
 
-        // send deltas
-        UInt8 total = this->world.objects.size() + this->stateDeltas.size();
-        for(auto &cl : clients){
-            nite::Packet delta;
-            delta.setHeader(Game::PacketType::SV_STATE_DELTA);
-            delta.setOrder(++cl.second.lastSentOrder);
-            delta.write(&total, sizeof(total));
-            for(int i = 0; i < this->stateDeltas.size(); ++i){
-                auto &cmd = this->stateDeltas[i];
-                delta.write(&cmd.type, sizeof(cmd.type));
-                switch(cmd.type){
-                    case StateDeltaType::CREATE_OBJECT: {
-                        delta.write(&cmd.objId, sizeof(cmd.objId));
-                        delta.write(&cmd.sigId, sizeof(cmd.sigId));
-                        delta.write(&cmd.position.x, sizeof(cmd.position.x));
-                        delta.write(&cmd.position.y, sizeof(cmd.position.y));
-                        delta.write(&cmd.psize, sizeof(cmd.psize));
-                        delta.write(cmd.payload, cmd.psize);
-                    } break;    
-                    case StateDeltaType::DESTROY_OBJECT: {
-                        delta.write(&cmd.objId, sizeof(cmd.objId));
-                    } break;                           
-                    case StateDeltaType::SET_ENTITY_OWNER: {
-                        delta.write(&cmd.objId, sizeof(cmd.objId));                        
-                        delta.write(&cmd.clientId, sizeof(cmd.clientId));     
-                    } break;
-                    case StateDeltaType::SET_ENTITY_ACTIONABLES: {
-                        UInt8 n = cmd.skills.size();
-                        delta.write(&cmd.objId, sizeof(cmd.objId));        
-                        delta.write(&n, sizeof(n));
-                        for(int i = 0; i < n; ++i){
-                            delta.write(&cmd.skills[i].id, sizeof(cmd.skills[i].id));
-                            delta.write(&cmd.skills[i].type, sizeof(cmd.skills[i].type));
-                            delta.write(&cmd.skills[i].slot, sizeof(cmd.skills[i].slot));
-                        }
-                    } break;                      
-                    case StateDeltaType::SET_ENTITY_SKILL_LIST: {
-                        UInt8 n = cmd.skills.size();
-                        delta.write(&cmd.objId, sizeof(cmd.objId));        
-                        delta.write(&n, sizeof(n));
-                        for(int i = 0; i < n; ++i){
-                            delta.write(&cmd.skills[i].id, sizeof(cmd.skills[i].id));
-                            delta.write(&cmd.skills[i].lv, sizeof(cmd.skills[i].lv));
-                        }
-                    } break;                
-                }
-            }
-            for(auto &it : this->world.objects){
-                auto obj = it.second.get();
-                UInt8 dtype = Game::StateDeltaType::UPDATE_OBJECT;
-                delta.write(&dtype, sizeof(dtype));
-                delta.write(&obj->id, sizeof(obj->id));
-                delta.write(&obj->deltaUpdates, sizeof(obj->deltaUpdates));
-                for(int i = 0; i < DeltaUpdateType::Total; ++i){
-                    // ANIMATION
-                    if(hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, obj->deltaUpdates) && (obj->objType == ObjectType::Entity)){
-                        auto ent = static_cast<Game::EntityBase*>(obj);
-                        delta.write(&ent->faceDirection, sizeof(ent->faceDirection));
-                        delta.write(&ent->pointingAt.x, sizeof(ent->pointingAt.x));
-                        delta.write(&ent->pointingAt.y, sizeof(ent->pointingAt.y));
-                        for(int i = 0; i < EntityStateSlot::total; ++i){
-                            delta.write(&ent->state[i], sizeof(UInt8));
-                            delta.write(&ent->stNum[i], sizeof(UInt8));
-                            delta.write(&ent->lastExpectedTime[i], sizeof(ent->lastExpectedTime[i]));
-                        }                    
-                    }
-                    // PHYSICS
-                    if(hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, obj->deltaUpdates)){
-                        delta.write(&obj->direction, sizeof(obj->direction));
-                        delta.write(&obj->speed, sizeof(obj->speed));                    
-                        delta.write(&obj->position.x, sizeof(obj->position.x));
-                        delta.write(&obj->position.y, sizeof(obj->position.y));                                    
-                    }                
-                }
-                obj->clearDeltaUpdates();
-            }
-            bytes += sock.send(cl.second.cl, delta);
+        // queue up persistent deliveries
+        updateDeliveries();
+
+        if(packetQueue.size() < 1){
+            return;
         }
-        // sendAll(delta);
-        stateDeltas.clear();    
+
+        // deliver messages
+        for(auto &it : clients){
+            // packets will be joined together into bigger packets 
+            auto &client = it.second;
+            Vector<Vector<int>> indexes;
+            Vector<Vector<UInt16>> sizes;
+            static const size_t indexSize = sizeof(UInt16);
+            size_t size;
+            auto reset = [&](){
+                indexes.push_back(Vector<int>());
+                sizes.push_back(Vector<UInt16>());
+                size = nite::NetworkMaxHeaderSize;
+            };
+            reset();
+            // 1. calculate how many bigger packets are needed
+            for(int i = 0; i < packetQueue.size(); ++i){
+                auto &packet = packetQueue[i];
+                // reset
+                if(size + packet.maxSize > nite::NetworkMaxPacketSize){
+                    reset();                
+                }
+                size += packet.maxSize + sizeof(indexSize);
+                indexes[indexes.size()-1].push_back(i);
+                sizes[sizes.size()-1].push_back(packet.maxSize);
+            }
+            // 2. pack it up and send
+            for(int i = 0; i < indexes.size(); ++i){
+                nite::Packet handle(SV_MULTI_PART_PACKET);
+                auto &index = indexes[i];
+                auto &size = sizes[i];
+                // write sizes
+                UInt8 n = size.size();
+                handle.write(&n, sizeof(n));
+                for(int j = 0; j < size.size(); ++j){
+                    handle.write(&size[j], sizeof(size[j]));
+                }
+                // write packets
+                for(int j = 0; j < index.size(); ++j){
+                    auto &packet = packetQueue[index[j]];
+                    handle.write(packet.data, packet.maxSize);
+                }
+                handle.setOrder(++client.lastSentOrder);
+                sock.send(client.ip, handle);
+            }
+        }
+
+        
+        packetQueue.clear();
+         
     };
 
     // run delta
@@ -1113,40 +1080,75 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
     simProps.setHeader(Game::PacketType::SV_UPDATE_WORLD_SIMULATION_PROPS);
     simProps.write(&world.timescale, sizeof(world.timescale));
     simProps.write(&world.tickrate, sizeof(world.tickrate));
-    persSendAll(simProps, 750, -1);
-    // auto me = this;
+    sendPersPacketForMany(getAllClientsIps(), simProps, getAllClientsAcks());
 
-    float startx = map->startCell.x;
-    float starty = map->startCell.y;   
+    auto me = this;
+    // and now some chained-deliveries craziness... (apologies in advance)
 
-    for(auto &client : clients){
-        auto &cl = client.second;
-        // create object
-        auto ent = createPlayer(cl.clientId, 1, startx, starty);
-        // entity owner
-        auto enowner = Game::StateDelta(Game::StateDeltaType::SET_ENTITY_OWNER);
-        enowner.clientId = cl.clientId;
-        enowner.objId = ent->id;
-        issueStateDeltaUpdate(enowner);
-        // skill list
-        sendSkillList(cl.clientId, cl.entityId);
-        // actionables
-        auto actionables = Game::StateDelta(Game::StateDeltaType::SET_ENTITY_OWNER);
-        actionables.objId = ent->id;        
-        auto addSkill = [&](UInt16 skilId, UInt8 slot){
-            auto sk = Game::SkillChangeDelta();
-            sk.id = skilId;
-            sk.type = Game::ActionableType::Skill;
-            sk.slot = slot;
-            actionables.skills.push_back(sk);
-        };
-        addSkill(Game::SkillList::BA_ATTACK, 5);
-        addSkill(Game::SkillList::BA_PARRY, 6);
-        addSkill(Game::SkillList::BA_BASH, 0);
-        addSkill(Game::SkillList::BA_DASH, 1);
-        addSkill(Game::SkillList::BA_FIRST_AID, 2);
-        issueStateDeltaUpdate(actionables);
-    }
+    // [0] bind on the initialHeader before we start creating players and asigning
+    me->bindOnAckForHeader(initialHeader, [me](nite::SmallPacket &pck, nite::IP_Port &ip){
+        auto cl = me->getClientByIp(ip);
+        if(cl == NULL){
+            nite::print("[server] failed to notify clients their respective entity. ip was not found in the list");
+            return;
+        }
+
+        float startx = me->map->startCell.x + nite::randomInt(-50, 50);
+        float starty = me->map->startCell.y + nite::randomInt(-50, 50);    
+
+        me->createPlayer(cl->clientId, 1, startx, starty);
+        // [1] notify clients of their respective owners
+        me->bindOnAckForHeader(Game::PacketType::SV_CREATE_OBJECT, [me](nite::SmallPacket &pck, nite::IP_Port &ip){   
+            auto cl = me->getClientByIp(ip);
+            if(cl == NULL){
+                nite::print("[server] failed to notify clients their respective entity. ip was not found in the list");
+                return;
+            }
+            nite::Packet noti(Game::PacketType::SV_NOTI_ENTITY_OWNER);
+            noti.write(&cl->entityId, sizeof(UInt16));
+            me->sendPersPacketFor(cl->ip, noti, ++cl->svAck);
+            // [2] send respective clients their default skill list
+            me->bindOnAckForHeader(Game::PacketType::SV_NOTI_ENTITY_OWNER, [me](nite::SmallPacket &pck, nite::IP_Port &ip){   
+                auto cl = me->getClientByIp(ip);
+                if(cl == NULL){
+                    nite::print("[server] failed to send skill list. ip was not found in the list");
+                    return;
+                }
+                me->sendSkillList(cl->clientId, cl->entityId);
+                // [3] send respective clients their default keybinds
+                me->bindOnAckFor(Game::PacketType::SV_SET_ENTITY_SKILLS, [me](nite::SmallPacket &pck, nite::IP_Port &ip){  
+                    auto cl = me->getClientByIp(ip);
+                    if(cl == NULL){
+                        nite::print("[server] failed to send default keybinds: ip was not found in the list");
+                        return;
+                    }
+                    auto itent = me->world.objects.find(cl->entityId);
+                    if(itent == me->world.objects.end()){
+                        nite::print("[server] failed to send default keybinds: ent id "+nite::toStr(cl->entityId)+" doesn't exist");
+                        return;
+                    }
+                    auto ent = static_cast<Game::EntityBase*>(itent->second.get()); // we're gonna assume this is indeed an entity
+                    auto &sklst = ent->skillStat.skills;
+                    UInt8 skamnt = 5;
+                    nite::Packet packet(Game::PacketType::SV_SET_ENTITY_ACTIONABLES);
+                    packet.write(&ent->id, sizeof(UInt16));
+                    packet.write(&skamnt, sizeof(UInt8));
+                    auto writeSkill = [&](UInt32 skilId, UInt8 slot){
+                        static const UInt8 sktype = Game::ActionableType::Skill;
+                        packet.write(&slot, sizeof(slot));
+                        packet.write(&sktype, sizeof(UInt8));
+                        packet.write(&skilId, sizeof(UInt32));
+                    };
+                    writeSkill(Game::SkillList::BA_ATTACK, 5);
+                    writeSkill(Game::SkillList::BA_PARRY, 6);
+                    writeSkill(Game::SkillList::BA_BASH, 0);
+                    writeSkill(Game::SkillList::BA_DASH, 1);
+                    writeSkill(Game::SkillList::BA_FIRST_AID, 2);
+                    me->sendPersPacketFor(cl->ip, packet, ++cl->svAck);
+                });                    
+            });             
+        });             
+    }); 
 
     // float startx = me->map->startCell.x + nite::randomInt(-50, 50);
     // float starty = me->map->startCell.y + nite::randomInt(-50, 50);   
@@ -1167,17 +1169,16 @@ void Game::Server::restart(){
     players.clear();
     // clean up world
     setCurrentMap(this->maps[0]);
-    nite::Packet restart;
-    restart.setHeader(Game::PacketType::SV_SET_GAME_RESTART);
-    persSendAll(restart, 1000, -1);    
+    nite::Packet restart(Game::PacketType::SV_SET_GAME_RESTART);
+    // persSendAll(restart, 1000, -1);    
+    sendPersPacketForMany(getAllClientsIps(), restart, getAllClientsAcks());
     createPlayersOnStart(Game::PacketType::SV_SET_GAME_RESTART); 
 }
 
 void Game::Server::start(){
     setState(Game::ServerState::InGame);
-    nite::Packet start;
-    start.setHeader(Game::PacketType::SV_SET_GAME_START);
-    persSendAll(start, 1000, -1);  
+    nite::Packet start(Game::PacketType::SV_SET_GAME_START);
+    sendPersPacketForMany(getAllClientsIps(), start, getAllClientsAcks()); 
     createPlayersOnStart(Game::PacketType::SV_SET_GAME_START);
 }
 
@@ -1330,10 +1331,7 @@ void Game::Server::notifyAddItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UInt1
         nite::print("notifyAddItem: failed to find item by slotId '"+nite::toStr(slotId)+"'");
         return;
     }
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_ADD_ITEM);
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
+    nite::Packet packet(Game::PacketType::SV_ADD_ITEM);
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&itemId, sizeof(itemId));
     packet.write(&slotId, sizeof(slotId));
@@ -1341,8 +1339,8 @@ void Game::Server::notifyAddItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UInt1
     packet.write(&item->upgradelv, sizeof(item->upgradelv));
     for(int i = 0; i < GAME_ITEM_MAX_COMPOUND_SLOTS; ++i){
         packet.write(&item->compound[i], sizeof(item->compound[i]));
-    }
-    persSend(cl->cl, packet, 750, -1);    
+    } 
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck);
 }
 
 void Game::Server::notifyRemoveItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UInt16 qty){
@@ -1350,15 +1348,12 @@ void Game::Server::notifyRemoveItem(UInt64 uid, UInt16 itemId, UInt16 slotId, UI
     if(cl == NULL){
         return;
     }
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_REMOVE_ITEM);
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
+    nite::Packet packet(Game::PacketType::SV_REMOVE_ITEM);
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&itemId, sizeof(itemId));
     packet.write(&slotId, sizeof(slotId));
     packet.write(&qty, sizeof(qty));
-    persSend(cl->cl, packet, 750, -1);  
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck);
 }
 
 void Game::Server::notifyAddSkill(UInt64 uid, UInt16 skillId, UInt8 lv){
@@ -1366,25 +1361,19 @@ void Game::Server::notifyAddSkill(UInt64 uid, UInt16 skillId, UInt8 lv){
     if(cl == NULL){
         return;
     }
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_ADD_ENTITY_SKILL);
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
+    nite::Packet packet(Game::PacketType::SV_ADD_ENTITY_SKILL);      
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&skillId, sizeof(skillId));
     packet.write(&lv, sizeof(lv));
-    persSend(cl->cl, packet, 750, -1);
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck);
 }
 
 void Game::Server::notifyRemoveSkill(UInt64 uid, UInt16 skillId){
     auto cl = getClient(uid);
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_REMOVE_ENTITY_SKILL);
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
+    nite::Packet packet(Game::PacketType::SV_REMOVE_ENTITY_SKILL);
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&skillId, sizeof(skillId));
-    persSend(cl->cl, packet, 750, -1);
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck);
 }
 
 void Game::Server::notifyUpdateEquipSlots(UInt64 uid){
@@ -1396,13 +1385,10 @@ void Game::Server::notifyUpdateEquipSlots(UInt64 uid){
     if(ent == NULL){
         return;
     }    
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_SLOTS);
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
+    nite::Packet packet(Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_SLOTS);
     packet.write(&cl->entityId, sizeof(cl->entityId));    
     ent->writeInvSlotsState(packet);
-    persSend(cl->cl, packet, 1000, -1);
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck);
 }
 
 void Game::Server::notifyUpdateInvList(UInt64 uid){
@@ -1414,14 +1400,11 @@ void Game::Server::notifyUpdateInvList(UInt64 uid){
     if(ent == NULL){
         return;
     }
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_CARRY);
-    packet.write(&cl->entityId, sizeof(cl->entityId));
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
+    nite::Packet packet(Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_CARRY);
+    packet.write(&cl->entityId, sizeof(cl->entityId));   
     ent->writeInvListState(packet);
     ent->writeInvSlotsState(packet);
-    persSend(cl->cl, packet, 1000, -1);
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck);
 }
 
 void Game::Server::notifyAddEffect(UInt64 uid, UInt16 type, UInt16 insId){
@@ -1443,15 +1426,12 @@ void Game::Server::notifyAddEffect(UInt64 uid, UInt16 type, UInt16 insId){
         return;
     }
     auto ef = ent->effectStat.effects[insId];
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_ADD_EFFECT);
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
+    nite::Packet packet(Game::PacketType::SV_ADD_EFFECT);
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&type, sizeof(type));
     packet.write(&insId, sizeof(insId));
     ef->writeInitialState(packet);
-    persSend(cl->cl, packet, 750, -1);    
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck); 
 }
 
 void Game::Server::notifyRemoveEffect(UInt64 uid, UInt16 insId){
@@ -1461,13 +1441,10 @@ void Game::Server::notifyRemoveEffect(UInt64 uid, UInt16 insId){
         nite::print(msg+"it doesn't exist");
         return;
     }
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_REMOVE_EFFECT);
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
+    nite::Packet packet(Game::PacketType::SV_REMOVE_EFFECT);
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&insId, sizeof(insId));
-    persSend(cl->cl, packet, 750, -1);  
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck);
 }
 
 void Game::Server::notifyUpdateEffect(UInt64 uid, UInt16 insId){
@@ -1489,14 +1466,11 @@ void Game::Server::notifyUpdateEffect(UInt64 uid, UInt16 insId){
         return;
     }
     auto ef = ent->effectStat.effects[insId];
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_UPDATE_EFFECT);
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
+    nite::Packet packet(Game::PacketType::SV_UPDATE_EFFECT);
     packet.write(&cl->entityId, sizeof(cl->entityId));
     packet.write(&insId, sizeof(insId));
     ef->writeState(packet);
-    persSend(cl->cl, packet, 750, -1);  
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck);
 }
 
 void Game::Server::notifyGameOver(UInt64 uid){
@@ -1506,11 +1480,8 @@ void Game::Server::notifyGameOver(UInt64 uid){
         nite::print(msg+"it doesn't exist");
         return;
     }
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_SET_GAME_OVER);
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
-    persSend(cl->cl, packet, 750, -1);   
+    nite::Packet packet(Game::PacketType::SV_SET_GAME_OVER);
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck);
 }
 
 
@@ -1521,11 +1492,8 @@ void Game::Server::notifyGameRestart(UInt64 uid){
         nite::print(msg+"it doesn't exist");
         return;
     }
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_SET_GAME_RESTART);
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
-    persSend(cl->cl, packet, 750, -1);   
+    nite::Packet packet(Game::PacketType::SV_SET_GAME_RESTART);
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck);
 }
 
 void Game::Server::notifyDeath(UInt64 uid){
@@ -1542,13 +1510,10 @@ void Game::Server::notifyDeath(UInt64 uid){
         return;
     }
     auto ent = static_cast<Game::EntityBase*>(world.objects[it->first].get());
-    nite::Packet packet;
-    packet.setHeader(Game::PacketType::SV_NOTIFY_ENTITY_DEATH);
-    packet.setOrder(++cl->lastSentOrder);
-    packet.setAck(++cl->svAck);      
+    nite::Packet packet(Game::PacketType::SV_NOTIFY_ENTITY_DEATH);
     packet.write(&cl->entityId, sizeof(cl->entityId));
     ent->writeHealthStatState(packet);
-    persSend(cl->cl, packet, 750, -1);
+    sendPersPacketFor(cl->ip, packet, ++cl->svAck);
 }
 
 void Game::Server::sendPlayerList(UInt64 uid){
@@ -1558,17 +1523,14 @@ void Game::Server::sendPlayerList(UInt64 uid){
         return;
     }
     UInt16 total = clients.size();
-    nite::Packet info;
-    info.setHeader(Game::PacketType::SV_CLIENT_LIST);
-    info.setOrder(++cl->lastSentOrder);
-    info.setAck(++cl->svAck);      
+    nite::Packet info(Game::PacketType::SV_CLIENT_LIST);
     info.write(&total, sizeof(UInt16));
     for(auto cl : clients){
         info.write(&cl.second.clientId, sizeof(UInt64));
         info.write(&cl.second.ping, sizeof(UInt64));
         info.write(cl.second.nickname);
     }
-    persSend(cl->cl, info, 750, -1);
+    sendPersPacketFor(cl->ip, info, ++cl->svAck);
 }
 
 void Game::Server::sendSkillList(UInt64 uid, UInt16 entityId){
@@ -1583,31 +1545,16 @@ void Game::Server::sendSkillList(UInt64 uid, UInt16 entityId){
         return;
     }
     auto ent = static_cast<Game::EntityBase*>(itent->second.get()); // we're gonna assume this is indeed an entity
-    // auto &sklst = ent->skillStat.skills;
-    // UInt8 skamnt = sklst.size();
-    // nite::Packet pck;
-    // pck.setHeader(Game::PacketType::SV_SET_ENTITY_SKILLS);
-    // pck.write(&ent->id, sizeof(UInt16));
-    // pck.write(&skamnt, sizeof(UInt8));
-    // pck.setOrder(++cl->lastSentOrder);
-    // pck.setAck(++cl->svAck);  
-    // for(auto sk : ent->skillStat.skills){
-    //     pck.write(&sk.first, sizeof(UInt16));
-    //     pck.write(&sk.second, sizeof(UInt8));
-    // }
-    // persSend(cl->cl, pck, 750, -1);
-
-    Game::StateDelta delta(StateDeltaType::SET_ENTITY_SKILL_LIST);
-    delta.objId = entityId;
-    for(auto &skill : ent->skillStat.skills){
-        auto sk = Game::SkillChangeDelta();
-        sk.id = skill.first;
-        sk.lv = skill.second->lv;
-        delta.skills.push_back(sk);
+    auto &sklst = ent->skillStat.skills;
+    UInt8 skamnt = sklst.size();
+    nite::Packet pck(Game::PacketType::SV_SET_ENTITY_SKILLS);
+    pck.write(&ent->id, sizeof(UInt16));
+    pck.write(&skamnt, sizeof(UInt8));
+    for(auto sk : ent->skillStat.skills){
+        pck.write(&sk.first, sizeof(UInt16));
+        pck.write(&sk.second, sizeof(UInt8));
     }
-    issueStateDeltaUpdate(delta);
-
-
+    sendPersPacketFor(cl->ip, pck, ++cl->svAck);
 }
 
 Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
@@ -1646,17 +1593,13 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
     //     ++trial;
     // }
 
-    Game::StateDelta delta(StateDeltaType::CREATE_OBJECT);
-    delta.objId = obj->id;
-    delta.sigId = obj->sigId;
-    delta.position.x = obj->position.x;
-    delta.position.y = obj->position.y;
-    nite::Packet dummy;
-    size_t size;
-    obj->writeInitialState(dummy);
-    size = dummy.getSize();
-    dummy.read(delta.payload, size);
-    issueStateDeltaUpdate(delta);
+    nite::Packet crt(Game::PacketType::SV_CREATE_OBJECT);
+    crt.write(&id, sizeof(UInt16));
+    crt.write(&obj->sigId, sizeof(UInt16));
+    crt.write(&obj->position.x, sizeof(float));
+    crt.write(&obj->position.y, sizeof(float));
+    obj->writeInitialState(crt);
+    sendPersPacketForMany(getAllClientsIps(), crt, getAllClientsAcks());
     return obj;
 }
 
@@ -1666,12 +1609,12 @@ bool Game::Server::destroy(UInt16 id){
         nite::print("[server] failed to destroy object id '"+nite::toStr(id)+"': it doesn't exist");
         return false;
     }
-    Game::StateDelta delta(StateDeltaType::DESTROY_OBJECT);
-    delta.objId = obj->id;
-    issueStateDeltaUpdate(delta);
+    nite::Packet des(Game::PacketType::SV_DESTROY_OBJECT);
+    des.write(&id, sizeof(UInt32));
     obj->destroy();
     obj->sv = NULL;
     obj->container = NULL; 
+    sendPersPacketForMany(getAllClientsIps(), des, getAllClientsAcks());
     return true;
 }
 

@@ -47,32 +47,14 @@
 
 
         struct PersisentDelivey {
-            UInt64 retryInterval;
-            int retries;
-            int retry;
             nite::Packet packet;
-            // UInt32 order;
             UInt32 ack;
-            UInt64 netId;
-            nite::IP_Port cl;
+            UInt16 header;
+            nite::IP_Port ip;
             UInt64 lastRetry;
-            UInt64 created;
-            bool stale;
-            void markStale(){
-                if(stale){
-                    return;
-                }
-                stale = true;
-                lastStaleTick = nite::getTicks();
-            }
-            UInt64 lastStaleTick;
-            // call back mechanic for messages that depend on the delivery of others. chained-deliveries in other words
             std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> onAck;
             nite::SmallPacket onAckPayload;
             PersisentDelivey(){
-                stale = false;
-                lastStaleTick = nite::getTicks();
-                created = nite::getTicks();
                 this->onAck = [](nite::SmallPacket &payload, nite::IP_Port &cl){
 
                 };
@@ -91,57 +73,19 @@
             }
         };
 
-        namespace StateDeltaType {
-            enum StateDeltaType : UInt8{
-                UPDATE_OBJECT = 0,
-                CREATE_OBJECT,
-                DESTROY_OBJECT,
-                SET_ENTITY_OWNER,
-                SET_ENTITY_SKILL_LIST,
-                SET_ENTITY_ACTIONABLES
-            };            
-        }
-
-        struct SkillChangeDelta {
-            UInt16 id;
-            UInt8 lv;
-            UInt8 slot;
-            UInt8 type;
-        };
-
-        struct StateDelta {            
-            UInt8 type;
-            UInt16 objId;
-            UInt16 sigId;
-            UInt8 updateType;
-            UInt64 clientId;
-            // PHYSICS
-            float direction;
-            float speed;
-            nite::Vec2 position;
-            // ANIM
-            UInt8 faceDirection;
-            nite::Vec2 pointingAt;
-            UInt8 state[AnimPart::total];
-            UInt8 num[AnimPart::total];
-            UInt16 exptime[AnimPart::total];
-            // usually initial read state stuff
-            char payload[nite::NetworkMaxReliablePacketSize];
-            UInt8 psize;
-            Vector<Game::SkillChangeDelta> skills;
-            StateDelta(){
-                type = 100;
-            }
-            StateDelta(UInt8 type){
-                this->type = type;
-            }
-        };
-
         struct Net {
             UInt32 delta;
             UInt64 deltaUpdate;            
-            Vector<Game::StateDelta> stateDeltas;
-            void issueStateDeltaUpdate(const StateDelta &cmd);
+
+            Vector<nite::Packet> packetQueue;
+            Vector<nite::Packet> rcvPackets;
+
+            void sendPacketFor(const nite::IP_Port &ip, nite::Packet &packet);
+            void sendPacketForMany(const Vector<nite::IP_Port> &ips, nite::Packet &packet);
+
+            void sendPersPacketFor(const nite::IP_Port &ip, nite::Packet &packet, UInt32 ack);
+            void sendPersPacketForMany(const Vector<nite::IP_Port> &ips, nite::Packet &packet, const Vector<UInt32> acks);
+
             bool isServer;
             Game::RemoteClock clock;
             Vector<Shared<Game::PersisentDelivey>> deliveries;
@@ -157,16 +101,19 @@
             nite::FileTransfer::UDPClient ft;
             void setCurrentMap(Shared<nite::Map> &map);
             Net();
-            void setState(unsigned state);
-            Shared<Game::PersisentDelivey> persSend(nite::IP_Port &client, nite::Packet &packet);
-            Shared<Game::PersisentDelivey> persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries);
             void updateDeliveries();
-            void dropPersFor(UInt64 netId);
-            void dropPersForHeader(UInt64 netId, UInt16 header);
+
+            void setState(unsigned state);
+            void dropPersFor(const nite::IP_Port &ip);
+            void dropPersForHeader(const nite::IP_Port &ip, UInt16 header);
             void ack(nite::Packet &packet);
-            void sendAck(nite::IP_Port &client, UInt32 ackId, UInt32 order);
-            void bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda, nite::SmallPacket packet);
-            void bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda);
+            void sendAck(nite::IP_Port &client, UInt32 ackId);
+            void bindOnAckFor(UInt32 ack, std::function<void(nite::SmallPacket &payload, nite::IP_Port &ip)> lambda, nite::SmallPacket packet);
+            void bindOnAckFor(UInt32 ack, std::function<void(nite::SmallPacket &payload, nite::IP_Port &ip)> lambda);
+
+            void bindOnAckForHeader(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &ip)> lambda, nite::SmallPacket packet);
+            void bindOnAckForHeader(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &ip)> lambda);
+
             virtual void step();
         };
 
@@ -178,7 +125,17 @@
             Every other packet flows using lastOrder.
         */
         enum PacketType : UInt16 {
-            SV_ACK = 0,
+            SV_MULTI_PART_PACKET = 0,
+            /*
+                UINT8 N
+                { 
+                    UINT16 * N
+                }
+                {
+                    PACKETS
+                }
+            */
+            SV_ACK,
             /*
                 UINT32 ORDER
             */

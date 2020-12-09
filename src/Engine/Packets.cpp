@@ -1,9 +1,71 @@
 #include <stdlib.h>
 #include <string.h>
-#include "Network.hpp"
-#include "Types.hpp"
+
+#ifdef _WIN32
+	#include <winsock2.h>
+	#include <WS2tcpip.h>
+#else
+#include <stdio.h>
+#include <errno.h>
+	#include <errno.h> 
+	#include <netdb.h>
+	#include <arpa/inet.h>
+	#include <sys/socket.h>
+	#include <sys/types.h> 
+	#include <netinet/in.h>
+	#include <fcntl.h>
+#endif
+
 #include "Tools/Tools.hpp"
+#include "Network.hpp"
 #include "Packets.hpp"
+#include "Types.hpp"
+#define String std::string
+#define UInt16 	uint16_t
+#define UInt32 	uint32_t
+
+nite::IP_Port::IP_Port(const String &ip, UInt16 port){
+	set(ip, port);
+}
+
+nite::IP_Port::IP_Port(){
+	set("127.0.0.1", NetworkDefaultPort);
+}
+
+nite::IP_Port::IP_Port(const nite::IP_Port &ip, UInt16 nport){
+	set(ip.ip, nport);
+}
+
+bool nite::IP_Port::operator== (const IP_Port &other){
+	return isSame(other);
+}
+
+bool nite::IP_Port::isSame(const IP_Port &other){
+	return this->address == other.address && this->port == other.port;
+}
+
+void nite::IP_Port::set(const String &ip, UInt16 port){
+	this->port = port;
+	this->ip = ip;
+	this->address = inet_addr(ip.c_str());
+}
+
+bool nite::IP_Port::isBlack(){
+	return address == 0 && port == 0;
+}
+
+void nite::IP_Port::clear(){
+	address = 0;
+	port = 0;
+}
+
+const String nite::IP_Port::str(){
+	return (String)*this;
+}
+
+nite::IP_Port::operator std::string() const {
+	return ip +":"+ toStr(port);
+}
 
 nite::Packet::Packet(UInt16 Header){
 	clear();
@@ -31,13 +93,12 @@ nite::Packet& nite::Packet::operator= (const nite::Packet &other){
 
 void nite::Packet::clear(){
 	memset(data, '0', nite::NetworkMaxPacketSize);
-	index = nite::NetworkHeaderSize + nite::NetworkOrderSize + nite::NetworkAckSize; // starts from the send byte mark
+	index = nite::NetworkHeaderSize + nite::NetworkOrderSize + NetworkAckSize; // starts from the send byte mark
 	maxSize = index;
-	setOrder(0);
 }
 
 size_t nite::Packet::getSize(){
-	return maxSize - (nite::NetworkHeaderSize + nite::NetworkOrderSize + nite::NetworkAckSize);
+	return maxSize - (nite::NetworkHeaderSize + nite::NetworkOrderSize + NetworkAckSize);
 }
 
 void nite::Packet::setHeader(UInt16 header){
@@ -70,8 +131,9 @@ void nite::Packet::setAck(UInt32 ack){
 	memcpy(data + nite::NetworkHeaderSize + nite::NetworkOrderSize, &ack, nite::NetworkAckSize);
 }
 
+
 void nite::Packet::reset(){
-	index = nite::NetworkHeaderSize + nite::NetworkOrderSize + nite::NetworkAckSize; 
+	index = nite::NetworkHeaderSize + nite::NetworkOrderSize + NetworkAckSize; 
 }
 
 void nite::Packet::setIndex(size_t index){

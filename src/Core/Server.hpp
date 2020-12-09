@@ -29,7 +29,7 @@
         };        
 
         struct SvClient {
-            nite::IP_Port cl;
+            nite::IP_Port ip;
             String nickname;
             UInt64 clientId;
             UInt16 entityId;
@@ -43,6 +43,18 @@
             UInt64 lastPacketTimeout;
             UInt64 lastState;
             bool ready;
+            SvClient(const String &nick, UInt64 clientId, const nite::IP_Port &ip){
+                role = Game::SvClientRole::Player;
+                lastRecvOrder = 0;
+                lastSentOrder = 1;
+                svAck = 0;
+                entityId = 0;
+                ready = false;
+                lastPacketTimeout = nite::getTicks();
+                this->ip = ip;
+                this->clientId = clientId;
+                this->nickname = nick;                
+            }            
             SvClient(){
                 role = Game::SvClientRole::Player;
                 lastRecvOrder = 0;
@@ -60,6 +72,7 @@
         };
 
         struct Server : Game::Net {
+            UInt64 lastClientId;
             String name;
             Dict<String, Game::SvTilesetSource> tilesets;
             Dict<UInt64, Game::SvClient> clients;
@@ -70,16 +83,14 @@
             Server();
             ~Server();
             void setState(unsigned state);
-            void removeClient(UInt64 uid);
-            void dropClient(UInt64 uid);
-            void dropClient(UInt64 uid, String reason);
+            void removeClient(const nite::IP_Port &ip);
+            void dropClient(const nite::IP_Port &ip);
+            void dropClient(const nite::IP_Port &ip, String reason);
             Game::SvClient *getClient(const String &nickname);
             Game::SvClient *getClient(UInt64 uid);
-            Game::SvClient *getClientByIp(nite::IP_Port &ip);
+            Game::SvClient *getClientByIp(const nite::IP_Port &ip);
             Game::SvClient *getClientByEntityId(UInt16 entityId);
             Game::EntityBase *getEntity(UInt16 id);
-            void persSendAll(nite::Packet &packet, UInt64 timeout, int retries);
-            void sendAll(nite::Packet &packet);
             void broadcast(const String &message);
             void sendRemoteCmdMsg(UInt64 uid, const String &msg, const nite::Color &color);
             void preinit();
@@ -90,6 +101,10 @@
             void restart();
             void clear();
             void game();
+
+
+            Vector<nite::IP_Port> getAllClientsIps();
+            Vector<UInt32> getAllClientsAcks();
 
 
             /*

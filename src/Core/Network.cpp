@@ -6,72 +6,14 @@ Game::Net::Net(){
     lastInitTfId = 0;
     setState(Game::NetState::Disconnected);
     clock.set(nite::getTicks());
-    stateDeltas.reserve(1000);
+    packetQueue.reserve(1000);
+    rcvPackets.reserve(1000);
     deltaUpdate = nite::getTicks();
 }
 
 void Game::Net::setState(unsigned state){
     this->lastState = nite::getTicks();
     this->state = state;
-}
-
-Shared<Game::PersisentDelivey> Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet){
-    return persSend(client, packet, 250, 3);
-}
-
-Shared<Game::PersisentDelivey> Game::Net::persSend(nite::IP_Port &client, nite::Packet &packet, UInt64 retryInterval, int retries){
-    if(!init){
-        nite::print("persend when net is not init");
-    }    
-    UInt64 netId = client.address + client.port + sock.sock;
-    dropPersForHeader(netId, packet.getHeader()); // remove older versions of this packet
-    auto pd = Shared<Game::PersisentDelivey>(new Game::PersisentDelivey());
-    pd->retryInterval = retryInterval;
-    pd->retries = retries;
-    pd->retry = 0; 
-    pd->netId = netId;
-    pd->packet = packet;
-    pd->cl = client;
-    // pd->order = 
-    pd->ack = packet.getAck();
-    pd->lastRetry = nite::getTicks();
-    pd->created = nite::getTicks();
-    sock.send(client, packet);
-    deliveries.push_back(pd);
-    return pd;
-}
-
-void Game::Net::updateDeliveries(){
-    clock.update();
-    if(!init){
-        return;
-    }    
-    // send deliveries
-    for(int i = 0; i < deliveries.size(); ++i){
-        auto del = deliveries[i].get();
-        if(!del->stale && nite::getTicks()-del->lastRetry > del->retryInterval){
-            ++del->retry;
-            del->lastRetry = nite::getTicks();
-            sock.send(del->cl, del->packet);
-        }
-    }
-    // mark expired ones as stale
-    for(int i = 0; i < deliveries.size(); ++i){
-        auto del = deliveries[i].get();
-        // only drops packages with positive retries
-        // also, if a client doesn't respond a packet after 30 seconds of retries the packet is dropped
-        if(!del->stale && del->retries != -1 && del->retry >= del->retries || (nite::getTicks()-del->created  > 60 * 1000)){ 
-            del->markStale();
-        }
-    }   
-    // drop stale ones
-    for(int i = 0; i < deliveries.size(); ++i){
-        auto del = deliveries[i].get();
-        if(del->stale && nite::getTicks()-del->lastStaleTick > 10 * 1000){ 
-            deliveries.erase(deliveries.begin() + i);
-            --i;
-        }
-    }        
 }
 
 void Game::RemoteClock::update(){
@@ -85,20 +27,22 @@ void Game::RemoteClock::set(UInt64 time){
     this->lastTick = nite::getTicks();
 }
 
-void Game::Net::dropPersFor(UInt64 netId){
+void Game::Net::dropPersFor(const nite::IP_Port &ip){
     for(int i = 0; i < deliveries.size(); ++i){
         auto del = deliveries[i].get();
-        if(!del->stale && del->netId == netId){
-            del->markStale();
+        if(del->ip.isSame(ip)){
+            deliveries.erase(deliveries.begin() + i);
+            --i;
         }
     }
 }
 
-void Game::Net::dropPersForHeader(UInt64 netId, UInt16 header){
+void Game::Net::dropPersForHeader(const nite::IP_Port &ip, UInt16 header){
     for(int i = 0; i < deliveries.size(); ++i){
         auto del = deliveries[i].get();
-        if(!del->stale && del->netId == netId && del->packet.getHeader() == header){
-            del->markStale();
+        if(del->ip.isSame(ip) && del->packet.getHeader() == header){
+            deliveries.erase(deliveries.begin() + i);
+            --i;
         }
     }
 }
@@ -107,54 +51,118 @@ void Game::Net::ack(nite::Packet &packet){
     if(!init){
         return;
     }    
-    UInt32 _ack = packet.getAck();
-    // packet.read(&order, nite::NetworkOrderSize);
+    UInt32 ack = packet.getAck();
     for(int i = 0; i < deliveries.size(); ++i){
         auto pck = deliveries[i].get();
-        if(!pck->stale && pck->ack == _ack){
-            pck->onAck(pck->onAckPayload, pck->cl);
-            pck->markStale();
+        if(pck->ack == ack && pck->ip.isSame(packet.sender)){
+            pck->onAck(pck->onAckPayload, packet.sender);
+            deliveries.erase(deliveries.begin() + i);
+            --i;
         }
     }
 }
 
-void Game::Net::bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda, nite::SmallPacket packet){
+void Game::Net::updateDeliveries(){
+    for(int i = 0; i < deliveries.size(); ++i){
+        auto del = deliveries[i].get();
+        if(nite::getTicks()-del->lastRetry > 1000){
+            del->lastRetry = nite::getTicks();
+            sendPacketFor(del->ip, del->packet);
+        }
+    }    
+}
+
+void Game::Net::bindOnAckFor(UInt32 ack, std::function<void(nite::SmallPacket &payload, nite::IP_Port &ip)> lambda, nite::SmallPacket packet){
     for(int i = 0; i < deliveries.size(); ++i){
         auto pck = deliveries[i].get();
-        if(!pck->stale && pck->packet.getHeader() == header){
+        if(pck->ack == ack){
             pck->onAckPayload = packet;
             pck->onAck = lambda;
         }
     }
 }
 
-// this one is to avoid copying nite::SmallPacket if it is not needed
-void Game::Net::bindOnAckFor(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &cl)> lambda){
+void Game::Net::bindOnAckFor(UInt32 ack, std::function<void(nite::SmallPacket &payload, nite::IP_Port &ip)> lambda){
     for(int i = 0; i < deliveries.size(); ++i){
         auto pck = deliveries[i].get();
-        if(!pck->stale && pck->packet.getHeader() == header){         
+        if(pck->ack == ack){     
             pck->onAck = lambda;
         }
     }
 }
 
-void Game::Net::sendAck(nite::IP_Port &client, UInt32 ackId, UInt32 order){
+void Game::Net::bindOnAckForHeader(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &ip)> lambda, nite::SmallPacket packet){
+    for(int i = 0; i < deliveries.size(); ++i){
+        auto pck = deliveries[i].get();
+        if(pck->header == header){
+            pck->onAckPayload = packet;
+            pck->onAck = lambda;
+        }
+    }
+}
+
+void Game::Net::bindOnAckForHeader(UInt16 header, std::function<void(nite::SmallPacket &payload, nite::IP_Port &ip)> lambda){
+    for(int i = 0; i < deliveries.size(); ++i){
+        auto pck = deliveries[i].get();
+        if(pck->header == header){
+            pck->onAck = lambda;
+        }
+    }
+}
+
+void Game::Net::sendAck(nite::IP_Port &client, UInt32 ackId){
     if(!init){
         return;
     }
-    nite::Packet ack;
-    ack.setHeader(Game::PacketType::SV_ACK);
+    nite::Packet ack(Game::PacketType::SV_ACK);
     ack.setAck(ackId);
-    ack.setOrder(order);
-    sock.send(client, ack);
+    sendPacketFor(client, ack);
+}
+
+void Game::Net::sendPacketFor(const nite::IP_Port &ip, nite::Packet &packet){
+    packet.receiver = ip;
+    packetQueue.push_back(packet);
+}
+
+void Game::Net::sendPacketForMany(const Vector<nite::IP_Port> &ips, nite::Packet &packet){
+    for(int i = 0; i < ips.size(); ++i){
+        packet.receiver = ips[i];
+        packetQueue.push_back(packet);
+    }
+}
+
+void Game::Net::sendPersPacketFor(const nite::IP_Port &ip, nite::Packet &packet, UInt32 ack){
+    packet.receiver = ip;
+    packet.setAck(ack);
+    packetQueue.push_back(packet);  
+    auto pd = Shared<Game::PersisentDelivey>(new Game::PersisentDelivey());
+    pd->ip = ip;
+    pd->ack = ack;
+    pd->header = packet.getHeader();
+    pd->packet = packet;
+    pd->lastRetry = nite::getTicks();
+    deliveries.push_back(pd);     
+}
+
+void Game::Net::sendPersPacketForMany(const Vector<nite::IP_Port> &ips, nite::Packet &packet, const Vector<UInt32> acks){
+    for(int i = 0; i < ips.size(); ++i){
+        auto &ip = ips[i];
+        auto &ack = acks[i];
+        packet.receiver = ip;
+        packet.setAck(ack);
+        packetQueue.push_back(packet);        
+        auto pd = Shared<Game::PersisentDelivey>(new Game::PersisentDelivey());
+        pd->ip = ip;
+        pd->header = packet.getHeader();
+        pd->ack = ack;
+        pd->packet = packet;
+        pd->lastRetry = nite::getTicks();
+        deliveries.push_back(pd);  
+    }
 }
 
 void Game::Net::step(){
 
-}
-
-void Game::Net::issueStateDeltaUpdate(const Game::StateDelta &cmd){
-    this->stateDeltas.push_back(cmd);
 }
 
 void Game::Net::setCurrentMap(Shared<nite::Map> &m){

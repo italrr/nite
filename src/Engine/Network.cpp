@@ -49,40 +49,6 @@ void nite::socketEnd(){
 	#endif
 }
 
-nite::IP_Port::IP_Port(const String &ip, UInt16 port){
-	set(ip, port);
-}
-
-nite::IP_Port::IP_Port(){
-	set("127.0.0.1", NetworkDefaultPort);
-}
-
-nite::IP_Port::IP_Port(const nite::IP_Port &ip, UInt16 nport){
-	set(ip.ip, nport);
-}
-
-bool nite::IP_Port::operator== (IP_Port &other){
-	return isSame(other);
-}
-
-bool nite::IP_Port::isSame(IP_Port &other){
-	return this->address == other.address && this->port == other.port;
-}
-
-void nite::IP_Port::set(const String &ip, UInt16 port){
-	this->port = port;
-	this->ip = ip;
-	this->address = inet_addr(ip.c_str());
-}
-
-String nite::IP_Port::str(){
-	return (String)*this;
-}
-
-nite::IP_Port::operator std::string() const {
-	return ip +":"+ toStr(port);
-}
-
 nite::UDPSocket::UDPSocket(){
 	opened = false;
 	nonBlocking = false;
@@ -182,6 +148,7 @@ size_t nite::UDPSocket::recv(IP_Port &sender, char *buffer){
 size_t nite::UDPSocket::recv(IP_Port &sender, nite::Packet &buffer){
 	buffer.reset();
 	size_t s = recv(sender, buffer.data);
+	buffer.sender = sender;
 	buffer.maxSize = s;
 	return s;
 }
@@ -374,7 +341,7 @@ static void *__FTListeningThread(void *vargp){
 							done = true;
 						}else	
 						if(ref.index != ref.indexed.size){						
-							UInt32 n = nite::NetworkPacketSize - id.length() - sizeof(index) - sizeof(index) - 1;
+							UInt32 n = nite::NetworkMaxPacketSize - id.length() - sizeof(index) - sizeof(index) - 1;
 							UInt32 size = ref.index + n > ref.indexed.size ? ref.indexed.size - ref.index : n;
 							char buffer[size];
 							ref.read(buffer, size);

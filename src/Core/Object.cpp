@@ -72,7 +72,7 @@ void Game::NetObject::destroy(){
             nite::Packet desUpt;
             desUpt.setHeader(Game::PacketType::SV_DESTROY_OBJECT);
             desUpt.write(&_id, sizeof(_id));	
-            sv->sendAll(desUpt);
+            sv->sendPersPacketForMany(sv->getAllClientsIps(), desUpt, sv->getAllClientsAcks());
         }          
     }   
     destroyed = true;  
@@ -84,12 +84,12 @@ void Game::NetObject::setPosition(const nite::Vec2 &p){
     this->lerpPosition.set(this->position);
     updateQuadrant();
     if(sv != NULL){
-		nite::Packet updatepos;
-		updatepos.setHeader(Game::PacketType::SV_SET_OBJECT_POSITION);
-		updatepos.write(&id, sizeof(id));
-		updatepos.write(&position.x, sizeof(position.x));		
-		updatepos.write(&position.y, sizeof(position.y));		
-		sv->sendAll(updatepos);
+		nite::Packet posUpt;
+		posUpt.setHeader(Game::PacketType::SV_SET_OBJECT_POSITION);
+		posUpt.write(&id, sizeof(id));
+		posUpt.write(&position.x, sizeof(position.x));		
+		posUpt.write(&position.y, sizeof(position.y));		
+		sv->sendPacketForMany(sv->getAllClientsIps(), posUpt);
     }
 }
 

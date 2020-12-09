@@ -309,6 +309,32 @@ void Game::Gfx_CastingBall::init(const nite::Vec2 &p){
 
 
 void Game::EntityBase::entityStep(){
+	bool isSpace = input.isKeyPress(Game::Key::SPACE);
+	if(input.isKeyPress(Game::Key::UP) && input.isKeyPress(Game::Key::RIGHT)){
+		entityMove(nite::Vec2(1.0f, -1.0f), isSpace);
+	}else
+	if(input.isKeyPress(Game::Key::DOWN) && input.isKeyPress(Game::Key::RIGHT)){
+		entityMove(nite::Vec2(1.0f, 1.0f), isSpace);
+	}else
+	if(input.isKeyPress(Game::Key::UP) && input.isKeyPress(Game::Key::LEFT)){
+		entityMove(nite::Vec2(-1.0f, -1.0f), isSpace);
+	}else		
+	if(input.isKeyPress(Game::Key::DOWN) && input.isKeyPress(Game::Key::LEFT)){
+		entityMove(nite::Vec2(-1.0f, 1.0f), isSpace);
+	}else				
+	if(input.isKeyPress(Game::Key::UP)){
+		entityMove(nite::Vec2(0.0f, -1.0f), isSpace);
+	}else
+	if(input.isKeyPress(Game::Key::RIGHT)){
+		entityMove(nite::Vec2(1.0f, 0.0f), isSpace);
+	}else
+	if(input.isKeyPress(Game::Key::DOWN)){
+		entityMove(nite::Vec2(0.0f, 1.0f), isSpace);
+	}else
+	if(input.isKeyPress(Game::Key::LEFT)){
+		entityMove(nite::Vec2(-1.0f, 0.0f), isSpace);
+	}
+
 	if(input.mpos.x > position.x){
 		faceDirection = EntityFacing::Right;
 		issueDeltaUpdate(Game::DeltaUpdateType::ANIMATION);
@@ -652,10 +678,7 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 				}
 				auto cl = sv->getClientByEntityId(this->id);
 				if(cl != NULL){
-					nite::Packet update;
-					update.setHeader(Game::PacketType::SV_UPDATE_ENTITY_SET_CASTING_STATE);
-					update.setAck(++cl->svAck);
-					update.setOrder(++cl->lastSentOrder);
+					nite::Packet update(Game::PacketType::SV_UPDATE_ENTITY_SET_CASTING_STATE);
 					update.write(&this->id, sizeof(this->id));
 					update.write(&id, sizeof(id));
 					update.write(&type, sizeof(type));
@@ -664,7 +687,7 @@ void Game::EntityBase::invokeUse(UInt16 targetId, UInt8 type, UInt32 id, float x
 					update.write(&sk->castDelay, sizeof(sk->castDelay));
 					update.write(&x, sizeof(x));
 					update.write(&y, sizeof(y));
-					sv->persSend(cl->cl, update, 1000, -1);
+					sv->sendPersPacketFor(cl->ip, update, ++cl->svAck);
 				}
 			}
 		} break;
@@ -687,14 +710,11 @@ void Game::EntityBase::solveCasting(){
 		if(cl == NULL){
 			return;
 		}
-		nite::Packet update;
-		update.setHeader(Game::PacketType::SV_UPDATE_SKILL_STATE);
-		update.setAck(++cl->svAck);
-		update.setOrder(++cl->lastSentOrder);		
+		nite::Packet update(Game::PacketType::SV_UPDATE_SKILL_STATE);
 		update.write(&this->id, sizeof(UInt16));
 		update.write(&sk->id, sizeof(UInt16));
 		sk->writeUpdate(update);
-		sv->persSend(cl->cl, update, 1000, -1);
+		sv->sendPersPacketFor(cl->ip, update, ++cl->svAck);
 	};
 	auto target = this->sv->getEntity(currentCasting->target);
 	switch(currentCasting->type){
@@ -753,13 +773,10 @@ void Game::EntityBase::recalculateStats(){
 		if(cl == NULL){
 			return;
 		}
-		nite::Packet notify;
-		notify.setHeader(Game::PacketType::SV_UPDATE_ENTITY_ALL_STAT);
-		notify.setAck(++cl->svAck);
-		notify.setOrder(++cl->lastSentOrder);
+		nite::Packet notify(Game::PacketType::SV_UPDATE_ENTITY_ALL_STAT);
 		notify.write(&id, sizeof(id));
 		writeAllStatState(notify);
-		sv->persSend(cl->cl, notify, 750, -1);
+		sv->sendPersPacketFor(cl->ip, notify, ++cl->svAck);
 	}
 
 }
@@ -836,19 +853,17 @@ bool Game::EntityBase::damage(const Game::DamageInfo &dmg){
 	// server-side only
 	if(orig != health && sv != NULL){
 		// send new health
-		nite::Packet notify;
-		notify.setHeader(Game::PacketType::SV_UPDATE_ENTITY_HEALTH_STAT);		
+		nite::Packet notify(Game::PacketType::SV_UPDATE_ENTITY_HEALTH_STAT);
 		notify.write(&id, sizeof(id));
 		writeHealthStatState(notify);
-		sv->persSendAll(notify, 750, -1);
+		sv->sendPersPacketForMany(sv->getAllClientsIps(), notify, sv->getAllClientsAcks());;
 		// send damage notification
-		nite::Packet notifydmg;
-		notifydmg.setHeader(Game::PacketType::SV_NOTIFY_ENTITY_DAMAGE);
+		nite::Packet notifydmg(Game::PacketType::SV_NOTIFY_ENTITY_DAMAGE);
 		notifydmg.write(&id, sizeof(id));
 		notifydmg.write(&dmgdone, sizeof(dmgdone));
 		notifydmg.write(&dmg.position.x, sizeof(dmg.position.x));		
 		notifydmg.write(&dmg.position.y, sizeof(dmg.position.y));		
-		sv->sendAll(notifydmg);
+		sv->sendPacketForMany(sv->getAllClientsIps(), notifydmg);
 	}
 	return dmgdone > 0;
 }
