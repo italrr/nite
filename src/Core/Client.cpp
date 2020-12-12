@@ -1187,11 +1187,6 @@ void Game::Client::processIncomPackets(){
             case Game::PacketType::SV_UPDATE_OBJECT_STATE: {
                 if(!isSv || !isLast){ break; }
                 UInt32 ndelta = handler.getOrder();
-                if(ndelta < currentDelta){
-                    nite::print("out of sync?!");
-                    break;
-                }
-                currentDelta = ndelta;
                 UInt8 n;
                 handler.read(&n, sizeof(n));
                 for(int i = 0; i < n; ++i){

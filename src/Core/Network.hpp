@@ -2,6 +2,7 @@
     #define GAME_NETWORK_HPP
 
     #include <stdio.h>
+    #include <map>
     #include "../Engine/Network.hpp"
     #include "../Engine/Tools/Tools.hpp"
     #include "../Engine/Map.hpp"
@@ -73,17 +74,16 @@
             }
         };
 
-        struct DeltaState {
+        struct SnapshotState {
             UInt32 delta;
+            UInt32 rdelta;
             Vector<Game::ObjectState> objects;
         };
 
         struct Net {
             UInt32 currentDelta;
-            UInt32 newDelta;
-            // UInt64 maxSnapshotPoolTime;
-            // Vector<Game::DeltaState> snapshots;
-            // Game::DeltaState getCurrentSnapshot();
+            std::map<UInt32, Game::SnapshotState> snapshots;
+            Game::SnapshotState currentSnapshot;
             UInt64 gameTickRate;
             float gameTimescale;
             UInt64 lastGameUpdate;            

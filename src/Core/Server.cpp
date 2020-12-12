@@ -708,7 +708,7 @@ void Game::Server::update(){
     // ping
     for(auto &cl : clients){
         auto &client = cl.second;
-        if(nite::getTicks()-client.lastPing > 1000){
+        if(nite::getTicks()-client.lastPing > 500){
             client.lastPing = nite::getTicks();
             nite::Packet ping(Game::PacketType::SV_PING);
             ping.setOrder(++client.lastSentOrder);

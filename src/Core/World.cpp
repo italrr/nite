@@ -373,7 +373,6 @@ void Game::NetWorld::update(){
 	delta = nite::getTicks() - lastTick;
 	lastTick = nite::getTicks();
 	currentTickRate = delta;
-
   	for (auto it : objects){
 		auto current = it.second;
 

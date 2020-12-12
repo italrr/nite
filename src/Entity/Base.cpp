@@ -166,7 +166,7 @@ void Game::EntityBase::draw(){
 	// if(lrprate < 0.08f){
 	// 	lrprate = 0.08f;
 	// }
-	// lerpPosition.lerpDiscrete(position, 0.08f);
+	// lerpPosition.lerpDiscrete(position, 0.10f);
 	nite::Vec2 rp = position + size * 0.5f;
 	nite::lerpDiscrete(entityAlpha, canDamage() ? 100.0f : 55.0f, 0.25f);
     nite::setRenderTarget(nite::RenderTargetGame);

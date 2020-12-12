@@ -8,7 +8,6 @@ Game::Net::Net(){
     clock.set(nite::getTicks());
     packetQueue.reserve(1000);
     rcvPackets.reserve(1000);
-    // maxSnapshotPoolTime = 300;
     gameTickRate = 32;
     currentDelta = 0;
     gameTimescale = 1.0f;

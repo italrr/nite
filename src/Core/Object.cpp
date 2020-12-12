@@ -77,12 +77,12 @@ void Game::NetObject::runState(){
     if(DeltaUpdateType::hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, nextState.states)){
         float dt = (nextState.delta - prevState.delta) * net->gameTickRate;
         float step = 1.0f - ((float)prevState.delta) / ((float)nextState.delta);
-        currentState.x = _lerp(prevState.x, nextState.x, step, dt);
-        currentState.y = _lerp(prevState.y, nextState.y, step, dt);
-        currentState.speed = _lerp(prevState.speed, nextState.speed, step, dt);
-        currentState.direction = _lerp(prevState.direction, nextState.direction, step, dt);
-        this->speed =  currentState.speed;
-        this->position = nite::Vec2(currentState.x, currentState.y);
+        currentState.x = nextState.x;
+        currentState.y = nextState.y;
+        currentState.speed = nextState.speed;
+        currentState.direction = nextState.direction;
+        this->speed = currentState.speed;
+        this->position.lerpDiscrete(nite::Vec2(currentState.x, currentState.y), 0.10f);
         this->direction = currentState.direction;
     }
     // anim
