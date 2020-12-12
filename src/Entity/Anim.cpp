@@ -1,7 +1,9 @@
-#include "Anim.hpp"
-#include "Base.hpp"
 #include "../Engine/Tools/Tools.hpp"
 #include "../Engine/Indexer.hpp"
+#include "../Engine/Object.hpp"
+
+#include "Anim.hpp"
+#include "Base.hpp"
 
 bool Game::Anim::load(const String &path){
     String errmsg = "failed to load anim file '"+path+"': ";

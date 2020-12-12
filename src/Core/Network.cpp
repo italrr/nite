@@ -8,7 +8,11 @@ Game::Net::Net(){
     clock.set(nite::getTicks());
     packetQueue.reserve(1000);
     rcvPackets.reserve(1000);
-    deltaUpdate = nite::getTicks();
+    // maxSnapshotPoolTime = 300;
+    gameTickRate = 32;
+    currentDelta = 0;
+    gameTimescale = 1.0f;
+    lastGameUpdate = nite::getTicks();
 }
 
 void Game::Net::setState(unsigned state){
@@ -110,13 +114,13 @@ void Game::Net::bindOnAckForHeader(UInt16 header, std::function<void(nite::Small
     }
 }
 
-void Game::Net::sendAck(nite::IP_Port &client, UInt32 ackId){
+void Game::Net::sendAck(nite::IP_Port &ip, UInt32 ackId){
     if(!init){
         return;
     }
     nite::Packet ack(Game::PacketType::SV_ACK);
     ack.setAck(ackId);
-    sendPacketFor(client, ack);
+    sendPacketFor(ip, ack);
 }
 
 void Game::Net::sendPacketFor(const nite::IP_Port &ip, nite::Packet &packet){

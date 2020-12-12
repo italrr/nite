@@ -183,8 +183,8 @@ bool Game::Skills::BA_Attack::use(Game::EntityBase *who, Game::EntityBase *to, c
     if(who == NULL){
         return false;
     }
-    who->useBaseAttack();
     this->locked = true;
+    who->useBaseAttack();
     return true;
 }
 

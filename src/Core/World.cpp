@@ -5,8 +5,10 @@
 #include "../Engine/Shapes.hpp"
 #include "../Engine/Tools/Tools.hpp"
 #include "../Engine/Graphics.hpp"
+
 #include "World.hpp"
 #include "Network.hpp"
+#include "../Entity/Base.hpp"
 
 
 UInt16 Game::NetWorld::generateId(){
@@ -78,8 +80,7 @@ Game::NetWorld::NetWorld(){
 	cells = NULL;
 	ghosts = NULL;
 	seedNId = -1;
-	seedId = nite::randomInt(25, 50);
-	snapshotOrder = 0;
+	seedId = nite::randomInt(101, 151);
 	tickrate = 1000 / 33;
 	int reserve = 1000 * 30;
 	objects.reserve(reserve);
@@ -178,7 +179,6 @@ void Game::NetWorld::clear(){
 	ghosts = NULL;
 	seedNId = -1;
 	seedId = nite::randomInt(25, 50);
-	snapshotOrder = 0;	
 }
 
 void Game::NetWorld::remove(int objectId){
@@ -199,14 +199,6 @@ Game::NetObject *Game::NetWorld::get(UInt16 id){
 		return NULL;
 	}
 	return it->second.get();
-}
-
-void Game::NetWorld::step(){
-  for (auto& it : objects){
-		auto current = it.second;
-		current->step();
-		current->onStep();
-	}
 }
 
 bool Game::NetWorld::testCollision(Game::NetObject *a, Game::NetObject *b, const nite::Vec2 &diff, nite::Vec2 &limit, nite::Vec2 &normal){
@@ -312,12 +304,12 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 		}
 	}
 	// push off by 1 unit of the total diff
-	if(limit.x == 0.0f && diff.x != 0.0f){
-		limit.x = (1.0f / diff.x) * nite::getSign(diff.x) * -1.0f;		
-	}
-	if(limit.y == 0.0f && diff.y != 0.0f){
-		limit.y = (1.0f / diff.y) * nite::getSign(diff.y) * -1.0f;
-	}
+	// if(limit.x == 0.0f && diff.x != 0.0f){
+	// 	limit.x = (1.0f / diff.x) * nite::getSign(diff.x) * -1.0f;		
+	// }
+	// if(limit.y == 0.0f && diff.y != 0.0f){
+	// 	limit.y = (1.0f / diff.y) * nite::getSign(diff.y) * -1.0f;
+	// }
 	obj->position = obj->position + diff * limit;
 	if(origp.x != obj->position.x || origp.y != obj->position.y){
 		obj->updateQuadrant();
@@ -377,10 +369,6 @@ void Game::NetWorld::update(){
 		}
 		removeQueue.clear();
 	}
-
-	// if(nite::getTicks()-lastTick < tickrate){
-	// 	return;
-	// }
 	
 	delta = nite::getTicks() - lastTick;
 	lastTick = nite::getTicks();
@@ -388,27 +376,25 @@ void Game::NetWorld::update(){
 
   	for (auto it : objects){
 		auto current = it.second;
+
+		current->step();
+		current->onStep();
+		if(current->objType == ObjectType::Entity){
+			auto ent = static_cast<Game::EntityBase*>(current.get());
+			ent->effectStat.update();
+			ent->entityStep();  	
+		}	
+		
 		nite::Vec2 lastPos = current->position;
 		current->collided = false;
-
 		// movement
 		updateObject(it.second.get());
 		// friction
 		for(int i = 0; i < currentTickRate / tickrate; ++i){
 			current->speed *= 1.0f - (current->friction * nite::getTimescale() * timescale * current->relativeTimescale);
 		}
-		// position changed, send updates to clients (client->side only)
-		// if(nite::abs(current->position.x-lastPos.x) > 1 || nite::abs(current->position.y-lastPos.y) > 1){
-		// 	this->updateQueue[current->id] = current.get();
-		// 	// nite::Vec2 mid = lastPos; // add a mid
-		// 	// mid.lerp(current->position, 0.5f);
-		// 	// current->nextPosition.push_back(mid);
-		// 	// current->nextPosition.push_back(current->position);
-		// }
 		current->issueDeltaUpdate(DeltaUpdateType::PHYSICS);
 	}
-
-	++snapshotOrder;
 }
 
 void Game::NetWorld::render(){

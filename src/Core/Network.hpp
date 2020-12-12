@@ -73,19 +73,26 @@
             }
         };
 
-        struct Net {
+        struct DeltaState {
             UInt32 delta;
-            UInt64 deltaUpdate;            
+            Vector<Game::ObjectState> objects;
+        };
 
+        struct Net {
+            UInt32 currentDelta;
+            UInt32 newDelta;
+            // UInt64 maxSnapshotPoolTime;
+            // Vector<Game::DeltaState> snapshots;
+            // Game::DeltaState getCurrentSnapshot();
+            UInt64 gameTickRate;
+            float gameTimescale;
+            UInt64 lastGameUpdate;            
             Vector<nite::Packet> packetQueue;
             Vector<nite::Packet> rcvPackets;
-
             void sendPacketFor(const nite::IP_Port &ip, nite::Packet &packet);
             void sendPacketForMany(const Vector<nite::IP_Port> &ips, nite::Packet &packet);
-
             void sendPersPacketFor(const nite::IP_Port &ip, nite::Packet &packet, UInt32 ack);
             void sendPersPacketForMany(const Vector<nite::IP_Port> &ips, nite::Packet &packet, const Vector<UInt32> acks);
-
             bool isServer;
             Game::RemoteClock clock;
             Vector<Shared<Game::PersisentDelivey>> deliveries;
@@ -107,7 +114,7 @@
             void dropPersFor(const nite::IP_Port &ip);
             void dropPersForHeader(const nite::IP_Port &ip, UInt16 header);
             void ack(nite::Packet &packet);
-            void sendAck(nite::IP_Port &client, UInt32 ackId);
+            void sendAck(nite::IP_Port &ip, UInt32 ackId);
             void bindOnAckFor(UInt32 ack, std::function<void(nite::SmallPacket &payload, nite::IP_Port &ip)> lambda, nite::SmallPacket packet);
             void bindOnAckFor(UInt32 ack, std::function<void(nite::SmallPacket &payload, nite::IP_Port &ip)> lambda);
 
@@ -290,65 +297,25 @@
                 FLOAT MY
             */
 
-            SV_STATE_DELTA,
+            SV_UPDATE_OBJECT_STATE,
             /*
-                UInt8 AMOUNT
-                0: {
-                    UINT8 COMMANDTYPE
-
-                    // SET_ENTITY_OWNER
-                        UINT16 ENTID
-                        UINT64 CLIENTID
-
-                    // SET_ENTITY_SKILL_LIST
-                        UINT16 ENTID
-                        UINT8 N
-                        {
-                            UINT16 SKILLID
-                            UINT8 SKILLVL
-                        } ... n                        
-
-                    // ENTITY_ACTIONABLES
-                        UINT16 ENTID
-                        FLOAT POINTINGATX
-                        FLOAT POINTINGATY
-                        UINT8 N
-                        {
-                            UInt16 ITEMID
-                            UInt8 TYPE
-                            UInt8 SLOT
-                        } ... n
-
-                    // CREATE_OBJECT
-                        // UINT16 OBJID
-                        // UINT16 SIGID
-                        // FLOAT X
-                        // FLOAT Y
-                        // UINT8 PAYLOADISZE
-                        // (custom payload)
-
-                    // DESTROY_OBJECT
-                        // INT16 OBJID
-
-                    // UPDATE_OBJECT
-                        UINT8 N
-                        {
-                            UINT16 ID
-                            UINT8 STATES
-                            // ANIMATION
-                            UINT8 FACEDIRECTION
-                            UINT8 STATE[3]
-                            UINT8 NUM[3]
-                            UINT16 EXTIME[3]
-                            
-                            // PHYSICS
-                            FLOAT DIRECTION
-                            FLOAT SPEED
-                            FLOAT X
-                            FLOAT Y
-                        } .. n
+                UINT8 N
+                {
+                    UINT16 ID
+                    UINT8 STATES
+                    // ANIMATION
+                    UINT8 FACEDIRECTION
+                    UINT8 STATE[3]
+                    UINT8 NUM[3]
+                    UINT16 EXTIME[3]
+                    FLOAT XLOOKINGAT
+                    FLOAT YLOOKINGAT
+                    // PHYSICS
+                    FLOAT DIRECTION
+                    FLOAT SPEED
+                    FLOAT X
+                    FLOAT Y
                 }
-                ... n
             */
 
             SV_UPDATE_WORLD_SIMULATION_PROPS, // ACK

@@ -144,10 +144,7 @@ static void *localSvThread(void *vargp){
 	auto *core = static_cast<Game::GameCore*>(vargp);
 	auto &sv = core->localSv;
     while(true){
-		if(nite::getTicks()-core->svLastTick > core->svTickRate){
-			sv.update();
-			core->svLastTick = nite::getTicks();
-		}
+		sv.update();
 	}
     return NULL;
 }

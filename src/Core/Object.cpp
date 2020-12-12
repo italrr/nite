@@ -60,6 +60,53 @@ Game::NetObject::NetObject(){
     destroyed = false;
     clearDeltaUpdates();
 }
+#include <cmath>
+static float lerp(float x1, float x2, float f){
+	return  f * x2 + (1.0f - f) * x1;
+}
+static float damp(float src, float target, float smoothing, float dt){
+    return lerp(src, target, 1.0f - nite::pow(smoothing, dt));
+}
+static float _lerp(float x1, float x2, float rate, float delta){
+	float f = (1.0f - nite::pow(1.0f - rate, delta * 0.077f));
+	return f * x2 + (1.0f - f) * x1;    
+}
+void Game::NetObject::runState(){
+    currentState.delta = nextState.delta;
+    // physics
+    if(DeltaUpdateType::hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, nextState.states)){
+        float dt = (nextState.delta - prevState.delta) * net->gameTickRate;
+        float step = 1.0f - ((float)prevState.delta) / ((float)nextState.delta);
+        currentState.x = _lerp(prevState.x, nextState.x, step, dt);
+        currentState.y = _lerp(prevState.y, nextState.y, step, dt);
+        currentState.speed = _lerp(prevState.speed, nextState.speed, step, dt);
+        currentState.direction = _lerp(prevState.direction, nextState.direction, step, dt);
+        this->speed =  currentState.speed;
+        this->position = nite::Vec2(currentState.x, currentState.y);
+        this->direction = currentState.direction;
+    }
+    // anim
+    if(DeltaUpdateType::hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, nextState.states) && this->objType == ObjectType::Entity){
+        float dt = (nextState.delta - prevState.delta) * net->gameTickRate;
+        float step = (float)prevState.delta / (float)nextState.delta;
+        currentState.faceDir = nextState.faceDir;
+        currentState.xLookingAt = nextState.xLookingAt;
+        currentState.yLookingAt = nextState.yLookingAt;
+        for(int j = 0; j < AnimPart::total; ++j){
+            currentState.animSt[j] = nextState.animSt[j];
+            currentState.animNum[j] = nextState.animNum[j];
+            currentState.animExtime[j] = nextState.animExtime[j];
+        }        
+        auto ent = static_cast<EntityBase*>(this);
+        ent->faceDirection = currentState.faceDir;
+        ent->pointingAt = nite::Vec2(currentState.xLookingAt, currentState.yLookingAt);
+        for(int j = 0; j < AnimPart::total; ++j){
+            ent->state[j] = currentState.animSt[j];
+            ent->stNum[j] = currentState.animNum[j];
+            ent->lastExpectedTime[j] = currentState.animExtime[j];
+        }
+    }
+}
 
 void Game::NetObject::destroy(){
 	if(container == NULL || destroyed) return; 
@@ -81,7 +128,7 @@ void Game::NetObject::destroy(){
 void Game::NetObject::setPosition(const nite::Vec2 &p){
     this->position.set(p);
     // snapPosition();
-    this->lerpPosition.set(this->position);
+    // this->lerpPosition.set(this->position);
     updateQuadrant();
     if(sv != NULL){
 		nite::Packet posUpt;

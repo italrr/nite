@@ -155,33 +155,33 @@ void Game::RING::Blueprint::generate(){
 }
 
 void Game::RING::Blueprint::generateMinimap(){
-    static nite::Texture tex("data/texture/empty.png");
-    auto offset = nite::Vec2(0.0f);
-    float scale = 16.0f;    
-    minimap.init(width * scale, height * scale);
-    minimap.begin();
-    for(int i = 0; i < total; ++i){
-        auto &cell = grid[i];
-        switch(cell.type){
-            case Game::RING::CellType::Path: {
-                    if(i == start){ 
-                        nite::setColor(nite::Color(0.0f, 1.0f, 0.0f, 1.0f));
-                    }else
-                    if(i == end){
-                        nite::setColor(nite::Color(1.0f, 1.0f, 0.0f, 1.0f));
-                    }else{
-                        nite::setColor(nite::Color(1.0f, 0.0f, 0.0f, 1.0f));
-                    }
-                } break;
-            case Game::RING::CellType::Wall: {
-                    nite::setColor(nite::Color(0.0f, 0.0f, 1.0f, 1.0f));
-                } break;
-        }
-        nite::Vec2 p(offset + nite::Vec2(cell.x, cell.y) * scale);
-        tex.draw(p.x, p.y, scale, scale, 0.0f, 0.0f, 0.0f);
-    }
-    minimap.end();
-    minimap.flush();
+    // static nite::Texture tex("data/texture/empty.png");
+    // auto offset = nite::Vec2(0.0f);
+    // float scale = 16.0f;    
+    // minimap.init(width * scale, height * scale);
+    // minimap.begin();
+    // for(int i = 0; i < total; ++i){
+    //     auto &cell = grid[i];
+    //     switch(cell.type){
+    //         case Game::RING::CellType::Path: {
+    //                 if(i == start){ 
+    //                     nite::setColor(nite::Color(0.0f, 1.0f, 0.0f, 1.0f));
+    //                 }else
+    //                 if(i == end){
+    //                     nite::setColor(nite::Color(1.0f, 1.0f, 0.0f, 1.0f));
+    //                 }else{
+    //                     nite::setColor(nite::Color(1.0f, 0.0f, 0.0f, 1.0f));
+    //                 }
+    //             } break;
+    //         case Game::RING::CellType::Wall: {
+    //                 nite::setColor(nite::Color(0.0f, 0.0f, 1.0f, 1.0f));
+    //             } break;
+    //     }
+    //     nite::Vec2 p(offset + nite::Vec2(cell.x, cell.y) * scale);
+    //     tex.draw(p.x, p.y, scale, scale, 0.0f, 0.0f, 0.0f);
+    // }
+    // minimap.end();
+    // minimap.flush();
 }
 
 void Game::RING::Blueprint::fill(int type){

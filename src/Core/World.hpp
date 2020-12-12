@@ -53,7 +53,6 @@
 			NetWorld();
 			float timescale;
 			bool debugPhysics;
-			UInt32 snapshotOrder;
 			void clear();
 			bool exists(UInt16 id);
 			void updateObject(Game::NetObject *obj);
@@ -63,7 +62,6 @@
 			void remove(Game::NetObject *obj);
 			Game::NetObject *get(UInt16 id);
 			void update();
-			void step();
 			void renderDbug();
 			void render();
 			nite::Vec2 gridSpec; // gridspec for grid positioning

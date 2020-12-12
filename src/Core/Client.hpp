@@ -52,9 +52,13 @@
             UInt32 rcvOrder;
             UInt32 sentOrder;
             bool connected;
+            nite::Font debugFont;
             Client();
             ~Client();
             Game::EntityBase *getEntity(UInt16 id);
+            void processIncomPackets();
+            void deliverPacketQueue(); 
+            void player();           
             void disconnect(const String &reason);
             void disconnect();
             void connect(const String &ip, UInt16 port);

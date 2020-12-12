@@ -191,6 +191,9 @@ void Game::Client::setup(const String &nickname){
     this->init = true;
     nite::Texture icons = nite::Texture("data/texture/icons/test_icons.png");
     this->icons.load(icons, nite::Vec2(32.0f));
+    if(!debugFont.isLoaded()){
+        debugFont.load("data/font/SpaceMono-Regular.ttf", 16, 3.0f);
+    }
 }
 
 void Game::Client::disconnect(){
@@ -220,6 +223,10 @@ void Game::Client::sendChatMsg(const String &msg){
     sendPersPacketFor(sv, pack, ++svAck);
 }
 
+static int bytes = 0;
+static int many = 0;
+static UInt64 lastcheck = nite::getTicks();
+static String lastChange = "";
 void Game::Client::update(){
     // exit if no connection
     if(state == Game::NetState::Disconnected || !init){
@@ -232,12 +239,9 @@ void Game::Client::update(){
             if(obj == NULL){
                 continue;
             }
-            if(obj->nextPosition.size() < 1){
-                world.objects.erase(obj->id);
-                removeQueue.erase(removeQueue.begin() + i);
-                --i;
-                continue;
-            }
+            world.objects.erase(obj->id);
+            removeQueue.erase(removeQueue.begin() + i);
+            --i;
         }
     }
 
@@ -245,7 +249,11 @@ void Game::Client::update(){
 
     nite::Packet handler;
     nite::IP_Port sender;
-    if(sock.recv(sender, handler) > 0){
+
+    int nb = sock.recv(sender, handler);
+    if(nb > 0){
+        bytes += nb;
+        many += 1;
         UInt64 netId = sender.address + sender.port + sock.sock;
         bool isSv = netId == this->serverId && state != Game::NetState::Disconnected;
         bool isLast = isSv && handler.getOrder() > rcvOrder;
@@ -302,6 +310,16 @@ void Game::Client::update(){
             } break;                              
         }
     }
+
+
+    if(nite::getTicks()-lastcheck > 1000){
+        lastChange = "packets "+nite::toStr(many)+"/s | bytes "+nite::toStr(bytes)+"/s";
+        // nite::print("ping "+nite::toStr(this->ping)+"ms | elapsed "+nite::toStr(nite::getTicks()-lastcheck)+" | total "+nite::toStr(many)+" | sent "+nite::toStr(bytes));
+        bytes = 0;
+        many = 0;
+        lastcheck = nite::getTicks();
+    }
+
     // timeout
     if(nite::getTicks()-lastPacketTimeout > ClientTimeout && this->connected){
         nite::print("[client] disconnected from "+sv.str()+": timeout");
@@ -335,10 +353,948 @@ void Game::Client::onStart(){
 
 void __temp();
 
-void Game::Client::game(){
-    // __temp();
+void Game::Client::processIncomPackets(){
+    std::function<void(nite::Packet &handler, bool ignoreOrder)> processPacket = [&](nite::Packet &handler, bool ignoreOrder){
+        auto sender = handler.sender;
+        UInt64 netId = sender.address + sender.port + sock.sock;
+        bool isSv = this->sv.isSame(handler.sender) && state != Game::NetState::Disconnected;
+        bool isLast = isSv && handler.getOrder() > rcvOrder;
+        if(isSv && isLast && !ignoreOrder){
+            lastPacket = handler;
+            lastPacketTimeout = nite::getTicks();
+            rcvOrder = handler.getOrder();
+        }           
+        // for multi-part packets
+        if(ignoreOrder){
+            isLast = true;
+        }
+        switch(handler.getHeader()){
+            /*
+                SV_MULTI_PART_PACKET    
+            */
+            case Game::PacketType::SV_MULTI_PART_PACKET: {
+                Vector<UInt16> sizes;
+                UInt8 total;
+                handler.read(&total, sizeof(total));
+                for(int i = 0; i < total; ++i){
+                    UInt16 size;
+                    handler.read(&size, sizeof(size));
+                    sizes.push_back(size);
+                }
+                for(int i = 0; i < total; ++i){
+                    nite::Packet holder;
+                    handler.read(holder.data, sizes[i]);
+                    processPacket(holder, true);
+                }
+            } break;    
+            /*
+                SV_CONNECT_ACCEPT
+            */
+            case Game::PacketType::SV_CONNECT_ACCEPT: {
+                sendAck(sender, handler.getAck());
+                if(state == Game::NetState::Connecting){
+                    this->sv = sender;
+                    this->serverId = netId;
+                    this->connected = true;
+                    handler.read(&clientId, sizeof(UInt64));
+                    handler.read(serverName);
+                    Game::ClClient yourself;
+                    yourself.uid = clientId;
+                    yourself.nickname = nickname;
+                    this->clients[clientId] = yourself;
+                    setState(Game::NetState::Connected);
+                    nite::print("[client] connected to "+this->sv.str()+" | your clientId is "+nite::toStr(this->clientId));
+                }
+            } break;                               
+            /*
+                SV_ACK
+            */
+            case Game::PacketType::SV_ACK: {
+                ack(handler);
+            } break;
+            /*
+                SV_CLIENT_JOIN
+            */
+            case Game::PacketType::SV_CLIENT_JOIN: {
+                if(!isSv || !isLast){ break; }
+                UInt64 uid;
+                String nick;
+                handler.read(&uid, sizeof(UInt64));
+                handler.read(nick);
+                this->clients[uid] = Game::ClClient(uid, nick);
+                nite::print(nick+" joined the game");
+                // TODO: add in-game notification for this message
+                sendAck(sender, handler.getAck());
+            } break;
+            /*
+                SV_NOTI_CLIENT_DROP
+            */
+            case Game::PacketType::SV_NOTI_CLIENT_DROP: {
+                if(!isSv){ break; }
+                UInt64 uid;
+                String reason;
+                handler.read(&uid, sizeof(UInt64));
+                handler.read(reason);
+                auto it = clients.find(uid);
+                if(it != clients.end()){
+                    nite::print(it->second.nickname+" left the game: "+reason);
+                    clients.erase(it);
+                }
+                // TODO: add in-game notification for this message
+                sendAck(sender, handler.getAck());
+            } break;
+            /*
+                SV_CLIENT_LIST
+            */
+            case Game::PacketType::SV_CLIENT_LIST: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                clients.clear();
+                UInt16 n;
+                handler.read(&n, sizeof(UInt16));
+                for(int i = 0; i < n; ++i){
+                    Game::ClClient player;
+                    handler.read(&player.uid, sizeof(UInt64));
+                    handler.read(&player.ping, sizeof(UInt64));
+                    handler.read(player.nickname);
+                    clients[player.uid] = player;
+                }
+            } break;
+            /*
+                SV_BROADCAST_MESSAGE
+            */
+            case Game::PacketType::SV_BROADCAST_MESSAGE: {
+                if(!isSv || !isLast){ break; }
+                String msg;
+                handler.read(msg);
+                nite::print(msg);
+                // TODO: add in-game notification for this message (and chat)
+                sendAck(this->sv, handler.getAck());
+            } break;
+            /*
+                SV_CHAT_MESSAGE
+            */
+            case Game::PacketType::SV_CHAT_MESSAGE: {
+                    if(!isSv || !isLast){ break; }
+                    UInt64 uid;
+                    String msg;
+                    handler.read(&uid, sizeof(UInt64));
+                    handler.read(msg);
+                    auto it = clients.find(uid);
+                    String who = it != clients.end() ? it->second.nickname : "???";
+                    nite::print(this->nickname+" ["+who+"] "+msg);
+                    // TODO: add in-game chat
+                    sendAck(this->sv, handler.getAck());
+            } break;
+            /*
+                SV_CREATE_OBJECT
+            */
+            case Game::PacketType::SV_CREATE_OBJECT: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 id;
+                UInt16 sigId;
+                float x, y;
+                handler.read(&id, sizeof(UInt16));
+                handler.read(&sigId, sizeof(Int16));
+                handler.read(&x, sizeof(float));
+                handler.read(&y, sizeof(float));
+                auto obj = createNetObject(id, sigId, x, y);
+                if(obj.get() == NULL){
+                    nite::print("[client] fail SV_CREATE_OBJECT: undefined obj sig '"+Game::ObjectSig::name(sigId)+"' on the client");
+                    break;
+                }
+                if(world.objects.find(id) != world.objects.end()){
+                    nite::print("[client] fail SV_CREATE_OBJECT: duplicated id "+nite::toStr(id)+"");
+                    // TODO: come up with a way to properly handle duplicated ids?
+                    break;
+                }
+                obj->net = this;
+                obj->readInitialState(handler);
+                obj->position.x = x;
+                obj->position.y = y;
+                obj->currentState.x = x;
+                obj->currentState.y = y;
+                obj->lerpPosition.x = x;
+                obj->lerpPosition.y = y;
+                world.add(obj, id);
+                if(obj->objType == ObjectType::Entity){
+                    static_cast<Game::EntityBase*>(obj.get())->loadAnim();
+                }
+                nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+nite::toStr(sigId)+" at "+nite::Vec2(x, y).str());
+            } break;
+            /*
+                SV_DESTROY_OBJECT
+            */
+            case Game::PacketType::SV_DESTROY_OBJECT: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 id;
+                handler.read(&id, sizeof(UInt16));
+                auto obj = world.objects.find(id);
+                if(obj == world.objects.end()){
+                    nite::print("[client] fail SV_DESTROY_OBJECT: object id "+nite::toStr(id)+" doesn't exist");
+                    break;
+                }
+                nite::print("received destroy obj id "+nite::toStr(obj->second->id));
+                removeQueue.push_back(obj->second->id);
+            } break;
+            /*
+                SV_UPDATE_ENTITY_STANCE_STATE
+            */
+            case Game::PacketType::SV_UPDATE_ENTITY_STANCE_STATE: {
+                if(!isSv || !isLast){ break; }
+                UInt16 entId;
+                UInt8 faceDirection;
+                handler.read(&entId, sizeof(entId));
+                handler.read(&faceDirection, sizeof(faceDirection));
+                auto ent = getEntity(entId);
+                if(ent != NULL){
+                    ent->faceDirection = faceDirection;
+                    UInt8 nstate, n;
+                    for(int i = 0; i < EntityStateSlot::total; ++i){
+                        if(i == EntityStateSlot::SPECIAL){ //specials are passed directly since they don't involve animations                     
+                            handler.read(&ent->state[i], sizeof(ent->state[i]));
+                            handler.read(&ent->stNum[i], sizeof(ent->stNum[i]));
+                            ent->lastStateTime[i] = nite::getTicks();
+                            ent->lastFrameTime[i] = nite::getTicks();
+                        }else{
+                            handler.read(&nstate, sizeof(nstate));
+                            handler.read(&n, sizeof(n));
+                            ent->setState(nstate, i, n);
+                        }
+                        handler.read(&ent->lastExpectedTime[i], sizeof(ent->lastExpectedTime[i])); // pass expected time directly
+                    }
+                }
+            } break;
+            /*
+                SV_UPDATE_WORLD_SIMULATION_PROPS (properties)
+            */
+            case Game::PacketType::SV_UPDATE_WORLD_SIMULATION_PROPS: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());                    
+                handler.read(&gameTimescale, sizeof(gameTimescale));
+                handler.read(&gameTickRate, sizeof(gameTickRate));
+                this->world.tickrate = gameTickRate;
+                this->world.timescale = gameTimescale;
+            } break;
+            /*
+                SV_UPDATE_OBJECT_RELATIVE_TIMESCALE
+            */
+            case Game::PacketType::SV_UPDATE_OBJECT_RELATIVE_TIMESCALE: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 id;
+                float timescale;
+                handler.read(&id, sizeof(UInt16));
+                handler.read(&timescale, sizeof(float));
+                auto it = world.objects.find(id);
+                if(it != world.objects.end()){
+                    it->second->relativeTimescale = timescale;
+                }
+            } break;
+            /*
+                SV_REMOTE_CMD_MSG
+            */
+            case Game::PacketType::SV_REMOTE_CMD_MSG: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                String msg;
+                nite::Color color;
+                handler.read(msg);
+                handler.read(&color.r, sizeof(float));
+                handler.read(&color.g, sizeof(float));
+                handler.read(&color.b, sizeof(float));
+                nite::Console::add(msg, color);
+            } break;
+            /*
+                SV_SET_GAME_START
+            */
+            case Game::PacketType::SV_SET_GAME_START: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                this->onStart();
+            } break;
+            /*
+                SV_NOTI_ENTITY_OWNER
+            */
+            case Game::PacketType::SV_NOTI_ENTITY_OWNER: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                handler.read(&this->entityId, sizeof(UInt16));
+                this->hud.follow(this->entityId);
+                this->camera.follow(this->entityId);
+            } break;
+
+            /*
+                SV_SET_ENTITY_SKILLS
+            */
+            case Game::PacketType::SV_SET_ENTITY_SKILLS: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId;
+                UInt8 amnt;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&amnt, sizeof(UInt8));
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] fail SV_SET_ENTITY_SKILLS: entity id '"+nite::toStr(entId)+"' doesn't exist");
+                    break;
+                }
+                for(int i = 0; i < amnt; ++i){
+                    UInt16 skId;
+                    UInt8 lv;
+                    handler.read(&skId, sizeof(UInt16));
+                    handler.read(&lv, sizeof(UInt8));
+                    auto sk = getSkill(skId, lv);
+                    if(sk.get() == NULL){
+                        nite::print("[client] warn SV_SET_ENTITY_SKILLS: skill id "+nite::toStr(skId)+" doesn't exist");
+                        continue;
+                    }
+                    ent->skillStat.add(sk);
+                }
+            } break;
+            /*
+                SV_ADD_ENTITY_SKILL
+            */
+            case Game::PacketType::SV_ADD_ENTITY_SKILL: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId, skId;
+                UInt8 lv;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&skId, sizeof(UInt16));
+                handler.read(&lv, sizeof(UInt8));
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] fail SV_ADD_ENTITY_SKILL: entity id '"+nite::toStr(entId)+"' doesn't exist");
+                    break;
+                }
+                auto sk = getSkill(skId, lv);
+                if(sk.get() == NULL){
+                    nite::print("[client] warn SV_ADD_ENTITY_SKILL: skill id "+nite::toStr(skId)+" doesn't exist");
+                    break;
+                }
+                ent->skillStat.add(sk);
+            } break;
+            /*
+                SV_REMOVE_ENTITY_SKILLS
+            */
+            case Game::PacketType::SV_REMOVE_ENTITY_SKILLS: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId;
+                UInt8 amnt;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&amnt, sizeof(UInt8));
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] fail SV_REMOVE_ENTITY_SKILLS: entity id '"+nite::toStr(entId)+"' doesn't exist");
+                    break;
+                }
+                for(int i = 0; i < amnt; ++i){
+                    UInt16 skId;
+                    handler.read(&skId, sizeof(UInt16));
+                    if(ent->skillStat.get(skId) == NULL){
+                        nite::print("[client] fail SV_REMOVE_ENTITY_SKILLS: skill id "+nite::toStr(skId)+" doesn't exist");
+                        continue;
+                    }
+                    ent->skillStat.remove(skId);
+                }
+            } break;
+            /*
+                SV_REMOVE_ENTITY_SKILL
+            */
+            case Game::PacketType::SV_REMOVE_ENTITY_SKILL: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId, skId;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&skId, sizeof(UInt16));
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] fail SV_REMOVE_ENTITY_SKILL: entity id '"+nite::toStr(entId)+"' doesn't exist");
+                    break;
+                }
+                if(ent->skillStat.get(skId) == NULL){
+                    nite::print("[client] fail SV_REMOVE_ENTITY_SKILL: skill id "+nite::toStr(skId)+" doesn't exist");
+                    break;
+                }
+                ent->skillStat.remove(skId);
+            } break;
+            /*
+                SV_SET_ENTITY_ACTIONABLES
+            */
+            case Game::PacketType::SV_SET_ENTITY_ACTIONABLES: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId;
+                UInt8 amnt;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&amnt, sizeof(UInt8));
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] fail SV_SET_ENTITY_ACTIONABLES: entity id '"+nite::toStr(entId)+"' doesn't exist");
+                    break;
+                }
+                for(int i = 0; i < amnt; ++i){
+                    UInt8 slot;
+                    handler.read(&slot, sizeof(slot));
+                    if(slot > Game::EntityActionables){
+                        slot = 0;
+                        nite::print("[client] fail SV_SET_ENTITY_ACTIONABLES: offset slot");
+                    }
+                    handler.read(&ent->actionables[slot].type, sizeof(UInt8));
+                    handler.read(&ent->actionables[slot].id, sizeof(UInt32));
+                }
+            } break;
+            /*
+                SV_ADD_EFFECT
+            */
+            case Game::PacketType::SV_ADD_EFFECT: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId, type, insId;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&type, sizeof(UInt16));
+                handler.read(&insId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_ADD_EFFECT: entity id doesn't exist");
+                    break;
+                }
+                auto eff = getEffect(type);
+                if(eff.get() == NULL){
+                    nite::print("[client] fail SV_ADD_EFFECT: effect type "+nite::toStr(type)+" doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->effectStat.add(eff, insId);
+                eff->readInitialState(handler);
+            } break;
+            /*
+                SV_REMOVE_EFFECT
+            */
+            case Game::PacketType::SV_REMOVE_EFFECT: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId, insId;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&insId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_REMOVE_EFFECT: entity id doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->effectStat.remove(insId);
+            } break;
+            /*
+                SV_UPDATE_EFFECT
+            */
+            case Game::PacketType::SV_UPDATE_EFFECT: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId, type, insId;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&insId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_UPDATE_EFFECT: entity id doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                auto itef = ent->effectStat.effects.find(insId);
+                if(itef == ent->effectStat.effects.end()){
+                    nite::print("[client] fail SV_UPDATE_EFFECT: effect ins id doesn't exist");
+                    break;
+                }
+                auto eff = ent->effectStat.effects[itef->first];
+                eff->readState(handler);
+            } break;
+            /*
+                SV_ADD_ITEM
+            */
+            case Game::PacketType::SV_ADD_ITEM: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId, itemId, slotId, qty;
+                UInt8 upgLv;
+                UInt16 compound[GAME_ITEM_MAX_COMPOUND_SLOTS];
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&itemId, sizeof(UInt16));
+                handler.read(&slotId, sizeof(UInt16));
+                handler.read(&qty, sizeof(UInt16));
+                handler.read(&upgLv, sizeof(upgLv));
+                for(int i = 0; i < GAME_ITEM_MAX_COMPOUND_SLOTS; ++i){
+                    handler.read(&compound[i], sizeof(compound[i]));
+                }
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_ADD_ITEM: entity id doesn't exist");
+                    break;
+                }
+                auto item = getItem(itemId, qty);
+                if(item.get() == NULL){
+                    nite::print("[client] fail SV_ADD_ITEM: item id "+nite::toStr(itemId)+" doesn't exist");
+                    break;
+                }
+                for(int i = 0; i < GAME_ITEM_MAX_COMPOUND_SLOTS; ++i){
+                    item->compound[i] = compound[i];
+                }
+                item->upgradelv = upgLv;
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->invStat.add(item, slotId);
+            } break;
+            /*
+                SV_REMOVE_ITEM
+            */
+            case Game::PacketType::SV_REMOVE_ITEM: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId, itemId, slotId, qty;
+                handler.read(&entId, sizeof(UInt16));
+                handler.read(&itemId, sizeof(UInt16));
+                handler.read(&slotId, sizeof(UInt16));
+                handler.read(&qty, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_REMOVE_ITEM: entity id doesn't exist");
+                    break;
+                }
+                auto item = getItem(itemId, qty);
+                if(item.get() == NULL){
+                    nite::print("[client] fail SV_REMOVE_ITEM: item id "+nite::toStr(itemId)+" doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->invStat.removeBySlotId(slotId, qty);
+            } break;
+
+            /*
+                SV_UPDATE_ENTITY_INVENTORY_SLOTS
+            */
+            case Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_SLOTS: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_UPDATE_ENTITY_INVENTORY_SLOTS: entity id doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->readInvSlotsState(handler);
+            } break;
+            /*
+                SV_UPDATE_ENTITY_INVENTORY_CARRY
+            */
+            case Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_CARRY: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_UPDATE_ENTITY_INVENTORY_CARRY: entity id doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                ent->readInvListState(handler);
+                ent->readInvSlotsState(handler);
+            } break;
+            /*
+                SV_UPDATE_ENTITY_ALL_STAT
+            */
+            case Game::PacketType::SV_UPDATE_ENTITY_ALL_STAT: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_UPDATE_ENTITY_ALL_STAT: entity id doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get()); // its an entity
+                ent->readAllStatState(handler);
+            } break;
+            /*
+                SV_UPDATE_ENTITY_HEALTH_STAT
+            */
+            case Game::PacketType::SV_UPDATE_ENTITY_HEALTH_STAT: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_UPDATE_ENTITY_HEALTH_STAT: entity id doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get()); // its an entity
+                ent->readHealthStatState(handler);
+            } break;
+            /*
+                SV_NOTIFY_ENTITY_DEATH
+            */
+            case Game::PacketType::SV_NOTIFY_ENTITY_DEATH: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_NOTIFY_ENTITY_DEATH: entity id doesn't exist");
+                    break;
+                }
+                auto ent = static_cast<Game::EntityBase*>(it->second.get());
+                if(ent->healthStat.dead){
+                    break; // already dead bro
+                }
+                ent->readHealthStatState(handler);
+                ent->onDeath();
+                if(ent->id == entityId){
+                    nite::print("your character dead");
+                }
+            } break;
+            /*
+                SV_NOTIFY_ENTITY_REVIVE
+            */
+            case Game::PacketType::SV_NOTIFY_ENTITY_REVIVE: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId;
+                handler.read(&entId, sizeof(UInt16));
+                auto it = world.objects.find(entId);
+                if(it == world.objects.end()){
+                    nite::print("[client] fail SV_NOTIFY_ENTITY_REVIVE: entity id doesn't exist");
+                    break;
+                }
+                // **TODO**
+                break;
+            } break;
+            /*
+                SV_NOTIFY_GAME_OVER
+            */
+            case Game::PacketType::SV_SET_GAME_OVER: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                nite::print("game over!");
+                // **TODO**
+            } break;
+            /*
+                SV_NOTIFY_GAME_RESTART
+            */
+            case Game::PacketType::SV_SET_GAME_RESTART: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                nite::print("restarting...");
+                world.objects.clear(); // manually clear world (TODO: might be dangerous?)
+                // **TODO**
+            } break;
+            /*
+                SV_UPDATE_SKILL_STATE
+            */
+            case Game::PacketType::SV_UPDATE_SKILL_STATE: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId, skId;
+                handler.read(&entId, sizeof(entId));
+                handler.read(&skId, sizeof(skId));
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] server sent skill update for unexisting entity id '"+nite::toStr(entId)+"'");
+                    break;
+                }
+                auto sk = ent->skillStat.get(skId);
+                if(sk == NULL){
+                    nite::print("[client] fail to update skill id '"+nite::toStr(skId)+"' from entity id '"+nite::toStr(entId)+"': it doesn't posses this skill");
+                    break;
+                }
+                sk->readUpdate(handler);
+            } break;
+            /*
+                SV_UPDATE_TRAP_STATE
+            */
+            case Game::PacketType::SV_UPDATE_TRAP_STATE: {
+                if(!isSv || !isLast){ break; }
+                UInt16 id, state;
+                handler.read(&id, sizeof(id));
+                handler.read(&state, sizeof(state));
+                auto trap = this->traps.getTrap(id);
+                if(trap == NULL){
+                    nite::print("[client] SV_UPDATE_TRAP_STATE: unable to find id '"+nite::toStr(id)+"'");
+                    break;
+                }
+                trap->setState(state, this->map, this->world);
+            } break;
+            /*
+                SV_UPDATE_MANY_TRAPS_STATE
+            */
+            case Game::PacketType::SV_UPDATE_MANY_TRAPS_STATE: {
+                if(!isSv || !isLast){ break; }
+                UInt16 n;
+                UInt16 id;
+                UInt8 state;
+                handler.read(&n, sizeof(n));
+                for(int i = 0; i < n; ++i){
+                    handler.read(&id, sizeof(id));
+                    handler.read(&state, sizeof(state));
+                    auto trap = this->traps.getTrap(id);
+                    if(trap == NULL){
+                        nite::print("[client] SV_UPDATE_TRAP_STATE: unable to find id '"+nite::toStr(id)+"'");
+                        break;
+                    }
+                    trap->setState(state, this->map, this->world);
+                }
+            } break;
+            /*
+                SV_AWAIT_CLIENT_LOAD
+            */
+            case Game::PacketType::SV_AWAIT_CLIENT_LOAD: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                String hash;
+                handler.read(hash);
+                auto indexer = nite::getIndexer();
+                indexer->indexDir("./data/map/generated/"); // in case the map is already in this client's data folder
+                auto ifile = indexer->get(hash);
+                // TODO: handle other resources like tilesources and the actual bitmap
+                if(ifile == NULL){
+                    auto me = this;
+                    auto who = nite::IP_Port(this->sv.ip, nite::NetworkDefaultFileTransferPort);
+                    String output = "./data/map/downloaded/"+hash+".json";
+                    nite::print("downloading map from server...");
+                    ft.request(who, hash, output, [me](const nite::IndexedFile &file, bool success){
+                        if(!success){
+                            nite::print("map file is corrupted");
+                            nite::removeFile(file.path);
+                            auto indexer = nite::getIndexer();
+                            indexer->removeByPath(file.path);
+                            // TODO: retry when it arrives corrupted
+                            nite::AsyncTask::spawn([me](nite::AsyncTask::Context &ctx){
+                                nite::Packet ready(Game::PacketType::SV_CLIENT_LOAD_READY);
+                                me->sendPersPacketFor(me->sv, ready, ++me->svAck);
+                                ctx.stop();
+                            }, 100);
+                            return;
+                        }
+                        nite::print("[client] downloaded map '"+file.path+"'. about to load it");
+                        nite::SmallPacket payload;
+                        payload.write(&file, sizeof(file));
+                        nite::AsyncTask::spawn([me](nite::AsyncTask::Context &ctx){
+                            nite::IndexedFile file;
+                            ctx.payload.read(&file, sizeof(file));
+                            nite::Packet ready(Game::PacketType::SV_CLIENT_LOAD_READY);
+                            me->sendPersPacketFor(me->sv, ready, ++me->svAck);
+                            auto map = Shared<nite::Map>(new nite::Map());
+                            map->load(file.path);
+                            me->map = map;
+                            ctx.stop();
+                        }, 100, payload);
+                    });
+                }else{
+                    auto map = Shared<nite::Map>(new nite::Map());
+                    map->load(ifile->path);
+                    setCurrentMap(map);
+                    nite::Packet ready(Game::PacketType::SV_CLIENT_LOAD_READY);
+                    this->sendPersPacketFor(this->sv, ready, ++this->svAck);
+                }
+            } break;
+            /*
+                SV_UPDATE_ENTITY_SET_CASTING_STATE
+            */
+            case Game::PacketType::SV_UPDATE_ENTITY_SET_CASTING_STATE: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId, target;
+                UInt32 id;
+                UInt8 type;
+                UInt64 startTime, time;
+                float x, y;
+                handler.read(&entId, sizeof(entId));
+                handler.read(&id, sizeof(id));
+                handler.read(&type, sizeof(type));
+                handler.read(&target, sizeof(target));
+                handler.read(&startTime, sizeof(startTime));
+                handler.read(&time, sizeof(time));
+                handler.read(&x, sizeof(x));
+                handler.read(&y, sizeof(y));
+                auto ent = getEntity(entId);
+                if(ent != NULL){
+                    if(ent->currentCasting.get() == NULL){
+                        ent->currentCasting = Shared<Game::EntityCasting>(new Game::EntityCasting());
+                    }
+                    ent->currentCasting->id = id;
+                    ent->currentCasting->type = type;
+                    ent->currentCasting->target = target;
+                    ent->currentCasting->time = time;
+                    ent->currentCasting->startTime = startTime;
+                    ent->currentCasting->p.set(x,y);
+                }
+            } break;
+            /*
+                SV_NOTIFY_ENTITY_DAMAGE
+            */
+            case Game::PacketType::SV_NOTIFY_ENTITY_DAMAGE: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 entId;
+                UInt32 amnt;
+                nite::Vec2 p;
+                handler.read(&entId, sizeof(entId));
+                handler.read(&amnt, sizeof(amnt));
+                handler.read(&p.x, sizeof(p.x));
+                handler.read(&p.y, sizeof(p.y));
+                auto ent = getEntity(entId);
+                if(ent == NULL){
+                    nite::print("[client] SV_NOTIFY_ENTITY_DAMAGE: unable to find entity id '"+nite::toStr(entId)+"'");
+                    break;
+                }
+                ent->markDamaged();
+                ent->addDamageCountShow(amnt);
+                if(p.x > 0 && p.y > 0){
+                    auto ef = Shared<Game::VfxBang>(new Game::VfxBang());
+                    ef->position = p;
+                    this->vfx.add(ef);
+                }
+                if(entId == entityId){
+                    nite::shakeScreen(nite::RenderTargetGame, 0.55f, 300 * (amnt / 5));
+                }
+            } break;  
+            /*
+                SV_SET_OBJECT_POSITION
+            */
+            case Game::PacketType::SV_SET_OBJECT_POSITION: {
+                if(!isSv || !isLast){ break; }
+                sendAck(this->sv, handler.getAck());
+                UInt16 id;
+                nite::Vec2 p;
+                handler.read(&id, sizeof(id));
+                handler.read(&p.x, sizeof(p.x));
+                handler.read(&p.y, sizeof(p.y));
+                auto obj = world.get(id);
+                if(obj != NULL){
+                    obj->setPosition(p);
+                }
+
+            } break; 
+            /*
+                SV_UPDATE_OBJECT_STATE
+            */
+            case Game::PacketType::SV_UPDATE_OBJECT_STATE: {
+                if(!isSv || !isLast){ break; }
+                UInt32 ndelta = handler.getOrder();
+                if(ndelta < currentDelta){
+                    nite::print("out of sync?!");
+                    break;
+                }
+                currentDelta = ndelta;
+                UInt8 n;
+                handler.read(&n, sizeof(n));
+                for(int i = 0; i < n; ++i){
+                    // read values
+                    Game::ObjectState st;
+                    st.delta = ndelta;
+                    handler.read(&st.objId, sizeof(st.objId));
+                    handler.read(&st.states, sizeof(st.states));
+                    if(hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, st.states)){
+                        handler.read(&st.faceDir, sizeof(st.faceDir));
+                        handler.read(&st.xLookingAt, sizeof(st.xLookingAt));
+                        handler.read(&st.yLookingAt, sizeof(st.yLookingAt));
+                        for(int j = 0; j < EntityStateSlot::total; ++j){
+                            handler.read(&st.animSt[j], sizeof(st.animSt[j]));
+                            handler.read(&st.animNum[j], sizeof(st.animNum[j]));
+                            handler.read(&st.animExtime[j], sizeof(st.animExtime[j]));
+                        }                                   
+                    }
+                    if(hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, st.states)){
+                        handler.read(&st.direction, sizeof(st.direction));
+                        handler.read(&st.speed, sizeof(st.speed));
+                        handler.read(&st.x, sizeof(st.x));
+                        handler.read(&st.y, sizeof(st.x));                              
+                    }   
+                    // apply them     
+                    auto obj = world.get(st.objId);
+                    if(obj == NULL){
+                        nite::print("[client] SV_UPDATE_OBJECT_STATE: unable to find obj id '"+nite::toStr(st.objId)+"'");
+                        continue;
+                    }
+                    obj->prevState = obj->currentState;
+                    obj->nextState = st;                        
+                }
+            } break;                   
+            /*
+                UNKNOWN
+            */
+            default: {
+                if(!isSv){ break; }
+                nite::print("[client] unknown packet type '"+nite::toStr(handler.getHeader())+"'");
+            } break;
+
+        }
+    };
+
+    for(int i = 0; i < rcvPackets.size(); ++i){
+        processPacket(rcvPackets[i], false);
+    }
+
+    rcvPackets.clear();
+}
+
+void Game::Client::deliverPacketQueue(){
+    // deliver messages
+    if(packetQueue.size() < 1){
+        return;
+    }        
+    // packets will be joined together into bigger packets 
+    Vector<Vector<int>> indexes;
+    Vector<Vector<UInt16>> sizes;
+    static const size_t indexSize = sizeof(UInt16);
+    size_t size;
+    auto reset = [&](){
+        indexes.push_back(Vector<int>());
+        sizes.push_back(Vector<UInt16>());
+        size = nite::NetworkMaxHeaderSize;
+    };
+    reset();
+    // 1. calculate how many bigger packets are needed
+    for(int i = 0; i < packetQueue.size(); ++i){
+        auto &packet = packetQueue[i];
+        // reset
+        if(size + packet.maxSize > nite::NetworkMaxPacketSize){
+            reset();                
+        }
+        size += packet.maxSize + sizeof(indexSize);
+        indexes[indexes.size()-1].push_back(i);
+        sizes[sizes.size()-1].push_back(packet.maxSize);
+    }
+    // 2. pack it up and send
+    for(int i = 0; i < indexes.size(); ++i){
+        nite::Packet handle(SV_MULTI_PART_PACKET);
+        auto &index = indexes[i];
+        auto &size = sizes[i];
+        // write sizes
+        UInt8 n = size.size();
+        handle.write(&n, sizeof(n));
+        for(int j = 0; j < size.size(); ++j){
+            handle.write(&size[j], sizeof(size[j]));
+        }
+        // write packets
+        for(int j = 0; j < index.size(); ++j){
+            auto &packet = packetQueue[index[j]];
+            handle.write(packet.data, packet.maxSize);
+        }
+        handle.setOrder(++sentOrder);
+        sock.send(sv, handle);
+    }
+    packetQueue.clear();
+}
+
+void Game::Client::player(){
     input.update(false);
-    hud.update();
     igmenu.update();
     auto ent = getEntity(this->entityId);
     bool isSpace = input.isKeyPress(Game::Key::SPACE);
@@ -451,972 +1407,28 @@ void Game::Client::game(){
             } break;
         }
     }
-    // UInt64 lastChange = nite::getTicks()-input.lastChange;
-    // if(nite::getTicks()-input.lastCheck > 500 || (lastChange > 10  && lastChange < 20 && nite::getTicks()-input.lastCheck > 10)){
+}
 
-    //     input.lastCheck = nite::getTicks();
-    // }
-
-
-    // run delta
-    auto runDelta = [&](){
-        // for(auto &it : world.objects){
-        //     Game::NetObject *obj = it.second.get();
-        //     if(obj->objType == ObjectType::Entity){
-        //         auto ent = static_cast<Game::EntityBase*>(obj);
-        //         ent->updateStance();
-        //     }
-        //     if(obj->nextPosition.size() > 0 && obj->position.lerp(obj->nextPosition[0], 0.80f, 1.0f)){
-        //         obj->nextPosition.erase(obj->nextPosition.begin() + 0);
-        //     }        
-        // }
-    
-        std::function<void(nite::Packet &handler, bool ignoreOrder)> processPacket = [&](nite::Packet &handler, bool ignoreOrder){
-            auto sender = handler.sender;
-            UInt64 netId = sender.address + sender.port + sock.sock;
-            bool isSv = this->sv.isSame(handler.sender) && state != Game::NetState::Disconnected;
-            bool isLast = isSv && handler.getOrder() > rcvOrder;
-            if(isSv && isLast){
-                lastPacket = handler;
-                lastPacketTimeout = nite::getTicks();
-                rcvOrder = handler.getOrder();
-            }           
-            // for multi-part packets
-            if(ignoreOrder){
-                isLast = true;
-            }
-            switch(handler.getHeader()){
-                /*
-                    SV_MULTI_PART_PACKET    
-                */
-                case Game::PacketType::SV_MULTI_PART_PACKET: {
-                    Vector<UInt16> sizes;
-                    UInt8 total;
-                    handler.read(&total, sizeof(total));
-                    for(int i = 0; i < total; ++i){
-                        UInt16 size;
-                        handler.read(&size, sizeof(size));
-                        sizes.push_back(size);
-                    }
-                    for(int i = 0; i < total; ++i){
-                        nite::Packet holder;
-                        handler.read(holder.data, sizes[i]);
-                        processPacket(holder, true);
-                    }
-                } break;    
-                /*
-                    SV_CONNECT_ACCEPT
-                */
-                case Game::PacketType::SV_CONNECT_ACCEPT: {
-                    sendAck(sender, handler.getAck());
-                    if(state == Game::NetState::Connecting){
-                        this->sv = sender;
-                        this->serverId = netId;
-                        this->connected = true;
-                        handler.read(&clientId, sizeof(UInt64));
-                        handler.read(serverName);
-                        Game::ClClient yourself;
-                        yourself.uid = clientId;
-                        yourself.nickname = nickname;
-                        this->clients[clientId] = yourself;
-                        setState(Game::NetState::Connected);
-                        nite::print("[client] connected to "+this->sv.str()+" | your clientId is "+nite::toStr(this->clientId));
-                    }
-                } break;                               
-                /*
-                    SV_ACK
-                */
-                case Game::PacketType::SV_ACK: {
-                    ack(handler);
-                } break;
-                /*
-                    SV_CLIENT_JOIN
-                */
-                case Game::PacketType::SV_CLIENT_JOIN: {
-                    if(!isSv || !isLast){ break; }
-                    UInt64 uid;
-                    String nick;
-                    handler.read(&uid, sizeof(UInt64));
-                    handler.read(nick);
-                    this->clients[uid] = Game::ClClient(uid, nick);
-                    nite::print(nick+" joined the game");
-                    // TODO: add in-game notification for this message
-                    sendAck(sender, handler.getAck());
-                } break;
-                /*
-                    SV_NOTI_CLIENT_DROP
-                */
-                case Game::PacketType::SV_NOTI_CLIENT_DROP: {
-                    if(!isSv){ break; }
-                    UInt64 uid;
-                    String reason;
-                    handler.read(&uid, sizeof(UInt64));
-                    handler.read(reason);
-                    auto it = clients.find(uid);
-                    if(it != clients.end()){
-                        nite::print(it->second.nickname+" left the game: "+reason);
-                        clients.erase(it);
-                    }
-                    // TODO: add in-game notification for this message
-                    sendAck(sender, handler.getAck());
-                } break;
-                /*
-                    SV_CLIENT_LIST
-                */
-                case Game::PacketType::SV_CLIENT_LIST: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    clients.clear();
-                    UInt16 n;
-                    handler.read(&n, sizeof(UInt16));
-                    for(int i = 0; i < n; ++i){
-                        Game::ClClient player;
-                        handler.read(&player.uid, sizeof(UInt64));
-                        handler.read(&player.ping, sizeof(UInt64));
-                        handler.read(player.nickname);
-                        clients[player.uid] = player;
-                    }
-                } break;
-                /*
-                    SV_BROADCAST_MESSAGE
-                */
-                case Game::PacketType::SV_BROADCAST_MESSAGE: {
-                    if(!isSv || !isLast){ break; }
-                    String msg;
-                    handler.read(msg);
-                    nite::print(msg);
-                    // TODO: add in-game notification for this message (and chat)
-                    sendAck(this->sv, handler.getAck());
-                } break;
-                /*
-                    SV_CHAT_MESSAGE
-                */
-                case Game::PacketType::SV_CHAT_MESSAGE: {
-                        if(!isSv || !isLast){ break; }
-                        UInt64 uid;
-                        String msg;
-                        handler.read(&uid, sizeof(UInt64));
-                        handler.read(msg);
-                        auto it = clients.find(uid);
-                        String who = it != clients.end() ? it->second.nickname : "???";
-                        nite::print(this->nickname+" ["+who+"] "+msg);
-                        // TODO: add in-game chat
-                        sendAck(this->sv, handler.getAck());
-                } break;
-                /*
-                    SV_CREATE_OBJECT
-                */
-                case Game::PacketType::SV_CREATE_OBJECT: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 id;
-                    UInt16 sigId;
-                    float x, y;
-                    handler.read(&id, sizeof(UInt16));
-                    handler.read(&sigId, sizeof(Int16));
-                    handler.read(&x, sizeof(float));
-                    handler.read(&y, sizeof(float));
-                    auto obj = createNetObject(id, sigId, x, y);
-                    if(obj.get() == NULL){
-                        nite::print("[client] fail SV_CREATE_OBJECT: undefined obj sig '"+Game::ObjectSig::name(sigId)+"' on the client");
-                        break;
-                    }
-                    if(world.objects.find(id) != world.objects.end()){
-                        nite::print("[client] fail SV_CREATE_OBJECT: duplicated id "+nite::toStr(id)+"");
-                        // TODO: come up with a way to properly handle duplicated ids?
-                        break;
-                    }
-                    obj->net = this;
-                    obj->readInitialState(handler);
-                    world.add(obj, id);
-                    if(obj->objType == ObjectType::Entity){
-                        static_cast<Game::EntityBase*>(obj.get())->loadAnim();
-                    }
-                    nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+nite::toStr(sigId)+" at "+nite::Vec2(x, y).str());
-                } break;
-                /*
-                    SV_DESTROY_OBJECT
-                */
-                case Game::PacketType::SV_DESTROY_OBJECT: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 id;
-                    handler.read(&id, sizeof(UInt16));
-                    auto obj = world.objects.find(id);
-                    if(obj == world.objects.end()){
-                        nite::print("[client] fail SV_DESTROY_OBJECT: object id "+nite::toStr(id)+" doesn't exist");
-                        break;
-                    }
-                    nite::print("received destroy obj id "+nite::toStr(obj->second->id));
-                    removeQueue.push_back(obj->second->id);
-                } break;
-                /*
-                    SV_UPDATE_ENTITY_STANCE_STATE
-                */
-                case Game::PacketType::SV_UPDATE_ENTITY_STANCE_STATE: {
-                    if(!isSv || !isLast){ break; }
-                    UInt16 entId;
-                    UInt8 faceDirection;
-                    handler.read(&entId, sizeof(entId));
-                    handler.read(&faceDirection, sizeof(faceDirection));
-                    auto ent = getEntity(entId);
-                    if(ent != NULL){
-                        ent->faceDirection = faceDirection;
-                        UInt8 nstate, n;
-                        for(int i = 0; i < EntityStateSlot::total; ++i){
-                            if(i == EntityStateSlot::SPECIAL){ //specials are passed directly since they don't involve animations                     
-                                handler.read(&ent->state[i], sizeof(ent->state[i]));
-                                handler.read(&ent->stNum[i], sizeof(ent->stNum[i]));
-                                ent->lastStateTime[i] = nite::getTicks();
-                                ent->lastFrameTime[i] = nite::getTicks();
-                            }else{
-                                handler.read(&nstate, sizeof(nstate));
-                                handler.read(&n, sizeof(n));
-                                ent->setState(nstate, i, n);
-                            }
-                            handler.read(&ent->lastExpectedTime[i], sizeof(ent->lastExpectedTime[i])); // pass expected time directly
-                        }
-                    }
-                } break;
-                /*
-                    SV_STATE_DELTA
-                */
-                case Game::PacketType::SV_STATE_DELTA: {
-                    if(!isSv || !isLast){ break; }
-                } break;
-                /*
-                    SV_UPDATE_WORLD_SIMULATION_PROPS (properties)
-                */
-                case Game::PacketType::SV_UPDATE_WORLD_SIMULATION_PROPS: {
-                    if(!isSv || !isLast){ break; }
-                    handler.read(&world.timescale, sizeof(world.timescale));
-                    handler.read(&world.tickrate, sizeof(world.tickrate));
-                    sendAck(this->sv, handler.getAck());
-                } break;
-                /*
-                    SV_UPDATE_OBJECT_RELATIVE_TIMESCALE
-                */
-                case Game::PacketType::SV_UPDATE_OBJECT_RELATIVE_TIMESCALE: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 id;
-                    float timescale;
-                    handler.read(&id, sizeof(UInt16));
-                    handler.read(&timescale, sizeof(float));
-                    auto it = world.objects.find(id);
-                    if(it != world.objects.end()){
-                        it->second->relativeTimescale = timescale;
-                    }
-                } break;
-                /*
-                    SV_REMOTE_CMD_MSG
-                */
-                case Game::PacketType::SV_REMOTE_CMD_MSG: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    String msg;
-                    nite::Color color;
-                    handler.read(msg);
-                    handler.read(&color.r, sizeof(float));
-                    handler.read(&color.g, sizeof(float));
-                    handler.read(&color.b, sizeof(float));
-                    nite::Console::add(msg, color);
-                } break;
-                /*
-                    SV_SET_GAME_START
-                */
-                case Game::PacketType::SV_SET_GAME_START: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    this->onStart();
-                } break;
-                /*
-                    SV_NOTI_ENTITY_OWNER
-                */
-                case Game::PacketType::SV_NOTI_ENTITY_OWNER: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    handler.read(&this->entityId, sizeof(UInt16));
-                    this->hud.follow(this->entityId);
-                    this->camera.follow(this->entityId);
-                } break;
-
-                /*
-                    SV_SET_ENTITY_SKILLS
-                */
-                case Game::PacketType::SV_SET_ENTITY_SKILLS: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId;
-                    UInt8 amnt;
-                    handler.read(&entId, sizeof(UInt16));
-                    handler.read(&amnt, sizeof(UInt8));
-                    auto ent = getEntity(entId);
-                    if(ent == NULL){
-                        nite::print("[client] fail SV_SET_ENTITY_SKILLS: entity id '"+nite::toStr(entId)+"' doesn't exist");
-                        break;
-                    }
-                    for(int i = 0; i < amnt; ++i){
-                        UInt16 skId;
-                        UInt8 lv;
-                        handler.read(&skId, sizeof(UInt16));
-                        handler.read(&lv, sizeof(UInt8));
-                        auto sk = getSkill(skId, lv);
-                        if(sk.get() == NULL){
-                            nite::print("[client] warn SV_SET_ENTITY_SKILLS: skill id "+nite::toStr(skId)+" doesn't exist");
-                            continue;
-                        }
-                        ent->skillStat.add(sk);
-                    }
-                } break;
-                /*
-                    SV_ADD_ENTITY_SKILL
-                */
-                case Game::PacketType::SV_ADD_ENTITY_SKILL: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId, skId;
-                    UInt8 lv;
-                    handler.read(&entId, sizeof(UInt16));
-                    handler.read(&skId, sizeof(UInt16));
-                    handler.read(&lv, sizeof(UInt8));
-                    auto ent = getEntity(entId);
-                    if(ent == NULL){
-                        nite::print("[client] fail SV_ADD_ENTITY_SKILL: entity id '"+nite::toStr(entId)+"' doesn't exist");
-                        break;
-                    }
-                    auto sk = getSkill(skId, lv);
-                    if(sk.get() == NULL){
-                        nite::print("[client] warn SV_ADD_ENTITY_SKILL: skill id "+nite::toStr(skId)+" doesn't exist");
-                        break;
-                    }
-                    ent->skillStat.add(sk);
-                } break;
-                /*
-                    SV_REMOVE_ENTITY_SKILLS
-                */
-                case Game::PacketType::SV_REMOVE_ENTITY_SKILLS: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId;
-                    UInt8 amnt;
-                    handler.read(&entId, sizeof(UInt16));
-                    handler.read(&amnt, sizeof(UInt8));
-                    auto ent = getEntity(entId);
-                    if(ent == NULL){
-                        nite::print("[client] fail SV_REMOVE_ENTITY_SKILLS: entity id '"+nite::toStr(entId)+"' doesn't exist");
-                        break;
-                    }
-                    for(int i = 0; i < amnt; ++i){
-                        UInt16 skId;
-                        handler.read(&skId, sizeof(UInt16));
-                        if(ent->skillStat.get(skId) == NULL){
-                            nite::print("[client] fail SV_REMOVE_ENTITY_SKILLS: skill id "+nite::toStr(skId)+" doesn't exist");
-                            continue;
-                        }
-                        ent->skillStat.remove(skId);
-                    }
-                } break;
-                /*
-                    SV_REMOVE_ENTITY_SKILL
-                */
-                case Game::PacketType::SV_REMOVE_ENTITY_SKILL: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId, skId;
-                    handler.read(&entId, sizeof(UInt16));
-                    handler.read(&skId, sizeof(UInt16));
-                    auto ent = getEntity(entId);
-                    if(ent == NULL){
-                        nite::print("[client] fail SV_REMOVE_ENTITY_SKILL: entity id '"+nite::toStr(entId)+"' doesn't exist");
-                        break;
-                    }
-                    if(ent->skillStat.get(skId) == NULL){
-                        nite::print("[client] fail SV_REMOVE_ENTITY_SKILL: skill id "+nite::toStr(skId)+" doesn't exist");
-                        break;
-                    }
-                    ent->skillStat.remove(skId);
-                } break;
-                /*
-                    SV_SET_ENTITY_ACTIONABLES
-                */
-                case Game::PacketType::SV_SET_ENTITY_ACTIONABLES: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId;
-                    UInt8 amnt;
-                    handler.read(&entId, sizeof(UInt16));
-                    handler.read(&amnt, sizeof(UInt8));
-                    auto ent = getEntity(entId);
-                    if(ent == NULL){
-                        nite::print("[client] fail SV_SET_ENTITY_ACTIONABLES: entity id '"+nite::toStr(entId)+"' doesn't exist");
-                        break;
-                    }
-                    for(int i = 0; i < amnt; ++i){
-                        UInt8 slot;
-                        handler.read(&slot, sizeof(slot));
-                        if(slot > Game::EntityActionables){
-                            slot = 0;
-                            nite::print("[client] fail SV_SET_ENTITY_ACTIONABLES: offset slot");
-                        }
-                        handler.read(&ent->actionables[slot].type, sizeof(UInt8));
-                        handler.read(&ent->actionables[slot].id, sizeof(UInt32));
-                    }
-                } break;
-                /*
-                    SV_ADD_EFFECT
-                */
-                case Game::PacketType::SV_ADD_EFFECT: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId, type, insId;
-                    handler.read(&entId, sizeof(UInt16));
-                    handler.read(&type, sizeof(UInt16));
-                    handler.read(&insId, sizeof(UInt16));
-                    auto it = world.objects.find(entId);
-                    if(it == world.objects.end()){
-                        nite::print("[client] fail SV_ADD_EFFECT: entity id doesn't exist");
-                        break;
-                    }
-                    auto eff = getEffect(type);
-                    if(eff.get() == NULL){
-                        nite::print("[client] fail SV_ADD_EFFECT: effect type "+nite::toStr(type)+" doesn't exist");
-                        break;
-                    }
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                    ent->effectStat.add(eff, insId);
-                    eff->readInitialState(handler);
-                } break;
-                /*
-                    SV_REMOVE_EFFECT
-                */
-                case Game::PacketType::SV_REMOVE_EFFECT: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId, insId;
-                    handler.read(&entId, sizeof(UInt16));
-                    handler.read(&insId, sizeof(UInt16));
-                    auto it = world.objects.find(entId);
-                    if(it == world.objects.end()){
-                        nite::print("[client] fail SV_REMOVE_EFFECT: entity id doesn't exist");
-                        break;
-                    }
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                    ent->effectStat.remove(insId);
-                } break;
-                /*
-                    SV_UPDATE_EFFECT
-                */
-                case Game::PacketType::SV_UPDATE_EFFECT: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId, type, insId;
-                    handler.read(&entId, sizeof(UInt16));
-                    handler.read(&insId, sizeof(UInt16));
-                    auto it = world.objects.find(entId);
-                    if(it == world.objects.end()){
-                        nite::print("[client] fail SV_UPDATE_EFFECT: entity id doesn't exist");
-                        break;
-                    }
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                    auto itef = ent->effectStat.effects.find(insId);
-                    if(itef == ent->effectStat.effects.end()){
-                        nite::print("[client] fail SV_UPDATE_EFFECT: effect ins id doesn't exist");
-                        break;
-                    }
-                    auto eff = ent->effectStat.effects[itef->first];
-                    eff->readState(handler);
-                } break;
-                /*
-                    SV_ADD_ITEM
-                */
-                case Game::PacketType::SV_ADD_ITEM: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId, itemId, slotId, qty;
-                    UInt8 upgLv;
-                    UInt16 compound[GAME_ITEM_MAX_COMPOUND_SLOTS];
-                    handler.read(&entId, sizeof(UInt16));
-                    handler.read(&itemId, sizeof(UInt16));
-                    handler.read(&slotId, sizeof(UInt16));
-                    handler.read(&qty, sizeof(UInt16));
-                    handler.read(&upgLv, sizeof(upgLv));
-                    for(int i = 0; i < GAME_ITEM_MAX_COMPOUND_SLOTS; ++i){
-                        handler.read(&compound[i], sizeof(compound[i]));
-                    }
-                    auto it = world.objects.find(entId);
-                    if(it == world.objects.end()){
-                        nite::print("[client] fail SV_ADD_ITEM: entity id doesn't exist");
-                        break;
-                    }
-                    auto item = getItem(itemId, qty);
-                    if(item.get() == NULL){
-                        nite::print("[client] fail SV_ADD_ITEM: item id "+nite::toStr(itemId)+" doesn't exist");
-                        break;
-                    }
-                    for(int i = 0; i < GAME_ITEM_MAX_COMPOUND_SLOTS; ++i){
-                        item->compound[i] = compound[i];
-                    }
-                    item->upgradelv = upgLv;
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                    ent->invStat.add(item, slotId);
-                } break;
-                /*
-                    SV_REMOVE_ITEM
-                */
-                case Game::PacketType::SV_REMOVE_ITEM: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId, itemId, slotId, qty;
-                    handler.read(&entId, sizeof(UInt16));
-                    handler.read(&itemId, sizeof(UInt16));
-                    handler.read(&slotId, sizeof(UInt16));
-                    handler.read(&qty, sizeof(UInt16));
-                    auto it = world.objects.find(entId);
-                    if(it == world.objects.end()){
-                        nite::print("[client] fail SV_REMOVE_ITEM: entity id doesn't exist");
-                        break;
-                    }
-                    auto item = getItem(itemId, qty);
-                    if(item.get() == NULL){
-                        nite::print("[client] fail SV_REMOVE_ITEM: item id "+nite::toStr(itemId)+" doesn't exist");
-                        break;
-                    }
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                    ent->invStat.removeBySlotId(slotId, qty);
-                } break;
-
-                /*
-                    SV_UPDATE_ENTITY_INVENTORY_SLOTS
-                */
-                case Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_SLOTS: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId;
-                    handler.read(&entId, sizeof(UInt16));
-                    auto it = world.objects.find(entId);
-                    if(it == world.objects.end()){
-                        nite::print("[client] fail SV_UPDATE_ENTITY_INVENTORY_SLOTS: entity id doesn't exist");
-                        break;
-                    }
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                    ent->readInvSlotsState(handler);
-                } break;
-                /*
-                    SV_UPDATE_ENTITY_INVENTORY_CARRY
-                */
-                case Game::PacketType::SV_UPDATE_ENTITY_INVENTORY_CARRY: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId;
-                    handler.read(&entId, sizeof(UInt16));
-                    auto it = world.objects.find(entId);
-                    if(it == world.objects.end()){
-                        nite::print("[client] fail SV_UPDATE_ENTITY_INVENTORY_CARRY: entity id doesn't exist");
-                        break;
-                    }
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                    ent->readInvListState(handler);
-                    ent->readInvSlotsState(handler);
-                } break;
-                /*
-                    SV_UPDATE_ENTITY_ALL_STAT
-                */
-                case Game::PacketType::SV_UPDATE_ENTITY_ALL_STAT: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId;
-                    handler.read(&entId, sizeof(UInt16));
-                    auto it = world.objects.find(entId);
-                    if(it == world.objects.end()){
-                        nite::print("[client] fail SV_UPDATE_ENTITY_ALL_STAT: entity id doesn't exist");
-                        break;
-                    }
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get()); // its an entity
-                    ent->readAllStatState(handler);
-                } break;
-                /*
-                    SV_UPDATE_ENTITY_HEALTH_STAT
-                */
-                case Game::PacketType::SV_UPDATE_ENTITY_HEALTH_STAT: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId;
-                    handler.read(&entId, sizeof(UInt16));
-                    auto it = world.objects.find(entId);
-                    if(it == world.objects.end()){
-                        nite::print("[client] fail SV_UPDATE_ENTITY_HEALTH_STAT: entity id doesn't exist");
-                        break;
-                    }
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get()); // its an entity
-                    ent->readHealthStatState(handler);
-                } break;
-                /*
-                    SV_NOTIFY_ENTITY_DEATH
-                */
-                case Game::PacketType::SV_NOTIFY_ENTITY_DEATH: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId;
-                    handler.read(&entId, sizeof(UInt16));
-                    auto it = world.objects.find(entId);
-                    if(it == world.objects.end()){
-                        nite::print("[client] fail SV_NOTIFY_ENTITY_DEATH: entity id doesn't exist");
-                        break;
-                    }
-                    auto ent = static_cast<Game::EntityBase*>(it->second.get());
-                    if(ent->healthStat.dead){
-                        break; // already dead bro
-                    }
-                    ent->readHealthStatState(handler);
-                    ent->onDeath();
-                    if(ent->id == entityId){
-                        nite::print("your character dead");
-                    }
-                } break;
-                /*
-                    SV_NOTIFY_ENTITY_REVIVE
-                */
-                case Game::PacketType::SV_NOTIFY_ENTITY_REVIVE: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId;
-                    handler.read(&entId, sizeof(UInt16));
-                    auto it = world.objects.find(entId);
-                    if(it == world.objects.end()){
-                        nite::print("[client] fail SV_NOTIFY_ENTITY_REVIVE: entity id doesn't exist");
-                        break;
-                    }
-                    // **TODO**
-                    break;
-                } break;
-                /*
-                    SV_NOTIFY_GAME_OVER
-                */
-                case Game::PacketType::SV_SET_GAME_OVER: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    nite::print("game over!");
-                    // **TODO**
-                } break;
-                /*
-                    SV_NOTIFY_GAME_RESTART
-                */
-                case Game::PacketType::SV_SET_GAME_RESTART: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    nite::print("restarting...");
-                    world.objects.clear(); // manually clear world (TODO: might be dangerous?)
-                    // **TODO**
-                } break;
-                /*
-                    SV_UPDATE_SKILL_STATE
-                */
-                case Game::PacketType::SV_UPDATE_SKILL_STATE: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId, skId;
-                    handler.read(&entId, sizeof(entId));
-                    handler.read(&skId, sizeof(skId));
-                    auto ent = getEntity(entId);
-                    if(ent == NULL){
-                        nite::print("[client] server sent skill update for unexisting entity id '"+nite::toStr(entId)+"'");
-                        break;
-                    }
-                    auto sk = ent->skillStat.get(skId);
-                    if(sk == NULL){
-                        nite::print("[client] fail to update skill id '"+nite::toStr(skId)+"' from entity id '"+nite::toStr(entId)+"': it doesn't posses this skill");
-                        break;
-                    }
-                    sk->readUpdate(handler);
-                } break;
-                /*
-                    SV_UPDATE_TRAP_STATE
-                */
-                case Game::PacketType::SV_UPDATE_TRAP_STATE: {
-                    if(!isSv || !isLast){ break; }
-                    UInt16 id, state;
-                    handler.read(&id, sizeof(id));
-                    handler.read(&state, sizeof(state));
-                    auto trap = this->traps.getTrap(id);
-                    if(trap == NULL){
-                        nite::print("[client] SV_UPDATE_TRAP_STATE: unable to find id '"+nite::toStr(id)+"'");
-                        break;
-                    }
-                    trap->setState(state, this->map, this->world);
-                } break;
-                /*
-                    SV_UPDATE_MANY_TRAPS_STATE
-                */
-                case Game::PacketType::SV_UPDATE_MANY_TRAPS_STATE: {
-                    if(!isSv || !isLast){ break; }
-                    UInt16 n;
-                    UInt16 id;
-                    UInt8 state;
-                    handler.read(&n, sizeof(n));
-                    for(int i = 0; i < n; ++i){
-                        handler.read(&id, sizeof(id));
-                        handler.read(&state, sizeof(state));
-                        auto trap = this->traps.getTrap(id);
-                        if(trap == NULL){
-                            nite::print("[client] SV_UPDATE_TRAP_STATE: unable to find id '"+nite::toStr(id)+"'");
-                            break;
-                        }
-                        trap->setState(state, this->map, this->world);
-                    }
-                } break;
-                /*
-                    SV_AWAIT_CLIENT_LOAD
-                */
-                case Game::PacketType::SV_AWAIT_CLIENT_LOAD: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    String hash;
-                    handler.read(hash);
-                    auto indexer = nite::getIndexer();
-                    indexer->indexDir("./data/map/generated/"); // in case the map is already in this client's data folder
-                    auto ifile = indexer->get(hash);
-                    // TODO: handle other resources like tilesources and the actual bitmap
-                    if(ifile == NULL){
-                        auto me = this;
-                        auto who = nite::IP_Port(this->sv.ip, nite::NetworkDefaultFileTransferPort);
-                        String output = "./data/map/downloaded/"+hash+".json";
-                        nite::print("downloading map from server...");
-                        ft.request(who, hash, output, [me](const nite::IndexedFile &file, bool success){
-                            if(!success){
-                                nite::print("map file is corrupted");
-                                nite::removeFile(file.path);
-                                auto indexer = nite::getIndexer();
-                                indexer->removeByPath(file.path);
-                                // TODO: retry when it arrives corrupted
-                                nite::AsyncTask::spawn([me](nite::AsyncTask::Context &ctx){
-                                    nite::Packet ready(Game::PacketType::SV_CLIENT_LOAD_READY);
-                                    me->sendPersPacketFor(me->sv, ready, ++me->svAck);
-                                    ctx.stop();
-                                }, 100);
-                                return;
-                            }
-                            nite::print("[client] downloaded map '"+file.path+"'. about to load it");
-                            nite::SmallPacket payload;
-                            payload.write(&file, sizeof(file));
-                            nite::AsyncTask::spawn([me](nite::AsyncTask::Context &ctx){
-                                nite::IndexedFile file;
-                                ctx.payload.read(&file, sizeof(file));
-                                nite::Packet ready(Game::PacketType::SV_CLIENT_LOAD_READY);
-                                me->sendPersPacketFor(me->sv, ready, ++me->svAck);
-                                auto map = Shared<nite::Map>(new nite::Map());
-                                map->load(file.path);
-                                me->map = map;
-                                ctx.stop();
-                            }, 100, payload);
-                        });
-                    }else{
-                        auto map = Shared<nite::Map>(new nite::Map());
-                        map->load(ifile->path);
-                        setCurrentMap(map);
-                        nite::Packet ready(Game::PacketType::SV_CLIENT_LOAD_READY);
-                        this->sendPersPacketFor(this->sv, ready, ++this->svAck);
-                    }
-                } break;
-                /*
-                    SV_UPDATE_ENTITY_SET_CASTING_STATE
-                */
-                case Game::PacketType::SV_UPDATE_ENTITY_SET_CASTING_STATE: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId, target;
-                    UInt32 id;
-                    UInt8 type;
-                    UInt64 startTime, time;
-                    float x, y;
-                    handler.read(&entId, sizeof(entId));
-                    handler.read(&id, sizeof(id));
-                    handler.read(&type, sizeof(type));
-                    handler.read(&target, sizeof(target));
-                    handler.read(&startTime, sizeof(startTime));
-                    handler.read(&time, sizeof(time));
-                    handler.read(&x, sizeof(x));
-                    handler.read(&y, sizeof(y));
-                    auto ent = getEntity(entId);
-                    if(ent != NULL){
-                        if(ent->currentCasting.get() == NULL){
-                            ent->currentCasting = Shared<Game::EntityCasting>(new Game::EntityCasting());
-                        }
-                        ent->currentCasting->id = id;
-                        ent->currentCasting->type = type;
-                        ent->currentCasting->target = target;
-                        ent->currentCasting->time = time;
-                        ent->currentCasting->startTime = startTime;
-                        ent->currentCasting->p.set(x,y);
-                    }
-                } break;
-                /*
-                    SV_NOTIFY_ENTITY_DAMAGE
-                */
-                case Game::PacketType::SV_NOTIFY_ENTITY_DAMAGE: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 entId;
-                    UInt32 amnt;
-                    nite::Vec2 p;
-                    handler.read(&entId, sizeof(entId));
-                    handler.read(&amnt, sizeof(amnt));
-                    handler.read(&p.x, sizeof(p.x));
-                    handler.read(&p.y, sizeof(p.y));
-                    auto ent = getEntity(entId);
-                    if(ent == NULL){
-                        nite::print("[client] SV_NOTIFY_ENTITY_DAMAGE: unable to find entity id '"+nite::toStr(entId)+"'");
-                        break;
-                    }
-                    ent->markDamaged();
-                    ent->addDamageCountShow(amnt);
-                    if(p.x > 0 && p.y > 0){
-                        auto ef = Shared<Game::VfxBang>(new Game::VfxBang());
-                        ef->position = p;
-                        this->vfx.add(ef);
-                    }
-                    if(entId == entityId){
-                        nite::shakeScreen(nite::RenderTargetGame, 0.55f, 300 * (amnt / 5));
-                    }
-                } break;  
-                /*
-                    SV_SET_OBJECT_POSITION
-                */
-                case Game::PacketType::SV_SET_OBJECT_POSITION: {
-                    if(!isSv || !isLast){ break; }
-                    sendAck(this->sv, handler.getAck());
-                    UInt16 id;
-                    nite::Vec2 p;
-                    handler.read(&id, sizeof(id));
-                    handler.read(&p.x, sizeof(p.x));
-                    handler.read(&p.y, sizeof(p.y));
-                    auto obj = world.get(id);
-                    if(obj != NULL){
-                        obj->setPosition(p);
-                        obj->nextPosition.clear();
-                    }
-
-                } break;                       
-                /*
-                    UNKNOWN
-                */
-                default: {
-                    if(!isSv){ break; }
-                    nite::print("[client] unknown packet type '"+nite::toStr(handler.getHeader())+"'");
-                } break;
-
-            }
-        };
-
-        for(int i = 0; i < rcvPackets.size(); ++i){
-            processPacket(rcvPackets[i], false);
-        }
-
-        rcvPackets.clear();
-        
-        // send input
+void Game::Client::game(){
+    player();
+    processIncomPackets();
+   
+    // send input
+    if(nite::getTicks()-lastGameUpdate > gameTickRate){
         nite::Packet pack(Game::PacketType::SV_CLIENT_INPUT);
         auto compat = input.getCompat();
         pack.write(&compat, sizeof(compat));
         pack.write(&pointer.x, sizeof(pointer.x));
         pack.write(&pointer.y, sizeof(pointer.y));
         this->sendPacketFor(this->sv, pack);
-       
-        // deliver messages
-        if(packetQueue.size() < 1){
-            return;
-        }        
-        // packets will be joined together into bigger packets 
-        Vector<Vector<int>> indexes;
-        Vector<Vector<UInt16>> sizes;
-        static const size_t indexSize = sizeof(UInt16);
-        size_t size;
-        auto reset = [&](){
-            indexes.push_back(Vector<int>());
-            sizes.push_back(Vector<UInt16>());
-            size = nite::NetworkMaxHeaderSize;
-        };
-        reset();
-        // 1. calculate how many bigger packets are needed
-        for(int i = 0; i < packetQueue.size(); ++i){
-            auto &packet = packetQueue[i];
-            // reset
-            if(size + packet.maxSize > nite::NetworkMaxPacketSize){
-                reset();                
-            }
-            size += packet.maxSize + sizeof(indexSize);
-            indexes[indexes.size()-1].push_back(i);
-            sizes[sizes.size()-1].push_back(packet.maxSize);
-        }
-        // 2. pack it up and send
-        for(int i = 0; i < indexes.size(); ++i){
-            nite::Packet handle(SV_MULTI_PART_PACKET);
-            auto &index = indexes[i];
-            auto &size = sizes[i];
-            // write sizes
-            UInt8 n = size.size();
-            handle.write(&n, sizeof(n));
-            for(int j = 0; j < size.size(); ++j){
-                handle.write(&size[j], sizeof(size[j]));
-            }
-            // write packets
-            for(int j = 0; j < index.size(); ++j){
-                auto &packet = packetQueue[index[j]];
-                handle.write(packet.data, packet.maxSize);
-            }
-            handle.setOrder(++sentOrder);
-            sock.send(sv, handle);
-        }
+        lastGameUpdate = nite::getTicks();
+    } 
+    // run objects' delta state
+    for(auto &it : world.objects){
+        it.second->runState();
+    } 
 
-        packetQueue.clear();
-
-        // UInt64 lastChange = nite::getTicks()-input.lastChange;
-        // if(nite::getTicks()-input.lastCheck > 500 || (lastChange > 10  && lastChange < 20 && nite::getTicks()-input.lastCheck > 10)){
-        //     nite::Packet pack(++sentOrder);
-        //     pack.setHeader(Game::PacketType::SV_CLIENT_INPUT);
-        //     auto compat = input.getCompat();
-        //     pack.write(&compat, sizeof(compat));
-        //     sock.send(this->sv, pack);
-        //     input.lastCheck = nite::getTicks();
-        // }        
-
-    };
-
-    if(nite::getTicks()-deltaUpdate > 16){
-        runDelta();
-        deltaUpdate = nite::getTicks();
-    }
-
-    // if(nite::getTicks()-physicsUpdate > 5){
-    //     auto &queue = world.updateQueue;
-    //     if(queue.size() > 0){
-    //         UInt16 amnt = 1;
-    //         UInt16 n = 0;
-    //         nite::Packet phys(++sentOrder);
-    //         phys.setHeader(Game::PacketType::SV_UPDATE_PHYSICS_OBJECT);
-    //         phys.write(&amnt, sizeof(UInt16));
-    //         // TODO: scope it for visible areas only
-    //         // TODO: check if the entity actually existits before pulling these values
-    //         for(auto &it : queue){
-    //             auto &obj = world.objects[it.first];
-    //             if(obj->id != entityId){
-    //                 continue;
-    //             }
-    //             phys.write(&obj->id, sizeof(UInt16));
-    //             phys.write(&obj->position.x, sizeof(float));
-    //             phys.write(&obj->position.y, sizeof(float));
-    //             phys.write(&obj->speed.x, sizeof(float));
-    //             phys.write(&obj->speed.y, sizeof(float));
-    //             ++n;
-    //         }
-    //         if(n > 0){
-    //             sock.send(this->sv, phys);
-    //         }
-    //         queue.clear();
-    //     }
-    //     physicsUpdate = nite::getTicks();
-    // }
-
+    deliverPacketQueue();
     vfx.step();   
 }
 
@@ -1435,6 +1447,10 @@ Game::EntityBase *Game::Client::getEntity(UInt16 id){
 }
 
 void Game::Client::render(){
+    nite::setColor(1.0f, 0.1f, 0.1f, 1.0f);
+    nite::setRenderTarget(nite::RenderTargetUI2);
+    nite::setDepth(nite::DepthTop);
+    debugFont.draw("ping "+nite::toStr(this->ping)+"ms | "+lastChange, nite::getWidth(), 0.0f, 1.0f, 0.0f, 0.0f);
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     nite::setRenderTarget(nite::RenderTargetGame);
     nite::setDepth(nite::DepthMiddle);
@@ -1452,6 +1468,7 @@ void Game::Client::render(){
         obj.second->draw();
     }
     nite::setDepth(nite::DepthTop);
+    hud.update();
     vfx.draw();
     hud.draw();
 }

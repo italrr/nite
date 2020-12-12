@@ -1,7 +1,6 @@
 #ifndef GAME_ANIM_CORE_HPP
     #define GAME_ANIM_CORE_HPP
 
-    #include "../Engine/Object.hpp"
     #include "../Engine/Types.hpp"
     #include "../Engine/Animation.hpp"
     #include "../Engine/Indexer.hpp"

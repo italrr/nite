@@ -3,7 +3,7 @@
 
     #include "../Engine/Object.hpp"
     #include "../Engine/Packets.hpp"
-
+    #include "../Entity/Anim.hpp"
 
     namespace Game {
 
@@ -79,6 +79,25 @@
             }
         }
 
+        struct ObjectState {
+            UInt32 delta;
+            UInt16 objId;
+            UInt8 states;
+            UInt8 faceDir;
+            UInt8 animSt[AnimPart::total];
+            UInt8 animNum[AnimPart::total];
+            UInt16 animExtime[AnimPart::total];
+            float xLookingAt;
+            float yLookingAt;
+            float direction;
+            float speed; 
+            float x;
+            float y;
+            ObjectState(){
+                delta = 0;
+            }
+        };
+
         struct NetObject : nite::BaseObject {
             UInt8 deltaUpdates;
             void issueDeltaUpdate(UInt8 type);
@@ -98,12 +117,15 @@
 			bool unmovable;
 			bool collided;
             Vector<NetObject*> locals;
-            Vector<nite::Vec2> nextPosition;
             UInt8 objType;
             UInt16 sigId;
-            nite::Vec2 lerpPosition; // client side position interpolation
-            nite::Vec2 lerpSpeed;
+            // nite::Vec2 lerpPosition; // client side position interpolation
+            // nite::Vec2 lerpSpeed;
             // nite::Vec2 nextPosition;
+            void runState();
+            Game::ObjectState prevState;
+            Game::ObjectState nextState;
+            Game::ObjectState currentState;
             Game::NetWorld *container;
             Game::Server *sv;
             Game::Net *net;
@@ -114,7 +136,7 @@
 
             UInt64 frictionRate;
             UInt64 lastMoveTime;            
-
+            nite::Vec2 lerpPosition;
             Vector<Game::PredictFragment> snapshots;
             
             NetObject();

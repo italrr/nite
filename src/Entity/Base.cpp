@@ -159,15 +159,15 @@ void Game::EntityBase::draw(){
 	UInt8 numbs[AnimPart::total] = {stNum[EntityStateSlot::BOTTOM], stNum[EntityStateSlot::MID], 0};
 	UInt64 times[AnimPart::total] = {lastExpectedTime[EntityStateSlot::BOTTOM], lastExpectedTime[EntityStateSlot::MID], 0};
 	anim.setState(anims, numbs, times);
-	// float lrprate = (this->speed / 100.0f);
+	// float lrprate = (this->speed / (100.0f));
 	// if(lrprate > 0.9f){
 	// 	lrprate = 0.9f;
 	// }
 	// if(lrprate < 0.08f){
 	// 	lrprate = 0.08f;
 	// }
-	lerpPosition.lerpDiscrete(position, 0.08f);
-	nite::Vec2 rp = lerpPosition + size * 0.5f;
+	// lerpPosition.lerpDiscrete(position, 0.08f);
+	nite::Vec2 rp = position + size * 0.5f;
 	nite::lerpDiscrete(entityAlpha, canDamage() ? 100.0f : 55.0f, 0.25f);
     nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setColor(1.0f, 1.0f, 1.0f, entityAlpha / 100.0f);
@@ -207,21 +207,21 @@ void Game::EntityBase::draw(){
 	}
 	
 	
-	if(showHitboxes){
-		static nite::Texture empty("data/texture/empty.png");
-		// nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
-		// auto hitboxes = getHitbox();
-		// nite::setDepth(nite::DepthTop);
-		// for(int i = 0; i < hitboxes.size(); ++i){
-		// 	auto &hb = hitboxes[i];
-		// 	empty.draw(hb.position.x, hb.position.y, hb.size.x, hb.size.y, 0.0f, 0.0f, 0.0f);
-		// }
-		nite::setDepth(nite::DepthTop);
-		nite::setColor(nite::Color(0.15f, 0.85f, 0.08f, 1.0f));
-		for(int i = 0; i < nextPosition.size(); ++i){
-			empty.draw(nextPosition[i].x + anim.frameSize.x * 0.5f, nextPosition[i].y + anim.frameSize.y * 0.5f, 64, 64, 0.5f, 0.5f, 0.0f);
-		}
-	}
+	// if(showHitboxes){
+	// 	static nite::Texture empty("data/texture/empty.png");
+	// 	// nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
+	// 	// auto hitboxes = getHitbox();
+	// 	// nite::setDepth(nite::DepthTop);
+	// 	// for(int i = 0; i < hitboxes.size(); ++i){
+	// 	// 	auto &hb = hitboxes[i];
+	// 	// 	empty.draw(hb.position.x, hb.position.y, hb.size.x, hb.size.y, 0.0f, 0.0f, 0.0f);
+	// 	// }
+	// 	nite::setDepth(nite::DepthTop);
+	// 	nite::setColor(nite::Color(0.15f, 0.85f, 0.08f, 1.0f));
+	// 	for(int i = 0; i < nextPosition.size(); ++i){
+	// 		empty.draw(nextPosition[i].x + anim.frameSize.x * 0.5f, nextPosition[i].y + anim.frameSize.y * 0.5f, 64, 64, 0.5f, 0.5f, 0.0f);
+	// 	}
+	// }
 
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	nite::setDepth(bodyDepth);
@@ -566,7 +566,7 @@ void Game::EntityBase::updateStance(){
 					}else{
 						nite::print("no ammo");
 					}
-				}				
+				}	
 			} break;
 			case EntityState::IDLE_HANDGUN: {
 			} break;

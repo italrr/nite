@@ -43,6 +43,7 @@
             UInt64 lastPacketTimeout;
             UInt64 lastState;
             bool ready;
+            UInt32 currentDelta;
             SvClient(const String &nick, UInt64 clientId, const nite::IP_Port &ip){
                 role = Game::SvClientRole::Player;
                 lastRecvOrder = 0;
@@ -53,7 +54,8 @@
                 lastPacketTimeout = nite::getTicks();
                 this->ip = ip;
                 this->clientId = clientId;
-                this->nickname = nick;                
+                this->nickname = nick;   
+                this->currentDelta = 0;             
             }            
             SvClient(){
                 role = Game::SvClientRole::Player;
@@ -62,6 +64,7 @@
                 svAck = 0;
                 entityId = 0;
                 ready = false;
+                this->currentDelta = 0;
             }
         };
 
@@ -82,9 +85,13 @@
             Vector<Shared<nite::Map>> maps;
             Server();
             ~Server();
+            void setSimulationProps(UInt64 tickrate, float ts);
             void setState(unsigned state);
             void removeClient(const nite::IP_Port &ip);
             void dropClient(const nite::IP_Port &ip);
+            void processIncomPackets();
+            void deliverPacketQueue();
+            void checkGameStatus();
             void dropClient(const nite::IP_Port &ip, String reason);
             Game::SvClient *getClient(const String &nickname);
             Game::SvClient *getClient(UInt64 uid);
