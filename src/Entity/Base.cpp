@@ -548,12 +548,12 @@ void Game::EntityBase::updateStance(){
 						if(this->invStat.activeAmmo->ammoType != AmmoType::Arrow){
 							nite::print("can't shoot '"+this->invStat.activeAmmo->name+"' with a bow");
 						}else{
-							nite::Vec2 p = this->position + nite::Vec2(this->anim.arrowShootPos.x, 0.0f);
-							if(faceDirection == EntityFacing::Left){
-								p.x -= this->anim.frameSize.y;
-							}
-							float ang = nite::toDegrees(nite::arctan(p.y - position.y, p.x - position.x));
-							p.y += this->anim.arrowShootPos.y - this->invStat.activeAmmo->anim.frameSize.y * 0.75f;
+
+							nite::Vec2 fsCent = anim.frameSize * nite::Vec2(0.5f);
+							nite::Vec2 ownpscent = position + fsCent;
+							float ang = nite::arctan(pointingAt.y - ownpscent.y, pointingAt.x - ownpscent.x);
+							float mod = nite::distance(fsCent - this->anim.arrowShootPos, fsCent);
+							nite::Vec2 p = ownpscent + nite::Vec2(nite::cos(ang) * mod, nite::sin(ang) * mod);
 							auto obj = Game::createNetObject(container->generateId(), Game::ObjectSig::Projectile, p.x, p.y); 
 							auto prj = static_cast<Game::Projectile*>(obj.get());
 							prj->setup(this->invStat.activeAmmo);

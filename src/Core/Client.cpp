@@ -259,7 +259,6 @@ void Game::Client::update(){
         bool isLast = isSv && handler.getOrder() > rcvOrder;
         if(isSv && isLast){
             lastPacket = handler;
-            lastPacketTimeout = nite::getTicks();
             rcvOrder = handler.getOrder();
         }
         switch(handler.getHeader()){
@@ -268,6 +267,7 @@ void Game::Client::update(){
             */
             case Game::PacketType::SV_PONG: {
                 if(!isSv || !isLast){ break; }
+                lastPacketTimeout = nite::getTicks();
                 this->ping = nite::getTicks() - this->lastPing;            
             } break;
             /*
@@ -515,8 +515,6 @@ void Game::Client::processIncomPackets(){
                 obj->position.y = y;
                 obj->currentState.x = x;
                 obj->currentState.y = y;
-                obj->lerpPosition.x = x;
-                obj->lerpPosition.y = y;
                 world.add(obj, id);
                 if(obj->objType == ObjectType::Entity){
                     static_cast<Game::EntityBase*>(obj.get())->loadAnim();

@@ -375,7 +375,8 @@ void Game::NetWorld::update(){
 	currentTickRate = delta;
   	for (auto it : objects){
 		auto current = it.second;
-
+		nite::Vec2 lastPos = current->position;
+		float lastspd = current->speed;
 		current->step();
 		current->onStep();
 		if(current->objType == ObjectType::Entity){
@@ -383,8 +384,6 @@ void Game::NetWorld::update(){
 			ent->effectStat.update();
 			ent->entityStep();  	
 		}	
-		
-		nite::Vec2 lastPos = current->position;
 		current->collided = false;
 		// movement
 		updateObject(it.second.get());
@@ -392,7 +391,9 @@ void Game::NetWorld::update(){
 		for(int i = 0; i < currentTickRate / tickrate; ++i){
 			current->speed *= 1.0f - (current->friction * nite::getTimescale() * timescale * current->relativeTimescale);
 		}
-		current->issueDeltaUpdate(DeltaUpdateType::PHYSICS);
+		// if(lastPos.x != current->position.x || lastPos.y != current->position.y || current->speed != lastspd){
+			current->issueDeltaUpdate(DeltaUpdateType::PHYSICS);
+		// }
 	}
 }
 

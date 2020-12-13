@@ -82,7 +82,9 @@ void Game::NetObject::runState(){
         currentState.speed = nextState.speed;
         currentState.direction = nextState.direction;
         this->speed = currentState.speed;
-        this->position.lerpDiscrete(nite::Vec2(currentState.x, currentState.y), 0.10f);
+        this->position.x = lerp(this->position.x, currentState.x, 0.1f);
+        this->position.y = lerp(this->position.y, currentState.y, 0.1f);
+        // nite::Vec2(currentState.x, currentState.y);
         this->direction = currentState.direction;
     }
     // anim
@@ -130,14 +132,14 @@ void Game::NetObject::setPosition(const nite::Vec2 &p){
     // snapPosition();
     // this->lerpPosition.set(this->position);
     updateQuadrant();
-    if(sv != NULL){
-		nite::Packet posUpt;
-		posUpt.setHeader(Game::PacketType::SV_SET_OBJECT_POSITION);
-		posUpt.write(&id, sizeof(id));
-		posUpt.write(&position.x, sizeof(position.x));		
-		posUpt.write(&position.y, sizeof(position.y));		
-		sv->sendPacketForMany(sv->getAllClientsIps(), posUpt);
-    }
+    // if(sv != NULL){
+	// 	nite::Packet posUpt;
+	// 	posUpt.setHeader(Game::PacketType::SV_SET_OBJECT_POSITION);
+	// 	posUpt.write(&id, sizeof(id));
+	// 	posUpt.write(&position.x, sizeof(position.x));		
+	// 	posUpt.write(&position.y, sizeof(position.y));		
+	// 	sv->sendPacketForMany(sv->getAllClientsIps(), posUpt);
+    // }
 }
 
 
