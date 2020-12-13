@@ -181,13 +181,17 @@
 		/* Type Polygon */
 		struct Polygon {
 			Polygon();
+			Polygon(int n, const nite::Vec2 &v);
+			void rectangle(float w, float h);
+			void rectangle(const nite::Vec2 &size);
+			nite::Polygon rotate(float rads);
 			void clear();
-			void add(Vec2 &Point);
+			void add(nite::Vec2 &point);
 			void add(float x, float y);
 			void setOrigin(float x, float y);
 			void setOrigin(Vec2 &Point);
-			Vector <Vec2> vert;
-			Vec2 origin;
+			Vector <nite::Vec2> axis;
+			nite::Vec2 origin;
 		};
 	}
 

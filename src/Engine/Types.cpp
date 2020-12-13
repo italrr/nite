@@ -698,23 +698,56 @@ nite::Vec2 nite::Rect::getSumSides(){
 Polygon
 ================
 */
+nite::Polygon::Polygon(int n, const nite::Vec2 &v){
+	for(int i = 0; i < n; ++i){
+		axis.push_back(v);
+	}
+}
+
+void nite::Polygon::rectangle(float w, float h){
+	clear();
+	origin.set(w * 0.5f, h * 0.5f);
+	axis.push_back(nite::Vec2(0, 0));
+	axis.push_back(nite::Vec2(w, 0));
+	axis.push_back(nite::Vec2(w, h));
+	axis.push_back(nite::Vec2(0, h));
+}
+
+void nite::Polygon::rectangle(const nite::Vec2 &size){
+	rectangle(size.x, size.y);
+}
+
+nite::Polygon nite::Polygon::rotate(float rads){
+	nite::Polygon rotated(axis.size(), nite::Vec2(0.0f));
+	for(int i = 0; i < axis.size(); ++i){
+		nite::Vec2 ax;
+		float mod = nite::distance(nite::Vec2(0.0f), axis[i] - origin);
+		float ang = nite::arctan(axis[i].y - origin.y, axis[i].x - origin.x);
+		ax.x = nite::cos(ang + rads) * mod + origin.x;
+		ax.y = nite::sin(ang + rads) * mod + origin.y;
+		rotated.axis[i] = ax;
+	}
+	rotated.origin = this->origin;
+	return rotated;
+}
+
 nite::Polygon::Polygon(){
 	origin.x = 0;
 	origin.y = 0;
 }
 
 void nite::Polygon::clear(){
-	vert.clear();
+	axis.clear();
 	return;
 }
 
 void nite::Polygon::add(Vec2 &Point){
-	vert.push_back(Point);
+	axis.push_back(Point);
 	return;
 }
 
 void nite::Polygon::add(float x, float y){
-	vert.push_back(Vec2(x,y));
+	axis.push_back(Vec2(x,y));
 	return;
 }
 

@@ -70,6 +70,71 @@ static void drawRectangle(nite::Renderable *object){
 	obj.programs.clear();
 }
 
+
+
+static void drawPolygon(nite::Renderable *object){
+	nite::RenderablePolygon &obj = *static_cast<nite::RenderablePolygon*>(object);
+	glLineWidth(obj.thickness);
+	glColor4f(obj.color.r, obj.color.g, obj.color.b, obj.color.a);
+	nite::Vec2 offset = nite::getRenderOffset();
+	glPushMatrix();
+		glTranslatef(obj.position.x - nite::getViewX(obj.target) + offset.x, obj.position.y - nite::getViewY(obj.target) + offset.y, 0.f);
+		glRotatef(0, 0.0, 0.0, 1.0);
+		for(int i = 0; i < obj.programs.size(); ++i){
+			glUseProgram(obj.programs[i]->id);
+			for(const auto& Uniform : obj.programs[i]->uniforms.integers){
+				int tex = glGetUniformLocation(obj.programs[i]->id, Uniform.first.c_str());
+				if(tex != -1){
+					glUniform1i(tex, Uniform.second);
+				}else{
+					if(!obj.programs[i]->ref->faulty){
+						nite::print("'"+obj.programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
+						obj.programs[i]->ref->faulty = true;
+					}
+				}
+			}
+			for(const auto& Uniform : obj.programs[i]->uniforms.floats){
+				int tex = glGetUniformLocation(obj.programs[i]->id, Uniform.first.c_str());
+				if(tex != -1){
+					glUniform1f(tex, Uniform.second);
+				}else{
+					if(!obj.programs[i]->ref->faulty){
+						nite::print("'"+obj.programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
+						obj.programs[i]->ref->faulty = true;
+					}
+				}
+			}
+			for(const auto& Uniform : obj.programs[i]->uniforms.vectors){
+				int tex = glGetUniformLocation(obj.programs[i]->id, Uniform.first.c_str());
+				if(tex != -1){
+					float v[2];
+					v[0] = Uniform.second.x;
+					v[1] = Uniform.second.y;
+					glUniform2fv(tex, 1, v);
+				}else{
+					if(!obj.programs[i]->ref->faulty){
+						nite::print("'"+obj.programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
+						obj.programs[i]->ref->faulty = true;
+					}
+				}
+			}
+		}
+		int n = obj.shape.axis.size();
+		GLfloat box[n * 2];		
+		for(int i = 0; i < n; ++i){
+			box[i * 2] = obj.shape.axis[i].x - obj.origin.x;
+			box[i * 2 + 1] = obj.shape.axis[i].y - obj.origin.y;
+		}
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2, GL_FLOAT, 0, box);
+		glDrawArrays(obj.fill ? GL_QUADS : GL_LINE_LOOP, 0, obj.shape.axis.size());
+		glDisableClientState(GL_VERTEX_ARRAY);
+	glPopMatrix();
+	glUseProgram(0);
+	obj.programs.clear();
+}
+
+
 static void drawLine(nite::Renderable *object){
 	nite::RenderableLine &obj = *(nite::RenderableLine*)object;
 	nite::Vec2 offset = nite::getRenderOffset();	
@@ -175,6 +240,20 @@ nite::RenderableRectangle *nite::Draw::Rectangle(const nite::Vec2 &P, const nite
 	obj->thickness 		= 1.0f;
 	obj->origin			= nite::Vec2(0, 0);
 	obj->function		= &drawRectangle;
+	obj->color			= nite::getColor();
+	nite::addRenderList((nite::Renderable*)obj);
+	return obj;
+}
+
+nite::RenderablePolygon *nite::Draw::Polygon(const nite::Polygon &polygon, const nite::Vec2 &pos, const nite::Vec2 &origin, bool fill){
+	nite::RenderablePolygon *obj = new nite::RenderablePolygon();
+	obj->position.x 	= pos.x;
+	obj->position.y 	= pos.y;
+	obj->fill			= fill;
+	obj->thickness 		= 1.0f;
+	obj->origin			= origin;
+	obj->function		= &drawPolygon;
+	obj->shape 			= polygon;
 	obj->color			= nite::getColor();
 	nite::addRenderList((nite::Renderable*)obj);
 	return obj;

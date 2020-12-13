@@ -304,12 +304,12 @@ void Game::NetWorld::updateObject(Game::NetObject *obj){
 		}
 	}
 	// push off by 1 unit of the total diff
-	// if(limit.x == 0.0f && diff.x != 0.0f){
-	// 	limit.x = (1.0f / diff.x) * nite::getSign(diff.x) * -1.0f;		
-	// }
-	// if(limit.y == 0.0f && diff.y != 0.0f){
-	// 	limit.y = (1.0f / diff.y) * nite::getSign(diff.y) * -1.0f;
-	// }
+	if(limit.x == 0.0f && diff.x != 0.0f){
+		limit.x = (1.0f / diff.x) * nite::getSign(diff.x) * -1.0f;		
+	}
+	if(limit.y == 0.0f && diff.y != 0.0f){
+		limit.y = (1.0f / diff.y) * nite::getSign(diff.y) * -1.0f;
+	}
 	obj->position = obj->position + diff * limit;
 	if(origp.x != obj->position.x || origp.y != obj->position.y){
 		obj->updateQuadrant();
@@ -328,7 +328,7 @@ void Game::NetWorld::renderDbug(){
 			nite::setDepth(nite::DepthTop);
 			nite::setRenderTarget(nite::RenderTargetGame);
 			nite::setColor(current->collided ? nite::Color(1.0f, 0, 0) : nite::Color(0, 1.0f, 0));
-			nite::Draw::Rectangle(current->position, current->size, false, nite::Vec2(0.0, 0.0), 0);
+			nite::Draw::Polygon(current->body.rotate(current->orientation), current->position, nite::Vec2(0.0f), false);
 			nite::setDepth(0);
 			nite::resetColor();
 		}

@@ -9,6 +9,7 @@ Game::Projectile::Projectile(){
     mass = 1.0f;
     solid =  false;
     size.set(140, 68);
+    body.rectangle(size);
     type = ProjectileType::Arrow;
     objType = ObjectType::Projectile;
     unmovable = false;
@@ -40,6 +41,7 @@ void Game::Projectile::step(){
         nite::print("arrow destroyed");
         destroy();
     }
+    this->orientation = this->direction;
 }
 
 void Game::Projectile::onCollision(Game::NetObject *obj){

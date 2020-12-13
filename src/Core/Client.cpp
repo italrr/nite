@@ -1205,6 +1205,7 @@ void Game::Client::processIncomPackets(){
                     }
                     if(hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, st.states)){
                         handler.read(&st.direction, sizeof(st.direction));
+                        handler.read(&st.orientation, sizeof(st.orientation));
                         handler.read(&st.speed, sizeof(st.speed));
                         handler.read(&st.x, sizeof(st.x));
                         handler.read(&st.y, sizeof(st.x));                              

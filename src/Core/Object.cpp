@@ -55,6 +55,7 @@ Game::NetObject::NetObject(){
 	localId = 0;
     speed = 0.0f;
     direction = 0.0f;
+    orientation = 0.0f;
 	container = NULL;
 	position.set(0.0f);
     destroyed = false;
@@ -81,11 +82,12 @@ void Game::NetObject::runState(){
         currentState.y = nextState.y;
         currentState.speed = nextState.speed;
         currentState.direction = nextState.direction;
+        currentState.orientation = nextState.orientation;
         this->speed = currentState.speed;
         this->position.x = lerp(this->position.x, currentState.x, 0.1f);
         this->position.y = lerp(this->position.y, currentState.y, 0.1f);
-        // nite::Vec2(currentState.x, currentState.y);
         this->direction = currentState.direction;
+        this->orientation = currentState.orientation;
     }
     // anim
     if(DeltaUpdateType::hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, nextState.states) && this->objType == ObjectType::Entity){

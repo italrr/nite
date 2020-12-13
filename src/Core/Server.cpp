@@ -1088,6 +1088,7 @@ void Game::Server::game(){
             // PHYSICS
             if(hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, obj->deltaUpdates)){
                 delta.write(&obj->direction, sizeof(obj->direction));
+                delta.write(&obj->orientation, sizeof(obj->orientation));
                 delta.write(&obj->speed, sizeof(obj->speed));                    
                 delta.write(&obj->position.x, sizeof(obj->position.x));
                 delta.write(&obj->position.y, sizeof(obj->position.y));                                    

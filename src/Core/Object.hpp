@@ -90,6 +90,7 @@
             float xLookingAt;
             float yLookingAt;
             float direction;
+            float orientation;
             float speed; 
             float x;
             float y;
@@ -102,11 +103,13 @@
             UInt8 deltaUpdates;
             void issueDeltaUpdate(UInt8 type);
             void clearDeltaUpdates();
+            nite::Polygon body;
             UInt16 id;
 			int localId;	
 			nite::Vec2 position;
 			float speed;
             float direction;
+            float orientation;
 			nite::Vec2 size;
 			float friction;
 			float mass;

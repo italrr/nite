@@ -784,6 +784,7 @@ void Game::EntityBase::recalculateStats(){
 void Game::EntityBase::loadAnim(){
 	anim.load("data/anim/anim_humanoid.json");
 	this->size.set(anim.maskSize);
+	this->body.rectangle(anim.maskSize);
 	// server cannot load textures (headless doesnt' run opengl)
 	if(sv == NULL){
 		anim.anim.load(anim.source.path, anim.transparency);
