@@ -98,7 +98,7 @@
             Vector<Shared<Game::PersisentDelivey>> deliveries;
             unsigned state;
             UInt64 lastState;
-            Game::NetWorld world;
+            Game::World world;
             bool init;
             Game::TrapDevice traps;
             UInt16 lastInitTfId;
@@ -152,6 +152,11 @@
                 SEVER-SIDE ONY:
                 UINT64 REMOTE_TIME
             */
+
+            SV_CLICK_ON,
+            /*
+                UINT32 CELL
+            */           
 
             SV_PONG,
             /*
@@ -308,8 +313,6 @@
                     UINT8 STATE[3]
                     UINT8 NUM[3]
                     UINT16 EXTIME[3]
-                    FLOAT XLOOKINGAT
-                    FLOAT YLOOKINGAT
                     // PHYSICS
                     FLOAT DIRECTION
                     FLOAT SPEED

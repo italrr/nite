@@ -31,6 +31,18 @@
             Int32 val;
             MapCell(){
             }
+            MapCell(int i, int v, int w){
+                this->index = i;
+                this->val = v;
+                this->x = i % w;
+                this->y = i / w;
+            }
+            MapCell(const nite::Vec2 &p, int v, int w){
+                this->index = p.x + p.y * w;
+                this->x = p.x;
+                this->y = p.y;
+                this->val = v;
+            }
         };
 
         struct MapRoute {

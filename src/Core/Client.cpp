@@ -113,8 +113,8 @@ static nite::Console::Result cfDisconnect(Vector<String> params){
 static auto cfDisconnectIns = nite::Console::CreateFunction("disconnect", &cfDisconnect);
 
 Game::Client::Client() : Game::Net(){
-    nite::Console::CreateProxy clPhysicsDebug("cl_physics_debug", nite::Console::ProxyType::Bool, sizeof(bool), &world.debugPhysics);
-    nite::Console::CreateProxy clTimescale("cl_local_timescale", nite::Console::ProxyType::Float, sizeof(float), &world.timescale);
+    nite::Console::CreateProxy clPhysicsDebug("cl_physics_debug", nite::Console::ProxyType::Bool, sizeof(bool), &world.debug);
+    // nite::Console::CreateProxy clTimescale("cl_local_timescale", nite::Console::ProxyType::Float, sizeof(float), &world.timescale);
     init = false;
     isServer = false;
     clear();
@@ -136,8 +136,6 @@ void Game::Client::clear(){
     sock.close();
     ft.clear();
     clients.clear();
-    world.clearWallMasks();
-    world.clearGhostMasks();
     world.clear();
     deliveries.clear();
     hud.stop();
@@ -499,7 +497,7 @@ void Game::Client::processIncomPackets(){
                 handler.read(&sigId, sizeof(Int16));
                 handler.read(&x, sizeof(float));
                 handler.read(&y, sizeof(float));
-                auto obj = createNetObject(id, sigId, x, y);
+                auto obj = createNetObject(sigId, x, y);
                 if(obj.get() == NULL){
                     nite::print("[client] fail SV_CREATE_OBJECT: undefined obj sig '"+Game::ObjectSig::name(sigId)+"' on the client");
                     break;
@@ -511,15 +509,12 @@ void Game::Client::processIncomPackets(){
                 }
                 obj->net = this;
                 obj->readInitialState(handler);
-                obj->position.x = x;
-                obj->position.y = y;
-                obj->currentState.x = x;
-                obj->currentState.y = y;
-                world.add(obj, id);
+                obj->id = id;
+                world.add(obj, obj->position.x, obj->position.y);
                 if(obj->objType == ObjectType::Entity){
                     static_cast<Game::EntityBase*>(obj.get())->loadAnim();
                 }
-                nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+nite::toStr(sigId)+" at "+nite::Vec2(x, y).str());
+                nite::print("[client] spawned object: '"+Game::ObjectSig::name(sigId)+"' id: "+nite::toStr(id)+", type: '"+Game::ObjectType::name(obj->objType)+"', sigId: "+nite::toStr(sigId)+" at "+obj->position.str());
             } break;
             /*
                 SV_DESTROY_OBJECT
@@ -573,8 +568,8 @@ void Game::Client::processIncomPackets(){
                 sendAck(this->sv, handler.getAck());                    
                 handler.read(&gameTimescale, sizeof(gameTimescale));
                 handler.read(&gameTickRate, sizeof(gameTickRate));
-                this->world.tickrate = gameTickRate;
-                this->world.timescale = gameTimescale;
+                // this->world.tickrate = gameTickRate;
+                // this->world.timescale = gameTimescale;
             } break;
             /*
                 SV_UPDATE_OBJECT_RELATIVE_TIMESCALE
@@ -1026,7 +1021,7 @@ void Game::Client::processIncomPackets(){
                     nite::print("[client] SV_UPDATE_TRAP_STATE: unable to find id '"+nite::toStr(id)+"'");
                     break;
                 }
-                trap->setState(state, this->map, this->world);
+                // trap->setState(state, this->map, this->world);
             } break;
             /*
                 SV_UPDATE_MANY_TRAPS_STATE
@@ -1045,7 +1040,7 @@ void Game::Client::processIncomPackets(){
                         nite::print("[client] SV_UPDATE_TRAP_STATE: unable to find id '"+nite::toStr(id)+"'");
                         break;
                     }
-                    trap->setState(state, this->map, this->world);
+                    // trap->setState(state, this->map, this->world);
                 }
             } break;
             /*
@@ -1175,51 +1170,10 @@ void Game::Client::processIncomPackets(){
                 handler.read(&p.y, sizeof(p.y));
                 auto obj = world.get(id);
                 if(obj != NULL){
-                    obj->setPosition(p);
+                    // obj->setPosition(p);
                 }
 
-            } break; 
-            /*
-                SV_UPDATE_OBJECT_STATE
-            */
-            case Game::PacketType::SV_UPDATE_OBJECT_STATE: {
-                if(!isSv || !isLast){ break; }
-                UInt32 ndelta = handler.getOrder();
-                UInt8 n;
-                handler.read(&n, sizeof(n));
-                for(int i = 0; i < n; ++i){
-                    // read values
-                    Game::ObjectState st;
-                    st.delta = ndelta;
-                    handler.read(&st.objId, sizeof(st.objId));
-                    handler.read(&st.states, sizeof(st.states));
-                    if(hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, st.states)){
-                        handler.read(&st.faceDir, sizeof(st.faceDir));
-                        handler.read(&st.xLookingAt, sizeof(st.xLookingAt));
-                        handler.read(&st.yLookingAt, sizeof(st.yLookingAt));
-                        for(int j = 0; j < EntityStateSlot::total; ++j){
-                            handler.read(&st.animSt[j], sizeof(st.animSt[j]));
-                            handler.read(&st.animNum[j], sizeof(st.animNum[j]));
-                            handler.read(&st.animExtime[j], sizeof(st.animExtime[j]));
-                        }                                   
-                    }
-                    if(hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, st.states)){
-                        handler.read(&st.direction, sizeof(st.direction));
-                        handler.read(&st.orientation, sizeof(st.orientation));
-                        handler.read(&st.speed, sizeof(st.speed));
-                        handler.read(&st.x, sizeof(st.x));
-                        handler.read(&st.y, sizeof(st.x));                              
-                    }   
-                    // apply them     
-                    auto obj = world.get(st.objId);
-                    if(obj == NULL){
-                        nite::print("[client] SV_UPDATE_OBJECT_STATE: unable to find obj id '"+nite::toStr(st.objId)+"'");
-                        continue;
-                    }
-                    obj->prevState = obj->currentState;
-                    obj->nextState = st;                        
-                }
-            } break;                   
+            } break;                    
             /*
                 UNKNOWN
             */
@@ -1308,97 +1262,15 @@ void Game::Client::player(){
                 wear += ent->invStat.slots[i]->name+"("+EquipSlot::name(i)+"), ";
             }
             nite::print(inv+"\n"+wear);
-        } 
-        if(input.isKeyPress(Game::Key::UP) && input.isKeyPress(Game::Key::RIGHT)){
-            ent->entityMove(nite::Vec2(1.0f, -1.0f), isSpace);
-        }else
-        if(input.isKeyPress(Game::Key::DOWN) && input.isKeyPress(Game::Key::RIGHT)){
-            ent->entityMove(nite::Vec2(1.0f, 1.0f), isSpace);
-        }else
-        if(input.isKeyPress(Game::Key::UP) && input.isKeyPress(Game::Key::LEFT)){
-            ent->entityMove(nite::Vec2(-1.0f, -1.0f), isSpace);
-        }else
-        if(input.isKeyPress(Game::Key::DOWN) && input.isKeyPress(Game::Key::LEFT)){
-            ent->entityMove(nite::Vec2(-1.0f, 1.0f), isSpace);
-        }else
-        if(input.isKeyPress(Game::Key::UP)){
-            ent->entityMove(nite::Vec2(0.0f, -1.0f), isSpace);
-        }else
-        if(input.isKeyPress(Game::Key::RIGHT)){
-            ent->entityMove(nite::Vec2(1.0f, 0.0f), isSpace);
-        }else
-        if(input.isKeyPress(Game::Key::DOWN)){
-            ent->entityMove(nite::Vec2(0.0f, 1.0f), isSpace);
-        }else
-        if(input.isKeyPress(Game::Key::LEFT)){
-            ent->entityMove(nite::Vec2(-1.0f, 0.0f), isSpace);
         }
     }
-    for(auto key : this->input.mapping){
-        if(ent == NULL){
-            break;
-        }
-        auto gk = key.second;
-        auto nk = key.first;
-        bool pressed = (nk > 200 ? nite::mousePressed(nk) : nite::keyboardPressed(nk));
-        if(!pressed || entityId == 0) continue;
-        Game::Actionable *act = NULL;
-        auto requestUse = [&](UInt8 type, UInt32 id, UInt16 target, float x, float y){
-            nite::Packet use;
-            use.setHeader(Game::PacketType::SV_ENTITY_USE_SKILL_ITEM);
-            use.setOrder(++this->sentOrder);
-            use.setAck(++this->svAck);
-            use.write(&this->entityId, sizeof(this->entityId));
-            use.write(&type, sizeof(type));
-            use.write(&id, sizeof(id));
-            use.write(&target, sizeof(target));
-            use.write(&x, sizeof(x));
-            use.write(&y, sizeof(y));
-            this->sendPersPacketFor(this->sv, use, ++this->svAck);
-        };
-        switch(gk){
-            case Game::Key::k1: {
-                act = &ent->actionables[0];
-            } break;
-            case Game::Key::k2: {
-                act = &ent->actionables[1];
-            } break;
-            case Game::Key::k3: {
-                act = &ent->actionables[2];
-            } break;
-            case Game::Key::k4: {
-                act = &ent->actionables[3];
-            } break;
-            case Game::Key::k5: {
-                act = &ent->actionables[4];
-            } break;
-            case Game::Key::k6: {
-                act = &ent->actionables[5];
-            } break;
-            case Game::Key::k7: {
-                act = &ent->actionables[6];
-            } break;
-        }
-        if(act == NULL){
-            break;
-        }
-        switch(act->type){
-            case ActionableType::None: {
-                nite::print("Used none");
-            } break;
-            case ActionableType::Item: {
-                nite::print("Used Item");
-            } break;
-            case ActionableType::Skill: {
-                float x = ent->position.x, y = ent->position.y;
-                auto sk = ent->skillStat.get(act->id);
-                if(sk != NULL && sk->usageType == SkillUsageType::Target){
-                    x = nite::mouseX() + nite::getViewX(nite::RenderTargetGame);
-                    y = nite::mouseY() + nite::getViewY(nite::RenderTargetGame);
-                }
-                // notify server this player wants to use an item/skill
-                requestUse(ActionableType::Skill, act->id, 0, x, y);
-            } break;
+    if(nite::mousePressed(nite::butLEFT)){
+        UInt32 i = world.toIndex(nite::floor((nite::getView(nite::RenderTargetGame) + nite::mousePositionAdj(nite::RenderTargetGame)) / nite::Vec2(world.cellsize)));
+        if(world.isValid(i)){
+            nite::print("[client] "+nite::toStr(i));
+            nite::Packet clickOn(Game::PacketType::SV_CLICK_ON);
+            clickOn.write(&i, sizeof(i));
+            sendPacketFor(this->sv, clickOn);
         }
     }
 }
@@ -1417,11 +1289,6 @@ void Game::Client::game(){
         this->sendPacketFor(this->sv, pack);
         lastGameUpdate = nite::getTicks();
     } 
-    // run objects' delta state
-    for(auto &it : world.objects){
-        it.second->runState();
-    } 
-
     deliverPacketQueue();
     vfx.step();   
 }
@@ -1448,7 +1315,6 @@ void Game::Client::render(){
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     nite::setRenderTarget(nite::RenderTargetGame);
     nite::setDepth(nite::DepthMiddle);
-    world.renderDbug();
     if(map != NULL){
         auto pos = nite::getView(nite::RenderTargetGame);
         auto sizeAdj = nite::getAdjustedSize();
@@ -1457,12 +1323,33 @@ void Game::Client::render(){
         auto sizeDiffH = sizeDiff * nite::Vec2(0.5f);
         // draw tiles within view scope plus targetExcess diff (getAdjustedSize)
         map->draw(nite::Vec2(0.0f), nite::Rect(pos.x - sizeDiffH.x, pos.y - sizeDiffH.y, nite::getWidth() + sizeDiff.x, nite::getHeight() + sizeDiff.y));
+
+
+        // int wt = nite::round((size.x + sizeDiff.x) / world.gridSpec.x);
+        // int ht = nite::round((size.y + sizeDiff.y) / world.gridSpec.y);
+
+        // nite::setDepth(nite::DepthTop);
+        // nite::setColor(0.0f, 0.8f, 0.0f, 0.5f);
+        // static nite::Texture empty("data/texture/empty.png");
+        // for(int x = 0; x < wt; ++x){
+        //     for(int y = 0; y < ht; ++y){
+        //         float _x = x * world.gridSpec.x;
+        //         float _y = y * world.gridSpec.y;
+        //         empty.draw(_x + pos.x - sizeDiffH.x, _y + pos.y - sizeDiffH.y, world.gridSpec.x, world.gridSpec.y, 0.0f, 0.0f, 0.0f);
+        //     }
+        // }
+
+        // nite::Vec2 snap = nite::round(position.x / container->gridSpec.x) * world.cusize;
+
     }
     for(auto &obj : world.objects){
         obj.second->draw();
     }
+
     nite::setDepth(nite::DepthTop);
-    hud.update();
+    // hud.update();
     vfx.draw();
-    hud.draw();
+    // hud.draw();
+
+    world.renderDebug();
 }

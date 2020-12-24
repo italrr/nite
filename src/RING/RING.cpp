@@ -353,8 +353,8 @@ Shared<nite::Map> Game::RING::generateMap(Shared<Game::RING::Blueprint> bp, Game
     int indxs = (bp->start % bp->width) * scale;
     int indys = (bp->start / bp->width) * scale;
     map->startCell.index = indxs + indys * width;
-    map->startCell.x = indxs * temp.tileSize.x;
-    map->startCell.y = indys * temp.tileSize.y;
+    map->startCell.x = indxs;
+    map->startCell.y = indys;
     map->setup(3, nite::Vec2(width, height), temp.tileSize, temp.margin, temp.spacing);
     map->add(floor, 0, temp.sourcePath, "floor");
     map->add(walls, 1, temp.sourcePath, "walls");

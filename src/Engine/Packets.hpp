@@ -51,6 +51,8 @@
 			bool read(String &str);
 			bool read(void *data, size_t Si);
 			bool write(const String str);
+			bool read(nite::Vec2 &v);
+			bool write(const nite::Vec2  &v);
 			nite::Packet& operator= (const nite::Packet &other);
 		};
 

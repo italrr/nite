@@ -54,7 +54,7 @@
 			};
 		}
 
-        struct NetWorld;
+        struct World;
         struct Effect {
             String name;
             String desc;

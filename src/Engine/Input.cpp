@@ -5,6 +5,7 @@
 #include "Console.hpp"
 //#include "UI/UI.hpp"
 #include "Network.hpp"
+#include "Graphics.hpp"
 
 //#include "nite.h"
 //#include "View.h"
@@ -14,48 +15,40 @@ using namespace nite;
 static Uint8 *St;
 static nite::Vec2 lastMousePosition;
 static nite::Vec2 mouseCurrentPosition;
-/*
-================
-Get currently mouse's x
-================
-*/
+
 int nite::mouseX(){
 	return mouseCurrentPosition.x;
 }
 
-/*
-================
-Get currently mouse's y
-================
-*/
 int nite::mouseY(){
 	return mouseCurrentPosition.y;
 }
 
-/*
-================
-Get currently mouse's x and y
-================
-*/
 nite::Vec2 nite::mousePosition(){
 	return mouseCurrentPosition;
 }
 
-/*
-================
-Get mouse's speed
-================
-*/
+int nite::mouseXAdj(unsigned target){
+	return mousePositionAdj(target).x;
+}
+
+int nite::mouseYAdj(unsigned target){
+	return mousePositionAdj(target).y;
+}
+
+nite::Vec2 nite::mousePositionAdj(unsigned target){
+	nite::Vec2 mcent = nite::mousePosition() - nite::getSize() * nite::Vec2(0.5f);
+	nite::Vec2 scent = nite::getSize() * nite::Vec2(0.5f);
+	float ang = nite::arctan(mcent.y, mcent.x);
+	float mod = nite::sqrt(nite::pow(mcent.x, 2.0f) + nite::pow(mcent.y, 2.0f)) / nite::getZoom(nite::RenderTargetGame);
+	return nite::Vec2(nite::cos(ang) * mod, nite::sin(ang) * mod) + nite::getSize() * nite::Vec2(0.5f);
+}
+
 float nite::mouseSpeed(){
 	nite::Vec2 currentMousePosition = nite::mousePosition();
 	return nite::distance(lastMousePosition, currentMousePosition);
 }
 
-/*
-================
-Translate a key string representation to the actual code
-================
-*/
 int nite::translateKey(String key){
 	key = nite::toUpper(key);
 	if(key == "A"){return nite::keyA;} else if(key == "B"){return nite::keyB;} else if(key == "C"){return nite::keyC;} else if(key == "D"){return nite::keyD;} else if(key == "E"){return nite::keyE;} else

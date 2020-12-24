@@ -119,15 +119,15 @@ static void drawPolygon(nite::Renderable *object){
 				}
 			}
 		}
-		int n = obj.shape.axis.size();
+		int n = obj.shape.vert.size();
 		GLfloat box[n * 2];		
 		for(int i = 0; i < n; ++i){
-			box[i * 2] = obj.shape.axis[i].x - obj.origin.x;
-			box[i * 2 + 1] = obj.shape.axis[i].y - obj.origin.y;
+			box[i * 2] = obj.shape.vert[i].x - obj.origin.x;
+			box[i * 2 + 1] = obj.shape.vert[i].y - obj.origin.y;
 		}
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(2, GL_FLOAT, 0, box);
-		glDrawArrays(obj.fill ? GL_QUADS : GL_LINE_LOOP, 0, obj.shape.axis.size());
+		glDrawArrays(obj.fill ? GL_QUADS : GL_LINE_LOOP, 0, obj.shape.vert.size());
 		glDisableClientState(GL_VERTEX_ARRAY);
 	glPopMatrix();
 	glUseProgram(0);

@@ -10,15 +10,15 @@ UInt16 Game::TrapDevice::add(const Shared<Trap> &trap, int useId){
     UInt16 cid = useId == -1 ? lastId++ : useId;
     trap->id = cid;
     this->traps[cid] = trap;
-    auto *mask = new Game::GhostMask();
-    mask->position = trap->position;
-    mask->size = trap->size;
-    mask->callback = trap->callback;
-    mask->solid = true;
-    mask->unmovable = true;
-    auto gid = host->world.addGhostMask(mask);
-    trap->mask = mask;
-    mask->setPosition(trap->position);
+    // auto *mask = new Game::GhostMask();
+    // mask->position = trap->position;
+    // mask->size = trap->size;
+    // mask->callback = trap->callback;
+    // mask->solid = true;
+    // mask->unmovable = true;
+    // auto gid = host->world.addGhostMask(mask);
+    // trap->mask = mask;
+    // mask->setPosition(trap->position);
     return cid;
 }
 
@@ -31,31 +31,31 @@ void Game::TrapDevice::remove(UInt16 id){
     if(it == traps.end()){
         return;
     }
-    if(it->second->mask != NULL){
-        host->world.removeGhostMask(it->second->mask);
-    }
+    // if(it->second->mask != NULL){
+        // host->world.removeGhostMask(it->second->mask);
+    // }
     traps.erase(it->first);
 }
 
 void Game::TrapNeedles::damage(Game::NetObject *who){
-    float mod = 64.0f;
-    auto origin = mask->position + mask->size  * 0.5f;
-    auto whoorigin = who->position + who->size  * 0.5f;
-    auto *ent = static_cast<Game::EntityBase*>(who);
-    float ang = nite::arctan(whoorigin.y - origin.y, whoorigin.x - origin.x);
-    ent->push(ang, mod);
-    auto dmg = Game::DamageInfo();
-    dmg.emitter = 0;
-    dmg.receiver = who->id;
-    dmg.weap = 0; // slotId
-    dmg.dmgtype = DamageType::Physical;
-    dmg.amnt = 5; // TODO:
-    dmg.truedmg = true;
-    dmg.elmnt = Game::Element::Neutral;
-    float dist = nite::sqrt(nite::pow(whoorigin.x - origin.x, 2) + nite::pow(whoorigin.y - origin.y, 2));
-    dmg.position =  mask->position + mask->size * nite::Vec2(0.5f) + nite::Vec2(nite::cos(ang) * mod, nite::sin(ang) * mod);
-    dmg.isCrit = false; // TODO: false for now
-    ent->damage(dmg);
+    // float mod = 64.0f;
+    // // auto origin = mask->position + mask->size  * 0.5f;
+    // auto whoorigin = who->position + who->size  * 0.5f;
+    // auto *ent = static_cast<Game::EntityBase*>(who);
+    // float ang = nite::arctan(whoorigin.y - origin.y, whoorigin.x - origin.x);
+    // // ent->push(ang, mod);
+    // auto dmg = Game::DamageInfo();
+    // dmg.emitter = 0;
+    // dmg.receiver = who->id;
+    // dmg.weap = 0; // slotId
+    // dmg.dmgtype = DamageType::Physical;
+    // dmg.amnt = 5; // TODO:
+    // dmg.truedmg = true;
+    // dmg.elmnt = Game::Element::Neutral;
+    // float dist = nite::sqrt(nite::pow(whoorigin.x - origin.x, 2) + nite::pow(whoorigin.y - origin.y, 2));
+    // dmg.position =  mask->position + mask->size * nite::Vec2(0.5f) + nite::Vec2(nite::cos(ang) * mod, nite::sin(ang) * mod);
+    // dmg.isCrit = false; // TODO: false for now
+    // ent->damage(dmg);
 }
 
 Game::TrapNeedles::TrapNeedles(){
@@ -68,7 +68,7 @@ Game::TrapNeedles::TrapNeedles(){
 }
 
 
-void Game::TrapNeedles::update(const Shared<nite::Map> &map, Game::NetWorld &world){
+void Game::TrapNeedles::update(const Shared<nite::Map> &map, Game::World &world){
    if(nite::getTicks()-initTime > timeout){
        switch(state){
             case 0: {
@@ -83,20 +83,20 @@ void Game::TrapNeedles::update(const Shared<nite::Map> &map, Game::NetWorld &wor
    }
    if(state == 1){
         Vector<Game::NetObject*> adjacent;
-        world.getQuadrant(mask->position.x - 3000,  mask->position.y - 3000, 6000, 6000, adjacent);
+        // world.getQuadrant(mask->position.x - 3000,  mask->position.y - 3000, 6000, 6000, adjacent);
         for(int i = 0; i < adjacent.size(); ++i){
-            if(adjacent[i] == mask || adjacent[i]->objType != ObjectType::Entity){
-                continue;
-            }
+            // if(adjacent[i] == mask || adjacent[i]->objType != ObjectType::Entity){
+            //     continue;
+            // }
             auto ent = static_cast<Game::EntityBase*>(adjacent[i]);
-            if(ent->isCollidingWith(mask) && ent->canDamage()){
-                damage(ent);
-            }
+            // if(ent->isCollidingWith(mask) && ent->canDamage()){
+            //     damage(ent);
+            // }
         }       
    }
 }
 
-void Game::TrapNeedles::setState(int state, const Shared<nite::Map> &map, Game::NetWorld &world){
+void Game::TrapNeedles::setState(int state, const Shared<nite::Map> &map, Game::World &world){
     this->state = state;
     if(this->dynTile > 0){
         map->setDynamicTileState(dynTile, state);

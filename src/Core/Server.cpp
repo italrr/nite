@@ -519,8 +519,6 @@ void Game::Server::close(){
 void  Game::Server::setSimulationProps(UInt64 tickrate, float ts){
     this->gameTickRate = tickrate;
     this->gameTimescale = ts;
-    world.tickrate = gameTickRate;
-    world.timescale = gameTimescale;   
     if(init){
         nite::Packet simProps(Game::PacketType::SV_UPDATE_WORLD_SIMULATION_PROPS);
         simProps.write(&gameTimescale, sizeof(gameTimescale));
@@ -532,8 +530,6 @@ void  Game::Server::setSimulationProps(UInt64 tickrate, float ts){
 void Game::Server::clear(){
     this->init = false;
     sock.close();
-    world.clearWallMasks();
-    world.clearGhostMasks();
     ft.clear();
     deliveries.clear();
     clients.clear();
@@ -541,8 +537,6 @@ void Game::Server::clear(){
     maps.clear();
     tilesets.clear();
     world.clear();
-    world.tickrate = gameTickRate;
-    world.timescale = gameTimescale;
     setState(Game::ServerState::Off);
     // if(debugging && debug.get() != NULL){
     //     static_cast<nite::WindowUI*>(debug.get())->close();
@@ -903,7 +897,21 @@ void Game::Server::processIncomPackets(){
                         nite::print("[server] entity id '"+nite::toStr(userId)+"' invoked usage of undefined type '"+nite::toStr(type)+"'");
                     } break;
                 }
-            } break;         
+            } break; 
+            case Game::PacketType::SV_CLICK_ON: {
+                if(!client || !isLast){
+                    break;
+                }
+                UInt32 index;
+                handler.read(&index, sizeof(index));
+                if(world.isValid(index)){
+                    auto ent = getEntity(client->entityId);
+                    if(ent != NULL){
+                        auto pi = world.toIndex(ent->position);
+                        world.astar(pi, index);
+                    }
+                }
+            } break;     
             /* 
                 UNKNOWN
             */
@@ -1033,81 +1041,8 @@ void Game::Server::deliverPacketQueue(){
 void Game::Server::game(){
     if(!init) return;
 
-    // if(debugging && nite::getTicks()-lastDebug > 1000){
-    //     auto text = static_cast<nite::TextUI*>(debug->children[0].get());
-    //     lastDebug = nite::getTicks();
-    //     String composed = "remaining deliveries: "+nite::toStr(deliveries.size())+" | ";
-    //     for(int i = 0; i < deliveries.size(); ++i){
-    //         composed += " "+nite::toStr(deliveries[i].packet.getHeader());
-    //     }        
-    //     text->setText(composed);
-    // }    
-
-
     checkGameStatus();
     processIncomPackets();
-
-
-    // prepare delta for delivery
-    auto prepareDelta = [&](){
-        Vector<UInt16> objUpdate;
-        for(auto &it : this->world.objects){
-            auto obj = it.second.get();
-            if(obj->destroyed){
-                continue;
-            }
-            bool animUpd = hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, obj->deltaUpdates) && (obj->objType == ObjectType::Entity);
-            bool phsyUpd = hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, obj->deltaUpdates);
-            if(!animUpd && !phsyUpd){
-                continue;
-            }
-            objUpdate.push_back(obj->id);
-        }   
-        if(objUpdate.size() == 0){
-            return;
-        }
-        nite::Packet delta(PacketType::SV_UPDATE_OBJECT_STATE);
-        UInt8 n = objUpdate.size();
-        delta.write(&n, sizeof(n));
-        for(int i = 0; i < objUpdate.size(); ++i){
-            auto obj = world.get(objUpdate[i]);
-            delta.write(&obj->id, sizeof(obj->id));
-            delta.write(&obj->deltaUpdates, sizeof(obj->deltaUpdates));
-            // ANIMATION
-            if(hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, obj->deltaUpdates) && (obj->objType == ObjectType::Entity)){
-                auto ent = static_cast<Game::EntityBase*>(obj);
-                delta.write(&ent->faceDirection, sizeof(ent->faceDirection));
-                delta.write(&ent->pointingAt.x, sizeof(ent->pointingAt.x));
-                delta.write(&ent->pointingAt.y, sizeof(ent->pointingAt.y));
-                for(int j = 0; j < EntityStateSlot::total; ++j){
-                    delta.write(&ent->state[j], sizeof(UInt8));
-                    delta.write(&ent->stNum[j], sizeof(UInt8));
-                    delta.write(&ent->lastExpectedTime[j], sizeof(ent->lastExpectedTime[j]));
-                }                    
-            }
-            // PHYSICS
-            if(hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, obj->deltaUpdates)){
-                delta.write(&obj->direction, sizeof(obj->direction));
-                delta.write(&obj->orientation, sizeof(obj->orientation));
-                delta.write(&obj->speed, sizeof(obj->speed));                    
-                delta.write(&obj->position.x, sizeof(obj->position.x));
-                delta.write(&obj->position.y, sizeof(obj->position.y));                                    
-            }  
-            obj->clearDeltaUpdates();               
-        }            
-        for(auto &it : clients){
-            delta.setOrder(currentDelta);
-            sendPacketFor(it.second.ip, delta);
-        }
-    };
-        
-    // run delta
-    if(nite::getTicks()-lastGameUpdate > gameTickRate){
-        world.update();
-        ++currentDelta;
-        prepareDelta();
-        lastGameUpdate = nite::getTicks();    
-    } 
       
     deliverPacketQueue();
 }
@@ -1127,8 +1062,8 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
             return;
         }
 
-        float startx = me->map->startCell.x + nite::randomInt(-50, 50);
-        float starty = me->map->startCell.y + nite::randomInt(-50, 50);    
+        float startx = me->map->startCell.x;
+        float starty = me->map->startCell.y;
 
         me->createPlayer(cl->clientId, 1, startx, starty);
         // [1] notify clients of their respective owners
@@ -1602,33 +1537,10 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
     obj->sv = this; // we guarantee entities will have its sv ref as long as they're running on a server
     obj->net = this;
     obj->container = &world;
-    auto id = this->world.add(obj);
-
-    // solve position  
-    Game::NetObject *who;
-    int trial = 0;
-    // while(obj->isCollidingWithSomething(&who) && obj->objType != ObjectType::Ghost){
-    //     if(trial > 3 || who == NULL){
-    //         break;
-    //     }
-    //     // hardcoded for now
-    //     if(trial == 0){
-    //         obj->setPosition(who->position.x + who->size.x, who->position.y);
-    //     }else
-    //     if(trial == 1){
-    //         obj->setPosition(who->position.x - obj->size.x, who->position.y);
-    //     }else
-    //     if(trial == 2){
-    //         obj->setPosition(who->position.x, who->position.y - obj->size.y);
-    //     }else
-    //     if(trial == 3){
-    //         obj->setPosition(who->position.x, who->position.y + who->size.y);
-    //     }
-    //     ++trial;
-    // }
+    this->world.add(obj);
 
     nite::Packet crt(Game::PacketType::SV_CREATE_OBJECT);
-    crt.write(&id, sizeof(UInt16));
+    crt.write(&obj->id, sizeof(UInt16));
     crt.write(&obj->sigId, sizeof(UInt16));
     crt.write(&obj->position.x, sizeof(float));
     crt.write(&obj->position.y, sizeof(float));
@@ -1653,7 +1565,7 @@ bool Game::Server::destroy(UInt16 id){
 }
 
 Shared<Game::NetObject>  Game::Server::createMob(UInt16 sig, UInt32 lv, float x, float y){
-    auto obj = Game::createNetObject(world.generateId(), sig, x, y);
+    auto obj = Game::createNetObject(sig, x, y);
     if(obj.get() == NULL){
         nite::print("[server] FATAL ERROR: failed to create mob object: signature id '"+Game::ObjectSig::name(sig)+"' does not exist?");
         close();
@@ -1674,8 +1586,7 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv, float 
         nite::print("[server] failed to create player for unexisting client id '"+nite::toStr(uid)+"'");
         return Shared<Game::NetObject>(NULL);
     }
-
-    auto obj = Game::createNetObject(world.generateId(), Game::ObjectSig::Player, x, y);
+    auto obj = Game::createNetObject(Game::ObjectSig::Player, x, y);
     if(obj.get() == NULL){
         nite::print("[server] FATAL ERROR: failed to create player object: signature id '"+Game::ObjectSig::name(Game::ObjectSig::Player)+"' does not exist?");
         close();
@@ -1685,7 +1596,7 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv, float 
     player->setupStat(lv);
     spawn(obj);
     client->second.entityId = obj->id;
-    player->loadAnim();
+    // player->loadAnim();
     players[uid] = obj->id;
 
     nite::print("[server] created player entity with id "+nite::toStr(obj->id)+" | for client id "+nite::toStr(uid)+"("+client->second.nickname+")");
@@ -1693,20 +1604,20 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv, float 
     // testing stats
     // static_cast<Game::EntityBase*>(obj.get())->addBaseStat(BaseStatType::Agility, 100);
     // testing effects
-    auto effect = getEffect(Game::EffectList::EF_HEAL);
-    auto efHeal = static_cast<Game::Effects::EffHeal*>(effect.get());
-    efHeal->setup(100, 5 * 1000);
-    this->addEffect(obj->id, effect);
-    player->printInfo(); // for debugging
-    auto bow = Game::getItem(ItemList::W_BOW, 1);
-    auto arrows = Game::getItem(ItemList::AM_ARROW, 200);
-    auto sword = Game::getItem(ItemList::W_SWORD, 1);
-    player->invStat.add(bow);
-    player->invStat.add(arrows);
-    player->invStat.add(sword);
-    // player->invStat.equip(sword);
-    player->invStat.equip(bow);
-    player->invStat.equip(arrows);
+    // auto effect = getEffect(Game::EffectList::EF_HEAL);
+    // auto efHeal = static_cast<Game::Effects::EffHeal*>(effect.get());
+    // efHeal->setup(100, 5 * 1000);
+    // this->addEffect(obj->id, effect);
+    // player->printInfo(); // for debugging
+    // auto bow = Game::getItem(ItemList::W_BOW, 1);
+    // auto arrows = Game::getItem(ItemList::AM_ARROW, 200);
+    // auto sword = Game::getItem(ItemList::W_SWORD, 1);
+    // player->invStat.add(bow);
+    // player->invStat.add(arrows);
+    // player->invStat.add(sword);
+    // // player->invStat.equip(sword);
+    // player->invStat.equip(bow);
+    // player->invStat.equip(arrows);
     return obj;
 }
 
@@ -1718,7 +1629,7 @@ bool Game::Server::removePlayer(UInt64 uid){
     }
     auto entId = client->second.entityId;
     auto player = players.find(uid);
-    if(!world.exists(entId) || entId == 0){
+    if(!world.get(entId) || entId == 0){
         nite::print("failed to remove player with id "+nite::toStr(uid)+": it doesn't exist");
         return false;
     }

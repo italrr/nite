@@ -126,6 +126,9 @@
 			Vec2 operator-(const Vec2 &v);
 			void set(const Vec2 &v);
 			void set(float X, float Y);
+			float dotProduct(const nite::Vec2 &v);
+			float crossProduct(const nite::Vec2 &v);
+			nite::Vec2 crossProduct(float s);
 			// cInterp uses game ticks and engine ticks
 			bool cInterp(const Vec2 &v, float step);
 			// cInterpDiscrete uses only engine ticks, so if the game slows down, cInterpDiscrete is unaffected
@@ -190,7 +193,20 @@
 			void add(float x, float y);
 			void setOrigin(float x, float y);
 			void setOrigin(Vec2 &Point);
-			Vector <nite::Vec2> axis;
+			
+			Polygon operator+(float c);
+			Polygon operator+(const Vec2 &v);			
+
+			Polygon operator-(float c);
+			Polygon operator-(const Vec2 &v);	
+
+			Polygon operator*(float c);
+			Polygon operator*(const Vec2 &v);	
+
+			Polygon operator/(float c);
+			Polygon operator/(const Vec2 &v);							
+
+			Vector <nite::Vec2> vert;
 			nite::Vec2 origin;
 		};
 	}

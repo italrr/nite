@@ -391,6 +391,10 @@ void nite::setZoom(unsigned T, float Z, float mu){
     targets[T].setZoom(Z, mu);	
 }
 
+float nite::getZoom(unsigned T){
+	return targets[T].realZoom / 100.0f;
+}
+
 void nite::setZoom(unsigned T, float Z){
     targets[T].setZoom(Z);
 }

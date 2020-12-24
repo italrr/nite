@@ -134,6 +134,7 @@
 		void setZoom(unsigned T, float Z);
 		void setZoom(unsigned T, float Z, float mu);
 		void setZoomDiscrete(unsigned T, float Z);
+		float getZoom(unsigned T);
 		void setAngle(unsigned T, float Z);
 		void addRenderList(Renderable *object);
 		void dropFrame();

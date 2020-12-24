@@ -364,6 +364,22 @@ nite::Vec2::Vec2(float c){
 	y = c;
 }
 
+float nite::Vec2::dotProduct(const nite::Vec2 &v){
+    float product = 0; 
+    product += x * v.x; 
+	product += y * v.y; 
+    return product; 
+}
+
+float nite::Vec2::crossProduct(const nite::Vec2 &v){
+	return this->x * v.y - this->y * v.x;
+}
+
+nite::Vec2 nite::Vec2::crossProduct(float s){
+	return nite::Vec2(s * this->y, -s * this->x);
+}
+
+
 bool nite::Vec2::operator<(const nite::Vec2 &v){
 	return x < v.x && y < v.y;
 }
@@ -700,17 +716,17 @@ Polygon
 */
 nite::Polygon::Polygon(int n, const nite::Vec2 &v){
 	for(int i = 0; i < n; ++i){
-		axis.push_back(v);
+		vert.push_back(v);
 	}
 }
 
 void nite::Polygon::rectangle(float w, float h){
 	clear();
 	origin.set(w * 0.5f, h * 0.5f);
-	axis.push_back(nite::Vec2(0, 0));
-	axis.push_back(nite::Vec2(w, 0));
-	axis.push_back(nite::Vec2(w, h));
-	axis.push_back(nite::Vec2(0, h));
+	vert.push_back(nite::Vec2(0, 0));
+	vert.push_back(nite::Vec2(w, 0));
+	vert.push_back(nite::Vec2(w, h));
+	vert.push_back(nite::Vec2(0, h));
 }
 
 void nite::Polygon::rectangle(const nite::Vec2 &size){
@@ -718,14 +734,14 @@ void nite::Polygon::rectangle(const nite::Vec2 &size){
 }
 
 nite::Polygon nite::Polygon::rotate(float rads){
-	nite::Polygon rotated(axis.size(), nite::Vec2(0.0f));
-	for(int i = 0; i < axis.size(); ++i){
-		nite::Vec2 ax;
-		float mod = nite::distance(nite::Vec2(0.0f), axis[i] - origin);
-		float ang = nite::arctan(axis[i].y - origin.y, axis[i].x - origin.x);
-		ax.x = nite::cos(ang + rads) * mod + origin.x;
-		ax.y = nite::sin(ang + rads) * mod + origin.y;
-		rotated.axis[i] = ax;
+	nite::Polygon rotated(vert.size(), nite::Vec2(0.0f));
+	for(int i = 0; i < vert.size(); ++i){
+		nite::Vec2 _vert;
+		float mod = nite::distance(nite::Vec2(0.0f), vert[i] - origin);
+		float ang = nite::arctan(vert[i].y - origin.y, vert[i].x - origin.x);
+		_vert.x = nite::cos(ang + rads) * mod + origin.x;
+		_vert.y = nite::sin(ang + rads) * mod + origin.y;
+		rotated.vert[i] = _vert;
 	}
 	rotated.origin = this->origin;
 	return rotated;
@@ -737,17 +753,17 @@ nite::Polygon::Polygon(){
 }
 
 void nite::Polygon::clear(){
-	axis.clear();
+	vert.clear();
 	return;
 }
 
 void nite::Polygon::add(Vec2 &Point){
-	axis.push_back(Point);
+	vert.push_back(Point);
 	return;
 }
 
 void nite::Polygon::add(float x, float y){
-	axis.push_back(Vec2(x,y));
+	vert.push_back(Vec2(x,y));
 	return;
 }
 
@@ -760,4 +776,76 @@ void nite::Polygon::setOrigin(float x, float y){
 void nite::Polygon::setOrigin(Vec2 &Point){
 	origin = Point;
 	return;
+}
+
+nite::Polygon nite::Polygon::operator+(float c){
+	auto sum = *this;
+	for(int i = 0; i < sum.vert.size(); ++i){
+		sum.vert[i].x += c;
+		sum.vert[i].y += c;
+	}
+	return sum;
+}
+
+nite::Polygon nite::Polygon::operator+(const Vec2 &v){
+	auto sum = *this;
+	for(int i = 0; i < sum.vert.size(); ++i){
+		sum.vert[i].x += v.x;
+		sum.vert[i].y += v.y;
+	}
+	return sum;
+}
+
+nite::Polygon nite::Polygon::operator-(float c){
+	auto sub = *this;
+	for(int i = 0; i < sub.vert.size(); ++i){
+		sub.vert[i].x -= c;
+		sub.vert[i].y -= c;
+	}
+	return sub;
+}
+
+nite::Polygon nite::Polygon::operator-(const Vec2 &v){
+	auto sub = *this;
+	for(int i = 0; i < sub.vert.size(); ++i){
+		sub.vert[i].x -= v.x;
+		sub.vert[i].y -= v.y;
+	}
+	return sub;
+}
+
+nite::Polygon nite::Polygon::operator*(float c){
+	auto mul = *this;
+	for(int i = 0; i < mul.vert.size(); ++i){
+		mul.vert[i].x *= c;
+		mul.vert[i].y *= c;
+	}
+	return mul;
+}
+
+nite::Polygon nite::Polygon::operator*(const Vec2 &v){
+	auto mul = *this;
+	for(int i = 0; i < mul.vert.size(); ++i){
+		mul.vert[i].x *= v.x;
+		mul.vert[i].y *= v.y;
+	}
+	return mul;
+}
+
+nite::Polygon nite::Polygon::operator/(float c){
+	auto div = *this;
+	for(int i = 0; i < div.vert.size(); ++i){
+		div.vert[i].x /= c;
+		div.vert[i].y /= c;
+	}
+	return div;
+}
+
+nite::Polygon nite::Polygon::operator/(const Vec2 &v){
+	auto div = *this;
+	for(int i = 0; i < div.vert.size(); ++i){
+		div.vert[i].x /= v.x;
+		div.vert[i].y /= v.y;
+	}
+	return div;
 }

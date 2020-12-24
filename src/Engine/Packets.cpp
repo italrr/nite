@@ -192,3 +192,16 @@ bool nite::Packet::read(void *data, size_t size){
 	return true;
 }
 
+bool nite::Packet::read(nite::Vec2 &v){
+	bool x = false, y = false;
+	x = this->read(&v.x, sizeof(v.x));
+	y = this->read(&v.y, sizeof(v.y));	
+	return x && y;
+}
+
+bool nite::Packet::write(const nite::Vec2  &v){
+	bool x = false, y = false;
+	x = this->write(&v.x, sizeof(v.x));
+	y = this->write(&v.y, sizeof(v.y));	
+	return x && y;
+}

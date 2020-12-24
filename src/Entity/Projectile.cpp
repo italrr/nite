@@ -5,14 +5,10 @@
 
 
 Game::Projectile::Projectile(){
-    friction = 0.0f;
-    mass = 1.0f;
-    solid =  false;
     size.set(140, 68);
     body.rectangle(size);
     type = ProjectileType::Arrow;
     objType = ObjectType::Projectile;
-    unmovable = false;
     toDestroy = false;
 }
 
@@ -33,7 +29,7 @@ void Game::Projectile::onCreate(){
     //     this->texture.load(source.path, this->transparency);
     // }
     // nite::print(nite::toStr(dir)+" "+nite::toStr(spd));
-    this->push(dir, spd);
+    // this->push(dir, spd);
 }
 
 void Game::Projectile::step(){
@@ -41,7 +37,7 @@ void Game::Projectile::step(){
         nite::print("arrow destroyed");
         destroy();
     }
-    this->orientation = this->direction;
+    // this->orientation = this->direction;
 }
 
 void Game::Projectile::onCollision(Game::NetObject *obj){
@@ -50,7 +46,7 @@ void Game::Projectile::onCollision(Game::NetObject *obj){
     }
     if(obj->objType == ObjectSig::Wall && !toDestroy && nite::getTicks()-contactTime > 32){
         // this->speed = 0.0;
-        this->direction += nite::toRadians(180);
+        // this->direction += nite::toRadians(180);
         issueDeltaUpdate(DeltaUpdateType::PHYSICS);
         // toDestroy = true;
         contactTime = nite::getTicks();
@@ -64,7 +60,7 @@ void Game::Projectile::draw(){
     int depth = -(position.y - size.y * 0.5f);
     nite::setDepth(depth);  
     texture.setRegion(inTexCoors, inTexSize);   
-    texture.draw(offset.x + position.x, offset.y + position.y, frameSize.x, frameSize.y, origin.x, origin.y, nite::toDegrees(direction));
+    texture.draw(offset.x + position.x, offset.y + position.y, frameSize.x, frameSize.y, origin.x, origin.y, nite::toDegrees(0));
 }
 
 void Game::Projectile::writeInitialState(nite::Packet &packet){

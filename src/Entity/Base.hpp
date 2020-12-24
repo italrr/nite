@@ -126,7 +126,6 @@
             UInt64 lastDmgd;
             UInt64 lastMeleeHit;
             Game::InputCompacter input;
-            nite::Vec2 pointingAt;
             EntityBase();
             Game::AIDriver aidriver;
             Shared<Game::EntityCasting> currentCasting;

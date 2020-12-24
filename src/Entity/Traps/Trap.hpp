@@ -16,20 +16,20 @@
         struct Trap {
             int dynTile;
             int state;
-            Game::GhostMask *mask;
+            // Game::GhostMask *mask;
             nite::Vec2 position;
             nite::Vec2 size;
             UInt16 id;
             UInt8 type;
             std::function<void(Game::NetObject *who)> callback;
-            virtual void update(const Shared<nite::Map> &map, Game::NetWorld &world) {}
-            virtual void setState(int state, const Shared<nite::Map> &map, Game::NetWorld &world) {
+            virtual void update(const Shared<nite::Map> &map, Game::World &world) {}
+            virtual void setState(int state, const Shared<nite::Map> &map, Game::World &world) {
                 if(this->dynTile > 0){
                     map->setDynamicTileState(dynTile, state);
                 }                
             }
             Trap(){
-                mask = NULL;
+                // mask = NULL;
                 type = TrapType::NONE;
                 callback = [](Game::NetObject *who){
                     nite::print("quaker");
@@ -42,8 +42,8 @@
         struct TrapNeedles : Trap {
             UInt64 initTime;
             UInt64 timeout;
-            void update(const Shared<nite::Map> &map, Game::NetWorld &world);
-            void setState(int state, const Shared<nite::Map> &map, Game::NetWorld &world);
+            void update(const Shared<nite::Map> &map, Game::World &world);
+            void setState(int state, const Shared<nite::Map> &map, Game::World &world);
             void damage(Game::NetObject *who);
             TrapNeedles();
         };

@@ -64,7 +64,6 @@ Game::EntityBase::EntityBase(){
 	this->lastDmgd = nite::getTicks();
 	this->currentCasting = Shared<Game::EntityCasting>(NULL);
 	this->anim.owner = this;
-	this->solid = true;
 	this->objType = ObjectType::Entity;
 	setState(EntityState::IDLE, EntityStateSlot::MID, 0);
 	setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);	
@@ -82,23 +81,23 @@ bool Game::EntityBase::canDamage(){
 }
 
 void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // more like hold direction
-	if(healthStat.dead){
-		return;
-	}
-	// if(!holdStance && dir.x > 0){
-	// 	faceDirection = EntityFacing::Right;
+	// if(healthStat.dead){
+	// 	return;
 	// }
-	// if(!holdStance && dir.x < 0){
-	// 	faceDirection = EntityFacing::Left;
+	// // if(!holdStance && dir.x > 0){
+	// // 	faceDirection = EntityFacing::Right;
+	// // }
+	// // if(!holdStance && dir.x < 0){
+	// // 	faceDirection = EntityFacing::Left;
+	// // }
+	// if(state[EntityStateSlot::BOTTOM] != EntityState::WALKING){
+	// 	setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
 	// }
-	if(state[EntityStateSlot::BOTTOM] != EntityState::WALKING){
-		setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
-	}
-	isMoving = true;
-	nite::Vec2 _dir = (nite::Vec2(5.8f) + nite::Vec2(complexStat.walkRate)) * dir;
-	float angle = nite::arctan(dir.y, dir.x);
-	float mod = 12.8f + complexStat.walkRate;
-	push(angle, mod);
+	// isMoving = true;
+	// nite::Vec2 _dir = (nite::Vec2(5.8f) + nite::Vec2(complexStat.walkRate)) * dir;
+	// float angle = nite::arctan(dir.y, dir.x);
+	// float mod = 12.8f + complexStat.walkRate;
+	// push(angle, mod);
 }
 
 void Game::EntityBase::kill(){
@@ -111,10 +110,6 @@ void Game::EntityBase::kill(){
 }
 
 void Game::EntityBase::onCreate(){
-    unmovable = false;
-    solid = true;
-    friction = 0.87f;
-    mass = 2.8f;
 	entityAlpha = 100.0f;
     healthStat.dead = false;
     size.set(128, 128);
@@ -159,15 +154,15 @@ void Game::EntityBase::draw(){
 	UInt8 numbs[AnimPart::total] = {stNum[EntityStateSlot::BOTTOM], stNum[EntityStateSlot::MID], 0};
 	UInt64 times[AnimPart::total] = {lastExpectedTime[EntityStateSlot::BOTTOM], lastExpectedTime[EntityStateSlot::MID], 0};
 	anim.setState(anims, numbs, times);
-	// float lrprate = (this->speed / (100.0f));
-	// if(lrprate > 0.9f){
-	// 	lrprate = 0.9f;
-	// }
-	// if(lrprate < 0.08f){
-	// 	lrprate = 0.08f;
-	// }
+	float lrprate = (this->speed / (100.0f));
+	if(lrprate > 0.9f){
+		lrprate = 0.9f;
+	}
+	if(lrprate < 0.08f){
+		lrprate = 0.08f;
+	}
 	// lerpPosition.lerpDiscrete(position, 0.10f);
-	nite::Vec2 rp = position + size * 0.5f;
+	nite::Vec2 rp = rPosition + size * 0.5f;
 	nite::lerpDiscrete(entityAlpha, canDamage() ? 100.0f : 55.0f, 0.25f);
     nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setColor(1.0f, 1.0f, 1.0f, entityAlpha / 100.0f);
@@ -350,7 +345,6 @@ void Game::EntityBase::entityStep(){
 		notifyEntityDeath(this);
 		onDeath();
 	}
-	pointingAt = input.mpos;
 	updateStance();
 	solveCasting();
 	aidriver.update();
@@ -422,53 +416,53 @@ void Game::EntityBase::switchFrame(UInt8 slot, UInt8 n){
 }
 
 void Game::EntityBase::throwMelee(float x, float y){
-	// server-side only
-	if(sv == NULL){
-		return;
-	}
-
-	container->getQuadrant(position.x - 256,  position.y - 256, 512, 512, locals);
-	nite::Hitbox *hb = NULL;
-	nite::Hitbox cpy;
-	auto initp = (position + size * nite::Vec2(0.5f)) - (anim.frameSize * nite::Vec2(0.5f));
-	// no weap
-	if(state[EntityStateSlot::MID] == EntityState::MELEE_NOWEAP){
-		cpy = anim.meleeNoWeapHb;
-		hb = &cpy;
-		cpy.position.x = initp.x + (faceDirection == EntityFacing::Right ? cpy.position.x : (anim.frameSize.x - cpy.position.x) - cpy.size.x);
-		cpy.position.y = initp.y + cpy.position.y;
-	}
-
-	if(hb == NULL){
-		return;
-	}
-
-	// if(showHitboxes){
-	// 	static nite::Texture empty("data/texture/empty.png");
-	// 	nite::setRenderTarget(nite::RenderTargetGame);
-	// 	nite::setDepth(nite::DepthTop);
-	// 	nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
-	// 	empty.draw(hb->position.x, hb->position.y, hb->size.x, hb->size.y, 0.0f, 0.0f, 0.0f);
+	// // server-side only
+	// if(sv == NULL){
+	// 	return;
 	// }
 
-	for(int i = 0; i < locals.size(); ++i){
-		if(locals[i]->objType != ObjectType::Entity || locals[i] == this){
-			continue;
-		}
-		auto ent = static_cast<Game::EntityBase*>(locals[i]);
-		// TODO: move this from here
-		if(nite::getTicks() - ent->lastMeleeHit < 350){
-			continue;
-		}
-		auto ohbs = ent->getHitbox();
-		for(int j = 0; j < ohbs.size(); ++j){
-			if(hb->collision(ohbs[j])){
-				nite::print("detect");
-				ent->lastMeleeHit = nite::getTicks();
-				break;
-			}
-		}
-	}
+	// container->getQuadrant(position.x - 256,  position.y - 256, 512, 512, locals);
+	// nite::Hitbox *hb = NULL;
+	// nite::Hitbox cpy;
+	// auto initp = (position + size * nite::Vec2(0.5f)) - (anim.frameSize * nite::Vec2(0.5f));
+	// // no weap
+	// if(state[EntityStateSlot::MID] == EntityState::MELEE_NOWEAP){
+	// 	cpy = anim.meleeNoWeapHb;
+	// 	hb = &cpy;
+	// 	cpy.position.x = initp.x + (faceDirection == EntityFacing::Right ? cpy.position.x : (anim.frameSize.x - cpy.position.x) - cpy.size.x);
+	// 	cpy.position.y = initp.y + cpy.position.y;
+	// }
+
+	// if(hb == NULL){
+	// 	return;
+	// }
+
+	// // if(showHitboxes){
+	// // 	static nite::Texture empty("data/texture/empty.png");
+	// // 	nite::setRenderTarget(nite::RenderTargetGame);
+	// // 	nite::setDepth(nite::DepthTop);
+	// // 	nite::setColor(0.95f, 0.25f, 04.0f, 0.35f);
+	// // 	empty.draw(hb->position.x, hb->position.y, hb->size.x, hb->size.y, 0.0f, 0.0f, 0.0f);
+	// // }
+
+	// for(int i = 0; i < locals.size(); ++i){
+	// 	if(locals[i]->objType != ObjectType::Entity || locals[i] == this){
+	// 		continue;
+	// 	}
+	// 	auto ent = static_cast<Game::EntityBase*>(locals[i]);
+	// 	// TODO: move this from here
+	// 	if(nite::getTicks() - ent->lastMeleeHit < 350){
+	// 		continue;
+	// 	}
+	// 	auto ohbs = ent->getHitbox();
+	// 	for(int j = 0; j < ohbs.size(); ++j){
+	// 		if(hb->collision(ohbs[j])){
+	// 			nite::print("detect");
+	// 			ent->lastMeleeHit = nite::getTicks();
+	// 			break;
+	// 		}
+	// 	}
+	// }
 }
 
 void Game::EntityBase::useBaseAttack(){
@@ -549,19 +543,19 @@ void Game::EntityBase::updateStance(){
 							nite::print("can't shoot '"+this->invStat.activeAmmo->name+"' with a bow");
 						}else{
 
-							nite::Vec2 fsCent = anim.frameSize * nite::Vec2(0.5f);
-							nite::Vec2 ownpscent = position + fsCent;
-							float ang = nite::arctan(pointingAt.y - ownpscent.y, pointingAt.x - ownpscent.x);
-							float mod = nite::distance(fsCent - this->anim.arrowShootPos, fsCent);
-							nite::Vec2 p = ownpscent + nite::Vec2(nite::cos(ang) * mod, nite::sin(ang) * mod);
-							auto obj = Game::createNetObject(container->generateId(), Game::ObjectSig::Projectile, p.x, p.y); 
-							auto prj = static_cast<Game::Projectile*>(obj.get());
-							prj->setup(this->invStat.activeAmmo);
-							prj->owner = this->id;
-							prj->dir = ang;
-							prj->spd = 50.0f;
-							this->sv->spawn(obj);	
-							this->invStat.remove(this->invStat.activeAmmo->id, 1);
+							// nite::Vec2 fsCent = anim.frameSize * nite::Vec2(0.5f);
+							// nite::Vec2 ownpscent = position + fsCent;
+							// float ang = nite::arctan(pointingAt.y - ownpscent.y, pointingAt.x - ownpscent.x);
+							// float mod = nite::distance(fsCent - this->anim.arrowShootPos, fsCent);
+							// nite::Vec2 p = ownpscent + nite::Vec2(nite::cos(ang) * mod, nite::sin(ang) * mod);
+							// auto obj = Game::createNetObject(container->generateId(), Game::ObjectSig::Projectile, p.x, p.y); 
+							// auto prj = static_cast<Game::Projectile*>(obj.get());
+							// prj->setup(this->invStat.activeAmmo);
+							// prj->owner = this->id;
+							// prj->dir = ang;
+							// prj->spd = 50.0f;
+							// this->sv->spawn(obj);	
+							// this->invStat.remove(this->invStat.activeAmmo->id, 1);
 						}					
 					}else{
 						nite::print("no ammo");

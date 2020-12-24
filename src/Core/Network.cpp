@@ -172,19 +172,17 @@ void Game::Net::setCurrentMap(Shared<nite::Map> &m){
     traps.clear();
     world.clear();
     map = Shared<nite::Map>(NULL);
-    nite::Vec2 ws = m->size * m->tileSize;
-    this->world.setSize(ws.x, ws.y, 64, 64);
+    this->world.init(m->size.x, m->size.y, m->tileSize.x);
     // wall masks
     for(int i = 0; i < m->masks.size(); ++i){
         auto &mask = m->masks[i];
-        auto obj = new Game::NetObject();
-        obj->position = mask.position;
-        obj->objType = ObjectType::Wall;
-        obj->sigId = ObjectType::Wall;
-        obj->size = mask.size;
-        obj->solid = true;
-        obj->unmovable = true;
-        this->world.addWallMask(obj); // we use id 0 for wallmasks as these are not managed by the server
+        nite::Vec2 p = mask.position / nite::Vec2(m->tileSize);
+        int j = world.toIndex(p);
+        if(j < 0 || j > world.total){
+            nite::print("[net] invalid collision mask");
+            continue;
+        }
+        world.cells[j] = -1;
     }
     this->map = m;
     // dynamic tiles
@@ -199,7 +197,7 @@ void Game::Net::setCurrentMap(Shared<nite::Map> &m){
         }
         auto t = Game::getTrap(sp.tag);
         if(t.get() == NULL){
-            nite::print("failed create trap '"+sp.tag+"': it's undefined");
+            nite::print("[net] failed create trap '"+sp.tag+"': it's undefined");
             continue;
         }
         t->position = sp.position;
@@ -207,5 +205,5 @@ void Game::Net::setCurrentMap(Shared<nite::Map> &m){
         t->dynTile = sp.ref;
         traps.add(t, sp.id);
     }    
-    nite::print("[net] dynamic tiles: "+nite::toStr(m->dynamicTiles.size())+" | cmasks: "+nite::toStr(this->world.wallMasks.size())+" | gmasks: "+nite::toStr(this->world.ghostMasks.size()));
+    nite::print("[net] dynamic tiles: "+nite::toStr(m->dynamicTiles.size()));
 }

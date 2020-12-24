@@ -27,7 +27,7 @@ static nite::Console::Result cfCameraFollow(Vector<String> params){
 		return nite::Console::Result("'"+_id+"' is not a valid parameter", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}
 	auto id = nite::toInt(_id);
-	if(!game->client.world.exists(id)){
+	if(!game->client.world.get(id)){
 		return nite::Console::Result("entity id '"+_id+"' does not exist", nite::Color(0.80f, 0.15f, 0.22f, 1.0f));
 	}
 	cameraFreeroam = false;
@@ -76,27 +76,6 @@ void Game::Camera::update(nite::Vec2 &towards, float mu){
 	nite::setView(true, nite::RenderTargetGame);
 	nite::Vec2 p = nite::getView(nite::RenderTargetGame);
 	np = v - nite::getSize() * 0.5f;
-	// auto dist = nite::distance(p + nite::getSize() * 0.5f, v);
-	// float xdist = nite::abs((p.x + nite::getWidth() * 0.5f)-v.x);
-	// float ydist = nite::abs((p.y + nite::getHeight() * 0.5f)-v.y);
-	// auto threshold = nite::Vec2(384.0f, 192.0f);
-	// auto offset = threshold;
-	// if(nite::mouseCheck(nite::butMIDDLE)){
-	// 	v = nite::getView(nite::RenderTargetGame) + nite::mousePosition();
-	// 	threshold = nite::Vec2(0.0f);
-	// 	offset = threshold;
-	// }	
-	// if(xdist > threshold.x){
-	// 	float xbias = nite::getSign(v.x - (p.x + nite::getWidth() * 0.5f));
-	// 	np = (v - nite::getSize() * 0.5f) + nite::Vec2(offset.x * xbias, 0.0f);
-	// }
-	// if(ydist > threshold.y){
-	// 	float ybias = nite::getSign(v.y - (p.y + nite::getHeight() * 0.5f));
-	// 	np = (v - nite::getSize() * 0.5f) + nite::Vec2(0.0f, offset.y * ybias);
-	// }	
-	// if(std::isnan(v.x) || std::isnan(v.y)){
-	// 	return;
-	// }
 	p.lerpDiscrete(np, mu, 0.1f);
 	setViewPosition(p, nite::RenderTargetGame);	
 }
@@ -130,11 +109,11 @@ void Game::Camera::update(){
 		return;
 	}
 	if(cameraForceZoom){
-		nite::setZoom(nite::RenderTargetGame, 1.0f);
+		nite::setZoom(nite::RenderTargetGame, 0.8f);
 	}
 	auto ent = client->getEntity(followId);
 	if(ent != NULL){
-		update(ent->position);
+		update(ent->rPosition);
 	}
 }
 

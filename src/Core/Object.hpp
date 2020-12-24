@@ -58,7 +58,7 @@
             }
         }
 
-        struct NetWorld;
+        struct World;
         struct Server;
         struct Net;
 
@@ -105,76 +105,38 @@
             void clearDeltaUpdates();
             nite::Polygon body;
             UInt16 id;
-			int localId;	
 			nite::Vec2 position;
-			float speed;
-            float direction;
-            float orientation;
+            nite::Vec2 rPosition;
 			nite::Vec2 size;
-			float friction;
-			float mass;
 			virtual void destroy();
             bool destroyed;
+            float speed; // cell per tick
 			float relativeTimescale;
-			bool solid;
-			bool unmovable;
 			bool collided;
-            Vector<NetObject*> locals;
             UInt8 objType;
             UInt16 sigId;
-            // nite::Vec2 lerpPosition; // client side position interpolation
-            // nite::Vec2 lerpSpeed;
-            // nite::Vec2 nextPosition;
             void runState();
             Game::ObjectState prevState;
             Game::ObjectState nextState;
             Game::ObjectState currentState;
-            Game::NetWorld *container;
+            Game::World *container;
             Game::Server *sv;
             Game::Net *net;
-            Int32 quadrant;
-            nite::Vec2 lqPos; // last valid quadrant position
-            void updateQuadrant();
-            void clearQuadrant();
 
-            UInt64 frictionRate;
-            UInt64 lastMoveTime;            
-            nite::Vec2 lerpPosition;
-            Vector<Game::PredictFragment> snapshots;
-            
+            void setPosition(const nite::Vec2 &p);
+
             NetObject();
 
-            void snapPosition();
-            void setPosition(const nite::Vec2 &p);
-            void setPosition(float x, float y){
-                setPosition(nite::Vec2(x, y));
-                updateQuadrant();
-            }
-
-            // the idea behind these is that we'll be updating
-            // specific things from entities/objects but they'll read and prove it themselves
-            // we should every entity with the changeForSync flag to be true
-            bool readyForSync;
-            // we'll be fetching the initial values to be sync'd
-            virtual void writeInitialState(nite::Packet &packet){
-
-            }
-            virtual void readInitialState(nite::Packet &packet){
-
-            }
+            virtual void writeInitialState(nite::Packet &packet){}
+            virtual void readInitialState(nite::Packet &packet){}
 			
-			virtual bool push(float dir, float force);
-			bool isCollidingWith(Game::NetObject *other);
-			bool isCollidingWithSomething(Game::NetObject **who);
-			bool isCollidingWithExcept(const Vector<Game::NetObject*> &ignores);
+			virtual bool move(int x, int y);
 			float getDistance(Game::NetObject *other);
 
-			virtual void onCollision(Game::NetObject *obj){
-
-			}
+			virtual void onCollision(Game::NetObject *obj){}
         };
 
-        Shared<Game::NetObject> createNetObject(UInt16 id, UInt16 sig, float x, float y);
+        Shared<Game::NetObject> createNetObject(UInt16 sig, float x, float y);
 
     }
 

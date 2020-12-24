@@ -22,7 +22,10 @@
 		float mouseSpeed();
 		int mouseX();
 		int mouseY();
+		int mouseXAdj(unsigned target); // projected to rt's zoom
+		int mouseYAdj(unsigned target); // projected to rt's zoom
 		nite::Vec2 mousePosition();
+		nite::Vec2 mousePositionAdj(unsigned target); // projected to rt's zoom
 		bool isMouseInRegion(float x, float y, float x2, float y2, unsigned target);
 		bool isMouseInRegion(const nite::Vec2 &P, const nite::Vec2 &Q, unsigned target);
 		bool isMouseInRegion(float x, float y, float x2, float y2);

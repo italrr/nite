@@ -220,7 +220,6 @@ add_library(nite ${nite_src})
 set(src_files
 	# RING #
 	src/RING/RING.cpp
-	src/RING/Search.cpp
 	src/RING/Blueprint.cpp
 	# Core #
 	src/Core/Camera.cpp
