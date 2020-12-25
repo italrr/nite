@@ -3,6 +3,7 @@
 #include "../Engine/Tools/Tools.hpp"
 #include "../Engine/Graphics.hpp"
 #include "../Engine/Console.hpp"
+#include "../Engine/Map.hpp"
 #include "Client.hpp"
 #include "../Entity/Base.hpp"
 #include "../Game.hpp"
@@ -1181,7 +1182,52 @@ void Game::Client::processIncomPackets(){
                 if(!isSv){ break; }
                 nite::print("[client] unknown packet type '"+nite::toStr(handler.getHeader())+"'");
             } break;
-
+            /*
+                SV_SET_OBJECT_POSITION
+            */            
+            case Game::PacketType::SV_UPDATE_OBJECT_STATE: {
+                if(!isSv || !isLast){ break; }
+                UInt32 ndelta = handler.getOrder();
+                UInt8 n;
+                handler.read(&n, sizeof(n));
+                for(int i = 0; i < n; ++i){
+                    // read values
+                    Game::ObjectState st;
+                    handler.read(&st.objId, sizeof(st.objId));
+                    handler.read(&st.states, sizeof(st.states));
+                    if(hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, st.states)){
+                        handler.read(&st.faceDir, sizeof(st.faceDir));
+                        for(int j = 0; j < EntityStateSlot::total; ++j){
+                            handler.read(&st.animSt[j], sizeof(st.animSt[j]));
+                            handler.read(&st.animNum[j], sizeof(st.animNum[j]));
+                            handler.read(&st.animExtime[j], sizeof(st.animExtime[j]));
+                        }                                   
+                    }
+                    if(hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, st.states)){
+                        UInt16 currentP;
+                        UInt8 nroute;
+                        UInt32 c;
+                        handler.read(&currentP, sizeof(currentP));
+                        handler.read(&st.total, sizeof(st.total));                             
+                        handler.read(&nroute, sizeof(nroute));    
+                        st.position = world.toCoors(currentP);
+                        for(int j = 0; j < nroute; ++j){
+                            handler.read(&c, sizeof(c));    
+                            st.route.route.push_back(nite::MapCell(c, 0, world.width));
+                        }
+                    }   
+                    // apply them     
+                    auto obj = world.get(st.objId);
+                    if(obj == NULL){
+                        nite::print("[client] SV_UPDATE_OBJECT_STATE: unable to find obj id '"+nite::toStr(st.objId)+"'");
+                        break;
+                    }
+                    obj->currentState = st;
+                    if(hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, st.states)){
+                        obj->setMoveRoute(st.route, st.total);
+                    }
+                }
+            } break; 
         }
     };
 
@@ -1275,6 +1321,10 @@ void Game::Client::player(){
     }
 }
 
+static float lerp(float x1, float x2, float f){
+	return  f * x2 + (1.0f - f) * x1;
+}
+
 void Game::Client::game(){
     player();
     processIncomPackets();
@@ -1289,6 +1339,36 @@ void Game::Client::game(){
         this->sendPacketFor(this->sv, pack);
         lastGameUpdate = nite::getTicks();
     } 
+
+    for(auto &it : world.objects){
+        auto obj = it.second.get();
+		if(obj->lastRouteMove > 0 && nite::getTicks()-obj->lastMove > obj->speed){
+			auto nstep = obj->route.route[obj->lastRouteMove - 1];
+            --obj->lastRouteMove;
+            obj->lastMove = nite::getTicks();
+            auto diff = nite::Vec2(nstep.x, nstep.y) - obj->position; // make it relative
+            world.swapCells(nstep.index, world.toIndex(obj->position));
+            obj->position = obj->position + nite::Vec2(diff.x, diff.y);
+            obj->nextPosition = obj->position;
+		}
+        if(obj->speed > 0){
+            float dt = ((float)nite::getDelta() / 1000.0f);
+            float spd = ((float)obj->speed / 1000.0f);
+            if(obj->rPosition.x < obj->nextPosition.x * world.cellsize){
+                obj->rPosition.x += ((float)world.cellsize / spd) * dt;
+            }
+            if(obj->rPosition.x > obj->nextPosition.x * world.cellsize){
+                obj->rPosition.x -= ((float)world.cellsize / spd) * dt;
+            }  
+            if(obj->rPosition.y < obj->nextPosition.y * world.cellsize){
+                obj->rPosition.y += ((float)world.cellsize / spd) * dt;
+            }
+            if(obj->rPosition.y > obj->nextPosition.y * world.cellsize){
+                obj->rPosition.y -= ((float)world.cellsize / spd) * dt;
+            }                       
+        }
+    }
+
     deliverPacketQueue();
     vfx.step();   
 }

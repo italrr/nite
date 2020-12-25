@@ -101,6 +101,7 @@
 			bool isValid(int i);
 			bool isFree(int i);
 			nite::Vec2 toCoors(int i);
+			bool swapCells(int s, int t);
 			int toIndex(int x, int y);
 			int toIndex(const nite::Vec2 &p);
 			Vector<int> getNeighbors(Dict<int, int> &map, int x, int y);

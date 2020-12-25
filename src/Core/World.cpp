@@ -7,516 +7,11 @@
 #include "../Engine/Tools/Tools.hpp"
 #include "../Engine/Graphics.hpp"
 #include "../Engine/View.hpp"
+#include "../Engine/Font.hpp"
 
 #include "World.hpp"
 #include "Network.hpp"
 #include "../Entity/Base.hpp"
-
-
-// UInt16 Game::NetWorld::generateId(){
-// 	return ++seedId; // networld ids are never to be 0. so a response with 0 means error
-// }
-
-// void Game::NetWorld::setSize(int w, int h, int unitsize, float gridSpec){
-// 	if(w <= 0.0f || h <= 0.0f || unitsize <= 0){
-// 		return;
-// 	}
-// 	if(cells != NULL){
-// 		delete cells;
-// 	}
-// 	if(ghosts != NULL){
-// 		delete ghosts;
-// 	}
-// 	this->gridSpec = nite::Vec2(gridSpec);
-// 	this->size.set(w, h);
-// 	this->cusize = unitsize;
-// 	this->cwidth = w / this->cusize;
-// 	this->cheight = h / this->cusize;
-// 	this->ctotal = this->cwidth * this->cheight;
-// 	this->cells = new Game::NetObject*[this->ctotal];
-// 	this->ghosts = new Game::NetObject*[this->ctotal];
-// 	for(int i = 0; i < this->ctotal; ++i){
-// 		this->cells[i] = NULL;
-// 		this->ghosts[i] = NULL;
-// 	}
-// 	nite::print("set world size "+nite::toStr(this->cwidth)+"x"+nite::toStr(this->cheight)+"("+nite::toStr(unitsize)+") | cells "+nite::toStr(this->ctotal));
-// }
-
-// void Game::NetWorld::getQuadrant(int x, int y, int w, int h, Vector<Game::NetObject*> &quadrant){
-// 	if(cells == NULL || ghosts == NULL){
-// 		return;
-// 	}
-// 	x /= cusize;
-// 	y /= cusize;
-// 	w /= cusize;
-// 	h /= cusize;
-// 	for(int _x = 0; _x < w; ++_x){
-// 		for(int _y = 0; _y < h; ++_y){
-// 			int rx = x + _x;
-// 			int ry = y + _y;
-// 			int ind = rx + ry * cwidth;
-// 			if(ind < 0 || ind >= ctotal){
-// 				continue;
-// 			}
-// 			auto c = cells[ind];
-// 			auto g = ghosts[ind];
-// 			if(c != NULL){
-// 				quadrant.push_back(c);
-// 			}
-// 			if(g != NULL){
-// 				quadrant.push_back(g);
-// 			}
-
-// 		}
-// 	}
-// 	return;
-// }
-
-// Game::NetWorld::~NetWorld(){
-// 	clear();
-// }
-
-// Game::NetWorld::NetWorld(){
-// 	timescale = 1.0f;
-// 	debugPhysics = false;
-// 	cells = NULL;
-// 	ghosts = NULL;
-// 	seedNId = -1;
-// 	seedId = nite::randomInt(101, 151);
-// 	tickrate = 1000 / 33;
-// 	int reserve = 1000 * 30;
-// 	objects.reserve(reserve);
-// 	nite::print("networld reserved "+nite::toStr((long long unsigned int)(sizeof(Shared<Game::NetObject>) * reserve))+" bytes");
-// }
-
-// bool Game::NetWorld::exists(UInt16 id){
-// 	return id != -1 ? objects.find(id) != objects.end() : false;
-// }
-
-// UInt16 Game::NetWorld::add(Shared<Game::NetObject> &obj, int useId){
-// 	int id = useId == -1 ? generateId() : useId;
-// 	objects[id] = obj;
-// 	obj->id = id;
-// 	obj->container = this;
-// 	obj->onCreate();
-// 	obj->updateQuadrant();
-// 	return id;
-// }
-
-// void Game::NetWorld::clearWallMasks(){
-// 	for(int i = 0; i < wallMasks.size(); ++i){
-// 		wallMasks[i]->clearQuadrant();
-// 		delete wallMasks[i];
-// 	}
-// 	wallMasks.clear();
-// }
-
-// bool Game::NetWorld::removeWallMask(Game::NetObject *mask){
-// 	for(int i = 0; i < wallMasks.size(); ++i){
-// 		if(wallMasks[i] == mask){
-// 			wallMasks[i]->clearQuadrant();
-// 			delete mask;
-// 			wallMasks.erase(wallMasks.begin() + i);
-// 			return true;
-// 		}
-// 	}
-// 	return false;
-// }
-
-// int Game::NetWorld::addWallMask(Game::NetObject *mask){
-// 	mask->localId = --seedNId;
-// 	mask->id = 0;
-// 	mask->container = this;
-// 	mask->onCreate();
-// 	mask->updateQuadrant();
-// 	wallMasks.push_back(mask);
-// 	return mask->localId;
-// }
-
-
-// void Game::NetWorld::clearGhostMasks(){
-// 	for(int i = 0; i < ghostMasks.size(); ++i){
-// 		ghostMasks[i]->clearQuadrant();
-// 		delete ghostMasks[i];
-// 	}
-// 	ghostMasks.clear();
-// }
-
-// int Game::NetWorld::addGhostMask(Game::NetObject *mask){
-// 	mask->localId = --seedNId;
-// 	mask->id = 0;
-// 	mask->container = this;
-// 	mask->onCreate();
-// 	mask->updateQuadrant();
-// 	ghostMasks.push_back(mask);
-// 	return mask->localId;
-// }
-
-// bool Game::NetWorld::removeGhostMask(Game::NetObject *mask){
-// 	for(int i = 0; i < ghostMasks.size(); ++i){
-// 		if(ghostMasks[i] == mask){
-// 			ghostMasks[i]->clearQuadrant();
-// 			delete mask;
-// 			ghostMasks.erase(ghostMasks.begin() + i);
-// 			return true;
-// 		}
-// 	}
-// 	return false;
-// }
-
-
-// void Game::NetWorld::clear(){
-// 	objects.clear();
-// 	clearWallMasks();
-// 	clearGhostMasks();
-// 	updateQueue.clear();
-// 	removeQueue.clear();
-// 	if(cells != NULL){
-// 		delete cells;
-// 	}
-// 	if(ghosts != NULL){
-// 		delete ghosts;
-// 	}	
-// 	cells = NULL;
-// 	ghosts = NULL;
-// 	seedNId = -1;
-// 	seedId = nite::randomInt(25, 50);
-// }
-
-// void Game::NetWorld::remove(int objectId){
-// 	auto it = objects.find(objectId);
-// 	if(it == objects.end()) {
-// 		nite::print("[NetWorld] unable to remove object id '"+nite::toStr(objectId)+"': it doesn't exist.");
-// 	}
-// 	removeQueue.push_back(objectId);
-// }
-
-// void Game::NetWorld::remove(Game::NetObject *obj){
-// 	this->remove(obj->id);
-// }
-
-// Game::NetObject *Game::NetWorld::get(UInt16 id){
-// 	auto it = objects.find(id);
-// 	if(it == objects.end()){
-// 		return NULL;
-// 	}
-// 	return it->second.get();
-// }
-
-// static nite::Vec2 perp(const nite::Vec2 &in){
-// 	return nite::Vec2(in.y, -in.x);
-// }
-
-// static Vector<nite::Vec2> getAxes(const nite::Polygon &polygon){
-// 	Vector<nite::Vec2> axes(polygon.vert.size(), nite::Vec2(0.0f));
-// 	for (int i = 0; i < polygon.vert.size(); i++) {
-// 		nite::Vec2 p1 = polygon.vert[i];
-// 		nite::Vec2 p2 = polygon.vert[(i + 1) == polygon.vert.size() ? 0 : (i + 1)];
-// 		nite::Vec2 edge = p1 - p2;
-// 		nite::Vec2 normal = perp(edge);
-// 		axes[i] = normal;
-// 	}
-// 	return axes;
-// }
-
-// struct Projection {
-// 	float min;
-// 	float max;
-// };
-
-// struct Penetration {
-// 	nite::Vec2 normal;
-// 	float depth;
-// };
-
-// static bool overlaps(const Projection &p1, const Projection &p2){
-// 	return !(p1.min > p2.max || p2.min > p1.max);
-// }
-
-// static float getOverlap(const Projection &p1, const Projection &p2){
-// 	return overlaps(p1, p2) ? (std::min(p1.max, p2.max) - std::max(p1.min, p2.min)): 0.0f;	
-// }
-
-// static Projection project(const nite::Polygon &polygon, nite::Vec2 axis){
-// 	float min = axis.dotProduct(polygon.vert[0]);
-// 	float max = min;
-// 	for (int i = 1; i < polygon.vert.size(); i++) {
-// 		double p = axis.dotProduct(polygon.vert[i]);
-// 		if(p < min){
-// 			min = p;
-// 		} else
-// 		if(p > max){
-// 			max = p;
-// 		}
-// 	}
-// 	Projection proj;
-// 	proj.min = min;
-// 	proj.max = max;
-// 	return proj;	
-// }
-
-// static bool test(Game::NetObject *_a, Game::NetObject *_b, Penetration &penetration){
-// 	if(_a->body.vert.size() == 0 || _b->body.vert.size() == 0){
-// 		return false;
-// 	}
-// 	auto a = _a->body.rotate(_a->orientation) + _a->position;
-// 	auto b = _b->body.rotate(_b->orientation) + _b->position;
-// 	Vector<nite::Vec2> aAxes = getAxes(a);
-// 	Vector<nite::Vec2> bAxes = getAxes(b);
-
-// 	float overlap = std::numeric_limits<float>::max();
-// 	nite::Vec2 smallest = nite::Vec2();
-// 	for (int i = 0; i < aAxes.size(); i++) {
-// 		nite::Vec2 &axis = aAxes[i];
-// 		Projection p1 = project(a, axis);
-// 		Projection p2 = project(b, axis);
-// 		if (!overlaps(p1, p2)){
-// 			return false;
-// 		}else{
-// 			float o = getOverlap(p1, p2);
-// 			if(o < overlap){
-// 				overlap = o;
-// 				smallest = axis;
-// 			}
-// 		}
-// 	}
-// 	for (int i = 0; i < bAxes.size(); i++) {
-// 		nite::Vec2 &axis = bAxes[i];
-// 		Projection p1 = project(a, axis);
-// 		Projection p2 = project(b, axis);
-// 		if (!overlaps(p1, p2)) {
-// 			return false;
-// 		}else{
-// 			float o = getOverlap(p1, p2);
-// 			if (o < overlap) {
-// 				overlap = o;
-// 				smallest = axis;
-// 			}
-// 		}
-// 	}
-// 	penetration.normal = smallest;
-// 	penetration.depth = overlap;
-// 	return true;
-// }
-
-// bool Game::NetWorld::testCollision(Game::NetObject *a, Game::NetObject *b, const nite::Vec2 &diff, nite::Vec2 &limit, nite::Vec2 &normal){
-// 	bool collision = false;
-// 	normal.x = 0.0f;
-// 	normal.y = 0.0f;
-// 	bool withinTopY = a->position.y <= b->position.y + b->size.y && a->position.y >= b->position.y;
-// 	bool withinBottomY = a->position.y + a->size.y <= b->position.y + a->size.y && a->position.y + a->size.y >= b->position.y;
-
-// 	bool withinTopX = a->position.x <= b->position.x + b->size.x && a->position.x >= b->position.x;
-// 	bool withinBottomX = a->position.x + a->size.x <= b->position.x + b->size.x && a->position.x + a->size.x >= b->position.x;
-
-// 	if(diff.x > 0){
-// 		float ray = a->position.x + a->size.x + diff.x;
-// 		if(ray >= b->position.x && (a->position.x + a->size.x) <= b->position.x && (withinTopY || withinBottomY)){
-// 			float lim = (b->position.x - (a->position.x + a->size.x)) / diff.x;
-// 			if(lim < limit.x){
-// 				limit.x = lim;
-// 			}
-// 			normal.x = 1.0f;
-// 			collision = true;
-// 		}
-// 	}else
-// 	if(diff.x < 0){
-// 		float ray = a->position.x + diff.x;
-// 		if(ray <= b->position.x + b->size.x && a->position.x >= b->position.x + b->size.x && (withinTopY || withinBottomY)){
-// 			float lim = (a->position.x - (b->position.x + b->size.x)) / (diff.x * -1.0f);
-// 			if(lim < limit.x){
-// 				limit.x = lim;
-// 			}			
-// 			normal.x = -1.0f;
-// 			collision = true;
-// 		}
-// 	}
-
-// 	if(diff.y > 0){
-// 		float ray = a->position.y + a->size.y + diff.y;
-// 		if(ray >= b->position.y && (a->position.y + a->size.y) <= b->position.y && (withinTopX || withinBottomX)){
-// 			float lim = (b->position.y - (a->position.y + a->size.y)) / diff.y;
-// 			if(lim < limit.y){
-// 				limit.y = lim;
-// 			}			
-// 			normal.y = 1.0f;
-// 			collision = true;
-// 		}
-// 	}else
-// 	if(diff.y < 0){
-// 		float ray = a->position.y + diff.y;
-// 		if(ray <= b->position.y + b->size.y && a->position.y >= b->position.y + b->size.y && (withinTopX || withinBottomX)){
-// 			float lim = (a->position.y - (b->position.y + b->size.y)) / (diff.y * -1.0f);
-// 			if(lim < limit.y){
-// 				limit.y = lim;
-// 			}			
-// 			normal.y = -1.0f;
-// 			collision = true;
-// 		}
-// 	}
-
-// 	// normalize limit
-// 	if(limit.x < 0.0f) limit.x = 0.0f;
-// 	if(limit.x > 1.0f) limit.x = 1.0f;	
-
-// 	if(limit.y < 0.0f) limit.y = 0.0f;
-// 	if(limit.y > 1.0f) limit.y = 1.0f;		
-
-// 	return collision;
-// }
-
-// void Game::NetWorld::updateObject(Game::NetObject *obj){
-// 	if(obj->unmovable || obj == NULL) return;
-
-// 	nite::Vec2 origp = obj->position;
-
-// 	// we're gonna use a fixed size to look for quadrants for now(3000x3000 from center/origin)
-// 	// ideally we should use a size relative to the object's speed
-// 	// TODO: this ^
-	
-// 	Vector<Game::NetObject*> nearObjs;
-// 	getQuadrant(obj->position.x - 800,  obj->position.y - 800, 1600, 1600, nearObjs);
-// 	float xdiff = nite::cos(obj->direction) * obj->speed * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
-// 	float ydiff = nite::sin(obj->direction) * obj->speed * this->timescale * obj->relativeTimescale * currentTickRate * nite::getTimescale() * 0.067f;
-// 	auto diff = nite::Vec2(xdiff, ydiff);
-// 	auto normal = nite::Vec2(0.0f);
-// 	auto limit = nite::Vec2(1.0f);
-// 	for(int i = 0; i < nearObjs.size(); ++i){
-// 		auto other = nearObjs[i];
-// 		if(obj->id == other->id) continue;		
-// 		if(!other->solid && other->objType != ObjectType::Ghost) continue;		
-// 		Penetration result;
-// 		if(test(obj, other, result)){
-// 			if(other->objType == ObjectType::Ghost){
-// 				auto ghost = static_cast<Game::GhostMask*>(other);
-// 				ghost->callback(obj);
-// 				limit = nite::Vec2(1.0f);
-// 				continue; // we do not handle collision if it's a ghost object
-// 			}
-// 			obj->collided = true;
-// 			if(!obj->destroyed){
-// 				obj->onCollision(other);
-// 			}
-// 			break;
-// 		}
-// 		// if(testCollision(obj, other, diff, limit, normal)){				
-// 		// 	if(other->objType == ObjectType::Ghost){
-// 		// 		auto ghost = static_cast<Game::GhostMask*>(other);
-// 		// 		ghost->callback(obj);
-// 		// 		limit = nite::Vec2(1.0f);
-// 		// 		continue; // we do not handle collision if it's a ghost object
-// 		// 	}
-// 		// 	obj->collided = true;
-// 		// 	if(!obj->destroyed){
-// 		// 		obj->onCollision(other);
-// 		// 	}
-// 		// 	if(limit.x == 0.0f && limit.y == 0.0f){
-// 		// 		break;
-// 		// 	}
-// 		// }
-// 	}
-// 	// push off by 1 unit of the total diff
-// 	// if(limit.x == 0.0f && diff.x != 0.0f){
-// 	// 	limit.x = (1.0f / diff.x) * nite::getSign(diff.x) * -1.0f;		
-// 	// }
-// 	// if(limit.y == 0.0f && diff.y != 0.0f){
-// 	// 	limit.y = (1.0f / diff.y) * nite::getSign(diff.y) * -1.0f;
-// 	// }
-// 	obj->position = obj->position + diff * limit;
-// 	if(origp.x != obj->position.x || origp.y != obj->position.y){
-// 		obj->updateQuadrant();
-// 	}
-// }
-
-// void Game::NetWorld::setVisibleQuadrant(int x, int y, int w, int h){
-
-// }
-
-// void Game::NetWorld::renderDbug(){
-// 	// debug: shows masks
-// 	if(debugPhysics){
-// 		for (auto it : objects){
-// 			auto current = it.second;
-// 			nite::setDepth(nite::DepthTop);
-// 			nite::setRenderTarget(nite::RenderTargetGame);
-// 			nite::setColor(current->collided ? nite::Color(1.0f, 0, 0) : nite::Color(0, 1.0f, 0));
-// 			nite::Draw::Polygon(current->body.rotate(current->orientation), current->position, nite::Vec2(0.0f), false);
-// 			nite::setDepth(0);
-// 			nite::resetColor();
-// 		}
-// 		for(int i = 0; i < wallMasks.size(); ++i){
-// 			auto mask = wallMasks[i];
-// 			nite::setDepth(nite::DepthTop);
-// 			nite::setRenderTarget(nite::RenderTargetGame);
-// 			nite::setColor(mask->collided ? nite::Color(1.0f, 0, 0) : nite::Color(0, 1.0f, 0));
-// 			nite::Draw::Rectangle(mask->position, mask->size, false, nite::Vec2(0.0, 0.0), 0);
-// 			nite::setDepth(0);
-// 			nite::resetColor();
-// 		}
-// 		for(int i = 0; i < ghostMasks.size(); ++i){
-// 			auto mask = ghostMasks[i];
-// 			nite::setDepth(nite::DepthTop);
-// 			nite::setRenderTarget(nite::RenderTargetGame);
-// 			nite::setColor(nite::Color(1.0f, 0, 1.0f));
-// 			nite::Draw::Rectangle(mask->position, mask->size, false, nite::Vec2(0.0, 0.0), 0);
-// 			nite::setDepth(0);
-// 			nite::resetColor();
-// 		}
-// 	}
-// }
-
-// void Game::NetWorld::update(){
-// 	renderDbug();
-
-// 	// clean up
-// 	if(removeQueue.size() > 0){
-// 		std::sort(removeQueue.begin(), removeQueue.end());
-// 		removeQueue.erase(std::unique(removeQueue.begin(), removeQueue.end()), removeQueue.end());		
-// 		for(int i = 0; i < removeQueue.size(); ++i){
-// 			objects[removeQueue[i]]->onDestroy();
-// 			objects[removeQueue[i]]->updateQuadrant();
-//     		objects[removeQueue[i]]->clearQuadrant();			
-// 			objects[removeQueue[i]]->id = 0;
-// 			objects.erase(removeQueue[i]);
-// 		}
-// 		removeQueue.clear();
-// 	}
-	
-// 	delta = nite::getTicks() - lastTick;
-// 	lastTick = nite::getTicks();
-// 	currentTickRate = delta;
-//   	for (auto it : objects){
-// 		auto current = it.second;
-// 		nite::Vec2 lastPos = current->position;
-// 		float lastspd = current->speed;
-// 		current->step();
-// 		current->onStep();
-// 		if(current->objType == ObjectType::Entity){
-// 			auto ent = static_cast<Game::EntityBase*>(current.get());
-// 			ent->effectStat.update();
-// 			ent->entityStep();  	
-// 		}	
-// 		current->collided = false;
-// 		// movement
-// 		updateObject(it.second.get());
-// 		// friction
-// 		for(int i = 0; i < currentTickRate / tickrate; ++i){
-// 			current->speed *= 1.0f - (current->friction * nite::getTimescale() * timescale * current->relativeTimescale);
-// 		}
-// 		// if(lastPos.x != current->position.x || lastPos.y != current->position.y || current->speed != lastspd){
-// 			current->issueDeltaUpdate(DeltaUpdateType::PHYSICS);
-// 		// }
-// 	}
-// }
-
-// void Game::NetWorld::render(){
-//   for (auto& it : objects){
-// 		auto current = it.second;
-// 		current->draw();
-// 		current->onDraw();
-// 	}
-// }
-
 
 nite::Vec2 Game::World::toCoors(int i){
 	return nite::Vec2(i %  width, i / height);
@@ -534,6 +29,9 @@ Game::World::World(){
 	debug = false;
 	lastId = nite::randomInt(101, 301);
 	cells = NULL;
+	width = 0;
+	height = 0;
+	total = 0;
 }
 
 void Game::World::init(int w, int h, int cellsize){
@@ -578,6 +76,22 @@ void Game::World::update(){
 
 	for(auto &it : objects){
 		auto obj = it.second.get();
+		if(obj->lastRouteMove > 0 && nite::getTicks()-obj->lastMove > obj->speed){
+			auto nstep = obj->route.route[obj->lastRouteMove - 1];
+			if(!isFree(nstep.index)){
+				// cock-blocked
+				obj->lastRouteMove = 0;
+				obj->route.route.clear();
+				obj->route.start = 0;
+				obj->route.end = 0;
+				// TODO notify clients
+			}else{
+				--obj->lastRouteMove;
+				obj->lastMove = nite::getTicks();
+				auto diff = nite::Vec2(nstep.x, nstep.y) - obj->position; // make it relative
+				obj->move(diff.x, diff.y);
+			}
+		}
 		obj->step();
 		obj->onStep();		
 		if(obj->objType == ObjectType::Entity){
@@ -586,6 +100,16 @@ void Game::World::update(){
 			ent->entityStep();  	
 		}
 	}
+}
+
+bool Game::World::swapCells(int s, int t){
+	if(!isValid(s) || !isValid(t)){
+		return false;
+	}
+	int h = cells[t];
+	cells[t] = cells[s];
+	cells[s] = h;
+	return true;
 }
 
 Game::NetObject *Game::World::get(UInt16 id){
@@ -662,7 +186,11 @@ void Game::World::renderDebug(){
 	nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setDepth(nite::DepthTop);
 	static nite::Texture empty("data/texture/empty.png");
+	static nite::Font font(nite::DefaultFontPath, 16, 1.0f);
 	nite::Vec2 mp = nite::getView(nite::RenderTargetGame) + nite::mousePositionAdj(nite::RenderTargetGame);
+	bool renderSel = false;
+	int renderInd;
+	nite::Vec2 renderP;
 	for(int x = 0; x < width; ++x){
 		for(int y = 0; y < height; ++y){
 			float _x = x * cellsize;
@@ -685,11 +213,20 @@ void Game::World::renderDebug(){
 				} break;
 			}			
 			if(nite::isPointInRegion(mp, nite::Vec2(_x,_y), nite::Vec2(_x,_y) + nite::Vec2(cellsize))){
-				nite::setColor(0.0f, 0.5f, 0.1f, 0.8f);
+				nite::setColor(0.0f, 0.7f, 0.9f, 0.8f);
 				fill = true;
+				renderSel = true;
+				renderInd = i;
+				renderP = nite::Vec2(x, y);
 			}			
 			nite::Draw::Rectangle(_x, _y, cellsize, cellsize, fill, 0.0f, 0.0f, 0.0f);
 		}
+	}
+	if(renderSel){
+		nite::setRenderTarget(nite::RenderTargetUI);
+		nite::setDepth(nite::DepthTop);
+		nite::setColor(0.0f, 0.7, 0.9, 1.0f);
+		font.draw(nite::toStr(renderInd)+" "+renderP.str(), nite::getWidth() * 0.5f, font.getHeight(), 0.5f, 0.5f, 0.0f);
 	}
 }
 
@@ -785,7 +322,7 @@ nite::MapRoute Game::World::astar(int start, int target){
     Dict<int, int> cameFrom;
     Dict<int, float> fScore;
     Dict<int, float> gScore;
-	Dict<int, int> map;
+	Dict<int, float> map;
 
 	nite::Vec2 startc = toCoors(start);
 	nite::Vec2 targetc = toCoors(target);
@@ -798,33 +335,30 @@ nite::MapRoute Game::World::astar(int start, int target){
 	if(minx < 0) minx = 0;
 	if(miny < 0) miny = 0;
 
-	// nite::print("min "+nite::Vec2(minx, miny).str()+" "+startc.str()+" "+targetc.str()+" start "+nite::toStr(start)+" target "+nite::toStr(target));
-
 	for(int y = 0; y < mh; ++y){
 		for(int x = 0; x < mw; ++x){
-			// int i = x + y * mw;
 			int c = x + minx + ((miny + y) * this->width);
 			if(!isValid(c) || cells[c] == WORLD_WALL){
 				continue;
 			}
-			map[c] = cells[c];
+			map[c] = cells[c] == 0 ? 0.0f : 3.0f;
 		}
 	}
+	map[start] = 1.0f;
+	map[target] = 2.0f;
 
-	int mtotal = mh * mw;
-
-    for(int i = 0; i < mtotal; ++i){
-        int c = cells[i];
-        open[c] = i;
+    for(auto &it : map){
+        int c = it.first;
+        open[c] = it.first;
         fScore[c] = (float)((unsigned)-1);
         gScore[c] = (float)((unsigned)-1);
     }   
-
-    gScore[start] = 0.0f;
+    
+	gScore[start] = 0.0f;
     fScore[start] = heuristicmd(toCoors(start), toCoors(target));
     open[start] = start;
-
-    auto lowestIndex = [&](){
+    
+	auto lowestIndex = [&](){
         int i = -1;
         for (auto const& x : open){
             if(i == -1 || fScore[x.first] < fScore[i]){
@@ -833,50 +367,56 @@ nite::MapRoute Game::World::astar(int start, int target){
         }
         return i;
     };    
+    
+	auto reconstruct = [&](Dict<int, int> &cameFrom, int index){
+        Vector<int> seq;
+        seq.insert(seq.begin(), index);
+        while(cameFrom.count(index) > 0){
+            index = cameFrom[index];
+            seq.push_back(index);
+        }
+        for(int i = 0; i < seq.size(); ++i){
+            map[seq[i]] = 4.0f;
+            route.route.push_back(nite::MapCell(seq[i], 0, this->width));
+        }       
+    };
 
-    // auto reconstruct = [&](Dict<int, int> &cameFrom, int index){
-    //     Vector<int> seq;
-    //     seq.insert(seq.begin(), index);
-    //     while(cameFrom.count(index) > 0){
-    //         index = cameFrom[index];
-    //         seq.push_back(index);
-    //     }
+    while(open.size() > 0){
+        int index = lowestIndex();
+        if(index == target){
+            reconstruct(cameFrom, index);
+            break;
+        }
+        open.erase(index);
+        closed[index] = index;
+		auto ccoors = toCoors(index);
+        auto neighbors = getNeighbors(open, ccoors.x, ccoors.y);
+        for(int i = 0; i < neighbors.size(); ++i){
+            int z = neighbors[i];
+            if(map[z] == 3.0) continue;
+            if(closed.count(z) > 0) continue;
+            if(open.count(z) == 0){
+                open[z] = z;
+            }
+			auto ccoors = toCoors(index);
+			auto zcoors = toCoors(z);
+			auto tcoors = toCoors(target);
+            float tscore = gScore[index] + nite::distance(ccoors, zcoors);
+            if(tscore >= gScore[z]){
+                continue;
+            }
+            cameFrom[z] = index;
+            gScore[z] = tscore;
+            fScore[z] = gScore[z] + heuristicmd(zcoors, tcoors);
+        }
+    }
 
-    //     for(int i = 0; i < seq.size(); ++i){
-    //         map[seq[i]].value = 4.0f;
-    //         route.push_back(map[seq[i]].rp);
-    //     }       
-    // };
+	// erase start
+	if((route.route.end()-1)->index == start){
+		route.route.erase(route.route.end()-1);
+	}
 
-    // while(open.size() > 0){
-    //     int index = lowestIndex();
-
-    //     if(index == target){
-    //         reconstruct(cameFrom, index);
-    //         break;
-    //     }
-
-    //     open.erase(index);
-    //     closed[index] = index;
-
-    //     auto neighbors = neighbors(open, map[index].inmp.x, map[index].inmp.y);
-
-    //     for(int i = 0; i < neighbors.size(); ++i){
-    //         int z = neighbors[i];
-    //         if(map[z].value == 3.0) continue;
-    //         if(closed.count(z) > 0) continue;
-    //         if(open.count(z) == 0){
-    //             open[z] = z;
-    //         }
-    //         float tscore = gScore[index] + nite::distance(map[index].inmp, map[z].inmp);
-    //         if(tscore >= gScore[z]){
-    //             continue;
-    //         }
-    //         cameFrom[z] = index;
-    //         gScore[z] = tscore;
-    //         fScore[z] = gScore[z] + heuristicmd(map[z].inmp, map[target].inmp);
-    //     }
-    // }  
-
+	route.start = start;
+	route.end = target;
 	return route; 
 }

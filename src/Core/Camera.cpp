@@ -109,7 +109,7 @@ void Game::Camera::update(){
 		return;
 	}
 	if(cameraForceZoom){
-		nite::setZoom(nite::RenderTargetGame, 0.8f);
+		nite::setZoom(nite::RenderTargetGame, 0.7f);
 	}
 	auto ent = client->getEntity(followId);
 	if(ent != NULL){

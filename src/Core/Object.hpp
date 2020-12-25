@@ -3,6 +3,7 @@
 
     #include "../Engine/Object.hpp"
     #include "../Engine/Packets.hpp"
+    #include "../Engine/Map.hpp"
     #include "../Entity/Anim.hpp"
 
     namespace Game {
@@ -87,11 +88,10 @@
             UInt8 animSt[AnimPart::total];
             UInt8 animNum[AnimPart::total];
             UInt16 animExtime[AnimPart::total];
-            float xLookingAt;
-            float yLookingAt;
-            float direction;
-            float orientation;
-            float speed; 
+            nite::MapRoute route;
+            nite::Vec2 position;
+            UInt16 total; 
+            UInt16 speed;
             float x;
             float y;
             ObjectState(){
@@ -106,23 +106,28 @@
             nite::Polygon body;
             UInt16 id;
 			nite::Vec2 position;
+            nite::Vec2 nextPosition;
+            int nextPInterp;
             nite::Vec2 rPosition;
 			nite::Vec2 size;
+            nite::MapRoute route;
 			virtual void destroy();
             bool destroyed;
-            float speed; // cell per tick
+            UInt16 speed; // cell per tick
 			float relativeTimescale;
 			bool collided;
             UInt8 objType;
             UInt16 sigId;
+            float steprate;
             void runState();
-            Game::ObjectState prevState;
-            Game::ObjectState nextState;
             Game::ObjectState currentState;
             Game::World *container;
             Game::Server *sv;
             Game::Net *net;
 
+            UInt64 lastMove;
+            UInt16 totalMove;
+            UInt32 lastRouteMove;
             void setPosition(const nite::Vec2 &p);
 
             NetObject();
@@ -130,6 +135,7 @@
             virtual void writeInitialState(nite::Packet &packet){}
             virtual void readInitialState(nite::Packet &packet){}
 			
+            virtual bool setMoveRoute(const nite::MapRoute &route, UInt32 total);
 			virtual bool move(int x, int y);
 			float getDistance(Game::NetObject *other);
 

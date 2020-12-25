@@ -898,6 +898,9 @@ void Game::Server::processIncomPackets(){
                     } break;
                 }
             } break; 
+            /*
+                SV_CLICK_ON
+            */             
             case Game::PacketType::SV_CLICK_ON: {
                 if(!client || !isLast){
                     break;
@@ -908,7 +911,8 @@ void Game::Server::processIncomPackets(){
                     auto ent = getEntity(client->entityId);
                     if(ent != NULL){
                         auto pi = world.toIndex(ent->position);
-                        world.astar(pi, index);
+                        auto route = world.astar(pi, index);
+                        ent->setMoveRoute(route, ent->steprate * route.route.size());
                     }
                 }
             } break;     
@@ -1044,6 +1048,68 @@ void Game::Server::game(){
     checkGameStatus();
     processIncomPackets();
       
+    // prepare delta for delivery
+    auto prepareDelta = [&](){
+        Vector<UInt16> objUpdate;
+        for(auto &it : this->world.objects){
+            auto obj = it.second.get();
+            if(obj->destroyed){
+                continue;
+            }
+            bool animUpd = hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, obj->deltaUpdates) && (obj->objType == ObjectType::Entity);
+            bool phsyUpd = hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, obj->deltaUpdates);
+            if(!animUpd && !phsyUpd){
+                continue;
+            }
+            objUpdate.push_back(obj->id);
+        }   
+        if(objUpdate.size() == 0){
+            return;
+        }
+        nite::Packet delta(PacketType::SV_UPDATE_OBJECT_STATE);
+        UInt8 n = objUpdate.size();
+        delta.write(&n, sizeof(n));
+        for(int i = 0; i < objUpdate.size(); ++i){
+            auto obj = world.get(objUpdate[i]);
+            delta.write(&obj->id, sizeof(obj->id));
+            delta.write(&obj->deltaUpdates, sizeof(obj->deltaUpdates));
+            // ANIMATION
+            if(hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, obj->deltaUpdates) && (obj->objType == ObjectType::Entity)){
+                auto ent = static_cast<Game::EntityBase*>(obj);
+                delta.write(&ent->faceDirection, sizeof(ent->faceDirection));
+                for(int j = 0; j < EntityStateSlot::total; ++j){
+                    delta.write(&ent->state[j], sizeof(UInt8));
+                    delta.write(&ent->stNum[j], sizeof(UInt8));
+                    delta.write(&ent->lastExpectedTime[j], sizeof(ent->lastExpectedTime[j]));
+                }                    
+            }
+            // PHYSICS
+            if(hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, obj->deltaUpdates)){
+                UInt16 currentP = world.toIndex(obj->position.x, obj->position.y);
+                UInt8 nroute = obj->route.route.size();
+                delta.write(&currentP, sizeof(currentP));
+                delta.write(&obj->totalMove, sizeof(obj->totalMove));                
+                delta.write(&nroute, sizeof(nroute)); 
+                for(int j = 0; j < nroute; ++j){
+                    delta.write(&obj->route.route[j].index, sizeof(obj->route.route[j].index));
+                }
+            }  
+            obj->clearDeltaUpdates();               
+        }            
+        for(auto &it : clients){
+            delta.setOrder(currentDelta);
+            sendPacketFor(it.second.ip, delta);
+        }
+    };
+        
+    // run delta
+    if(nite::getTicks()-lastGameUpdate > gameTickRate){
+        world.update();
+        prepareDelta();
+        lastGameUpdate = nite::getTicks();    
+    } 
+
+
     deliverPacketQueue();
 }
 

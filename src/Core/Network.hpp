@@ -314,10 +314,12 @@
                     UINT8 NUM[3]
                     UINT16 EXTIME[3]
                     // PHYSICS
-                    FLOAT DIRECTION
-                    FLOAT SPEED
-                    FLOAT X
-                    FLOAT Y
+                    UINT16 CURRENTP
+                    UINT16 TOTAL
+                    UINT8 N
+                    {
+                        UINT32 ROUTE
+                    } .. n
                 }
             */
 
