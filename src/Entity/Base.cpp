@@ -80,24 +80,15 @@ bool Game::EntityBase::canDamage(){
 	return nite::getTicks()-lastDmgd > EntityDamageRecover;
 }
 
-void Game::EntityBase::entityMove(const nite::Vec2 &dir, bool holdStance){  // more like hold direction
-	// if(healthStat.dead){
-	// 	return;
-	// }
-	// // if(!holdStance && dir.x > 0){
-	// // 	faceDirection = EntityFacing::Right;
-	// // }
-	// // if(!holdStance && dir.x < 0){
-	// // 	faceDirection = EntityFacing::Left;
-	// // }
-	// if(state[EntityStateSlot::BOTTOM] != EntityState::WALKING){
-	// 	setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
-	// }
-	// isMoving = true;
-	// nite::Vec2 _dir = (nite::Vec2(5.8f) + nite::Vec2(complexStat.walkRate)) * dir;
-	// float angle = nite::arctan(dir.y, dir.x);
-	// float mod = 12.8f + complexStat.walkRate;
-	// push(angle, mod);
+void Game::EntityBase::setWalkAnim(const nite::Vec2 &dir){ 
+	if(dir.x > 0){
+		faceDirection = EntityFacing::Right;
+	}else
+	if(dir.x < 0){
+		faceDirection = EntityFacing::Left;
+	}	
+	setState(EntityState::WALKING, EntityStateSlot::BOTTOM, 0);
+	lastExpectedTime[EntityStateSlot::BOTTOM] = this->speed;
 }
 
 void Game::EntityBase::kill(){
@@ -304,47 +295,11 @@ void Game::Gfx_CastingBall::init(const nite::Vec2 &p){
 
 
 void Game::EntityBase::entityStep(){
-	bool isSpace = input.isKeyPress(Game::Key::SPACE);
-	if(input.isKeyPress(Game::Key::UP) && input.isKeyPress(Game::Key::RIGHT)){
-		entityMove(nite::Vec2(1.0f, -1.0f), isSpace);
-	}else
-	if(input.isKeyPress(Game::Key::DOWN) && input.isKeyPress(Game::Key::RIGHT)){
-		entityMove(nite::Vec2(1.0f, 1.0f), isSpace);
-	}else
-	if(input.isKeyPress(Game::Key::UP) && input.isKeyPress(Game::Key::LEFT)){
-		entityMove(nite::Vec2(-1.0f, -1.0f), isSpace);
-	}else		
-	if(input.isKeyPress(Game::Key::DOWN) && input.isKeyPress(Game::Key::LEFT)){
-		entityMove(nite::Vec2(-1.0f, 1.0f), isSpace);
-	}else				
-	if(input.isKeyPress(Game::Key::UP)){
-		entityMove(nite::Vec2(0.0f, -1.0f), isSpace);
-	}else
-	if(input.isKeyPress(Game::Key::RIGHT)){
-		entityMove(nite::Vec2(1.0f, 0.0f), isSpace);
-	}else
-	if(input.isKeyPress(Game::Key::DOWN)){
-		entityMove(nite::Vec2(0.0f, 1.0f), isSpace);
-	}else
-	if(input.isKeyPress(Game::Key::LEFT)){
-		entityMove(nite::Vec2(-1.0f, 0.0f), isSpace);
-	}
-
-	if(input.mpos.x > position.x){
-		faceDirection = EntityFacing::Right;
-		issueDeltaUpdate(Game::DeltaUpdateType::ANIMATION);
-		
-	}else
-	if(input.mpos.x < position.x){
-		faceDirection = EntityFacing::Left;
-		issueDeltaUpdate(Game::DeltaUpdateType::ANIMATION);
-	}	
-
 	if(healthStat.health == 0 && !healthStat.dead){
 		healthStat.dead = true;
 		notifyEntityDeath(this);
 		onDeath();
-	}
+	}	
 	updateStance();
 	solveCasting();
 	aidriver.update();
@@ -396,10 +351,6 @@ void Game::EntityBase::setState(UInt8 nstate, UInt8 slot, UInt8 n, bool override
 		}
 	}
 
-	if(nstate == EntityState::WALKING && stNum[slot] != n){
-		++nsteps;
-	}
-
 	state[slot] = nstate;
 	lastStateTime[slot] = nite::getTicks();
 	lastFrameTime[slot] = nite::getTicks();
@@ -413,6 +364,7 @@ void Game::EntityBase::switchFrame(UInt8 slot, UInt8 n){
 	}
 	lastFrameTime[slot] = nite::getTicks();
 	stNum[slot] = n;
+	issueDeltaUpdate(DeltaUpdateType::ANIMATION);
 }
 
 void Game::EntityBase::throwMelee(float x, float y){
@@ -504,19 +456,11 @@ void Game::EntityBase::updateStance(){
 				if(part != EntityStateSlot::BOTTOM){
 					break;
 				}
-				auto canim = this->anim.getAnim(EntityState::stateToAnimType[EntityState::WALKING][EntityStateSlot::BOTTOM]);
-				if(canim == NULL){
-					break;
-				}
-				UInt64 walkRateDiff = complexStat.walkRate * 8;
-				// UInt64 walkAnimTime = canim->spd - (walkRateDiff > walkAnimTime ? ((UInt64)canim->spd*0.05f) : walkRateDiff);
-				UInt64 walkAnimTime = 300 - (150.0f * ((float)baseStat.agi / (float)GAME_MAX_STAT)) ;
-				UInt64 currentTime = nite::getTicks()-lastStateTime[EntityStateSlot::BOTTOM];
-				if(!isMoving && currentTime > walkAnimTime){
+				if(nite::getTicks()-lastStateTime[EntityStateSlot::BOTTOM] > lastExpectedTime[EntityStateSlot::BOTTOM]){
 					setState(EntityState::IDLE, EntityStateSlot::BOTTOM, 0);
 				}else
-				if(currentTime > walkAnimTime){
-					setState(EntityState::WALKING, EntityStateSlot::BOTTOM, stNum[EntityStateSlot::BOTTOM] + 1);
+				if(nite::getTicks()-lastFrameTime[EntityStateSlot::BOTTOM] > lastExpectedTime[EntityStateSlot::BOTTOM] / 2){
+					switchFrame(EntityStateSlot::BOTTOM, stNum[EntityStateSlot::BOTTOM] + 1);
 				}
 			} break;
 			case EntityState::JUMPING: {
@@ -542,20 +486,23 @@ void Game::EntityBase::updateStance(){
 						if(this->invStat.activeAmmo->ammoType != AmmoType::Arrow){
 							nite::print("can't shoot '"+this->invStat.activeAmmo->name+"' with a bow");
 						}else{
-
-							// nite::Vec2 fsCent = anim.frameSize * nite::Vec2(0.5f);
-							// nite::Vec2 ownpscent = position + fsCent;
-							// float ang = nite::arctan(pointingAt.y - ownpscent.y, pointingAt.x - ownpscent.x);
-							// float mod = nite::distance(fsCent - this->anim.arrowShootPos, fsCent);
-							// nite::Vec2 p = ownpscent + nite::Vec2(nite::cos(ang) * mod, nite::sin(ang) * mod);
-							// auto obj = Game::createNetObject(container->generateId(), Game::ObjectSig::Projectile, p.x, p.y); 
-							// auto prj = static_cast<Game::Projectile*>(obj.get());
-							// prj->setup(this->invStat.activeAmmo);
-							// prj->owner = this->id;
-							// prj->dir = ang;
-							// prj->spd = 50.0f;
-							// this->sv->spawn(obj);	
-							// this->invStat.remove(this->invStat.activeAmmo->id, 1);
+							auto t = container->toCoors(currenTarget);
+							auto dif = t - position;
+							nite::Vec2 dir(0.0f);
+							if(dif.x < 0) dir.x = -1;
+							if(dif.x > 0) dir.x = 1;
+							if(dif.y < 0) dir.y = -1;
+							if(dif.y > 0) dir.y = 1;							
+							nite::Vec2 spp = position + dir;
+							auto route = container->projectRay(container->toIndex(position + dir), dir.x, dir.y);
+							auto obj = Game::createNetObject(Game::ObjectSig::Projectile, spp.x, spp.y); 
+							auto prj = static_cast<Game::Projectile*>(obj.get());
+							prj->setup(this->invStat.activeAmmo);
+							prj->dir = 0;
+							prj->owner = this->id;
+							this->sv->spawn(obj);	
+							obj->setMoveRoute(route, route.route.size() * 35);
+							this->invStat.remove(this->invStat.activeAmmo->id, 1);
 						}					
 					}else{
 						nite::print("no ammo");

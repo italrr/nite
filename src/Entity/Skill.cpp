@@ -184,6 +184,7 @@ bool Game::Skills::BA_Attack::use(Game::EntityBase *who, Game::EntityBase *to, c
         return false;
     }
     this->locked = true;
+    who->currenTarget = who->container->toIndex(at);
     who->useBaseAttack();
     return true;
 }

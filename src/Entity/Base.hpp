@@ -147,6 +147,7 @@
             String name;
             int walkStepTick;
             bool dead;
+            int currenTarget;
             float castingMsgAlpha;
             Gfx_CastingBall castingBall;
             // Shared<nite::BaseUIComponent> castingMsg;
@@ -156,7 +157,7 @@
             void onCreate();
             void draw();
             void solveCasting();
-            void entityMove(const nite::Vec2 &dir, bool holdStance);
+            void setWalkAnim(const nite::Vec2 &dir);
             void loadAnim();
             void entityStep();
             void printInfo();

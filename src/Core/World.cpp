@@ -90,6 +90,9 @@ void Game::World::update(){
 				obj->lastMove = nite::getTicks();
 				auto diff = nite::Vec2(nstep.x, nstep.y) - obj->position; // make it relative
 				obj->move(diff.x, diff.y);
+				if(obj->objType == ObjectType::Entity){
+					static_cast<EntityBase*>(obj)->setWalkAnim(diff);
+				}
 			}
 		}
 		obj->step();
@@ -236,6 +239,7 @@ bool Game::World::add(const Shared<Game::NetObject> &obj, int x, int y, bool acc
 	obj->id = obj->id == 0 ? ++lastId : obj->id;
 	obj->position = nite::Vec2(x, y);
 	obj->rPosition = nite::Vec2(x, y) * nite::Vec2(cellsize);
+	obj->nextPosition = obj->position;
 	obj->container = this;
 	obj->onCreate();	
 	if(!isFree(i)){
@@ -307,6 +311,29 @@ Vector<int> Game::World::getNeighbors(Dict<int, int> &map, int x, int y){
 static float heuristicmd(const nite::Vec2 &a, const nite::Vec2 &b){
   static const float D = 1.0f;
   return D * (nite::abs(a.x - b.x) + nite::abs(a.y - b.y));
+}
+
+nite::MapRoute Game::World::projectRay(int from, int xidff, int ydiff){
+	nite::MapRoute route;
+	route.start = from;
+	if(!isFree(from)){
+		return route;
+	}
+	auto start = toCoors(from);
+	while(true){
+		nite::Vec2 p = start + nite::Vec2(xidff, ydiff);
+		if(isFree(toIndex(p))){
+			route.route.push_back(nite::MapCell(toIndex(p), 0, this->width));
+			start = p;
+			continue;
+		}
+		break;
+	}
+	if(route.route.size() > 0){
+		std::reverse(route.route.begin(), route.route.end());
+		route.end = route.route[0].index;
+	}
+	return route;
 }
 
 nite::MapRoute Game::World::astar(int start, int target){
@@ -414,6 +441,14 @@ nite::MapRoute Game::World::astar(int start, int target){
 	// erase start
 	if((route.route.end()-1)->index == start){
 		route.route.erase(route.route.end()-1);
+	}
+	// broken route?
+	if(route.route.size() > 0){
+		auto last = (route.route.end()-1);
+		if(nite::abs(last->x - startc.x) > 1 || nite::abs(last->y - startc.y) > 1){
+			route.route.clear();
+		}
+		
 	}
 
 	route.start = start;

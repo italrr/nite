@@ -905,14 +905,32 @@ void Game::Server::processIncomPackets(){
                 if(!client || !isLast){
                     break;
                 }
+                UInt8 actType;
                 UInt32 index;
+                handler.read(&actType, sizeof(actType));
                 handler.read(&index, sizeof(index));
                 if(world.isValid(index)){
                     auto ent = getEntity(client->entityId);
                     if(ent != NULL){
-                        auto pi = world.toIndex(ent->position);
-                        auto route = world.astar(pi, index);
-                        ent->setMoveRoute(route, ent->steprate * route.route.size());
+                        switch(actType){
+                            case ClickActionType::ATTACK: {
+                                auto coors = world.toCoors(index);
+                                auto sk = ent->skillStat.get(Game::SkillList::BA_ATTACK);
+                                ent->invokeUse(0, ActionableType::Skill, sk->id, coors.x, coors.y);
+                            } break;
+                            case ClickActionType::MOVE: {   
+                                auto pi = world.toIndex(ent->position);
+                                auto route = world.astar(pi, index);
+                                if(route.route.size() == 0){
+                                    nite::print("broken route");
+                                }else{
+                                    ent->setMoveRoute(route, ent->steprate * route.route.size());
+                                }
+                            } break;
+                            default: {
+                                nite::print("SV_CLICK_ON: undefined action type");
+                            } break;
+                        }
                     }
                 }
             } break;     
@@ -1603,7 +1621,7 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
     obj->sv = this; // we guarantee entities will have its sv ref as long as they're running on a server
     obj->net = this;
     obj->container = &world;
-    this->world.add(obj);
+    this->world.add(obj, obj->position.x, obj->position.y, false);
 
     nite::Packet crt(Game::PacketType::SV_CREATE_OBJECT);
     crt.write(&obj->id, sizeof(UInt16));
@@ -1675,15 +1693,15 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv, float 
     // efHeal->setup(100, 5 * 1000);
     // this->addEffect(obj->id, effect);
     // player->printInfo(); // for debugging
-    // auto bow = Game::getItem(ItemList::W_BOW, 1);
-    // auto arrows = Game::getItem(ItemList::AM_ARROW, 200);
-    // auto sword = Game::getItem(ItemList::W_SWORD, 1);
-    // player->invStat.add(bow);
-    // player->invStat.add(arrows);
-    // player->invStat.add(sword);
+    auto bow = Game::getItem(ItemList::W_BOW, 1);
+    auto arrows = Game::getItem(ItemList::AM_ARROW, 200);
+    auto sword = Game::getItem(ItemList::W_SWORD, 1);
+    player->invStat.add(bow);
+    player->invStat.add(arrows);
+    player->invStat.add(sword);
     // // player->invStat.equip(sword);
-    // player->invStat.equip(bow);
-    // player->invStat.equip(arrows);
+    player->invStat.equip(bow);
+    player->invStat.equip(arrows);
     return obj;
 }
 

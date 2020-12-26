@@ -25,9 +25,9 @@ void Game::Projectile::setup(Game::AmmoItem *ammo){
 }
 
 void Game::Projectile::onCreate(){
-    // if(this->sv == NULL){
-    //     this->texture.load(source.path, this->transparency);
-    // }
+    if(this->sv == NULL){
+        this->texture.load(source.path, this->transparency);
+    }
     // nite::print(nite::toStr(dir)+" "+nite::toStr(spd));
     // this->push(dir, spd);
 }
@@ -37,41 +37,42 @@ void Game::Projectile::step(){
         nite::print("arrow destroyed");
         destroy();
     }
-    // this->orientation = this->direction;
+    // if(!this->move(dir.x, dir.y) && !toDestroy){
+    //     toDestroy = true;
+    //     contactTime = nite::getTicks();
+    // }
 }
 
 void Game::Projectile::onCollision(Game::NetObject *obj){
     if(obj->sigId == ObjectSig::Player){
         return;
     }
-    if(obj->objType == ObjectSig::Wall && !toDestroy && nite::getTicks()-contactTime > 32){
-        // this->speed = 0.0;
-        // this->direction += nite::toRadians(180);
-        issueDeltaUpdate(DeltaUpdateType::PHYSICS);
-        // toDestroy = true;
-        contactTime = nite::getTicks();
-    }
+    // if(obj->objType == ObjectSig::Wall && !toDestroy && nite::getTicks()-contactTime > 32){
+    //     // this->speed = 0.0;
+    //     // this->direction += nite::toRadians(180);
+    //     issueDeltaUpdate(DeltaUpdateType::PHYSICS);
+    //     // toDestroy = true;
+    //     contactTime = nite::getTicks();
+    // }
     
     // destroy();
 }
 
 void Game::Projectile::draw(){
     nite::Vec2 offset(frameSize.x * 0.5f, frameSize.y* 0.5f);
-    int depth = -(position.y - size.y * 0.5f);
+    int depth = -(rPosition.y - size.y * 0.5f);
     nite::setDepth(depth);  
     texture.setRegion(inTexCoors, inTexSize);   
-    texture.draw(offset.x + position.x, offset.y + position.y, frameSize.x, frameSize.y, origin.x, origin.y, nite::toDegrees(0));
+    texture.draw(rPosition.x, rPosition.y, frameSize.x, frameSize.y, 0.0f, 0.0f, 0.0f);
 }
 
 void Game::Projectile::writeInitialState(nite::Packet &packet){
-    packet.write(&dir, sizeof(dir));
-    packet.write(&spd, sizeof(spd));
+    packet.write(dir);
     packet.write(&owner, sizeof(owner));
 }
 
 void Game::Projectile::readInitialState(nite::Packet &packet){
-    packet.read(&dir, sizeof(dir));
-    packet.read(&spd, sizeof(spd));
+    packet.read(dir);
     packet.read(&owner, sizeof(owner));
     auto obj = this->net->world.get(owner);
     if(obj == NULL){

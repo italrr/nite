@@ -28,9 +28,10 @@
             UInt64 contactTime;
             bool toDestroy;
             UInt8 type;
-            float dir;
-            float spd;
             UInt16 owner;
+
+            nite::Vec2 dir;
+
             void setup(Game::AmmoItem *ammo);
             Projectile();
             void onCreate();

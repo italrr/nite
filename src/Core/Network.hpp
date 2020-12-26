@@ -19,6 +19,12 @@
             Connected
         };
 
+        enum ClickActionType : UInt8 {
+            ATTACK = 0,
+            MOVE,
+            SELECT
+        };
+
         static const UInt32 RetryTimeOutInterval = 60;
         static const UInt64 ClientTimeout = 1000 * 30; // TODO: inc this for release
         static const UInt64 ConnectingTimeout = 1000 * 3;
@@ -155,6 +161,7 @@
 
             SV_CLICK_ON,
             /*
+                UINT8 ACTIONTYPE
                 UINT32 CELL
             */           
 

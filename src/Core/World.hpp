@@ -101,6 +101,7 @@
 			bool isValid(int i);
 			bool isFree(int i);
 			nite::Vec2 toCoors(int i);
+			nite::MapRoute projectRay(int from, int xdiff, int ydiff);
 			bool swapCells(int s, int t);
 			int toIndex(int x, int y);
 			int toIndex(const nite::Vec2 &p);

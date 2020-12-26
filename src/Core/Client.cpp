@@ -511,7 +511,7 @@ void Game::Client::processIncomPackets(){
                 obj->net = this;
                 obj->readInitialState(handler);
                 obj->id = id;
-                world.add(obj, obj->position.x, obj->position.y);
+                world.add(obj, x, y, false);
                 if(obj->objType == ObjectType::Entity){
                     static_cast<Game::EntityBase*>(obj.get())->loadAnim();
                 }
@@ -1224,6 +1224,9 @@ void Game::Client::processIncomPackets(){
                     }
                     obj->currentState = st;
                     if(hasIssuedDeltaStateUpdate(DeltaUpdateType::PHYSICS, st.states)){
+                        // if(st.position != obj->position){
+                        //     obj->setPosition(st.position);
+                        // }
                         obj->setMoveRoute(st.route, st.total);
                     }
                 }
@@ -1311,10 +1314,13 @@ void Game::Client::player(){
         }
     }
     if(nite::mousePressed(nite::butLEFT)){
+        bool ctrl = nite::keyboardCheck(nite::keyLCONTROL);
         UInt32 i = world.toIndex(nite::floor((nite::getView(nite::RenderTargetGame) + nite::mousePositionAdj(nite::RenderTargetGame)) / nite::Vec2(world.cellsize)));
         if(world.isValid(i)){
             nite::print("[client] "+nite::toStr(i));
             nite::Packet clickOn(Game::PacketType::SV_CLICK_ON);
+            UInt8 action = ctrl ? ClickActionType::ATTACK : ClickActionType::MOVE;
+            clickOn.write(&action, sizeof(action));
             clickOn.write(&i, sizeof(i));
             sendPacketFor(this->sv, clickOn);
         }
@@ -1344,13 +1350,30 @@ void Game::Client::game(){
         auto obj = it.second.get();
 		if(obj->lastRouteMove > 0 && nite::getTicks()-obj->lastMove > obj->speed){
 			auto nstep = obj->route.route[obj->lastRouteMove - 1];
-            --obj->lastRouteMove;
-            obj->lastMove = nite::getTicks();
-            auto diff = nite::Vec2(nstep.x, nstep.y) - obj->position; // make it relative
-            world.swapCells(nstep.index, world.toIndex(obj->position));
-            obj->position = obj->position + nite::Vec2(diff.x, diff.y);
-            obj->nextPosition = obj->position;
+			if(!world.isFree(nstep.index)){
+				// cock-blocked
+				obj->lastRouteMove = 0;
+				obj->route.route.clear();
+				obj->route.start = 0;
+				obj->route.end = 0;
+			}else{
+                --obj->lastRouteMove;
+                obj->lastMove = nite::getTicks();
+                auto diff = nite::Vec2(nstep.x, nstep.y) - obj->position; // make it relative
+                world.swapCells(nstep.index, world.toIndex(obj->position));
+                obj->position = obj->position + nite::Vec2(diff.x, diff.y);
+                obj->nextPosition = obj->position;
+			}            
 		}
+        if(DeltaUpdateType::hasIssuedDeltaStateUpdate(DeltaUpdateType::ANIMATION, obj->currentState.states) && obj->objType == ObjectType::Entity){ 
+            auto ent = static_cast<EntityBase*>(obj);
+            ent->faceDirection = obj->currentState.faceDir;
+            for(int j = 0; j < AnimPart::total; ++j){
+                ent->state[j] = obj->currentState.animSt[j];
+                ent->stNum[j] = obj->currentState.animNum[j];
+                ent->lastExpectedTime[j] = obj->currentState.animExtime[j];
+            }
+        }        
         if(obj->speed > 0){
             float dt = ((float)nite::getDelta() / 1000.0f);
             float spd = ((float)obj->speed / 1000.0f);
