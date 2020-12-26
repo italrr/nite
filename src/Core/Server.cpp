@@ -915,6 +915,15 @@ void Game::Server::processIncomPackets(){
                         switch(actType){
                             case ClickActionType::ATTACK: {
                                 auto coors = world.toCoors(index);
+                                auto dir = coors - ent->position;
+                                if(dir.x > 0){
+                                    ent->faceDirection = EntityFacing::Right;
+                                    ent->issueDeltaUpdate(DeltaUpdateType::ANIMATION);
+                                }else
+                                if(dir.x < 0){
+                                    ent->faceDirection = EntityFacing::Left;
+                                    ent->issueDeltaUpdate(DeltaUpdateType::ANIMATION);
+                                }
                                 auto sk = ent->skillStat.get(Game::SkillList::BA_ATTACK);
                                 ent->invokeUse(0, ActionableType::Skill, sk->id, coors.x, coors.y);
                             } break;

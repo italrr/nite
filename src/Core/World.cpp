@@ -268,6 +268,8 @@ void Game::World::remove(UInt16 id){
 }
 
 void Game::World::clear(){
+	width = 0;
+	height = 0;
 	if(cells != NULL){
 		delete cells;
 		cells = NULL;

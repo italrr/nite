@@ -59,11 +59,11 @@ void Game::Projectile::onCollision(Game::NetObject *obj){
 }
 
 void Game::Projectile::draw(){
-    nite::Vec2 offset(frameSize.x * 0.5f, frameSize.y* 0.5f);
+    nite::Vec2 offset(nite::Vec2(container->cellsize) * nite::Vec2(0.5f));
     int depth = -(rPosition.y - size.y * 0.5f);
     nite::setDepth(depth);  
     texture.setRegion(inTexCoors, inTexSize);   
-    texture.draw(rPosition.x, rPosition.y, frameSize.x, frameSize.y, 0.0f, 0.0f, 0.0f);
+    texture.draw(rPosition.x + offset.x, rPosition.y + offset.y, frameSize.x, frameSize.y, 0.5f, 0.5f, nite::toDegrees(nite::arctan(dir.y, dir.x)));
 }
 
 void Game::Projectile::writeInitialState(nite::Packet &packet){

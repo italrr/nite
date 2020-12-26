@@ -492,13 +492,13 @@ void Game::EntityBase::updateStance(){
 							if(dif.x < 0) dir.x = -1;
 							if(dif.x > 0) dir.x = 1;
 							if(dif.y < 0) dir.y = -1;
-							if(dif.y > 0) dir.y = 1;							
+							if(dif.y > 0) dir.y = 1;		
 							nite::Vec2 spp = position + dir;
 							auto route = container->projectRay(container->toIndex(position + dir), dir.x, dir.y);
 							auto obj = Game::createNetObject(Game::ObjectSig::Projectile, spp.x, spp.y); 
 							auto prj = static_cast<Game::Projectile*>(obj.get());
 							prj->setup(this->invStat.activeAmmo);
-							prj->dir = 0;
+							prj->dir = dir;
 							prj->owner = this->id;
 							this->sv->spawn(obj);	
 							obj->setMoveRoute(route, route.route.size() * 35);
