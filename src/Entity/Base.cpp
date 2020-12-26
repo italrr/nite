@@ -501,7 +501,7 @@ void Game::EntityBase::updateStance(){
 							prj->dir = dir;
 							prj->owner = this->id;
 							this->sv->spawn(obj);	
-							obj->setMoveRoute(route, route.route.size() * 35);
+							obj->setMoveRoute(route, route.route.size() * prj->steprate);
 							this->invStat.remove(this->invStat.activeAmmo->id, 1);
 						}					
 					}else{
@@ -537,31 +537,31 @@ void Game::EntityBase::updateStance(){
 				}
 			} break;
             case EntityState::MELEE_NOWEAP: {
-				if(part != EntityStateSlot::MID){
-					break;
-				}
-				auto canim = this->anim.getAnim(EntityState::stateToAnimType[EntityState::MELEE_NOWEAP][EntityStateSlot::MID]);
-				switch(stNum[EntityStateSlot::MID]){
-					case 0:{
-						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > canim->spd){
-							switchFrame(EntityState::IDLE, stNum[EntityStateSlot::MID] + 1);
-						}
-					} break;
-					default:
-					case 1: {
-						throwMelee(0.0f, 0.0f);
-						if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 350){ // 200 hard coded for now
-							// unlock basic attack
-							auto sk = skillStat.get(SkillList::BA_ATTACK);
-							if(sk != NULL){
-								sk->locked = false;
-							}else{
-								nite::print("EntityBase::updateStance: failed to find basic attack");
-							}						
-							setState(EntityState::IDLE, EntityStateSlot::MID, 0);
-						}
-					} break;
-				}
+				// if(part != EntityStateSlot::MID){
+				// 	break;
+				// }
+				// auto canim = this->anim.getAnim(EntityState::stateToAnimType[EntityState::MELEE_NOWEAP][EntityStateSlot::MID]);
+				// switch(stNum[EntityStateSlot::MID]){
+				// 	case 0:{
+				// 		if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > canim->spd){
+				// 			switchFrame(EntityState::IDLE, stNum[EntityStateSlot::MID] + 1);
+				// 		}
+				// 	} break;
+				// 	default:
+				// 	case 1: {
+				// 		throwMelee(0.0f, 0.0f);
+				// 		if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 350){ // 200 hard coded for now
+				// 			// unlock basic attack
+				// 			auto sk = skillStat.get(SkillList::BA_ATTACK);
+				// 			if(sk != NULL){
+				// 				sk->locked = false;
+				// 			}else{
+				// 				nite::print("EntityBase::updateStance: failed to find basic attack");
+				// 			}						
+				// 			setState(EntityState::IDLE, EntityStateSlot::MID, 0);
+				// 		}
+				// 	} break;
+				// }
 			} break;
 			case EntityState::IDLE_FIST: {
 				if(nite::getTicks()-lastStateTime[EntityStateSlot::MID] > 1500){
@@ -707,6 +707,11 @@ void Game::EntityBase::recalculateStats(){
 
 	// normalize in case of overflows
 	normalizeComplexStats();
+
+	steprate = 600 - complexStat.walkRate;
+	if(steprate < 50){
+		steprate = 50;
+	}
 
 	// server-side only (notify client owner)
 	if(sv != NULL){

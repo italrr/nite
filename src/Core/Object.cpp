@@ -50,7 +50,7 @@ Game::NetObject::NetObject(){
 	position.set(0.0f);
     speed = 0;
     destroyed = false;
-    steprate = 300;
+    steprate = 600;
     lastRouteMove = 0;
     lastMove = nite::getTicks();
     clearDeltaUpdates();
@@ -112,10 +112,11 @@ void Game::NetObject::setPosition(const nite::Vec2 &p){
 }
 
 bool Game::NetObject::setMoveRoute(const nite::MapRoute &route, UInt32 total){
+    int routen = route.route.size();
     this->route = route;
-    this->lastRouteMove = route.route.size();
+    this->lastRouteMove = routen;
     this->totalMove = total;
-    this->speed = total / route.route.size();
+    this->speed = total / (routen == 0 ? 1 : routen);
     issueDeltaUpdate(DeltaUpdateType::PHYSICS);
 }
 

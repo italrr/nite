@@ -10,6 +10,7 @@ Game::Projectile::Projectile(){
     type = ProjectileType::Arrow;
     objType = ObjectType::Projectile;
     toDestroy = false;
+    steprate = 35;
 }
 
 void Game::Projectile::setup(Game::AmmoItem *ammo){
@@ -33,7 +34,7 @@ void Game::Projectile::onCreate(){
 }
 
 void Game::Projectile::step(){
-    if(!destroyed && toDestroy && nite::getTicks()-contactTime > 3000){
+    if(!destroyed && toDestroy && nite::getTicks()-contactTime > 1000){
         nite::print("arrow destroyed");
         destroy();
     }
@@ -44,8 +45,10 @@ void Game::Projectile::step(){
 }
 
 void Game::Projectile::onCollision(Game::NetObject *obj){
-    if(obj->sigId == ObjectSig::Player){
-        return;
+
+    if(!toDestroy){
+        toDestroy = true;
+        contactTime = nite::getTicks();
     }
     // if(obj->objType == ObjectSig::Wall && !toDestroy && nite::getTicks()-contactTime > 32){
     //     // this->speed = 0.0;

@@ -1695,7 +1695,7 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv, float 
     nite::print("[server] created player entity with id "+nite::toStr(obj->id)+" | for client id "+nite::toStr(uid)+"("+client->second.nickname+")");
 
     // testing stats
-    // static_cast<Game::EntityBase*>(obj.get())->addBaseStat(BaseStatType::Agility, 100);
+    static_cast<Game::EntityBase*>(obj.get())->addBaseStat(BaseStatType::Agility, 100);
     // testing effects
     // auto effect = getEffect(Game::EffectList::EF_HEAL);
     // auto efHeal = static_cast<Game::Effects::EffHeal*>(effect.get());

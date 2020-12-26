@@ -84,6 +84,7 @@ void Game::World::update(){
 				obj->route.route.clear();
 				obj->route.start = 0;
 				obj->route.end = 0;
+				obj->onCollision(cells[nstep.index] == -1? NULL : get(cells[nstep.index]));
 				// TODO notify clients
 			}else{
 				--obj->lastRouteMove;
@@ -324,9 +325,9 @@ nite::MapRoute Game::World::projectRay(int from, int xidff, int ydiff){
 	auto start = toCoors(from);
 	while(true){
 		nite::Vec2 p = start + nite::Vec2(xidff, ydiff);
+		route.route.push_back(nite::MapCell(toIndex(p), 0, this->width));
+		start = p;
 		if(isFree(toIndex(p))){
-			route.route.push_back(nite::MapCell(toIndex(p), 0, this->width));
-			start = p;
 			continue;
 		}
 		break;

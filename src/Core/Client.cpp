@@ -238,6 +238,8 @@ void Game::Client::update(){
             if(obj == NULL){
                 continue;
             }
+            int ind = world.toIndex(obj->position);
+            world.cells[ind] = 0;
             world.objects.erase(obj->id);
             removeQueue.erase(removeQueue.begin() + i);
             --i;
