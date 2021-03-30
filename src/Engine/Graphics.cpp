@@ -10,14 +10,13 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include "Network.hpp"
-// #include "UI/UI.hpp"
+#include "UI/UI.hpp"
 #include "Tools/Tools.hpp"
 #include "Input.hpp"
 #include "Shader.hpp"
 #include "Graphics.hpp"
 #include "View.hpp"
 #include "Console.hpp"
-#include "../Game.hpp"
 
 using namespace nite;
 
@@ -37,6 +36,7 @@ static SDL_GLContext Context;
 static float targetExcess = 1.0f;
 static bool cl_showfps = false;
 static UInt64 lastFrameTick;
+static bool running = false;
 // static nite::Font debugFont;
 void flushTexture();
 void flushFont();
@@ -964,7 +964,7 @@ void nite::dropFrame(){
   for(int c = 0; c < RenderTargetNumber; ++c){
 		if(targets[c].objects.size() == 0) continue;
 		total += targets[c].objects.size();
-    targets[c].clear();
+    	targets[c].clear();
   }
 	nite::print("drop frame request: "+nite::toStr(total)+" objects");
 }
@@ -1015,18 +1015,28 @@ void nite::graphicsRender(){
 	SDL_GL_SwapWindow(Window);
 
 	nite::Console::render();
-	// nite::UI::render();	
+	nite::UI::render();	
+}
+
+bool nite::isRunning(){
+	// running = false;
+	return running;
+}
+
+void nite::endRun(){
+	running = false;
 }
 
 static void gameExit(){
-	static auto *ins = Game::getGameCoreInstance();
-	if(!ins->isRunning){
-		return;
-	}
+	// static auto *ins = Game::getGameCoreInstance();
+	// if(!ins->isRunning){
+	// 	return;
+	// }
 	nite::AsyncTask::update();
 	nite::AsyncTask::end();	
-	ins->end();	
-	ins->onEnd();	
+	// ins->end();	
+	// ins->onEnd();	
+	running = false;
 	nite::printEnd();
 }
 
@@ -1185,6 +1195,7 @@ void nite::graphicsInit(){
 	}
 
 	graphicsInitd = true;
+	running = true;
 
 	setupOpenGL();
 	SDL_GL_SetSwapInterval(enableVSync ? 1 : 0);

@@ -3,7 +3,7 @@
 #include "Tools/Tools.hpp"
 #include "Input.hpp"
 #include "Console.hpp"
-//#include "UI/UI.hpp"
+#include "UI/UI.hpp"
 #include "Network.hpp"
 #include "Graphics.hpp"
 
@@ -296,7 +296,7 @@ bool nite::mouseReleased(unsigned Button){
 	return 0;
 }
 
-#include "../Game.hpp"
+// #include "../Game.hpp"
 /*
 ================
 Refresh keys and buttons status (Should be executed every step in the main loop)
@@ -339,9 +339,10 @@ void nite::inputUpdate(){
 				buttonState[getButton(Events.button.button)] = 0;
 			break;
 			case SDL_QUIT:
-					auto *ins = Game::getGameCoreInstance();
-					ins->end();
+					// auto *ins = Game::getGameCoreInstance();
+					// ins->end();
 				// Game::exit();
+				endRun();
 			break;
 		}
 	}
@@ -353,7 +354,7 @@ void nite::inputUpdate(){
 		}
 	}	
 	nite::Console::update();
-	// nite::UI::update();	
+	nite::UI::update();	
 	nite::AsyncTask::update();
 }
 
