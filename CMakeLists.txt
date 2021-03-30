@@ -205,48 +205,21 @@ set (nite_src
 	src/Engine/Object.cpp
 	src/Engine/nScript.cpp
 	src/Engine/Audio.cpp
-	#src/Engine/UI/UI.cpp#
-	#src/Engine/UI/WindowUI.cpp#
-	#src/Engine/UI/PanelUI.cpp#
-	#src/Engine/UI/TextUI.cpp#
-	#src/Engine/UI/IconUI.cpp#
-	#src/Engine/UI/ButtonUI.cpp#
-	#src/Engine/UI/CheckboxUI.cpp#
-	#src/Engine/UI/BaseUIComponent.cpp#
+	src/Engine/UI/UI.cpp
+	src/Engine/UI/WindowUI.cpp
+	src/Engine/UI/PanelUI.cpp
+	src/Engine/UI/TextUI.cpp
+	src/Engine/UI/IconUI.cpp
+	src/Engine/UI/ButtonUI.cpp
+	src/Engine/UI/CheckboxUI.cpp
+	src/Engine/UI/BaseUIComponent.cpp
 	src/Engine/Console.cpp		)
 
 add_library(nite ${nite_src})
 
 set(src_files
-	# RING #
-	src/RING/RING.cpp
-	src/RING/Blueprint.cpp
-	# Core #
-	src/Core/Camera.cpp
-	src/Core/Server.cpp
-	src/Core/Client.cpp
-	src/Core/Network.cpp
-	src/Core/Object.cpp
-	src/Core/World.cpp
-	src/Core/Input.cpp
-	# Entity #
-	src/Entity/Vfx/Vfx.cpp
-	src/Entity/Traps/Trap.cpp
-	src/Entity/Anim.cpp
-	src/Entity/Inventory.cpp
-	src/Entity/Base.cpp
-	src/Entity/Battle.cpp
-	src/Entity/Stat.cpp
-	src/Entity/Skill.cpp
-	src/Entity/Projectile.cpp
-	src/Entity/Effect.cpp
-	# UI #
-	src/UI/HUD.cpp
-	src/UI/Icon.cpp
-	src/UI/IngameMenu.cpp
-	# GENERAL #
-	src/AI/AI.cpp
-	src/Game.cpp
+
+	src/Dashpoly.cpp
 )
 add_library(src ${src_files})
 target_link_libraries(src nite)
@@ -280,7 +253,7 @@ ENDIF(MINGW)
 
 aux_source_directory(src/ SRC_LIST)
 
-add_executable(Game src/REDBIAS.cpp)
+add_executable(Game src/Game.cpp)
 #add_executable(Dedicated src/Server.cpp)#
 
 target_link_libraries(Game src)

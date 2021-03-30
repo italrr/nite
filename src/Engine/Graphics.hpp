@@ -141,6 +141,8 @@
 		void graphicsInit();
 		void graphicsEnd();
 		bool isGraphicsInit();
+		bool isRunning();
+		void endRun();
 		void graphicsRender();
 		float getGeneralScale();
 		void setColor(const nite::Color &color);
