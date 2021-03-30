@@ -183,92 +183,92 @@ void Game::Anim::rerender(){
         }
         auto &frame = *lastAnim[i];
         int nf = lastSFrame[i];
-        // if(frame.limbs.size() > 0){
-        //     int _nf = nf;
-        //     Int64 mspd = frame.spd;
-        //     if(frame.useLimbOverride){
-        //         auto &lOvrr = frame.limbOverride;
-        //         if(lOvrr.st < _nf){
-        //             lOvrr.st = nf;
-        //         }
-        //         if(lOvrr.st > (lOvrr.n-1)){
-        //             lOvrr.st = (lOvrr.n-1);
-        //         }
-        //         if(lOvrr.st < (lOvrr.n-1) && nite::getTicks()-lOvrr.lastThick > lOvrr.espd){
-        //             lOvrr.st++;
-        //             lOvrr.lastThick = nite::getTicks();
-        //         }
-        //         mspd = lOvrr.espd;
-        //         _nf = lOvrr.st;
-        //     }
-        //     for(auto &limb : limbs){
-        //         auto &frameLimb = frame.limbs[limb.first][_nf];
-        //         limb.second.npos = frameLimb.p;
-        //         limb.second.nangle = frameLimb.an;
-        //         limb.second.xflip = frameLimb.xflip;
-        //         limb.second.yflip = frameLimb.yflip;
-        //         limb.second.shakeMag = frameLimb.shakeMag;
-        //         limb.second.type = frameLimb.type;
-        //         limb.second.weapKeyFrame = frameLimb.weapKeyFrame;
-        //         limb.second.hold = frameLimb.hold;
-        //         limb.second.spd = mspd;
-        //     }
-        // }
+        if(frame.limbs.size() > 0){
+            int _nf = nf;
+            Int64 mspd = frame.spd;
+            if(frame.useLimbOverride){
+                auto &lOvrr = frame.limbOverride;
+                if(lOvrr.st < _nf){
+                    lOvrr.st = nf;
+                }
+                if(lOvrr.st > (lOvrr.n-1)){
+                    lOvrr.st = (lOvrr.n-1);
+                }
+                if(lOvrr.st < (lOvrr.n-1) && nite::getTicks()-lOvrr.lastThick > lOvrr.espd){
+                    lOvrr.st++;
+                    lOvrr.lastThick = nite::getTicks();
+                }
+                mspd = lOvrr.espd;
+                _nf = lOvrr.st;
+            }
+            for(auto &limb : limbs){
+                auto &frameLimb = frame.limbs[limb.first][_nf];
+                limb.second.npos = frameLimb.p;
+                limb.second.nangle = frameLimb.an;
+                limb.second.xflip = frameLimb.xflip;
+                limb.second.yflip = frameLimb.yflip;
+                limb.second.shakeMag = frameLimb.shakeMag;
+                limb.second.type = frameLimb.type;
+                limb.second.weapKeyFrame = frameLimb.weapKeyFrame;
+                limb.second.hold = frameLimb.hold;
+                limb.second.spd = mspd;
+            }
+        }
         nite::setDepth(0);
         nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
         anim.setFrame(frame.id, nf);
         auto ref = anim.draw(frame.id, offset.x, offset.y, frameSize.x, frameSize.y, 0.0f, 0.0f, 0.0f);
     }    
-    // if(useLooseLimbs){
-    //     nite::Vec2 ownpscent = owner->position + frameSize * nite::Vec2(0.5f);
-    //     // float diffx = (owner->pointingAt.x - ownpscent.x) * (owner->faceDirection == EntityFacing::Left ? -1.0f : 1.0f);
-    //     // float diffy = owner->pointingAt.y - ownpscent.y;
-    //     lookingAtAngle = 0;
-    //     for(auto &limb : limbs){
-    //         auto &type = limbTypes[limb.second.type];
+    if(useLooseLimbs){
+        nite::Vec2 ownpscent = owner->position + frameSize * nite::Vec2(0.5f);
+        // float diffx = (owner->pointingAt.x - ownpscent.x) * (owner->faceDirection == EntityFacing::Left ? -1.0f : 1.0f);
+        // float diffy = owner->pointingAt.y - ownpscent.y;
+        lookingAtAngle = 0;
+        for(auto &limb : limbs){
+            auto &type = limbTypes[limb.second.type];
             
-    //         nite::setDepth(limb.second.depth);
-	//         float targetx = (limb.second.pos.x + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f));
-	//         float targety = (limb.second.pos.y + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f));
+            nite::setDepth(limb.second.depth);
+	        float targetx = (limb.second.pos.x + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f));
+	        float targety = (limb.second.pos.y + limb.second.shakeMag * ((nite::randomInt(1, 2) == 1) ? -1.0f : 1.0f));
 
-    //         nite::Vec2 tadjusted = owner->position + nite::Vec2(targetx, targety);
-    //         float modcenter = nite::distance(tadjusted, ownpscent);
+            nite::Vec2 tadjusted = owner->position + nite::Vec2(targetx, targety);
+            float modcenter = nite::distance(tadjusted, ownpscent);
             
-    //         // targetx += offset.x;
-    //         // targety += offset.y;
+            // targetx += offset.x;
+            // targety += offset.y;
 
-    //         // if(limb.second.active){
-    //         targetx = frameSize.x * 0.5f + nite::cos(lookingAtAngle) * modcenter + offset.x;   
-    //         targety = frameSize.y * 0.5f + nite::sin(lookingAtAngle) * modcenter + offset.y;                
-    //         // }
+            // if(limb.second.active){
+            targetx = frameSize.x * 0.5f + nite::cos(lookingAtAngle) * modcenter + offset.x;   
+            targety = frameSize.y * 0.5f + nite::sin(lookingAtAngle) * modcenter + offset.y;                
+            // }
 
-    //         // render active weapon
-    //         if(owner != NULL && owner->invStat.activeWeapon != NULL && limb.second.active){
-    //             auto *weap = owner->invStat.activeWeapon;
-    //             auto &wanim = owner->invStat.activeWeapon->anim;
-    //             nite::Vec2 inTexCoors = wanim.frames[0].inTexCoors;
-    //             if(limb.second.weapKeyFrame.length() > 0){
-    //                 for(int i = 0; i <  wanim.frames.size(); ++i){
-    //                     if(wanim.frames[i].key == limb.second.weapKeyFrame){
-    //                         inTexCoors = wanim.frames[i].inTexCoors;
-    //                     }
-    //                 }
-    //             }
-    //             wanim.texture.setRegion(inTexCoors, wanim.inTexSize); 
-    //             wanim.texture.draw(targetx, targety, wanim.frameSize.x, wanim.frameSize.y, wanim.origin.x, wanim.origin.y, nite::toDegrees(lookingAtAngle));
-    //         }
-    //         // render ammo (arrows)
-    //         if(owner != NULL && owner->invStat.activeAmmo != NULL && limb.second.hold == "ammo"){
-    //             auto *weap = owner->invStat.activeAmmo;
-    //             auto &aanim = owner->invStat.activeAmmo->anim;
-    //             nite::Vec2 inTexCoors = aanim.inTexCoors;
-    //             aanim.texture.setRegion(inTexCoors, aanim.inTexSize); 
-    //             aanim.texture.draw(targetx, targety, aanim.frameSize.x, aanim.frameSize.y, aanim.holdOrigin.x, aanim.holdOrigin.y, nite::toDegrees(lookingAtAngle));
-    //         }            
-    //         anim.texture.setRegion(type.inTexCoors, type.inTexSize);
-    //         anim.texture.draw(targetx, targety, limbSize.x * (limb.second.xflip ? -1.0f: 1.0f), limbSize.y * (limb.second.yflip ? -1.0f: 1.0f), 0.5f, 0.5f, nite::toDegrees(lookingAtAngle));
-    //     }
-    // }
+            // render active weapon
+            if(owner != NULL && owner->invStat.activeWeapon != NULL && limb.second.active){
+                auto *weap = owner->invStat.activeWeapon;
+                auto &wanim = owner->invStat.activeWeapon->anim;
+                nite::Vec2 inTexCoors = wanim.frames[0].inTexCoors;
+                if(limb.second.weapKeyFrame.length() > 0){
+                    for(int i = 0; i <  wanim.frames.size(); ++i){
+                        if(wanim.frames[i].key == limb.second.weapKeyFrame){
+                            inTexCoors = wanim.frames[i].inTexCoors;
+                        }
+                    }
+                }
+                wanim.texture.setRegion(inTexCoors, wanim.inTexSize); 
+                wanim.texture.draw(targetx, targety, wanim.frameSize.x, wanim.frameSize.y, wanim.origin.x, wanim.origin.y, nite::toDegrees(lookingAtAngle));
+            }
+            // render ammo (arrows)
+            if(owner != NULL && owner->invStat.activeAmmo != NULL && limb.second.hold == "ammo"){
+                auto *weap = owner->invStat.activeAmmo;
+                auto &aanim = owner->invStat.activeAmmo->anim;
+                nite::Vec2 inTexCoors = aanim.inTexCoors;
+                aanim.texture.setRegion(inTexCoors, aanim.inTexSize); 
+                aanim.texture.draw(targetx, targety, aanim.frameSize.x, aanim.frameSize.y, aanim.holdOrigin.x, aanim.holdOrigin.y, nite::toDegrees(lookingAtAngle));
+            }            
+            anim.texture.setRegion(type.inTexCoors, type.inTexSize);
+            anim.texture.draw(targetx, targety, limbSize.x * (limb.second.xflip ? -1.0f: 1.0f), limbSize.y * (limb.second.yflip ? -1.0f: 1.0f), 0.5f, 0.5f, nite::toDegrees(lookingAtAngle));
+        }
+    }
     batch.end();
     batch.flush();
 }

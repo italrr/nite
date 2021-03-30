@@ -50,7 +50,7 @@ Game::NetObject::NetObject(){
 	position.set(0.0f);
     speed = 0;
     destroyed = false;
-    steprate = 600;
+    steprate = 150;
     lastRouteMove = 0;
     lastMove = nite::getTicks();
     clearDeltaUpdates();

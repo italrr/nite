@@ -145,7 +145,7 @@
             void notifyUpdateInvList(UInt64 uid);       
             
             // core
-            Shared<Game::NetObject> spawn(Shared<Game::NetObject> obj);
+            Shared<Game::NetObject> spawn(Shared<Game::NetObject> obj, bool accomodate = false);
             bool destroy(UInt16 id);            
             void setupGame(const String &name, int maxClients, int maps);
             Shared<Game::NetObject> createPlayer(UInt64 uid, UInt32 lv, float x, float y);

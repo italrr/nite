@@ -1215,9 +1215,9 @@ void Game::Server::createPlayersOnStart(UInt16 initialHeader){
     float startx = me->map->startCell.x + nite::randomInt(-50, 50);
     float starty = me->map->startCell.y + nite::randomInt(-50, 50);   
 
-    // auto objMob = createMob(Game::ObjectSig::MobHumanoid, 10, startx, starty); 
-    // auto mob = static_cast<Game::EntityBase*>(objMob.get());
-    // mob->aidriver.add(Shared<Game::AI::DumbassBehavior>(new Game::AI::DumbassBehavior()));
+    auto objMob = createMob(Game::ObjectSig::MobHumanoid, 10, startx, starty); 
+    auto mob = static_cast<Game::EntityBase*>(objMob.get());
+    mob->aidriver.add(Shared<Game::AI::DumbassBehavior>(new Game::AI::DumbassBehavior()));
 }
 
 void Game::Server::restart(){
@@ -1619,7 +1619,7 @@ void Game::Server::sendSkillList(UInt64 uid, UInt16 entityId){
     sendPersPacketFor(cl->ip, pck, ++cl->svAck);
 }
 
-Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
+Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj, bool accomodate){
     if(!init){
         return Shared<Game::NetObject>(NULL);
     }
@@ -1630,7 +1630,7 @@ Shared<Game::NetObject> Game::Server::spawn(Shared<Game::NetObject> obj){
     obj->sv = this; // we guarantee entities will have its sv ref as long as they're running on a server
     obj->net = this;
     obj->container = &world;
-    this->world.add(obj, obj->position.x, obj->position.y, false);
+    this->world.add(obj, obj->position.x, obj->position.y, accomodate);
 
     nite::Packet crt(Game::PacketType::SV_CREATE_OBJECT);
     crt.write(&obj->id, sizeof(UInt16));
@@ -1695,7 +1695,7 @@ Shared<Game::NetObject> Game::Server::createPlayer(UInt64 uid, UInt32 lv, float 
     nite::print("[server] created player entity with id "+nite::toStr(obj->id)+" | for client id "+nite::toStr(uid)+"("+client->second.nickname+")");
 
     // testing stats
-    static_cast<Game::EntityBase*>(obj.get())->addBaseStat(BaseStatType::Agility, 100);
+    // static_cast<Game::EntityBase*>(obj.get())->addBaseStat(BaseStatType::Agility, 100);
     // testing effects
     // auto effect = getEffect(Game::EffectList::EF_HEAL);
     // auto efHeal = static_cast<Game::Effects::EffHeal*>(effect.get());

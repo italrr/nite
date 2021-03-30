@@ -428,7 +428,7 @@ void Game::EntityBase::useBaseAttack(){
 			if(state[EntityStateSlot::MID] == EntityState::SHOOTING_BOW){
 				break;
 			}
-			lastExpectedTime[EntityStateSlot::MID] = 1000 - (900.0f * ((float)baseStat.agi / (float)GAME_MAX_STAT));
+			lastExpectedTime[EntityStateSlot::MID] = 300 - (200.0f * ((float)baseStat.agi / (float)GAME_MAX_STAT));
 			setState(EntityState::SHOOTING_BOW, EntityStateSlot::MID, 0);
 		} break;
 		case WeaponType::Sword: {
@@ -492,7 +492,15 @@ void Game::EntityBase::updateStance(){
 							if(dif.x < 0) dir.x = -1;
 							if(dif.x > 0) dir.x = 1;
 							if(dif.y < 0) dir.y = -1;
-							if(dif.y > 0) dir.y = 1;		
+							if(dif.y > 0) dir.y = 1;
+							if(dir.x > 0){
+								faceDirection = EntityFacing::Right;
+								issueDeltaUpdate(DeltaUpdateType::ANIMATION);
+							}else
+							if(dir.x < 0){
+								faceDirection = EntityFacing::Left;
+								issueDeltaUpdate(DeltaUpdateType::ANIMATION);
+							}
 							nite::Vec2 spp = position + dir;
 							auto route = container->projectRay(container->toIndex(position + dir), dir.x, dir.y);
 							auto obj = Game::createNetObject(Game::ObjectSig::Projectile, spp.x, spp.y); 
@@ -708,9 +716,9 @@ void Game::EntityBase::recalculateStats(){
 	// normalize in case of overflows
 	normalizeComplexStats();
 
-	steprate = 600 - complexStat.walkRate;
-	if(steprate < 50){
-		steprate = 50;
+	steprate = 200 - complexStat.walkRate;
+	if(steprate < 10){
+		steprate = 10;
 	}
 
 	// server-side only (notify client owner)
