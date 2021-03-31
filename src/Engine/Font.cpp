@@ -24,7 +24,7 @@ nite::Console::CreateProxy cpRenText("ren_text", nite::Console::ProxyType::Bool,
 
 #define ASCII_MIN 32
 #define ASCII_MAX 128
-#define SCALING 2
+#define SCALING 1
 
 #include <cmath>
 

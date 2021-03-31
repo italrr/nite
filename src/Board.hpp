@@ -16,12 +16,16 @@
     struct Board {
         nite::Batch batch;
         nite::Font font;
-        nite::Font subFont;
+        nite::Texture empty;
+        nite::Shader shader;
         int width;
         int height;
         Shared<GameType> gType;
         UnitSize unitSize;
+        nite::Color bg;
         void init(const nite::Color &bg, int width, int height, const Shared<GameType> &gType);
+        void rerender();
+        void update();
         void draw(float x, float y);
     };
 

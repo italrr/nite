@@ -1,23 +1,28 @@
 #include "Engine/Shader.hpp"
+#include "Engine/Input.hpp"
 #include "Board.hpp"
 
 void Board::init(const nite::Color &bg, int width, int height, const Shared<GameType> &gType){
-    this->unitSize.width = width / gType->width;
-    this->unitSize.height = height / gType->height;
-    
-    nite::Texture empty;
-    empty.load("data/texture/empty.png");
-    nite::Shader shader;
-    shader.load("data/shaders/space_background_f.glsl", "data/shaders/space_background_v.glsl");
-
-    float ratio = (float)(width*height) / (1080.0f * 1080.0f);
-    this->font.load("data/font/Saniretro.ttf", 12.0f * ratio, 0.0f);
-    this->subFont.load("data/font/Saniretro.ttf", 14.0f * ratio, 0.0f);
-
+    this->bg = bg;
+    this->gType = gType;
     this->width = width;
     this->height = height;
-    batch.init(width, height);
+    this->empty.load("data/texture/empty.png");
+    this->shader.load("data/shaders/space_background_f.glsl", "data/shaders/space_background_v.glsl");
+    rerender();
 
+
+}
+
+void Board::rerender(){
+    float ratio = (float)(width+height) / (1080.0f + 1080.0f);
+    float fontsize = 11.0f * ratio;
+    if(!this->font.isLoaded() || this->font.getFontSize() != fontsize){
+        this->font.load("data/font/Saniretro.ttf", 11.0f * ratio, 0.0f);    
+    }
+    this->unitSize.width = width / gType->width;
+    this->unitSize.height = height / gType->height;    
+    batch.init(width, height);
     auto generateSpace = [&](const Space &space, const SpaceLayout &layout, nite::Batch &batch){
         // generate space
         nite::Batch spaceb;
@@ -45,7 +50,7 @@ void Board::init(const nite::Color &bg, int width, int height, const Shared<Game
             robj->align = nite::TextAlign::CENTER;
             if(isProperty){
                 nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);
-                auto robj = this->subFont.draw("$"+nite::toStr(space.price), width * 0.5f, height * 0.85f, 0.5f, 0.5f, 0.0f);
+                auto robj = this->font.draw("$"+nite::toStr(space.price), width * 0.5f, height * 0.85f, 0.5f, 0.5f, 0.0f);
                 robj->autobreak = true;
                 robj->horSpace = width-4;
                 robj->align = nite::TextAlign::CENTER;
@@ -65,12 +70,30 @@ void Board::init(const nite::Color &bg, int width, int height, const Shared<Game
         return spaceb;
     };
 
-
+    // generate board
+    batch.begin();
+        nite::setColor(bg);
+        empty.draw(0, 0, width, height, 0.0f, 0.0f, 0.0f);
+    batch.end();
+    batch.flush(false);    
     for(auto &it : gType->layout){
         auto &space = gType->spaces[it.first];
         auto b = generateSpace(space, it.second, this->batch);
-    }
+    }    
+}
 
+void Board::update(){
+    // if(nite::mouseWheel() == nite::mouseWheelUp){
+    //     width = nite::round((float)width * 1.1f);
+    //     height = nite::round((float)height * 1.1f);
+    //     rerender();
+    // }else
+    // if(nite::mouseWheel() == nite::mouseWheelDown){
+    //     width = nite::round((float)width * 0.9f);
+    //     height = nite::round((float)height * 0.9f);       
+    //     rerender();
+    // }
+    
 }
 
 void Board::draw(float x, float y){

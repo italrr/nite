@@ -31,6 +31,11 @@
 		bool isMouseInRegion(float x, float y, float x2, float y2);
 		bool isMouseInRegion(const nite::Vec2 &P,  const nite::Vec2 &Q);
 		int translateKey(String key);
+		unsigned mouseWheel();
+
+		const unsigned mouseWheelUp 		= 0;
+		const unsigned mouseWheelNone 		= 1;
+		const unsigned mouseWheelDown 		= 2;
 
 		const unsigned keyA 				= 0;
 		const unsigned keyB 				= 1;

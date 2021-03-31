@@ -222,6 +222,7 @@ static bool buttonStatePressed[niteButtonsn];
 static bool isbuttonStatePressed[niteButtonsn];
 static bool buttonStateReleased[niteButtonsn];
 static bool isbuttonStateReleased[niteButtonsn];
+static unsigned mouseWheelVal = mouseWheelNone;
 
 static unsigned getButton(unsigned Button){
 	switch(Button){
@@ -237,6 +238,9 @@ static unsigned getButton(unsigned Button){
 	}
 }
 
+unsigned nite::mouseWheel(){
+	return mouseWheelVal;
+}
 
 bool nite::mouseCheck(unsigned Button){
 	Button -= 201;
@@ -323,6 +327,7 @@ void nite::inputUpdate(){
 		isbuttonStatePressed [i] = 0;
 		isbuttonStateReleased [i] = 0;
 	}
+	mouseWheelVal = mouseWheelNone;
 	while(SDL_PollEvent(&Events)){
 		switch(Events.type){
 			case SDL_KEYUP:
@@ -338,6 +343,14 @@ void nite::inputUpdate(){
 			case SDL_MOUSEBUTTONUP:
 				buttonState[getButton(Events.button.button)] = 0;
 			break;
+			case SDL_MOUSEWHEEL:
+				if(Events.wheel.y == -1){
+					mouseWheelVal = nite::mouseWheelDown;
+				}else
+				if (Events.wheel.y == 1){
+					mouseWheelVal = nite::mouseWheelUp;
+				}
+			break;			
 			case SDL_QUIT:
 					// auto *ins = Game::getGameCoreInstance();
 					// ins->end();

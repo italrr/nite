@@ -22,22 +22,11 @@ int main(int argc, char* argv[]){
 	Board board;
 	board.init(nite::Color(205.0f / 255.0f, 230.0f / 255.0f, 208.0f / 255.0f, 1.0f), 1080, 1080, gType);
 
-	// nite::Font font("data/font/Saniretro.ttf", 24, 1.0f);
-	// nite::Texture empty("data/texture/empty.png");
-	// static const String text = "LORE ";
-	// float maxWidth = 78;
 	while(nite::isRunning()){	
 		nite::viewUpdate();
 		nite::inputUpdate();	
+		board.update();
 		board.draw(0, 0);
-		// nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);
-		// empty.draw(nite::getWidth()*0.5, nite::getHeight()*0.5, maxWidth, font.getHeight(text), 0.5f, 0.5f, 0.0f);
-		// nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-		// nite::print(font.getWidth(text));
-		// auto obj = font.draw(text,nite::getWidth()*0.5f, nite::getHeight()*0.5f, 0.5f, 0.5f, 0.0f);
-		// obj->horSpace = maxWidth;
-		// obj->autobreak = true;
-		// obj->align = nite::TextAlign::CENTER;
 		nite::graphicsRender();
 	}
 	nite::graphicsEnd();
