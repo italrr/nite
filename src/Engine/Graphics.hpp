@@ -109,7 +109,7 @@
 				RenderableBatch *draw(float x, float y, float w, float h, float origX, float origY, float angle);
 				Batch& operator= (const Batch &other);
 				nite::Vec2 getSize();				
-				void flush();
+				void flush(bool clear = true);
 			private:
 				void clearBuffer();
 				int objectId;

@@ -105,9 +105,11 @@ static void setupTarget(){
 	glLoadIdentity();
 }
 
-static void setupTarget(float x, float y){
-	glClearColor(0, 0, 0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+static void setupTarget(float x, float y, bool clear){
+	if(clear){
+		glClearColor(0, 0, 0, 0.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
@@ -797,13 +799,13 @@ nite::Vec2 nite::Batch::getSize(){
 	return size;
 }
 
-void nite::Batch::flush(){
+void nite::Batch::flush(bool clear){
 	if(objectId <= -1) return;
 	if(currentBatch != NULL){
 		nite::print("bad Batch::flush(): check your code, a batch is not closing properly");
 	}	
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, batches[objectId].framebufferId);
-	setupTarget(size.x, size.y);
+	setupTarget(size.x, size.y, clear);
 	for(int i = 0; i < objects.size(); ++i){
 		objects[i]->function(objects[i]);
 	}

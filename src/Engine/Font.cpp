@@ -24,7 +24,7 @@ nite::Console::CreateProxy cpRenText("ren_text", nite::Console::ProxyType::Bool,
 
 #define ASCII_MIN 32
 #define ASCII_MAX 128
-#define SCALING 1
+#define SCALING 2
 
 #include <cmath>
 
@@ -33,6 +33,26 @@ struct glyphT {
 	nite::Vec2 size;
 	nite::Vec2 orig;
 	nite::Vec2 index;
+};
+
+struct Word {
+	String word;
+	float width;
+	float height;
+	float dx;
+	float dy;
+};
+
+
+struct Cursor {
+	float x;
+	float y;
+	Cursor(){ x = y = 0; }
+	Cursor operator += (const Cursor &other) {
+		this->x += other.x;
+		this->y += other.y;
+		return *this;
+	}
 };
 
 struct fontT {
@@ -397,8 +417,6 @@ static void drawText(nite::Renderable *object){
 	unsigned Font = obj.objectId;
 	if (fontList[Font].empty) return;
 	GLint currentBind = fontList[Font].atlas;
-	float dx = 0;
-	float dy = 0;
 	glEnable(GL_TEXTURE_2D);
 	glColor4f(obj.color.r, obj.color.g, obj.color.b, obj.color.a);
 	glBindTexture(GL_TEXTURE_2D, fontList[Font].atlas);
@@ -450,92 +468,136 @@ static void drawText(nite::Renderable *object){
 			}
 		}
 	}
-	nite::Vec2 origin(obj.origin.x*obj.ref->getWidth(obj.text)*obj.scale.x, obj.origin.y*obj.ref->getRealHeight(obj.text)*obj.scale.y);
-	if(obj.maxChars > 0 && obj.text.size() > obj.maxChars){
-		if(!obj.autobreak){
-			obj.text = obj.text.substr(0, obj.maxChars - 3);
-			obj.text += "...";
-		}else{
-			int count = 0;
-			auto words = nite::split(obj.text, ' ');
-			if(words.size() > 1){
-				String longest = "";
-				String current = "";
-				float base = obj.ref->getHeight("A");
-				float height = base;
-				obj.text = "";
-				for(int i = 0; i < words.size(); ++i){
-					count += words[i].length();
-					obj.text += words[i];
-					current += words[i];
-					if(i < words.size()-1){
-						obj.text += " ";
-						current += " ";
-						++count;
-					}
-					if(count > obj.maxChars && i < words.size()-1){
-						if(current.length() > longest.length()){
-							longest = current;
-						}
-						current = "";
-						count = 0;
-						obj.text += "\n";
-						height += base;
-					}
-				}
-				if(longest.length() == 0){
-					longest = obj.text;
-				}
-				origin.set(obj.origin.x*obj.ref->getWidth(longest)*obj.scale.x, obj.origin.y*height*obj.scale.y);
-			}
-		}
-	}
+
 	// use rounded numbers to avoid atlas artifacts
-	obj.origin.set((int)origin.x, (int)origin.y);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	for(unsigned i=0; i<obj.text.size(); i++){
-		char current =  obj.text[i];
-		float sX = obj.scale.x - (1.0f - 1.0f/SCALING);
-		float sY = obj.scale.y - (1.0f - 1.0f/SCALING);
-		if (current == '\n'){dx = 0; dy += obj.ln != -1.0f ? obj.ln : fontList[Font].vertAdvance; continue;}
-		if (current == '\t'){dx += fontList[Font].glyphs['A'].size.x*3.0; continue;}
-		float &xxi = fontList[Font].glyphs[current].index.x;
-		float &yyi = fontList[Font].glyphs[current].index.y;
-		float &wwi = fontList[Font].glyphs[current].coors.x;
-		float &hhi = fontList[Font].glyphs[current].coors.y;
-		float xi = dx+fontList[Font].glyphs[current].orig.x*sX;
-		float yi = dy+fontList[Font].glyphs['A'].coors.y*sY-fontList[Font].glyphs[current].size.y*sY;
-		GLfloat texBox[] = {
-			xxi / fontList[Font].atlasSize.x,							yyi / fontList[Font].atlasSize.y,
-			(xxi + wwi) / fontList[Font].atlasSize.x,			yyi / fontList[Font].atlasSize.y,
-			(xxi + wwi) / fontList[Font].atlasSize.x,			(yyi + hhi) / fontList[Font].atlasSize.y,
-			xxi / fontList[Font].atlasSize.x,							(yyi + hhi) / fontList[Font].atlasSize.y
-		};
-		if(obj.shadow){
-			glColor4f(obj.shadowColor.r, obj.shadowColor.g, obj.shadowColor.b, obj.color.a);
-			GLfloat shadowBox[] = {
-				(-obj.origin.x+xi)+obj.shadowOffset.x, 									(-obj.origin.y+yi)+obj.shadowOffset.y,
-				(wwi*sX-obj.origin.x+xi)+obj.shadowOffset.x, 	(-obj.origin.y+yi)+obj.shadowOffset.y,
-				(wwi*sX-obj.origin.x+xi)+obj.shadowOffset.x, 	(hhi*sY-obj.origin.y+yi)+obj.shadowOffset.y,
-				(-obj.origin.x+xi)+obj.shadowOffset.x,									(hhi*sY-obj.origin.y+yi)+obj.shadowOffset.y,
+	auto wordList = nite::split(obj.text, ' ');
+
+	Vector<Word> words;
+	float sX = obj.scale.x - (1.0f - 1.0f/SCALING);
+	float sY = obj.scale.y - (1.0f - 1.0f/SCALING);	
+	float totalWidth = 0;
+	float vertAdv = fontList[Font].vertAdvance * sY;
+	float horAdv = fontList[Font].glyphs[' '].size.x * sX;	
+	for(int i = 0; i < wordList.size(); ++i){
+		Word word;
+		word.word = wordList[i];
+		int w = 0, h = 0;
+		for(unsigned j = 0; j < wordList[i].size(); j++){
+			char current =  wordList[i][j];
+			w += fontList[Font].glyphs[current].size.x*sX;
+			h += fontList[Font].glyphs[current].size.y*sY;
+		}
+		totalWidth += w;
+		word.width = w;
+		word.height = h;
+		words.push_back(word);
+	}
+
+	// add spaces to totalWidth
+	for(int i = 0; i < wordList.size()-1; ++i){
+		totalWidth += fontList[Font].glyphs[' '].size.x*sX;
+	}
+
+	auto render = [&](const String &word, Cursor &from, nite::Vec2 &origin){
+		from.x = nite::round(from.x);
+		from.y = nite::round(from.y);
+		for(unsigned j = 0; j < word.size(); j++){
+			char current =  word[j];
+			// origin.set(0.0f);
+			if (current == '\n'){ from.x = 0; from.y += obj.ln != -1.0f ? obj.ln : vertAdv; continue; }
+			if (current == '\t'){ from.x += fontList[Font].glyphs['A'].size.x*3.0f; continue; }
+			float &xxi = fontList[Font].glyphs[current].index.x;
+			float &yyi = fontList[Font].glyphs[current].index.y;
+			float &wwi = fontList[Font].glyphs[current].coors.x;
+			float &hhi = fontList[Font].glyphs[current].coors.y;
+			float xi = from.x + fontList[Font].glyphs[current].orig.x*sX;
+			float yi = from.y + fontList[Font].glyphs['A'].coors.y*sY-fontList[Font].glyphs[current].size.y*sY;
+			GLfloat texBox[] = {
+				xxi / fontList[Font].atlasSize.x,					yyi / fontList[Font].atlasSize.y,
+				(xxi + wwi) / fontList[Font].atlasSize.x,			yyi / fontList[Font].atlasSize.y,
+				(xxi + wwi) / fontList[Font].atlasSize.x,			(yyi + hhi) / fontList[Font].atlasSize.y,
+				xxi / fontList[Font].atlasSize.x,					(yyi + hhi) / fontList[Font].atlasSize.y
 			};
-			glVertexPointer(2, GL_FLOAT, 0, shadowBox);
+			GLfloat Box[] = {
+				(-origin.x+xi), 		(-origin.y+yi),
+				(wwi*sX-origin.x+xi), 	(-origin.y+yi),
+				(wwi*sX-origin.x+xi), 	(hhi*sY-origin.y+yi),
+				(-origin.x+xi),			(hhi*sY-origin.y+yi),
+			};
+			glVertexPointer(2, GL_FLOAT, 0, Box);
 			glTexCoordPointer(2, GL_FLOAT, 0, texBox);
 			glDrawArrays(GL_QUADS, 0, 4);
-			glColor4f(obj.color.r, obj.color.g, obj.color.b, obj.color.a);
+			from.x += fontList[Font].glyphs[current].size.x*sX;
 		}
-		GLfloat Box[] = {
-			(-obj.origin.x+xi), 		(-obj.origin.y+yi),
-			(wwi*sX-obj.origin.x+xi), 	(-obj.origin.y+yi),
-			(wwi*sX-obj.origin.x+xi), 	(hhi*sY-obj.origin.y+yi),
-			(-obj.origin.x+xi),		(hhi*sY-obj.origin.y+yi),
-		};
-		glVertexPointer(2, GL_FLOAT, 0, Box);
-		glTexCoordPointer(2, GL_FLOAT, 0, texBox);
-		glDrawArrays(GL_QUADS, 0, 4);
-		dx += fontList[Font].glyphs[current].size.x*sX;
+	};
+	Cursor current;
+	auto resetAlign = [&](float totalWidth){
+		switch(obj.align){
+			case nite::TextAlign::RIGHT:
+				current.x = obj.horSpace - totalWidth;
+			break;
+			case nite::TextAlign::CENTER:
+				current.x = obj.horSpace*0.5f - totalWidth*0.5f;
+			break;
+			case nite::TextAlign::LEFT:
+			default:
+				current.x = 0;
+			break;									
+		}
+	};	
+	
+	if(obj.horSpace > 0){
+		resetAlign(totalWidth);
 	}
+	if(!obj.autobreak){
+		nite::Vec2 origin(obj.origin.x*totalWidth, obj.origin.y*vertAdv);
+		for(int i = 0; i < words.size(); ++i){
+			auto &word = words[i];
+			bool nl = false;
+			if(obj.autobreak && obj.horSpace > 0 && current.x + word.width > obj.horSpace){
+				current.y += vertAdv;
+				resetAlign(totalWidth);
+				nl = true;
+			}
+			render(word.word, current, origin);
+			if(!nl && i < words.size()-1) render(" ", current, origin);			
+		}
+	}else{
+		Vector<Vector<int>> lines;
+		Vector<int> cl;
+		Vector<float> lineW;
+		float longestLine = 0;
+		float c = 0;
+		for(int i = 0; i < words.size(); ++i){
+			if(c + horAdv + words[i].width > obj.horSpace){
+				lineW.push_back(c);
+				longestLine = std::max(c, longestLine);
+				c = 0;
+				lines.push_back(cl);
+				cl.clear();
+			}
+			cl.push_back(i);
+			c += words[i].width + horAdv;
+		}
+		longestLine = std::max(c, longestLine);
+		lines.push_back(cl);
+		lineW.push_back(c);
+		longestLine = std::max(obj.horSpace, longestLine);
+		nite::Vec2 origin((int)(obj.origin.x*longestLine), (int)(obj.origin.y*((float)lines.size()*vertAdv)));
+		// obj.origin.set((int)origin.x, (int)origin.y);
+		for(int i = 0; i < lines.size(); ++i){
+			resetAlign(lineW[i]);
+			for(int j = 0; j < lines[i].size(); ++j){
+				auto &word = words[lines[i][j]];
+				render(word.word, current, origin);
+				if(j < lines[i].size()-1)render(" ", current, origin);
+			}			
+			current.y += vertAdv;
+		}
+	}
+
 	//glBindTexture(GL_TEXTURE_2D, 0);
 	glDisableClientState( GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);

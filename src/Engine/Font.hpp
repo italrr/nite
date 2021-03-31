@@ -2,6 +2,15 @@
 	#define NITE_FONT_HPP
 	#include "Graphics.hpp"
 	namespace nite {
+		
+		namespace TextAlign {
+			enum TextAlign : int {
+				CENTER,
+				LEFT,
+				RIGHT
+			};
+		}
+
 		class Font;
 		struct RenderableFont : public nite::Renderable {
 			String text;
@@ -16,9 +25,13 @@
 			nite::Vec2 scale;
 			int maxChars;
 			bool autobreak;
+			float horSpace;
 			float avgHeight;
 			float ln;
+			int align;
 			RenderableFont(){
+				align = TextAlign::LEFT;
+				horSpace = 0;
 				maxChars = -1;
 				autobreak = false;
 			}

@@ -1,0 +1,626 @@
+{
+  "name": "Traditional",
+  "totalSpaces": 40,
+  "horSpaces": 11,
+  "verSpaces": 11,
+  "width": 13,
+  "height": 13,
+  "cornerSpaceSize": {
+    "width": 2,
+    "height": 2
+  },
+  "singleSpaceSize": {
+    "width": 1,
+    "height": 2
+  },
+  "rules": {
+    "moneyScale": 1,
+    "moneyPlayerStart": 1500,
+    "moneyBankStart": 20580,
+    "start": 0,
+    "end": 39
+  },
+  "pieces": {
+    "iron": {
+      "name": "Iron",
+      "file": "data/texture/piece.png"
+    }
+  },
+  "dice": {
+    "from": 1,
+    "to": 6,
+    "file": "data/texture/dice_atlas.png"
+  },
+  "layout": {
+    "0": {
+      "x": 0,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "orientation": 180
+    },
+    "1": {
+      "x": 2,
+      "y": 0,
+      "width": 1,
+      "height": 2,
+      "orientation": 180
+    },
+    "2": {
+      "x": 3,
+      "y": 0,
+      "width": 1,
+      "height": 2,
+      "orientation": 180
+    },
+    "3": {
+      "x": 4,
+      "y": 0,
+      "width": 1,
+      "height": 2,
+      "orientation": 180
+    },
+    "4": {
+      "x": 5,
+      "y": 0,
+      "width": 1,
+      "height": 2,
+      "orientation": 180
+    },
+    "5": {
+      "x": 6,
+      "y": 0,
+      "width": 1,
+      "height": 2,
+      "orientation": 180
+    },
+    "6": {
+      "x": 7,
+      "y": 0,
+      "width": 1,
+      "height": 2,
+      "orientation": 180
+    },
+    "7": {
+      "x": 8,
+      "y": 0,
+      "width": 1,
+      "height": 2,
+      "orientation": 180
+    },
+    "8": {
+      "x": 9,
+      "y": 0,
+      "width": 1,
+      "height": 2,
+      "orientation": 180
+    },
+    "9": {
+      "x": 10,
+      "y": 0,
+      "width": 1,
+      "height": 2,
+      "orientation": 180
+    },
+    "10": {
+      "x": 11,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "orientation": 270
+    },
+    "11": {
+      "x": 11,
+      "y": 2,
+      "width": 1,
+      "height": 2,
+      "orientation": 270
+    },
+    "12": {
+      "x": 11,
+      "y": 3,
+      "width": 1,
+      "height": 2,
+      "orientation": 270
+    },
+    "13": {
+      "x": 11,
+      "y": 4,
+      "width": 1,
+      "height": 2,
+      "orientation": 270
+    },
+    "14": {
+      "x": 11,
+      "y": 5,
+      "width": 1,
+      "height": 2,
+      "orientation": 270
+    },
+    "15": {
+      "x": 11,
+      "y": 6,
+      "width": 1,
+      "height": 2,
+      "orientation": 270
+    },
+    "16": {
+      "x": 11,
+      "y": 7,
+      "width": 1,
+      "height": 2,
+      "orientation": 270
+    },
+    "17": {
+      "x": 11,
+      "y": 8,
+      "width": 1,
+      "height": 2,
+      "orientation": 270
+    },
+    "18": {
+      "x": 11,
+      "y": 9,
+      "width": 1,
+      "height": 2,
+      "orientation": 270
+    },
+    "19": {
+      "x": 11,
+      "y": 10,
+      "width": 1,
+      "height": 2,
+      "orientation": 270
+    },
+    "20": {
+      "x": 11,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "orientation": 360
+    },
+    "21": {
+      "x": 10,
+      "y": 11,
+      "width": 1,
+      "height": 2,
+      "orientation": 360
+    },
+    "22": {
+      "x": 9,
+      "y": 11,
+      "width": 1,
+      "height": 2,
+      "orientation": 360
+    },
+    "23": {
+      "x": 8,
+      "y": 11,
+      "width": 1,
+      "height": 2,
+      "orientation": 360
+    },
+    "24": {
+      "x": 7,
+      "y": 11,
+      "width": 1,
+      "height": 2,
+      "orientation": 360
+    },
+    "25": {
+      "x": 6,
+      "y": 11,
+      "width": 1,
+      "height": 2,
+      "orientation": 360
+    },
+    "26": {
+      "x": 5,
+      "y": 11,
+      "width": 1,
+      "height": 2,
+      "orientation": 360
+    },
+    "27": {
+      "x": 4,
+      "y": 11,
+      "width": 1,
+      "height": 2,
+      "orientation": 360
+    },
+    "28": {
+      "x": 3,
+      "y": 11,
+      "width": 1,
+      "height": 2,
+      "orientation": 360
+    },
+    "29": {
+      "x": 2,
+      "y": 11,
+      "width": 1,
+      "height": 2,
+      "orientation": 360
+    },
+    "30": {
+      "x": 0,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "orientation": 90
+    },
+    "31": {
+      "x": 0,
+      "y": 10,
+      "width": 1,
+      "height": 2,
+      "orientation": 90
+    },
+    "32": {
+      "x": 0,
+      "y": 9,
+      "width": 1,
+      "height": 2,
+      "orientation": 90
+    },
+    "33": {
+      "x": 0,
+      "y": 8,
+      "width": 1,
+      "height": 2,
+      "orientation": 90
+    },
+    "34": {
+      "x": 0,
+      "y": 7,
+      "width": 1,
+      "height": 2,
+      "orientation": 90
+    },
+    "35": {
+      "x": 0,
+      "y": 6,
+      "width": 1,
+      "height": 2,
+      "orientation": 90
+    },
+    "36": {
+      "x": 0,
+      "y": 5,
+      "width": 1,
+      "height": 2,
+      "orientation": 90
+    },
+    "37": {
+      "x": 0,
+      "y": 4,
+      "width": 1,
+      "height": 2,
+      "orientation": 90
+    },
+    "38": {
+      "x": 0,
+      "y": 3,
+      "width": 1,
+      "height": 2,
+      "orientation": 90
+    },
+    "39": {
+      "x": 0,
+      "y": 2,
+      "width": 1,
+      "height": 2,
+      "orientation": 90
+    }
+  },
+  "spaces": {
+    "0": {
+      "id": 0,
+      "color": null,
+      "next": 1,
+      "name": "GO",
+      "type": "SPECIAL"
+    },
+    "1": {
+      "id": 1,
+      "color": "#8b4513",
+      "next": 2,
+      "name": "Mediter- ranean Avenue",
+      "type": "PROPERTY",
+      "price": 60
+    },
+    "2": {
+      "id": 2,
+      "color": null,
+      "next": 3,
+      "name": "Community Chest",
+      "type": "SPECIAL"
+    },
+    "3": {
+      "id": 3,
+      "color": "#8b4513",
+      "next": 4,
+      "name": "Baltic Avenue",
+      "type": "PROPERTY",
+      "price": 60
+    },
+    "4": {
+      "id": 4,
+      "color": null,
+      "next": 5,
+      "name": "Income Tax",
+      "type": "SPECIAL"
+    },
+    "5": {
+      "id": 5,
+      "color": null,
+      "next": 6,
+      "name": "Reading Railroad",
+      "type": "RAILROAD",
+      "price": 200
+    },
+    "6": {
+      "id": 6,
+      "color": "#87ceeb",
+      "next": 7,
+      "name": "Oriental Avenue",
+      "type": "PROPERTY",
+      "price": 100
+    },
+    "7": {
+      "id": 7,
+      "color": null,
+      "next": 8,
+      "name": "Chance",
+      "type": "SPECIAL"
+    },
+    "8": {
+      "id": 8,
+      "color": "#87ceeb",
+      "next": 9,
+      "name": "Vermont Avenue",
+      "type": "PROPERTY",
+      "price": 100
+    },
+    "9": {
+      "id": 9,
+      "color": "#87ceeb",
+      "next": 10,
+      "name": "Connecticut",
+      "type": "PROPERTY",
+      "price": 120
+    },
+    "10": {
+      "id": 10,
+      "color": null,
+      "next": 11,
+      "name": "JAIL",
+      "type": "SPECIAL"
+    },
+    "11": {
+      "id": 11,
+      "color": "#9932cc",
+      "next": 12,
+      "name": "St. Charles Place",
+      "type": "PROPERTY",
+      "price": 140
+    },
+    "12": {
+      "id": 12,
+      "color": null,
+      "next": 13,
+      "name": "Electric Company",
+      "type": "UTILITY",
+      "price": 150
+    },
+    "13": {
+      "id": 13,
+      "color": "#9932cc",
+      "next": 14,
+      "name": "States Avenue",
+      "type": "PROPERTY",
+      "price": 140
+    },
+    "14": {
+      "id": 14,
+      "color": "#9932cc",
+      "next": 15,
+      "name": "Virginia Avenue",
+      "type": "PROPERTY",
+      "price": 160
+    },
+    "15": {
+      "id": 15,
+      "color": null,
+      "next": 16,
+      "name": "Pennsylvania Railroad",
+      "type": "RAILROAD",
+      "price": 200
+    },
+    "16": {
+      "id": 16,
+      "color": "#FFA500",
+      "next": 17,
+      "name": "St. James Place",
+      "type": "PROPERTY",
+      "price": 180
+    },
+    "17": {
+      "id": 17,
+      "color": null,
+      "next": 18,
+      "name": "Community Chest",
+      "type": "SPECIAL"
+    },
+    "18": {
+      "id": 18,
+      "color": "#FFA500",
+      "next": 19,
+      "name": "Tennessee Avenue",
+      "type": "PROPERTY",
+      "price": 180
+    },
+    "19": {
+      "id": 19,
+      "color": "#FFA500",
+      "next": 20,
+      "name": "New York Avenue",
+      "type": "PROPERTY",
+      "price": 200
+    },
+    "20": {
+      "id": 20,
+      "color": null,
+      "next": 22,
+      "name": "FREE PARKING",
+      "type": "SPECIAL"
+    },
+    "21": {
+      "id": 21,
+      "color": "#ff0000",
+      "next": 22,
+      "name": "Kentucky Avenue",
+      "type": "PROPERTY",
+      "price": 220
+    },
+    "22": {
+      "id": 22,
+      "color": null,
+      "next": 23,
+      "name": "Chance",
+      "type": "SPECIAL"
+    },
+    "23": {
+      "id": 23,
+      "color": "#ff0000",
+      "next": 24,
+      "name": "Indiana Avenue",
+      "type": "PROPERTY",
+      "price": 220
+    },
+    "24": {
+      "id": 24,
+      "color": "#ff0000",
+      "next": 25,
+      "name": "Illinois Avenue",
+      "type": "PROPERTY",
+      "price": 240
+    },
+    "25": {
+      "id": 25,
+      "color": null,
+      "next": 26,
+      "name": "B&O Railroad",
+      "type": "RAILROAD",
+      "price": 200
+    },
+    "26": {
+      "id": 26,
+      "color": "#ffff00",
+      "next": 27,
+      "name": "Atlantic Avenue",
+      "type": "PROPERTY",
+      "price": 260
+    },
+    "27": {
+      "id": 27,
+      "color": "#ffff00",
+      "next": 28,
+      "name": "Ventnor Avenue",
+      "type": "PROPERTY",
+      "price": 260
+    },
+    "28": {
+      "id": 28,
+      "color": null,
+      "next": 29,
+      "name": "Water Works",
+      "type": "UTILITY",
+      "price": 150
+    },
+    "29": {
+      "id": 29,
+      "color": "#ffff00",
+      "next": 30,
+      "name": "Marvin Gardens",
+      "type": "PROPERTY",
+      "price": 280
+    },
+    "30": {
+      "id": 30,
+      "color": null,
+      "next": 31,
+      "name": "GO TO JAIL",
+      "type": "SPECIAL"
+    },
+    "31": {
+      "id": 31,
+      "color": "#00FF00",
+      "next": 32,
+      "name": "Pacific Avenue",
+      "type": "PROPERTY",
+      "price": 300
+    },
+    "32": {
+      "id": 32,
+      "color": "#00FF00",
+      "next": 33,
+      "name": "North Carolina Avenue",
+      "type": "PROPERTY",
+      "price": 300
+    },
+    "33": {
+      "id": 33,
+      "color": null,
+      "next": 34,
+      "name": "Community Chest",
+      "type": "SPECIAL"
+    },
+    "34": {
+      "id": 34,
+      "color": "#00FF00",
+      "next": 35,
+      "name": "Pennsylvania Avenue",
+      "type": "PROPERTY",
+      "price": 320
+    },
+    "35": {
+      "id": 35,
+      "color": null,
+      "next": 36,
+      "name": "Short Line",
+      "type": "RAILROAD",
+      "price": 200
+    },
+    "36": {
+      "id": 36,
+      "color": null,
+      "next": 37,
+      "name": "Chance",
+      "type": "SPECIAL"
+    },
+    "37": {
+      "id": 37,
+      "color": "#0000FF",
+      "next": 38,
+      "name": "Park Place",
+      "type": "PROPERTY",
+      "price": 350
+    },
+    "38": {
+      "id": 38,
+      "color": null,
+      "next": 39,
+      "name": "Luxury Tax",
+      "type": "SPECIAL"
+    },
+    "39": {
+      "id": 39,
+      "color": "#0000FF",
+      "next": 0,
+      "name": "Boardwalk",
+      "type": "PROPERTY",
+      "price": 400
+    }
+  }
+}

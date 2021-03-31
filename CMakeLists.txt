@@ -218,8 +218,8 @@ set (nite_src
 add_library(nite ${nite_src})
 
 set(src_files
-
-	src/Dashpoly.cpp
+	src/GameType.cpp
+	src/Board.cpp
 )
 add_library(src ${src_files})
 target_link_libraries(src nite)
