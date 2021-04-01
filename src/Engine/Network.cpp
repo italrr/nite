@@ -49,6 +49,9 @@ void nite::socketEnd(){
 	#endif
 }
 
+/*
+	UDP
+*/
 nite::UDPSocket::UDPSocket(){
 	opened = false;
 	nonBlocking = false;
@@ -72,7 +75,7 @@ bool nite::UDPSocket::open(UInt16 port){
 	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = htons(port);
 	if (bind(sock, (const sockaddr*) &addr, sizeof(sockaddr_in)) > 0){
- 		nite::print("failed to bind UDP socket to port "+nite::toStr(port)); // TODO: add proper error handling
+ 		nite::print("failed to bind UDP socket at port "+nite::toStr(port)); // TODO: add proper error handling
 		close_(sock);
 		return false;
 	}
@@ -151,6 +154,134 @@ size_t nite::UDPSocket::recv(IP_Port &sender, nite::Packet &buffer){
 	buffer.sender = sender;
 	buffer.maxSize = s;
 	return s;
+}
+
+
+/*
+	TCP
+*/
+nite::TCPSocket::TCPSocket(){
+	listening = false;
+	nonBlocking = false;
+}
+
+nite::TCPSocket::~TCPSocket(){
+	if (listening){
+		close();
+	}
+}
+
+void nite::TCPSocket::close(){
+	this->listening = false;
+	close_(sock);
+}
+
+bool nite::TCPSocket::openSocket(){
+    this->sock = socket(AF_INET, SOCK_STREAM, 0);
+    
+    if(sock < 0){
+        nite::print("failed to open TCP socket");
+		return false;
+    }
+
+	nite::print("TCP socket opened("+nite::toStr(sock)+")");	
+	return true;
+}
+
+bool nite::TCPSocket::connectTo(const nite::IP_Port &ip){
+	sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(ip.port);
+    addr.sin_addr.s_addr = ip.address;
+    
+    // Send connection request to server:
+    if(connect(this->sock, (struct sockaddr*)&addr, sizeof(addr)) < 0){
+        nite::print("failed to TCP connect to '"+ip.str()+"'");
+        return false;
+    }
+	return true;
+}
+
+bool nite::TCPSocket::openConn(const nite::IP_Port &ip){
+	this->port = ip.port;
+	
+	if(!openSocket()){
+		return false;
+	}
+
+	sockaddr_in addr;
+
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(ip.port);
+    addr.sin_addr.s_addr = ip.address;
+
+
+    // Bind to the set port and IP:
+    if(bind(this->sock, (struct sockaddr*)&addr, sizeof(addr))<0){
+ 		nite::print("failed to bind TCP socket at port "+nite::toStr(port)); // TODO: add proper error handling
+		close_(sock);
+		return false;
+    }	
+
+    if(listen(sock, 1) < 0){
+        nite::print("failed to listen TCP socket at port "+nite::toStr(port));
+        return false;
+    }
+	listening = true;
+	
+	nite::print("TCP socket listening at "+nite::toStr(port)+"("+nite::toStr(sock)+")");	
+	return true;
+}
+
+Int32 nite::TCPSocket::acceptConn(nite::IP_Port &ip){
+	sockaddr_in addr;
+	int clSize = sizeof(addr);
+    auto resp = accept(this->sock, (struct sockaddr*)&addr, &clSize);
+	if(resp == -1){
+		return resp;
+	}
+	ip.address = addr.sin_addr.s_addr;
+	ip.port = ntohs(addr.sin_port);
+	ip.ip = inet_ntoa(addr.sin_addr);
+	nite::print("accepted TCP connection '"+ip.str()+"'");
+	return resp;
+}
+
+bool nite::TCPSocket::setNonBlocking(bool m){
+	if (m == nonBlocking){
+		return false;
+	}
+	#ifdef _WIN32
+		unsigned long mode = m ? 1 : 0;
+		return (ioctlsocket(sock, FIONBIO, &mode) == 0) ? true : false;
+	#else
+		if (fcntl(sock, F_SETFL, O_NONBLOCK, m) == -1){
+			nonBlocking = m; // TODO: add proper error handling
+			return true;
+		}
+	#endif
+	return false;
+}
+
+ssize_t nite::TCPSocket::sendData(Int32 socket, char *data, size_t size){
+    return send(socket, data, size, 0);
+}
+
+ssize_t nite::TCPSocket::sendData(Int32 socket, nite::Packet &packet){
+	return sendData(socket, packet.data, packet.maxSize);
+}
+
+ssize_t nite::TCPSocket::recvData(Int32 socket, char *buffer){
+    // Receive client's message:
+    return recv(socket, buffer, NetworkMaxPacketSize, 0);
+}
+
+ssize_t nite::TCPSocket::recvData(Int32 socket, nite::Packet &buffer){
+	return recvData(socket, buffer.data);
+}
+
+void nite::TCPSocket::drop(Int32 socket){
+	close_(socket);
 }
 
 

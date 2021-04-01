@@ -36,6 +36,7 @@
         type->pieces[it.first] = piece;
     }
     // dice
+    type->diceType.n = node.get("dice").get("n").toInt();
     type->diceType.from = node.get("dice").get("from").toInt();
     type->diceType.to = node.get("dice").get("to").toInt();
     type->diceType.filename = node.get("dice").get("file").toString();

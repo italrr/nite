@@ -28,6 +28,27 @@
 			size_t recv(IP_Port &sender, nite::Packet &buffer);
 		};
 
+		struct TCPSocket {
+			Int32 sock;
+			UInt16 port;
+			bool listening;
+			bool nonBlocking;
+			TCPSocket();
+			~TCPSocket();			
+			void close();
+			bool openSocket();
+			bool openConn(const nite::IP_Port &ip);
+			Int32 acceptConn(nite::IP_Port &ip);
+			bool connectTo(const nite::IP_Port &ip);
+			bool setNonBlocking(bool m);
+			ssize_t sendData(Int32 socket, char *data, size_t size);
+			ssize_t sendData(Int32 socket, nite::Packet &packet);
+			ssize_t recvData(Int32 socket, char *buffer);
+			ssize_t recvData(Int32 socket, nite::Packet &buffer);	
+			void drop(Int32 socket);
+
+		};
+
 
 		namespace FileTransfer {
 

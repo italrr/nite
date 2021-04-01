@@ -62,6 +62,7 @@ void nite::WindowUI::defaultInit(){
 	leftBorderColor.set(0.88f, 0.1f, 0.1f, 1.0f);
 	titleColor.set(1.0f, 1.0f, 1.0f, 1.0f);
 	toDestroy = false;
+	center = false;
 	generalAlpha = 100.0;
 	this->onRerender = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
 		return;
@@ -171,7 +172,7 @@ void nite::WindowUI::rerenderDecoration(){
 			uni.add("p_salpha", leftBorderColor.a);
 			uni.add("p_alpha", baseColor.a);
 			uni.add("p_hborder", nite::Vec2(borderThickness * getGeneralScale()));
-			uni.add("p_vborder", nite::Vec2(enableTitle ? headerHeight : borderThickness, borderThickness * getGeneralScale()));     
+			uni.add("p_vborder", nite::Vec2(enableTitle ? headerHeight : borderThickness * getGeneralScale(), borderThickness * getGeneralScale()));     
 			uni.add("p_blurthickness", 2.0f * (1.0f / ((size.avg() * getGeneralScale()) / nite::Vec2(nite::Vec2(300, 500)*getGeneralScale()).avg()))); // 300x500 was the original design size
 			base->apply(uiShader, uni);
 		}

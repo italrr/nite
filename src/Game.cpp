@@ -2,10 +2,14 @@
 #include "Engine/Input.hpp"
 #include "Engine/View.hpp"
 #include "Engine/UI/UI.hpp"
+#include "Engine/Network.hpp"
 
 #include "GameType.hpp"
 #include "Board.hpp"
-
+#include "Dice.hpp"
+#include "Client.hpp"
+#include "Server.hpp"
+#include "Network.hpp"
 
 int main(int argc, char* argv[]){
 	Vector<String> params;
@@ -14,19 +18,33 @@ int main(int argc, char* argv[]){
 	}
 	nite::setParameters(params);
 
+
 	nite::graphicsInit();
 	nite::inputInit();
 
-
+	
+	Client client;
+	Server server;
 	auto gType = loadGameType("data/games/traditional.json");
-	Board board;
-	board.init(nite::Color(205.0f / 255.0f, 230.0f / 255.0f, 208.0f / 255.0f, 1.0f), 1080, 1080, gType);
+	auto gameServer = std::make_shared<GameState>(GameState());
+	auto gameClient = std::make_shared<GameState>(GameState());
+	unsigned sessionId = nite::randomInt(1000, 2500);
+
+	server.init(gameServer);
+	client.init(gameClient, "pepper");
+
+	gameServer->init(sessionId, 1, gType, false);
+	gameClient->init(sessionId, 1, gType, true);
+
+	server.listen(nite::IP_Port("127.0.0.1", DEFAULT_PORT));
+	client.connect(nite::IP_Port("127.0.0.1", DEFAULT_PORT));
 
 	while(nite::isRunning()){	
 		nite::viewUpdate();
-		nite::inputUpdate();	
-		board.update();
-		board.draw(0, 0);
+		nite::inputUpdate();
+		server.update();	
+		client.update();
+		client.draw();
 		nite::graphicsRender();
 	}
 	nite::graphicsEnd();

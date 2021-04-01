@@ -20,7 +20,7 @@
 			String ip;
 			UInt16 port;
 			Int32 address;
-			const String str();
+			String str() const;
 			void set(const String &ip, UInt16 port);
 			operator std::string() const;
 			bool operator== (const IP_Port &other);

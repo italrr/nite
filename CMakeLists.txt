@@ -221,6 +221,10 @@ set(src_files
 	src/GameType.cpp
 	src/Board.cpp
 	src/Dice.cpp
+	src/Client.cpp
+	src/Server.cpp
+	src/State.cpp
+	src/Network.cpp
 )
 add_library(src ${src_files})
 target_link_libraries(src nite)

@@ -2,12 +2,22 @@
     #define DP_DICE_HPP
 
     #include "Engine/Texture.hpp"
+    #include "GameType.hpp"
 
     struct Dice {
         nite::Vec2 frameSize;
         nite::Texture texture;
+        unsigned n;
+        unsigned from;
+        unsigned to;
         Vector<int> values;
-        void init(int n, int from, int to);
+        bool shuffling;
+        Shared<GameType> gType;
+        Dice();
+        UInt64 lastShuffle;
+        float rotation;
+        float preRotation;
+        void init(const Shared<GameType> &gType);
         void set(const Vector<int> &values);
         void shuffle();
         void update();

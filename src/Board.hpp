@@ -4,6 +4,7 @@
     #include "Engine/Tools/Tools.hpp"
     #include "Engine/Graphics.hpp"
     #include "Engine/Font.hpp"
+    #include "Engine/Shader.hpp"
     #include "Engine/Texture.hpp"
     
     #include "GameType.hpp"
@@ -23,7 +24,7 @@
         Shared<GameType> gType;
         UnitSize unitSize;
         nite::Color bg;
-        void init(const nite::Color &bg, int width, int height, const Shared<GameType> &gType);
+        void init(const nite::Color &bg, int width, int height, const Shared<GameType> &gType, bool headless = false);
         void rerender();
         void update();
         void draw(float x, float y);

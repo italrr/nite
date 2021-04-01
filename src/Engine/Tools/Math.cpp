@@ -225,6 +225,10 @@ float nite::getAngle(float x, float y){
 	return angle;
 }
 
+float nite::fmod(float x, float y){
+	return std::fmod(x, y);
+}
+
 int nite::randomInt(int min, int max){
 	static std::random_device rd;
 	std::mt19937 rng(rd());

@@ -27,6 +27,7 @@
     }
   },
   "dice": {
+	"n": 2,
     "from": 1,
     "to": 6,
     "file": "data/texture/dice_atlas.png"

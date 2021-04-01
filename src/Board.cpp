@@ -2,16 +2,16 @@
 #include "Engine/Input.hpp"
 #include "Board.hpp"
 
-void Board::init(const nite::Color &bg, int width, int height, const Shared<GameType> &gType){
+void Board::init(const nite::Color &bg, int width, int height, const Shared<GameType> &gType, bool headless){
     this->bg = bg;
     this->gType = gType;
     this->width = width;
     this->height = height;
-    this->empty.load("data/texture/empty.png");
-    this->shader.load("data/shaders/space_background_f.glsl", "data/shaders/space_background_v.glsl");
-    rerender();
-
-
+    if(!headless){
+        this->empty.load("data/texture/empty.png");
+        this->shader.load("data/shaders/space_background_f.glsl", "data/shaders/space_background_v.glsl");
+        rerender();
+    }
 }
 
 void Board::rerender(){

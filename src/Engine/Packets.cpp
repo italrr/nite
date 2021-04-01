@@ -59,7 +59,7 @@ void nite::IP_Port::clear(){
 	port = 0;
 }
 
-const String nite::IP_Port::str(){
+String nite::IP_Port::str() const{
 	return (String)*this;
 }
 

@@ -61,6 +61,7 @@
     };
 
     struct DiceType {
+        unsigned n;
         unsigned from;
         unsigned to;
         String hash;
