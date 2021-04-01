@@ -32,14 +32,24 @@
         unsigned totalTurns;
         unsigned expPlayers;
         bool clientSide;
+        bool allowThrowDice;
         NetHandle *net;
+        UInt8 currentTurn;
         Shared<GameType> gType;
         Shared<Board> board;
         Shared<Dice> dice;
+        UInt8 pAllowedShuffle;
+        UInt8 lastDiceValue;
         void setupPlayer(Shared<ClientProxy> &client);
         void update();
         void game();
+        void requestThrowDice();
         void init(const unsigned sessionId, const unsigned expPlayers, const Shared<GameType> &gType, bool clientSide);
+
+        //In-game
+        unsigned useNumber;
+        Vector<unsigned> pickList;
+        Dict<UInt8, unsigned> valueList;
 
     };
 

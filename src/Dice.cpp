@@ -1,8 +1,13 @@
 #include "Engine/Input.hpp"
 #include "Dice.hpp"
+#include "State.hpp"
+#include "Server.hpp"
 
-Dice::Dice(){
+Dice::Dice(GameState *state){
+    game = state;
     shuffling = false;
+    rotation = 0;
+    preRotation = 0;    
 }
 
 void Dice::init(const Shared<GameType> &gType){
@@ -21,12 +26,34 @@ void Dice::set(const Vector<int> &values){
     this->values = values;
 }
 
-void Dice::shuffle(){
-    this->shuffling = !this->shuffling;
+void Dice::setShuffling(bool v){
+    this->shuffling = v;
     this->lastShuffle = nite::getTicks();
     if(!this->shuffling){
         rotation = nite::fmod(rotation, 45.0f);
     }
+    if(game->net->isServer){
+        auto net = static_cast<Server*>(game->net);
+        nite::Packet shuffling;
+        shuffling.setHeader(SV_SHUFFLE_DICE);
+        UInt8 shuf = this->shuffling;
+        shuffling.write(&shuf, sizeof(shuf));
+        UInt8 t = values.size();
+        shuffling.write(&t, sizeof(t));
+        for(int i = 0; i < values.size(); ++i){
+            UInt8 val = values[i];
+            shuffling.write(&val, sizeof(val));
+        }
+        net->sendPersPacketForMany(net->getAllClientsIps(), shuffling, net->getAllClientsAcks());
+    }
+}
+
+unsigned Dice::getTotal(){
+    unsigned t = 0;
+    for(int i = 0; i < values.size(); ++i){
+        t += values[i];
+    }
+    return t;
 }
 
 void Dice::update(){
@@ -50,7 +77,7 @@ void Dice::draw(float x, float y, bool vertical){
     for(int i = 0; i < n; ++i){
         nite::Vec2 P = nite::Vec2(x + xorint*i, y + yorient*i)-nite::Vec2(0.5f)*frameSize;
         if(nite::mousePressed(nite::butLEFT) && nite::isMouseInRegion(P, P + frameSize)){
-            shuffle();
+            if(game != NULL){game->requestThrowDice();} else {nite::print("Dice: GameState is null");}
         }        
         auto inTextCoors = nite::Vec2((values[i]-1)*frameSize.x, 0.0f); 
         // if(!shuffling){

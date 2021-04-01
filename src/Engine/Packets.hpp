@@ -36,11 +36,11 @@
 			Packet(UInt16 header);
 			Packet();
 			~Packet();
-			UInt32 getOrder();
+			UInt32 getOrder() const;
 			void setOrder(UInt32 order);
-			UInt32 getAck();
+			UInt32 getAck() const;
 			void setAck(UInt32 ack);
-			UInt16 getHeader();
+			UInt16 getHeader() const;
 			void setHeader(UInt16 header);
 			void copy(const Packet &other);
 			size_t getSize();

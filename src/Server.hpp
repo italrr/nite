@@ -15,7 +15,9 @@
         void update();
         void setState(UInt8 nstate); 
         void setState(UInt8 nstate, UInt8 who, Int32 stateArg); 
-        void sendAll(nite::Packet &packet);     
+        void notifyAllJoin(UInt8 id);   
+        void processIncomPackets();
+        void deliverPacketQueue();        
     };
 
 #endif

@@ -17,7 +17,12 @@ int main(int argc, char* argv[]){
 		params.push_back(String(argv[i]));
 	}
 	nite::setParameters(params);
-
+	bool onlyClient = false;
+	for(int i = 0; i < params.size(); ++i){
+		if(params[i] == "cl"){
+			onlyClient = true;
+		}
+	}
 
 	nite::graphicsInit();
 	nite::inputInit();
@@ -30,18 +35,23 @@ int main(int argc, char* argv[]){
 	auto gameClient = std::make_shared<GameState>(GameState());
 	unsigned sessionId = nite::randomInt(1000, 2500);
 
+	if(!onlyClient)
 	server.init(gameServer);
-	client.init(gameClient, "pepper");
-
+	client.init(gameClient, onlyClient ? "johan" : "pepper");
+	
+	if(!onlyClient)
 	gameServer->init(sessionId, 1, gType, false);
+	
 	gameClient->init(sessionId, 1, gType, true);
-
+	
+	if(!onlyClient)
 	server.listen(nite::IP_Port("127.0.0.1", DEFAULT_PORT));
 	client.connect(nite::IP_Port("127.0.0.1", DEFAULT_PORT));
 
 	while(nite::isRunning()){	
 		nite::viewUpdate();
 		nite::inputUpdate();
+		if(!onlyClient)
 		server.update();	
 		client.update();
 		client.draw();

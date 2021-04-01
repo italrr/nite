@@ -4,7 +4,9 @@
     #include "Engine/Texture.hpp"
     #include "GameType.hpp"
 
+    struct GameState;
     struct Dice {
+        GameState *game;
         nite::Vec2 frameSize;
         nite::Texture texture;
         unsigned n;
@@ -13,15 +15,16 @@
         Vector<int> values;
         bool shuffling;
         Shared<GameType> gType;
-        Dice();
+        Dice(GameState *state);
         UInt64 lastShuffle;
         float rotation;
         float preRotation;
+        unsigned getTotal();
         void init(const Shared<GameType> &gType);
         void set(const Vector<int> &values);
-        void shuffle();
+        void setShuffling(bool v);
         void update();
-        void draw(float x, float y, bool vertical); 
+        void draw(float x, float y, bool vertical);
     };
 
 #endif

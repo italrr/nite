@@ -218,9 +218,9 @@ void nite::WindowUI::rerenderDecoration(){
 void nite::WindowUI::rerender(){
 	if(!toRerender) return;
 
-	if(center){
-		setPosition(nite::Vec2(nite::getWidth() * 0.5f - this->size.x * 0.5f, nite::getHeight() * 0.5f - this->size.y * 0.5f));
-	}	
+	// if(center){
+	// 	setPosition(nite::Vec2(nite::getWidth() * 0.5f - this->size.x * 0.5f, nite::getHeight() * 0.5f - this->size.y * 0.5f));
+	// }	
 
 	rerenderDecoration();
 	batch.begin();  

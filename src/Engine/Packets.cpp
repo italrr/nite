@@ -105,13 +105,13 @@ void nite::Packet::setHeader(UInt16 header){
 	memcpy(data, &header, nite::NetworkHeaderSize);
 }
 
-UInt16 nite::Packet::getHeader(){
+UInt16 nite::Packet::getHeader() const{
 	UInt16 header;
 	memcpy(&header, data, nite::NetworkHeaderSize);
 	return header;
 }
 
-UInt32 nite::Packet::getOrder(){
+UInt32 nite::Packet::getOrder() const {
 	UInt32 order;
 	memcpy(&order, data + nite::NetworkHeaderSize, nite::NetworkOrderSize);
 	return order;
@@ -121,7 +121,7 @@ void nite::Packet::setOrder(UInt32 order){
 	memcpy(data + nite::NetworkHeaderSize, &order, nite::NetworkOrderSize);
 }
 
-UInt32 nite::Packet::getAck(){
+UInt32 nite::Packet::getAck() const {
 	UInt32 ack;
 	memcpy(&ack, data + nite::NetworkHeaderSize + nite::NetworkOrderSize, nite::NetworkAckSize);
 	return ack;

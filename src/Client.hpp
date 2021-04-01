@@ -6,6 +6,9 @@
     #include "NEtwork.hpp"
 
     struct Client : NetHandle { 
+        UInt32 svAck;
+        UInt32 rcvOrder;
+        UInt32 sentOrder;        
         UInt64 lastSentPing;
         UInt64 lastPing;        
         UInt8 id;
@@ -13,6 +16,7 @@
         Int32 lastStateArg;
         bool connected;
         unsigned money;
+        nite::IP_Port sv;
         String nickname;
         Client();
         bool connect(const nite::IP_Port &ip);
@@ -20,6 +24,8 @@
         void clear();
         void update();
         void draw();
+        void processIncomPackets();
+        void deliverPacketQueue(); 
     };
 
 #endif
