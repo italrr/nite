@@ -61,6 +61,7 @@ void nite::WindowUI::defaultInit(){
 	baseColor.set(0.0f, 0.0f, 0.0f, 1.0f);
 	leftBorderColor.set(0.88f, 0.1f, 0.1f, 1.0f);
 	titleColor.set(1.0f, 1.0f, 1.0f, 1.0f);
+	shadow = false;
 	toDestroy = false;
 	center = false;
 	generalAlpha = 100.0;
@@ -80,6 +81,11 @@ nite::Texture nite::WindowUI::getBackgroundImage(){
 void nite::WindowUI::setPosition(const nite::Vec2 &pos){
 	position.set(pos);
 	origPosition.set(position);
+}
+
+void nite::WindowUI::setShadow(bool v){
+	this->shadow = v;
+	recalculate();
 }
 
 void nite::WindowUI::setCenter(bool v){
@@ -420,6 +426,11 @@ void nite::WindowUI::render(const nite::Vec2 &offset){
 		nite::setColor(0.0f, 0.0f, 0.0f, 0.75f);
 		uiBasicTexture.draw(0.0f, 0.0f, nite::getWidth(), nite::getHeight(), 0.0f, 0.0f, 0.0f);
 	}	
+	if(shadow){
+		nite::setColor(0.0f, 0.0f, 0.0f, 0.70f);
+		auto bg = uiBasicTexture.draw(origPosition.x + 4, origPosition.y + 4, batch.getSize().x, batch.getSize().y, 0.0f, 0.0f, 0.0f);
+		bg->smooth = true;
+	}
 	float d = 1.0f; // 1.0f - nite::distance(origPosition, position) / 32.0f;
 	nite::setColor(1.0f, 1.0f, 1.0f, d * (generalAlpha / 100.0f));
 	decoration.draw(origPosition.x, origPosition.y);

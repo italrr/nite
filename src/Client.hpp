@@ -18,9 +18,10 @@
         unsigned money;
         nite::IP_Port sv;
         String nickname;
+        nite::Color color;
         Client();
         bool connect(const nite::IP_Port &ip);
-        void init(const Shared<GameState> &game, const String &nickname);
+        void init(const Shared<GameState> &game, const String &nickname, const nite::Color &color);
         void clear();
         void update();
         void draw();

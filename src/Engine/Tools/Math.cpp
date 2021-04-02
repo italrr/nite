@@ -231,7 +231,7 @@ float nite::fmod(float x, float y){
 
 int nite::randomInt(int min, int max){
 	static std::random_device rd;
-	std::mt19937 rng(rd());
+	static std::mt19937 rng(rd());
 	std::uniform_int_distribution<int> uni(min,max);
 	return uni(rng);
 }

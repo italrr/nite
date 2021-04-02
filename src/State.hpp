@@ -10,7 +10,7 @@
     struct ClientProxy;
 
 
-    struct StatusBar {
+    struct StateBar {
         Shared<nite::BaseUIComponent> main;
         String text;
         String newText;
@@ -27,7 +27,7 @@
     };
 
     struct GameState {
-        StatusBar statusBar;
+        StateBar stateBar;
         unsigned sessionId;
         unsigned totalTurns;
         unsigned expPlayers;
@@ -35,11 +35,17 @@
         bool allowThrowDice;
         NetHandle *net;
         UInt8 currentTurn;
+        UInt8 currentPlaying;
         Shared<GameType> gType;
         Shared<Board> board;
         Shared<Dice> dice;
         UInt8 pAllowedShuffle;
-        UInt8 lastDiceValue;
+        UInt8 lastDiceTotalValue;
+        Vector<UInt8> lastDiceValues;
+        Vector<UInt8> turnsOrder;
+        bool isMoving;
+        void advancePlayerTo(UInt8 id, UInt8 space, const Vector<UInt8> &route);
+        void jumpPlayerTo(UInt8 id, UInt8 space);
         void setupPlayer(Shared<ClientProxy> &client);
         void update();
         void game();

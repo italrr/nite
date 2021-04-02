@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <string>
+#include <sstream>
 
 using namespace nite;
 
@@ -59,10 +60,16 @@ void nite::Color::set(const String &hex){
 }
 
 String nite::Color::hex(){
-	int ri = r * 255.0f; int gi = g * 255.0f; int bi = b * 255.0f;
-	int hex = ((ri & 0xff) << 16) + ((gi & 0xff) << 8) + (bi & 0xff); // loses alpha though
-	char hexString[4*sizeof(int)+1];
-	return String(hexString);
+
+	int red = r * 255.0f;
+	int green = g * 255.0f;
+	int blue = b * 255.0f;
+	std::stringstream ss;
+	ss << "#";
+	ss << std::hex << (red << 16 | green << 8 | blue);
+	return ss.str();
+
+
 }
 
 void nite::Color::set(float r, float g, float b, float a){

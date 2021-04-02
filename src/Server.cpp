@@ -58,6 +58,7 @@ void Server::notifyAllJoin(UInt8 id){
     nite::Packet join;
     join.setHeader(SV_CLIENT_JOIN);
     join.write(who->nickname);
+    join.write(who->color.hex());
     join.write(&who->id, sizeof(who->id));
     join.write(&who->money, sizeof(who->money));
     sendPersPacketForMany(getAllClientsIps(), join, getAllClientsAcks());
@@ -78,12 +79,14 @@ void Server::update(){
         }
         switch(buffer.getHeader()){
             case SV_CONNECT: {
-                String nickname;
+                String nickname, color;
                 buffer.read(nickname);
+                buffer.read(color);
                 // TODO: handle nicks
                 // add player
                 auto player = std::make_shared<ClientProxy>(ClientProxy());
                 player->ip = ip;
+                player->color = nite::Color(color);
                 player->nickname = nickname;
                 player->id = ++genId;
                 player->order = this->clients.size();
@@ -100,6 +103,7 @@ void Server::update(){
                 accept.write(&nplayers, sizeof(nplayers));
                 for(auto &it : this->clients){
                     accept.write(it.second->nickname);
+                    accept.write(it.second->color.hex());
                     accept.write(&it.second->id, sizeof(it.second->id));
                     accept.write(&it.second->money, sizeof(it.second->money));
                 }
@@ -201,7 +205,13 @@ void Server::processIncomPackets(){
             */            
             case SV_ACK: {
                 ack(buffer);
-            } break;             
+            } break;  
+            /*
+                SV_SHUFFLE_DICE
+            */
+           case SV_SHUFFLE_DICE:{
+               sendAck(sender, buffer.getAck());
+           } break;                       
 
         }
         onAck(client->id, buffer);

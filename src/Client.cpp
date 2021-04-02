@@ -25,17 +25,18 @@ bool Client::connect(const nite::IP_Port &ip){
     nite::Packet connect;
     connect.setHeader(SV_CONNECT);
     connect.write(nickname);
+    connect.write(color.hex());
     socket.send(ip, connect);
-    nite::print("[client] connecting to "+ip.str()+"...");
     connected = true;
     setState(ST_WAITING_FOR_PLAYERS);
     return true;
 }
 
-void Client::init(const Shared<GameState> &game, const String &nickname){
+void Client::init(const Shared<GameState> &game, const String &nickname, const nite::Color &color){
     this->nickname = nickname;
     this->game = game;
     this->game->net = this;
+    this->color = color;
 }
 
 void Client::clear(){
@@ -157,6 +158,9 @@ void Client::processIncomPackets(){
                 for(int i = 0; i < players; ++i){
                     auto client = std::make_shared<ClientProxy>(ClientProxy());
                     buffer.read(client->nickname);
+                    String color;
+                    buffer.read(color);
+                    client->color.set(color);                    
                     buffer.read(&client->id, sizeof(client->id));
                     buffer.read(&client->money, sizeof(client->money));
                     this->clients[client->id] = client;
@@ -176,6 +180,9 @@ void Client::processIncomPackets(){
                 if(!isSv || !isLast){ break; }
                 auto client = std::make_shared<ClientProxy>(ClientProxy());
                 buffer.read(client->nickname);
+                String color;
+                buffer.read(color);
+                client->color.set(color);
                 buffer.read(&client->id, sizeof(client->id));
                 buffer.read(&client->money, sizeof(client->money));
                 if(client->id == this->id){
@@ -209,6 +216,12 @@ void Client::processIncomPackets(){
                sendAck(sender, buffer.getAck());
 
            } break;
+            /*
+                SV_ADVANCE_PLAYER_TO
+            */
+           case SV_ADVANCE_PLAYER_TO:{
+               sendAck(sender, buffer.getAck());
+           } break;           
             // /*
             //     Unknown
             // */

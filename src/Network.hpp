@@ -26,22 +26,32 @@
         nite::IP_Port ip;
         Dict<unsigned, OwnedProperty> owns;
         UInt32 money;
+        nite::Color color;
         UInt64 lastSentPing;
         UInt64 lastPing;   
         UInt32 svAck;    // id for packets that require an ACK from client
         UInt32 lastRecvOrder; 
-        UInt32 lastSentOrder;         
+        UInt32 lastSentOrder;     
+        UInt8 currentSpace;    
         void addProperty(int id);
         void removeProperty(int id);
         void addUpgrade(unsigned type, int id);
-        void removeUpgrade(unsigned type, int id);   
+        void removeUpgrade(unsigned type, int id);  
+        Vector<UInt8> route; 
         ClientProxy(){
             lastRecvOrder = 0;
             lastSentOrder = 1;
-            svAck = 0;            
+            svAck = 0;   
+            currentSpace = 0;         
             lastSentPing = nite::getTicks();
             lastPing = nite::getTicks();            
         }     
+        void setRoute(UInt8 target, const Vector<UInt8> &route){
+            if(this->route.size() > 0){
+                currentSpace = target;
+            }
+            this->route = route;
+        }
     };
 
     struct BindAckCallback {
@@ -149,10 +159,12 @@
 
     enum SERVER_STATE : UInt8 {
         ST_WAITING_FOR_PLAYERS,
-        ST_GAME_START,
+        ST_PRE_GAME,
         ST_CHOOSE_ORDERS, // throw dice to choose order
         ST_PLAYER_THROW_DICE,
-        ST_PLAYER_TURN
+        ST_GAME_START,
+        ST_PLAYER_PRETURN,
+        ST_PLAYER_TURN,
     };
 
 
@@ -160,6 +172,10 @@
     enum DP_PACKET : UInt16 {
         SV_MULTI_PART_PACKET,
         SV_CONNECT,
+        /*
+            STRING  NICKNAME
+            STRING  COLOR
+        */
         SV_CONNECT_ACCEPT,
         /*
             STRING  NICKNAME
@@ -168,7 +184,8 @@
             UINT8   PLAYER_N
             {
                 STRING  NICKNAME
-                UINT8  ID
+                STRING  COLOR
+                UINT8   ID
                 UINT32  MONEY
             } .. PLAYER_N
         */
@@ -179,13 +196,13 @@
         SV_CLIENT_JOIN,
         /*
             STRING  NICKNAME
-            UINT8  ID
+            STRING  COLOR
+            UINT8   ID
             UINT32  MONEY
         */
         SV_ACK,
         SV_PING,
         SV_PONG,
-        SV_REQUEST_SHUFFLE_DICE,
         SV_SHUFFLE_DICE,
         /*
             INT8    TRUE/FALSE
@@ -195,6 +212,20 @@
             UINT8   CURRENT_STATE
             UINT8   WHO
             INT32   STATE_ARG
+        */
+        SV_ADVANCE_PLAYER_TO,
+        /*
+            UINT8   ID
+            UINT8   TARGET
+            UINT8   STEP_N
+            {
+                UINT8   SPACE
+            } .. STEP_N
+        */
+        SV_BROADCAST_MESSAGE,
+        /*
+            STRING  MESSAGE
+            STRING  COLOR   
         */
 
     };

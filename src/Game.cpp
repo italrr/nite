@@ -37,11 +37,11 @@ int main(int argc, char* argv[]){
 
 	if(!onlyClient)
 	server.init(gameServer);
-	client.init(gameClient, onlyClient ? "johan" : "pepper");
+	client.init(gameClient, onlyClient ? "johan" : "pepper", onlyClient ? nite::Color(1.0f, 0.0f, 0.0f) : nite::Color(1.0f, 1.0f, 0.5f));
 	
 	if(!onlyClient)
 	gameServer->init(sessionId, 1, gType, false);
-	
+
 	gameClient->init(sessionId, 1, gType, true);
 	
 	if(!onlyClient)

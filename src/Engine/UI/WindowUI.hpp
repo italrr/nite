@@ -46,6 +46,7 @@
         void recalculate();
         void defaultInit();
         bool enableTitle;
+        bool shadow;
         float borderThickness;
         nite::Vec2 origPosition;          
         bool toDestroy;
@@ -53,6 +54,7 @@
         bool center;
         void rerenderDecoration();
         public:
+        void setShadow(bool v);
         void setCenter(bool v);
         void setOnRerenderListener(nite::ListenerLambda listener);
         void setBackgroundImage(const nite::Texture &bgi);

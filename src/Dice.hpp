@@ -12,7 +12,7 @@
         unsigned n;
         unsigned from;
         unsigned to;
-        Vector<int> values;
+        Vector<UInt8> values;
         bool shuffling;
         Shared<GameType> gType;
         Dice(GameState *state);
@@ -21,7 +21,7 @@
         float preRotation;
         unsigned getTotal();
         void init(const Shared<GameType> &gType);
-        void set(const Vector<int> &values);
+        void set(const Vector<UInt8> &values);
         void setShuffling(bool v);
         void update();
         void draw(float x, float y, bool vertical);

@@ -22,7 +22,7 @@ void Dice::init(const Shared<GameType> &gType){
     this->texture.load("data/texture/dice_atlas.png");
 }
 
-void Dice::set(const Vector<int> &values){
+void Dice::set(const Vector<UInt8> &values){
     this->values = values;
 }
 
@@ -82,12 +82,18 @@ void Dice::draw(float x, float y, bool vertical){
         auto inTextCoors = nite::Vec2((values[i]-1)*frameSize.x, 0.0f); 
         // if(!shuffling){
             nite::setColor(0.0f, 0.0f, 0.0f, 0.70f);
-            auto objShadow = this->texture.draw(x + xorint*i + 4, y + yorient*i + 4, frameSize.x, frameSize.y, 0.5f, 0.5f, rotation);
+            auto objShadow = this->texture.draw(x + xorint*i + 3, y + yorient*i + 3, frameSize.x, frameSize.y, 0.5f, 0.5f, rotation);
             objShadow->smooth = true;
             objShadow->region.set(inTextCoors, inTextSize);            
         // }
+        float xoffset = 0.0f;
+        float yoffset = 0.0f;
+        if(shuffling){
+            xoffset += nite::randomInt(-3, 3);
+            yoffset += nite::randomInt(-3, 3);
+        }
         nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-        auto obj = this->texture.draw(x + xorint*i, y + yorient*i, frameSize.x, frameSize.y, 0.5f, 0.5f, rotation);
+        auto obj = this->texture.draw(x + xorint*i + xoffset, y + yorient*i + yoffset, frameSize.x, frameSize.y, 0.5f, 0.5f, rotation);
         obj->smooth = true;
         obj->region.set(inTextCoors, inTextSize);
     }

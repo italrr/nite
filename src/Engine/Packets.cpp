@@ -91,7 +91,7 @@ nite::Packet& nite::Packet::operator= (const nite::Packet &other){
 	return *this;
 }
 
-void nite::Packet::clear(){
+void nite::Packet::	clear(){
 	memset(data, '0', nite::NetworkMaxPacketSize);
 	index = nite::NetworkHeaderSize + nite::NetworkOrderSize + NetworkAckSize; // starts from the send byte mark
 	maxSize = index;
