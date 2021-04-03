@@ -56,6 +56,7 @@ void nite::WindowUI::defaultInit(){
 	resizeable = true;
 	borderThickness = 8.0;
 	type = "window";
+	fontSize = 16;
 	modal = false;
 	enableTitle = true;
 	baseColor.set(0.0f, 0.0f, 0.0f, 1.0f);
@@ -212,6 +213,7 @@ void nite::WindowUI::rerenderDecoration(){
 	// Render Title
 	if(enableTitle){
 		nite::setColor(titleColor);
+		// nite::print(basicFont.getFilename());
 		auto *titleRef = basicFont.draw(title, nite::Vec2(size.x * 0.5f, headerHeight * 0.65f), nite::Vec2(0.5f), 0.65f, 0.0f);
 		if(titleRef != NULL){
 			titleRef->setShadow(nite::Color(0.0f, 0.0f, 0.0f, 1.0f), nite::Vec2(1.5f));
@@ -275,7 +277,9 @@ void nite::WindowUI::rerender(){
 void nite::WindowUI::recalculate(){
 	batch.init(size.x, size.y);
 	decoration.init(size.x, size.y);
-	padding.set(borderThickness * 2.0f * getGeneralScale(), (enableTitle ? headerHeight * 2.0f + borderThickness : borderThickness * 2.0f) * getGeneralScale());
+	headerHeight = basicFont.getHeight() * 0.5f * 2.0f;  
+	padding.set(borderThickness * 2.0f * getGeneralScale(), (enableTitle ? headerHeight * 2.0f : borderThickness * 2.0f * getGeneralScale()));
+	margin.set(0.0f);
 	layout->recalculate(*this);
 	toRerender = true;
 }
@@ -284,8 +288,35 @@ void nite::WindowUI::setCornerPattern(const nite::Texture &tex){
 	borderCorner = tex;
 }
 
+void nite::WindowUI::setFontSize(int size){
+    if(size <= 0) return;
+    this->fontSize = size;
+    auto fn = basicFont.getFilename();
+    if(fn.length() > 0){
+        basicFont.load(fn, size, 0.0f);
+    }
+    recalculate();
+}
+
+int nite::WindowUI::getFontSize(){
+    return basicFont.getFontSize();
+}
+
+String nite::WindowUI::getFontFilename(){
+    return basicFont.getFilename();
+}
+
+void nite::WindowUI::setFont(const nite::Font &font){
+	this->basicFont = font;
+    this->fontSize = this->basicFont.getFontSize(); 
+    recalculate();
+}
+
+
 void nite::WindowUI::onCreate(){
-	basicFont.load(defaultFontUI, defaultFontRatio * 16 * getGeneralScale(), 1.0f);
+	if(!basicFont.isLoaded()){
+		basicFont.load(defaultFontUI, defaultFontRatio * fontSize * getGeneralScale(), 1.0f);
+	}
 	uiBasicTexture.load("data/texture/empty.png");
 	uiShader.load("data/shaders/basic_ui_background_f.glsl", "data/shaders/basic_ui_background_v.glsl");
 	headerHeight = basicFont.getHeight() * 0.5f * 2.0f;  

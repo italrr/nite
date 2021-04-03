@@ -52,8 +52,13 @@
         bool toDestroy;
         float generalAlpha;
         bool center;
+        int fontSize;
         void rerenderDecoration();
         public:
+        void setFont(const nite::Font &font);
+        void setFontSize(int size);        
+        int getFontSize();
+        String getFontFilename();
         void setShadow(bool v);
         void setCenter(bool v);
         void setOnRerenderListener(nite::ListenerLambda listener);

@@ -70,7 +70,13 @@ void Dice::update(){
     nite::lerpDiscrete(rotation, preRotation, 0.25f);
 }
 
-void Dice::draw(float x, float y, bool vertical){
+void Dice::draw(const Shared<Board> &board){
+    bool vertical = true;
+
+    nite::Vec2 size(1080, 1080);
+    float x = board->position.x + board->size.x * 0.80f;
+    float y = board->position.y + board->size.y * 0.70f;
+
     float xorint = vertical ? 0.0f : frameSize.x*1.15f;
     float yorient = vertical ? frameSize.y*1.15f : 0.0f;
     auto inTextSize = nite::Vec2(frameSize); 
@@ -83,8 +89,10 @@ void Dice::draw(float x, float y, bool vertical){
         // if(!shuffling){
             nite::setColor(0.0f, 0.0f, 0.0f, 0.70f);
             auto objShadow = this->texture.draw(x + xorint*i + 3, y + yorient*i + 3, frameSize.x, frameSize.y, 0.5f, 0.5f, rotation);
-            objShadow->smooth = true;
-            objShadow->region.set(inTextCoors, inTextSize);            
+            if(objShadow){
+                objShadow->smooth = true;
+                objShadow->region.set(inTextCoors, inTextSize);            
+            }
         // }
         float xoffset = 0.0f;
         float yoffset = 0.0f;
@@ -94,7 +102,9 @@ void Dice::draw(float x, float y, bool vertical){
         }
         nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
         auto obj = this->texture.draw(x + xorint*i + xoffset, y + yorient*i + yoffset, frameSize.x, frameSize.y, 0.5f, 0.5f, rotation);
-        obj->smooth = true;
-        obj->region.set(inTextCoors, inTextSize);
+        if(obj){
+            obj->smooth = true;
+            obj->region.set(inTextCoors, inTextSize);
+        }
     }
 }

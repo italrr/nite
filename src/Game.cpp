@@ -40,9 +40,9 @@ int main(int argc, char* argv[]){
 	client.init(gameClient, onlyClient ? "johan" : "pepper", onlyClient ? nite::Color(1.0f, 0.0f, 0.0f) : nite::Color(1.0f, 1.0f, 0.5f));
 	
 	if(!onlyClient)
-	gameServer->init(sessionId, 1, gType, false);
+	gameServer->init(sessionId, 2, gType, false);
 
-	gameClient->init(sessionId, 1, gType, true);
+	gameClient->init(sessionId, 2, gType, true);
 	
 	if(!onlyClient)
 	server.listen(nite::IP_Port("127.0.0.1", DEFAULT_PORT));

@@ -279,6 +279,15 @@
             recalculate();
         }
 
+        void clearChildren(){
+            for(int i = 0; i < children.size(); ++i){
+                auto child = children[i];
+                child->onDestroy();
+                child->headComponent = NULL;
+            }              
+            children.clear();
+        }
+
         virtual nite::Vec2 computeSize(){
             return size + margin + padding;
         }

@@ -77,7 +77,7 @@
 			void to1();			
 			operator String();
 			String str();
-			String hex();
+			String hex() const;
 			bool cInterp(const Color &v, float Step);
 			bool cInterpDiscrete(const Color &v, float Step);
 		};

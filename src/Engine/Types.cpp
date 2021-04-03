@@ -59,7 +59,7 @@ void nite::Color::set(const String &hex){
   a = 1.0f;
 }
 
-String nite::Color::hex(){
+String nite::Color::hex() const {
 
 	int red = r * 255.0f;
 	int green = g * 255.0f;

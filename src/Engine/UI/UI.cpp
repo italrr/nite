@@ -690,6 +690,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         auto position = _parsePosition(node, NULL, nite::Vec2(0.0f, 0.0f), base);    
         auto center = _parseBool("center", node, NULL, false, base);
+        auto fontSize = _parseInt("fontSize", node, style, ref->getFontSize(), base);
+        auto font = _parseString("font", node, style, "", base);        
         // auto userShader = _parseShader("shader", node, NULL, base);
         _parseOverflow("overflow", node, base);
         _parseNav("navigate", node, base);
@@ -697,6 +699,9 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         // if(userShader.success){
         //     base->apply(nite::Shader(userShader.frag, userShader.vert));
         // }
+        if(font != "" && nite::fileExists(font)){
+            ref->setFont(nite::Font(font,  fontSize));
+        }          
         auto id = _parseString("id", node, NULL, ref->literalId, base);
         ref->setId(id);  
         if(backgroundImage != "" && nite::fileExists(backgroundImage)){
@@ -718,6 +723,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         ref->setSize(size.size);
         ref->useRelSizeX = size.isX;
         ref->useRelSizeY = size.isY;
+        ref->setFontSize(fontSize);        
         ref->setTitleColor(titleColor);
         ref->setLayout(layout);
         ref->setBorderColor(borderColor);

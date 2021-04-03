@@ -11,7 +11,7 @@ void Board::init(const nite::Color &bg, int width, int height, const Shared<Game
     this->height = height;
     this->unitSize.width = width / gType->width;
     this->unitSize.height = height / gType->height;    
-
+    this->size.set(width, height);
 
     // generate board spaces (for client side)
     if(!headless){
@@ -178,7 +178,7 @@ void Board::update(){
 
         float add = 0.0f;
         nite::Vec2 tSize = piece->originalSize;
-        if(client->route.size() > 0 || nite::getTicks()-piece->lastPieceMove < 300){
+        if(client->route.size() > 0){
             double t = (double)nite::getTicks()-(double)piece->lastPieceMove;
             double diff = 1.0f;
 
@@ -194,12 +194,12 @@ void Board::update(){
             add = 64.0f*diff;
         }
 
-        float xcenter = (float)width*0.5f;
-        float ycenter = (float)height*0.5f;
-        auto &cp = this->spaces[client->currentSpace];
+        float xcenter = this->position.x + (float)width*0.5f;
+        float ycenter = this->position.y + (float)height*0.5f;
+        auto cp = this->position + this->spaces[client->currentSpace];
         float mod = nite::sqrt(nite::pow(xcenter-cp.x, 2) + nite::pow(ycenter-cp.y, 2));
         float ang = nite::arctan(cp.y - ycenter, cp.x - xcenter);   
-        if(client->route.size() > 0 || nite::getTicks()-piece->lastPieceMove < 300){
+        if(client->route.size() > 0){
             mod -= 32.0f;
         }
 
@@ -232,11 +232,11 @@ void Board::setPieceAt(UInt8 id, UInt8 space){
     piece->nextPosition = piece->position;
 }
 
-void Board::draw(float x, float y){
+void Board::draw(){
     nite::setDepth(nite::DepthMiddle);
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     nite::setRenderTarget(nite::RenderTargetGame);
-    batch.draw(x, y, batch.getSize().x, batch.getSize().y, 0.0f, 0.0f, 0.0f);
+    batch.draw(position.x, position.y, batch.getSize().x, batch.getSize().y, 0.0f, 0.0f, 0.0f);
     for(auto &it : pieces){
         auto &piece = it.second;
         piece->draw();

@@ -42,6 +42,7 @@
         nite::Batch batch;
         nite::Font font;
         nite::Texture empty;
+        nite::Vec2 size;
         nite::Shader shader;
         void setPieceAt(UInt8 id, UInt8);
         void swapPiece(UInt8 id, UInt8 to);
@@ -50,11 +51,12 @@
         Shared<GameType> gType;
         UnitSize unitSize;
         nite::Color bg;
+        nite::Vec2 position;
         Board(GameState *state);
         void init(const nite::Color &bg, int width, int height, const Shared<GameType> &gType, bool headless = false);
         void rerender();
         void update();
-        void draw(float x, float y);
+        void draw();
     };
 
 #endif

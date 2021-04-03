@@ -4,6 +4,7 @@
     #include "Engine/Texture.hpp"
     #include "GameType.hpp"
 
+    struct Board;
     struct GameState;
     struct Dice {
         GameState *game;
@@ -24,7 +25,7 @@
         void set(const Vector<UInt8> &values);
         void setShuffling(bool v);
         void update();
-        void draw(float x, float y, bool vertical);
+        void draw(const Shared<Board> &board);
     };
 
 #endif

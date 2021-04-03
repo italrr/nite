@@ -17,7 +17,8 @@
         void setState(UInt8 nstate, UInt8 who, Int32 stateArg); 
         void notifyAllJoin(UInt8 id);   
         void processIncomPackets();
-        void deliverPacketQueue();        
+        void deliverPacketQueue(); 
+        void broadcastNotification(const String &text, const nite::Color &color = nite::Color(0.0f, 0.0f, 0.0f, 1.0f));
     };
 
 #endif

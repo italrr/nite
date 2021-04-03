@@ -64,6 +64,14 @@ void Server::notifyAllJoin(UInt8 id){
     sendPersPacketForMany(getAllClientsIps(), join, getAllClientsAcks());
 }
 
+void Server::broadcastNotification(const String &text, const nite::Color &color){
+    nite::Packet broadcast;
+    broadcast.setHeader(SV_BROADCAST_NOTIFICATION);
+    broadcast.write(text);
+    broadcast.write(color.hex());
+    sendPersPacketForMany(getAllClientsIps(), broadcast, getAllClientsAcks());
+}
+
 void Server::update(){
     if(!running){
         return;

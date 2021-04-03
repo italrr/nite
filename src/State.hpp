@@ -26,8 +26,18 @@
         void update();
     };
 
+    struct TurnOrderList {
+        Shared<nite::BaseUIComponent> main;
+        nite::Vec2 position;
+        nite::Vec2 nextPosition;
+        nite::Vec2 targetPosition;
+        void init();
+        void update(NetHandle *net, Dict<UInt8, unsigned> &valueList);
+    };
+
     struct GameState {
         StateBar stateBar;
+        TurnOrderList turnOrderList;
         unsigned sessionId;
         unsigned totalTurns;
         unsigned expPlayers;
@@ -39,6 +49,7 @@
         Shared<GameType> gType;
         Shared<Board> board;
         Shared<Dice> dice;
+        int doubleCount;
         UInt8 pAllowedShuffle;
         UInt8 lastDiceTotalValue;
         Vector<UInt8> lastDiceValues;
@@ -50,6 +61,7 @@
         void update();
         void game();
         void requestThrowDice();
+        void sendPlayerTurnOrderList();
         void init(const unsigned sessionId, const unsigned expPlayers, const Shared<GameType> &gType, bool clientSide);
 
         //In-game

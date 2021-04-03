@@ -165,7 +165,7 @@ void Client::processIncomPackets(){
                     buffer.read(&client->money, sizeof(client->money));
                     this->clients[client->id] = client;
                 }
-                nite::print("Joined game. your nick is '"+nickname+"'");
+                nite::print("Joined game. your nick is '"+nickname+"'("+nite::toStr(this->id)+")");
             } break;                               
             /*
                 SV_ACK
@@ -212,23 +212,35 @@ void Client::processIncomPackets(){
             /*
                 SV_SHUFFLE_DICE
             */
-           case SV_SHUFFLE_DICE:{
-               sendAck(sender, buffer.getAck());
+            case SV_SHUFFLE_DICE: {
+                sendAck(sender, buffer.getAck());
 
-           } break;
+            } break;
             /*
                 SV_ADVANCE_PLAYER_TO
             */
-           case SV_ADVANCE_PLAYER_TO:{
-               sendAck(sender, buffer.getAck());
-           } break;           
-            // /*
-            //     Unknown
-            // */
-            // default: {
-            //     if(!isSv){ break; }
-            //     nite::print("[client] unknown packet type '"+nite::toStr(buffer.getHeader())+"'");
-            // } break;
+            case SV_ADVANCE_PLAYER_TO: {
+                sendAck(sender, buffer.getAck());
+            } break;           
+            /*
+                SV_BROADCAST_NOTIFICATION
+            */
+            case SV_BROADCAST_NOTIFICATION: {
+                sendAck(sender, buffer.getAck());
+            } break;  
+            /*
+                SV_PLAYER_TURN_ORDER_LIST
+            */               
+            case SV_PLAYER_TURN_ORDER_LIST: {
+                sendAck(sender, buffer.getAck());
+            } break;
+            /*
+                Unknown
+            */
+            default: {
+                if(!isSv){ break; }
+                nite::print("[client] unknown packet type '"+nite::toStr(buffer.getHeader())+"'");
+            } break;
         }
         onAck(0, buffer);
         // onAck()
@@ -294,7 +306,6 @@ void Client::deliverPacketQueue(){
 void Client::draw(){
     // draw
     nite::setRenderTarget(nite::RenderTargetGame);
-    game->board->draw(0, 0);
-    nite::Vec2 size(1080, 1080);
-    game->dice->draw(size.x * 0.80f, size.y * 0.70f, true);
+    game->board->draw();
+    game->dice->draw(game->board);
 }

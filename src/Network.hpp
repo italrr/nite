@@ -162,7 +162,9 @@
         ST_PRE_GAME,
         ST_CHOOSE_ORDERS, // throw dice to choose order
         ST_PLAYER_THROW_DICE,
+        ST_GAME_PRESTART,
         ST_GAME_START,
+        ST_PLAYER_PRETURN_DOUBLE,
         ST_PLAYER_PRETURN,
         ST_PLAYER_TURN,
     };
@@ -222,10 +224,19 @@
                 UINT8   SPACE
             } .. STEP_N
         */
-        SV_BROADCAST_MESSAGE,
+        SV_BROADCAST_NOTIFICATION,
         /*
             STRING  MESSAGE
             STRING  COLOR   
+        */
+        SV_PLAYER_TURN_ORDER_LIST,
+        /*
+            UINT8   N_PLAYERS
+            {
+                UINT8   ID
+                UINT8   VALUE
+            }
+
         */
 
     };
