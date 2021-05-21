@@ -507,7 +507,12 @@ bool nite::Map::exportToJson(const String &path, bool allowOverwrite){
     //TODO: `nav`
     //TODO: `fragments`
 
+    if(!file.isValid()){
+        nite::print("map: json is not valid");
+    }
+
     writer.writeFile(file, path);
+    
     nite::print("saved map '"+title+"' to '"+path+"' | time: "+nite::toStr(nite::getTicks()-initTime)+" msecs");
     return true;
 }
