@@ -958,7 +958,7 @@ void nite::setTimescale(float ts){
 }
 
 UInt64 nite::getDelta(){
-	return currentDelta;
+	return currentDelta <= 0 ? 1 : currentDelta;
 }
 
 void nite::dropFrame(){
@@ -1175,7 +1175,7 @@ void nite::graphicsInit(){
 		size.set(displayWidth, displayHeight);
 	}
 
-	const char *n = "R E D   B I A S";
+	const char *n = "CRAWLER";
 
    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
