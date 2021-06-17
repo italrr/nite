@@ -15,6 +15,8 @@ struct Object {
 	float mass;
 	float invMass;
 	float friction;
+	
+	UInt8 moveState;
 
 	Object(){
 		friction = 0.0f;
@@ -48,23 +50,19 @@ struct Object {
 		this->accel.y += (nite::sin(angle) * (force / 100.0f)) / this->mass;
 	}	
 
-	void move(float force, float angle){
-		nite::Vec2 nacc;
-		nacc.x = (nite::cos(angle) * (force / 100.0f)) / this->mass;
-		nacc.y = (nite::sin(angle) * (force / 100.0f)) / this->mass;
-
-
-		float nmod = nite::sqrt(nacc.x * nacc.x + nacc.y * nacc.y);
-		float mod = nite::sqrt(this->accel.x * this->accel.x + this->accel.y * this->accel.y);
-
-		if(nmod >= mod){
-			this->accel.x = nacc.x;
-			this->accel.y = nacc.y;
-		}else{
-			this->accel.x += nacc.x;
-			this->accel.y += nacc.y;
+	void move(float x = 0.0f, float y = 0.0f){
+		if(x != 0.0f){
+			float diffx = ((x / 100.0f) / this->mass);
+			if(nite::abs(this->accel.x) < nite::abs(diffx)){
+				this->accel.x += diffx;
+			}
 		}
-
+		if(y != 0.0f){
+			float diffy = ((y / 100.0f) / this->mass);
+			if(nite::abs(this->accel.y) < nite::abs(diffy)){
+				this->accel.y += diffy;
+			}
+		}
 	}
 
 	void setPosition(const nite::Vec2 &p){
@@ -106,15 +104,11 @@ struct World {
 				obj->vel.y += obj->accel.y * dt;
 				obj->position.x += obj->vel.x * dt;
 				obj->position.y += obj->vel.y * dt;
-				// simulate friction
-				float friction = 1.0f - (obj->friction * (dt/10.0f));
-				// fix friction
-				if(friction < 0.0f) friction = 0.01f;
-				if(friction > 1.0f) friction = 1.0f;
-				obj->vel.x *= friction;
-				obj->vel.y *= friction;
-				obj->accel.x *= friction;
-				obj->accel.y *= friction;				
+				float ffactor = 1.0f / (1.0f + (static_cast<float>(dt) / 100.0f) * obj->friction);
+				obj->vel.x *= ffactor;
+				obj->vel.y *= ffactor;
+				obj->accel.x *= ffactor;
+				obj->accel.y *= ffactor;				
 			}
 		}
 	}
@@ -140,20 +134,20 @@ struct Player : Object {
 	void create(){
 		setPosition(nite::Vec2(100));
 		setMass(5.0f);
-		this->friction = 0.10f;
+		this->friction = 1.0f;
 	}
 	void step(){
 		if(nite::keyboardCheck(nite::keyW)){
-			move(10.0f, nite::toRadians(90));
+			move(0.0f, -2.0f);
 		}
 		if(nite::keyboardCheck(nite::keyD)){
-			move(10.0f, nite::toRadians(0));
+			move(2.0f, 0.0f);
 		}
 		if(nite::keyboardCheck(nite::keyS)){
-			move(10.0f, nite::toRadians(270));
+			move(0.0f, 2.0f);
 		}
 		if(nite::keyboardCheck(nite::keyA)){
-			move(10.0f, nite::toRadians(180));
+			move(-2.0f, 0.0f);
 		}						
 	}
 
@@ -171,7 +165,7 @@ struct Obstacle : Object {
 	void create(){
 		setPosition(nite::Vec2(500));
 		setMass(5.0f);
-		this->friction = 0.10f;
+		this->friction = 1.0f;
 	}
 
 	void render(){
