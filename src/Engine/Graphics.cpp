@@ -1161,6 +1161,7 @@ void nite::graphicsInit(){
 			enableVSync = false;
 		}											
 	}
+	// enableVSync = false;
 
 	if(enableFullscreen){
 		Flags |= SDL_WINDOW_FULLSCREEN;

@@ -126,7 +126,7 @@
 			Vec2 operator-(const Vec2 &v);
 			void set(const Vec2 &v);
 			void set(float X, float Y);
-			float dotProduct(const nite::Vec2 &v);
+			float dotProduct(const nite::Vec2 &v) const;
 			float crossProduct(const nite::Vec2 &v);
 			nite::Vec2 crossProduct(float s);
 			// cInterp uses game ticks and engine ticks

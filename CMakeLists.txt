@@ -218,7 +218,8 @@ set (nite_src
 add_library(nite ${nite_src})
 
 set(src_files
-	src/Network.cpp
+	src/World.cpp
+	src/Object.cpp
 )
 add_library(src ${src_files})
 target_link_libraries(src nite)
