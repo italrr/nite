@@ -219,6 +219,8 @@ add_library(nite ${nite_src})
 
 set(src_files
 	src/World.cpp
+	src/Battle.cpp
+	src/Entity.cpp
 	src/Object.cpp
 )
 add_library(src ${src_files})

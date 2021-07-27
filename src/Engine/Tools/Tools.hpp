@@ -132,7 +132,9 @@
 		nite::Vec2 round(const nite::Vec2 &v);
 		int floor (float number);
 		nite::Vec2 floor(const nite::Vec2 &v);
-		int ceil (float number);
+		int ceil(float number);
+		float min(float x, float y);
+		float max(float x, float y);
 		nite::Vec2 ceil(const nite::Vec2 &v);
 		nite::Vec2 snapPosition(const nite::Vec2 &blockSize, const nite::Vec2 &position);
 		long long int factorial(int n);

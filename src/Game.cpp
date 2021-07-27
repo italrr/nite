@@ -12,26 +12,23 @@ struct Player : Game::Object {
 
 	void create(){
 		setPosition(nite::Vec2(100));
-		setMass(5.0f);
-		this->friction = 1.0f;
+		setMass(1.0f);
+		this->friction = 4.0f;
 	}
 	
 	void step(){
 		if(nite::keyboardCheck(nite::keyW)){
-			move(0.0f, -2.0f);
+			move(0.0f, -1.0f);
 		}
 		if(nite::keyboardCheck(nite::keyD)){
-			move(2.0f, 0.0f);
+			move(1.0f, 0.0f);
 		}
 		if(nite::keyboardCheck(nite::keyS)){
-			move(0.0f, 2.0f);
+			move(0.0f, 1.0f);
 		}
 		if(nite::keyboardCheck(nite::keyA)){
-			move(-2.0f, 0.0f);
+			move(-1.0f, 0.0f);
 		}			
-		if(nite::keyboardPress(nite::keyR)){
-			this->orientation += 0.1f;
-		}
 	}
 
 	void render(){
@@ -39,7 +36,7 @@ struct Player : Game::Object {
 		nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
 		nite::setDepth(-lerpPos.y);
 		nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
-		auto ref = nite::Draw::Rectangle(lerpPos.x, lerpPos.y, size.x, size.y, true, 0.5f, 0.5f, nite::toDegrees(this->orientation));
+		auto ref = nite::Draw::Rectangle(lerpPos.x, lerpPos.y, size.x, size.y, true, 0.5f, 0.5f, 0.0f);
 	}
 };
 
@@ -56,7 +53,7 @@ struct Obstacle : Game::Object {
 		nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
 		nite::setDepth(-lerpPos.y);
 		nite::setColor(0.1f, 0.1f, 0.1f, 1.1f);
-		auto ref = nite::Draw::Rectangle(lerpPos.x, lerpPos.y, size.x, size.y, true, 0.5f, 0.5f, nite::toDegrees(this->orientation));	
+		auto ref = nite::Draw::Rectangle(lerpPos.x, lerpPos.y, size.x, size.y, true, 0.5f, 0.5f, 0.0f);	
 	}
 };
 

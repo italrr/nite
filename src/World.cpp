@@ -11,6 +11,74 @@ void Game::World::init(int width, int height){
     tick = 0;
 }
 
+
+static bool testCollision(Game::Object *a, Game::Object *b, const nite::Vec2 &diff, nite::Vec2 &limit, nite::Vec2 &normal){
+	bool collision = false;
+	normal.x = 0.0f;
+	normal.y = 0.0f;
+	bool withinTopY = a->position.y <= b->position.y + b->size.y && a->position.y >= b->position.y;
+	bool withinBottomY = a->position.y + a->size.y <= b->position.y + a->size.y && a->position.y + a->size.y >= b->position.y;
+
+	bool withinTopX = a->position.x <= b->position.x + b->size.x && a->position.x >= b->position.x;
+	bool withinBottomX = a->position.x + a->size.x <= b->position.x + b->size.x && a->position.x + a->size.x >= b->position.x;
+
+	if(diff.x > 0){
+		float ray = a->position.x + a->size.x + diff.x;
+		if(ray >= b->position.x && (a->position.x + a->size.x) <= b->position.x && (withinTopY || withinBottomY)){
+			float lim = (b->position.x - (a->position.x + a->size.x)) / diff.x;
+			if(lim < limit.x){
+				limit.x = lim;
+			}
+			normal.x = 1.0f;
+			collision = true;
+		}
+	}else
+	if(diff.x < 0){
+		float ray = a->position.x + diff.x;
+		if(ray <= b->position.x + b->size.x && a->position.x >= b->position.x + b->size.x && (withinTopY || withinBottomY)){
+			float lim = (a->position.x - (b->position.x + b->size.x)) / (diff.x * -1.0f);
+			if(lim < limit.x){
+				limit.x = lim;
+			}			
+			normal.x = -1.0f;
+			collision = true;
+		}
+	}
+
+	if(diff.y > 0){
+		float ray = a->position.y + a->size.y + diff.y;
+		if(ray >= b->position.y && (a->position.y + a->size.y) <= b->position.y && (withinTopX || withinBottomX)){
+			float lim = (b->position.y - (a->position.y + a->size.y)) / diff.y;
+			if(lim < limit.y){
+				limit.y = lim;
+			}			
+			normal.y = 1.0f;
+			collision = true;
+		}
+	}else
+	if(diff.y < 0){
+		float ray = a->position.y + diff.y;
+		if(ray <= b->position.y + b->size.y && a->position.y >= b->position.y + b->size.y && (withinTopX || withinBottomX)){
+			float lim = (a->position.y - (b->position.y + b->size.y)) / (diff.y * -1.0f);
+			if(lim < limit.y){
+				limit.y = lim;
+			}			
+			normal.y = -1.0f;
+			collision = true;
+		}
+	}
+
+	// normalize limit
+	if(limit.x < 0.0f) limit.x = 0.0f;
+	if(limit.x > 1.0f) limit.x = 1.0f;	
+
+	if(limit.y < 0.0f) limit.y = 0.0f;
+	if(limit.y > 1.0f) limit.y = 1.0f;		
+
+	return collision;
+}
+
+
 void Game::World::step(){
 
     // run object step
@@ -25,87 +93,32 @@ void Game::World::step(){
         float dt = static_cast<float>(nite::getTicks()-lastStep) * timescale;
         lastStep = nite::getTicks();
 
-
-        auto check = [&](Shared<Object> &a, Shared<Object> &b, SAT::MTV &result){
-            float overlap = std::numeric_limits<float>::max();
-            nite::Vec2 smallest;
-            auto axes1 = SAT::getAxes(a.get());
-            auto axes2 = SAT::getAxes(b.get());
-
-
-            // loop axes1
-            for(int i = 0; i > axes1.size(); ++i){
-                auto &axis = axes1[i];
-                auto p1 = SAT::project(a.get(), axis);
-                auto p2 = SAT::project(b.get(), axis);
-                if(!p1.overlap(p2)){
-                    return false;
-                }else{
-                    auto o = p1.getOverlap(p2);
-                    if(o < overlap){
-                        overlap = o;
-                        smallest = axis;
-                        result.set(smallest, overlap);
-                    }
-                }
-            }
-
-            // loop axes2
-            for (int i = 0; i < axes2.size(); i++) {
-                auto &axis = axes2[i];
-                auto p1 = SAT::project(a.get(), axis);
-                auto p2 = SAT::project(b.get(), axis);
-                if (!p1.overlap(p2)) {
-                    return false;
-                } else {
-                    float o = p1.getOverlap(p2);
-                    if (o < overlap) {
-                        overlap = o;
-                        smallest = axis;
-                        result.set(smallest, overlap);
-                    }
-                }
-            }
-
-
-            return true;
-        };
-
-        auto move = [&](Shared<Object> &obj, const nite::Vec2 &projDiff){
-            obj->position = obj->position + projDiff;
-            for(unsigned i = 0; i < objects.size(); ++i){
-                auto &current = objects[i];
-                // skip self
-                if(current.get() == obj.get()){
-                    continue;
-                }
-
-                SAT::MTV result;
-                if(check(obj, current, result)){
-                    nite::print("xD");
-                }
-
-            }
-
-        };
-
         auto update = [&](Shared<Object> &obj){
             if(obj->accel.x == 0 && obj->accel.y == 0){
                 return;
             }
             obj->vel.x += obj->accel.x * dt;
             obj->vel.y += obj->accel.y * dt;
-            float diffx = obj->vel.x * dt;
-            float diffy = obj->vel.y * dt;
-            // float projX = obj->position.x + diffx;
-            // float projY = obj->position.y + diffy;
+            nite::Vec2 diff(obj->vel.x * dt, obj->vel.y * dt);
+            nite::Vec2 limit(1.0f);
+            nite::Vec2 normal(0.0f);
             // simulate friction
             float ffactor = 1.0f / (1.0f + (static_cast<float>(dt) / 100.0f) * obj->friction);
             obj->vel.x *= ffactor;
             obj->vel.y *= ffactor;
             obj->accel.x *= ffactor;
             obj->accel.y *= ffactor;
-            move(obj, nite::Vec2(diffx, diffy));
+            for(unsigned i = 0; i < objects.size(); ++i){
+                if(objects[i].get() == obj.get()){
+                    continue;
+                }
+                if(testCollision(obj.get(), objects[i].get(), diff, limit, normal)){				
+                    if(limit.x == 0.0f && limit.y == 0.0f){
+                        break;
+                    }
+                }                
+            }
+            obj->position = obj->position + diff * limit;
         };
 
         for(unsigned i = 0; i < objects.size(); ++i){
@@ -130,7 +143,7 @@ void Game::World::render(){
     nite::setRenderTarget(nite::RenderTargetGame);
     for(unsigned i = 0; i < objects.size(); ++i){
         auto &obj = objects[i];
-        obj->lerpPos.lerpDiscrete(obj->position, 0.1f);
+        obj->lerpPos.lerpDiscrete(obj->position, 0.25f);
         objects[i]->render();
     }
 }

@@ -1176,7 +1176,7 @@ void nite::graphicsInit(){
 		size.set(displayWidth, displayHeight);
 	}
 
-	const char *n = "CRAWLER";
+	const char *n = "SPECTRAL FEVER";
 
    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);

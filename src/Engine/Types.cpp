@@ -372,10 +372,7 @@ nite::Vec2::Vec2(float c){
 }
 
 float nite::Vec2::dotProduct(const nite::Vec2 &v) const {
-    float product = 0; 
-    product += x * v.x; 
-	product += y * v.y; 
-    return product; 
+	return v.x * this->x + v.y * this->y;
 }
 
 float nite::Vec2::crossProduct(const nite::Vec2 &v){

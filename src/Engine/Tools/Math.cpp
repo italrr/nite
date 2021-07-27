@@ -46,6 +46,14 @@ float nite::arctan(float y, float x){
 	return std::atan2(y, x);
 }
 
+float nite::min(float y, float x){
+	return std::min(x, y);
+}
+
+float nite::max(float y, float x){
+	return std::max(x, y);
+}
+
 bool nite::isPointInRegion(const nite::Vec2 &P, const nite::Vec2 &RP, const nite::Vec2 &RQ){
 	return P.x>=RP.x && P.x<=RQ.x && P.y>=RP.y && P.y<=RQ.y;
 }
