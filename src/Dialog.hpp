@@ -27,6 +27,8 @@
         };
 
         struct DialogInstance {
+            nite::Font font;
+            nite::Font subFont;
             Shared<nite::BaseUIComponent> emtWin;
             Shared<nite::BaseUIComponent> textWin;
 
@@ -42,7 +44,7 @@
             DialogInstance();
             void updWinValue(Shared<nite::BaseUIComponent> &win, const String &newval);
             void add(const String &emt, const String &text, const nite::Color &color = nite::Black);
-            void start(const nite::Vec2 &pos, const nite::Vec2 &size);
+            void start(const nite::Vec2 &pos, int width, int nlines);
             void reset();
             void step();
             void render();

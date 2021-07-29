@@ -288,6 +288,10 @@ void nite::WindowUI::setCornerPattern(const nite::Texture &tex){
 	borderCorner = tex;
 }
 
+void nite::WindowUI::removeCornerPattern(){
+	borderCorner.unload();
+}
+
 void nite::WindowUI::setFontSize(int size){
     if(size <= 0) return;
     this->fontSize = size;

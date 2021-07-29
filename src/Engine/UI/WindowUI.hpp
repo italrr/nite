@@ -65,6 +65,7 @@
         void setBackgroundImage(const nite::Texture &bgi);
         nite::Texture getBackgroundImage();
         void setCornerPattern(const nite::Texture &tex);
+        void removeCornerPattern();
         void updateListeners();
         void setTitleColor(const nite::Color &color);
         void setBorderColor(const nite::Color &color);

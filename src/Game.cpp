@@ -12,7 +12,7 @@
 struct Player : Game::Object {
 
 	void create(){
-		setPosition(nite::Vec2(100));
+		setPosition(nite::Vec2(200, 500));
 		setMass(1.0f);
 		this->friction = 4.0f;
 	}
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]){
 	auto dialog = Shared<Game::DialogInstance>(new Game::DialogInstance());
 	dialog->add("Tester", "this is a line of text");
 
-	dialog->start(nite::Vec2(64.0f), nite::Vec2(500, 100));
+	dialog->start(nite::Vec2(64.0f), 720, 3);
 
 	while(nite::isRunning()){	
 		nite::viewUpdate();
