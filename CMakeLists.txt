@@ -222,6 +222,7 @@ set(src_files
 	src/Battle.cpp
 	src/Entity.cpp
 	src/Object.cpp
+	src/Dialog.cpp
 )
 add_library(src ${src_files})
 target_link_libraries(src nite)

@@ -636,7 +636,7 @@ nite::RenderableFont *nite::Font::draw(const String &text, float x, float y){
 	obj->color = nite::getColor();
 	obj->angle = 0;
 	obj->ref = this;
-	obj->ln = ln;
+	obj->ln = -1;
 	obj->smooth = smooth;
 	obj->scale = scale;
 	obj->avgHeight = this->getHeight(text);
@@ -664,7 +664,7 @@ nite::RenderableFont *nite::Font::draw(const String &text, float x, float y, flo
 	obj->color = nite::getColor();
 	obj->angle = angle;
 	obj->smooth = smooth;
-	obj->ln = ln;
+	obj->ln = -1;
 	obj->ref = this;
 	obj->shadow = false;
 	obj->avgHeight = this->getHeight(text);
@@ -685,7 +685,7 @@ nite::RenderableFont *nite::Font::draw(const String &text, float x, float y, flo
 	obj->color = nite::getColor();
 	obj->angle = angle;
 	obj->ref = this;
-	obj->ln = ln;
+	obj->ln = -1;
 	obj->smooth = smooth;
 	obj->shadow = false;
 	obj->scale = scale;

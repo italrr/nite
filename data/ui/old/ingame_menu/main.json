@@ -1,0 +1,65 @@
+{
+	"type": "window",
+	"title": "Menu",
+	"notitle": true,
+	"width": "!! #gwidth * 0.6",
+	"height": "!! #gheight * 0.6",
+	"layout": "hbox",
+	"unmovable": true,
+	"resizeable": false,
+	"center": true,
+	"modal": false,
+	"borderThickness": 5.0,
+	"borderPattern": "data/ui/ui_corner2.png",
+	"position": {
+		"x": 0,
+		"y": 0
+	},
+	"backgroundColor": {"r": 0.08, "g": 0.08, "b": 0.08, "a": 1.0},
+	"borderColor": {"r": 0.02, "g": 0.02, "b": 0.02, "a": 1.0 },
+	"styles": {
+		"menubutton": {	
+			"width": "100%",
+			"height": 120,
+			"fontSize": 10,
+			"margin": { "vert": 2, "hor": 2 },
+			"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
+			"baseColor": {"r": 0.1, "g": 0.05, "b": 0.05, "a": 1.0},
+			"secondColor": {"r": 0.0, "g": 0.0, "b": 0.0, "a": 1.0}
+		}
+	},
+	"listenOn":{
+		"E": "onclick_close"
+	},
+	"children": [
+		{
+			"type": "panel",
+			"layout": "hbox",
+			"width": "20%",
+			"height": "100%",
+			"children": [
+				{
+					"type": "panel",
+					"layout": "vbox",
+					"width": "100%",
+					"height": "100%",
+					"backgroundColor": {"r": 1.0, "g": 0.08, "b": 0.08, "a": 1.0},
+					"padding": { "vert": 32, "hor": 32 },
+					"children": [
+						{
+							"type": "button",
+							"style": "menubutton",
+							"text": "STATUS",
+							"onClick": "onclick_status"
+						}					
+					]
+				}		
+			]
+		},
+		{
+			"type": "panel",
+			"layout": "hbox",
+			"flex": 1
+		}
+	]
+}

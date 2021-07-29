@@ -1,0 +1,132 @@
+{
+	"type": "window",
+	"title": "hud",
+	"notitle": true,
+	"width": "!! #gwidth + 0",
+	"height": "!! #gheight + 0",
+	"layout": "vbox",
+	"unmovable": true,
+	"resizeable": false,
+	"borderThickness": 1.8,
+	"backgroundColor": {"r": 1.0, "g": 0.0, "b": 0.0, "a": 0.0},
+	"borderColor": {"r": 0.0, "g": 1.0, "b": 0.0, "a": 0.0 },
+	"styles": {
+		"stats_text": {
+			"margin": {"vert": 0, "hor": 32},
+			"fontSize": 18,
+			"font": "data/font/Exo2-Regular.ttf"
+		},
+		"actionable_bar": {
+			"iconSize": {"hor": 32, "vert": 32},
+			"source": "data/texture/icons/test_icons.png",
+			"width": 48,
+			"height": 48
+		},
+		"effect_col": {
+			"iconSize": {"hor": 32, "vert": 32},
+			"source": "data/texture/icons/test_icons.png",
+			"width": 48,
+			"height": 48
+		}
+	},
+	"children": [
+		{
+			"type": "panel",
+			"layout": "hbox",
+			"height": 64,
+			"width": "!! #gwidth + 0",
+			"children": [
+				{
+					"id": "hud_hp_text",
+					"type":"text",
+					"text": "HP 0 / 0",
+					"style": "stats_text"
+				},
+				{
+					"id": "hud_sp_text",
+					"type":"text",
+					"text": "SP 0 / 0",
+					"style": "stats_text"
+				},
+				{
+					"id": "hud_sta_text",
+					"type":"text",
+					"text": "STA 0 / 0",
+					"style": "stats_text"
+				}									
+			]
+		},
+		{
+			"type": "panel",
+			"flex": 1,
+			"layout": "hbox",
+			"children": [
+				{
+					"type": "panel",
+					"layout": "hbox",
+					"flex": 1
+				},				
+				{
+					"id": "hud_eff_column",
+					"type": "panel",
+					"width": 72,
+					"height": "100%",
+					"layout": "vbox",
+					"children": [
+
+					]
+				}
+			
+			]
+		},
+		{
+			"type": "panel",
+			"layout": "hbox",
+			"width": "!! #gwidth + 0.0",
+			"height": 69,
+			"children": [
+				{
+					"type": "panel",
+					"layout": "hbox",
+					"flex": 1,
+					"backgroundColor": { "a": 0.0 },
+					"children": [
+						{
+							"id": "actionable_k6",
+							"import": "data/ui/hud/actionbar_object.json"
+						},
+						{
+							"id": "actionable_k7",
+							"import": "data/ui/hud/actionbar_object.json"
+						},
+						{
+							"type": "panel",
+							"layout": "hbox",
+							"flex": 1
+						},						
+						{
+							"id": "actionable_k1",
+							"import": "data/ui/hud/actionbar_object.json"
+						},
+						{
+							"id": "actionable_k2",
+							"import": "data/ui/hud/actionbar_object.json"
+						},
+						{
+							"id": "actionable_k3",
+							"import": "data/ui/hud/actionbar_object.json"
+						},
+						{
+							"id": "actionable_k4",
+							"import": "data/ui/hud/actionbar_object.json"
+						},
+						{
+							"id": "actionable_k5",
+							"import": "data/ui/hud/actionbar_object.json"
+						}						
+					]
+				}
+			]
+		}
+	]
+}

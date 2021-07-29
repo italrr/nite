@@ -1,0 +1,61 @@
+{
+	"type": "window",
+	"title": "Inventory",
+	"notitle": true,
+	"width": 388,
+	"height": 388,
+	"layout": "vbox",
+	"unmovable": true,
+	"resizeable": false,
+	"modal": true,
+    "borderThickness": 2.0,
+	"position": {
+		"x": "!! #gwidth * 0.5 - 196",
+		"y": "!! #gheight * 0.5 - 196"
+	},
+	"listenOn":{
+		"E": "onclick_goback"
+	},
+	"backgroundColor": {"r": 0.08, "g": 0.08, "b": 0.08, "a": 1.0},
+	"borderColor": {"r": 0.02, "g": 0.02, "b": 0.02, "a": 1.0 },
+	"styles": {
+
+	},
+	"children": [
+		{
+			"type": "panel",
+			"width": "100%",
+			"height": 48,
+			"layout": "vbox",
+			"backgroundColor": {"r": 1.0, "g": 0.0, "b": 0.0, "a": 0.9},
+			"children": [
+				{
+					"type": "text",
+					"text": "Inventory"
+				}
+			]
+		},
+		{
+			"type": "panel",
+			"flex": 1,
+			"id": "inv_list",
+			"layout": "inline",
+			"overflow": "scroll-y",
+			"backgroundColor": {"r": 0.80, "g": 0.80, "b": 0.80, "a": 0.9},
+			"navigate": {
+				"enable": true,
+				"split": 4
+			},
+			"children": [
+							
+			]
+		},
+		{
+			"type": "panel",
+			"width": "100%",
+			"height": 48,
+			"layout": "vbox",
+			"backgroundColor": {"r": 1.0, "g": 0.0, "b": 0.0, "a": 0.9}	
+		}
+	]
+}

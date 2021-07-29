@@ -1,0 +1,85 @@
+{
+	"type": "window",
+	"notitle": true,
+	"title": "Battle",
+	"unmovable": true,
+	"resizeable": false,
+	"width": "!! #gwidth - 16.0",
+	"height": 150.0,
+	"x": 8.0,
+	"y": "!! #gheight - $height - 8.0",
+	"borderThickness": 1.0,
+	"borderPattern": "data/ui/ui_corner1.png",
+	"layout": "vbox",
+	"borderColor": "#b1938b",
+	"backgroundColor": "#4e4e56",
+	"children": [
+		{
+			"type": "panel",
+			"flex": 1,
+			"layout": "hbox",
+			"children": [
+				{
+					"type": "panel",
+					"flex": 1
+				},
+				{
+					"type": "text",
+					"text": "- YOUR TURN -",
+					"fontSize": 24,
+					"fontColor": "#dcd0c0"
+				},
+				{
+					"type": "panel",
+					"flex": 1
+				}
+			]
+		},
+		{
+			"type": "panel",
+			"layout": "hbox",
+			"margin": {"vert": 16},
+			"flex": 1,
+			"children": [
+				{
+					"type": "panel",
+					"flex": 1
+				},
+				{
+					"type": "button",
+					"text": "OFFENSE",
+					"width": 120,
+					"margin": {"hor": 16},
+					"baseColor": {"r": 0.9, "g": 0.1, "b": 0.1, "a": 1.0},
+					"secondColor": {"r": 0.9, "g": 0.1, "b": 0.1, "a": 1.0},
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
+					"onClick": "buttonOnAttack"
+				},
+				{
+					"type": "button",
+					"text": "CARD",
+					"width": 120,					
+					"margin": {"hor": 16},
+					"baseColor": {"r": 1.0, "g": 0.702, "b": 0.278, "a": 1.0},
+					"secondColor": {"r": 1.0, "g": 0.702, "b": 0.278, "a": 1.0},
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
+					"onClick": "buttonOnCards"					
+				},		
+				{
+					"type": "button",
+					"text": "DEFFENSE",
+					"width": 120,					
+					"margin": {"hor": 16},
+					"baseColor": {"r": 0.3, "g": 0.3, "b": 0.99, "a": 1.0},
+					"secondColor": {"r": 0.3, "g": 0.3, "b": 0.99, "a": 1.0},
+					"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
+					"onClick": "buttonOnDo"										
+				},
+				{
+					"type": "panel",
+					"flex": 1
+				}				
+			]
+		}
+	]
+}

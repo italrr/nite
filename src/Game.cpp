@@ -6,6 +6,7 @@
 #include "Engine/Shapes.hpp"
 
 #include "World.hpp"
+#include "Dialog.hpp"
 
 
 struct Player : Game::Object {
@@ -73,12 +74,20 @@ int main(int argc, char* argv[]){
 	world.add(std::make_shared<Player>(Player()));
 	world.add(std::make_shared<Obstacle>(Obstacle()));
 	
+	auto dialog = Shared<Game::DialogInstance>(new Game::DialogInstance());
+	dialog->add("Tester", "this is a line of text");
+
+	dialog->start(nite::Vec2(64.0f), nite::Vec2(500, 100));
+
 	while(nite::isRunning()){	
 		nite::viewUpdate();
 		nite::inputUpdate();
 
+
 		world.step();
 		world.render();
+
+		dialog->step();
 
 		nite::graphicsRender();
 	}

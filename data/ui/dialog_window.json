@@ -1,0 +1,20 @@
+{
+	"type": "window",
+	"notitle": true,
+	"unmovable": true,
+	"resizeable": false,
+    "layout": "hbox",
+    "borderThickness":3.0,
+	"borderColor": "#bf0000",
+	"backgroundColor": "#1c1c1c",
+	"children": [
+		{
+			"padding": { "vert": 6, "hor": 6 },
+			"type": "text",
+			"flex": 1,
+			"font": "data/font/BebasNeueRegular-X34j2.otf",
+			"fontSize": 24,
+			"text": ""
+		}
+	]
+}
