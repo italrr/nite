@@ -6,7 +6,7 @@
     "layout": "hbox",
     "borderThickness":3.0,
 	"borderColor": "#4d34eb",
-	"backgroundColor": "#0a081c",
+	"backgroundColor": "#0f0f0f",
 	"borderPattern": "data/texture/ui/ui_corner2.png",
 	"children": [
 		{

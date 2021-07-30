@@ -24,9 +24,6 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
         subFont.load("data/font/BebasNeueRegular-X34j2.otf", 20, 1.0f);
     }
 
-
-    
-
     textWin = nite::UI::build("data/ui/dialog_window.json");
     emtWin = nite::UI::build("data/ui/dialog_window.json");
 
@@ -38,9 +35,10 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
     float h = font.getHeight() * nlines + bwidth * 2 + padd * 2;
 
     twin->setBorderThickness(borderWdith);
-    twin->setPosition(nite::Vec2(0.0f, 42.0f) + pos);
+    twin->setPosition(nite::Vec2(0.0f, 44.0f) + pos);
     twin->setSize(nite::Vec2(width + padd * 2, h));
     twin->removeCornerPattern();
+    twin->setShadow(true);
     if(twin->children.size() > 0 && twin->children[0]->type == "text"){
         auto text = std::dynamic_pointer_cast<nite::TextUI>(twin->children[0]);
         text->setPadding(nite::Vec2(padd * 2 + bwidth * 2, padd * 2));
@@ -55,6 +53,7 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
 
     emwin->setBorderThickness(borderWdith);
     emwin->setPosition(pos);
+    emwin->setShadow(true);
     emwin->setSize(nite::Vec2(width * 0.33f, subFont.getHeight() + bwidth * 2 + padd * 2));
     emwin->removeCornerPattern();
 
@@ -65,18 +64,18 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
     }else{
         nite::print("DialogInstance::start: missing text child");
     }    
-
-
     
     updWinValue(textWin, "");
     updWinValue(emtWin, "Tester");
-    targetText = "aaaa aaaa aaaa aaaa aaaa aaaa aaaa aaaa aaaa aaaa aaaa aaaa aaaa aaaa aaaa aaaa aaaa aaaa";
+    targetText = "";
 
     nite::print("[debug] started dialog");
 }
 
 void Game::DialogInstance::reset(){
     done = false;
+    ready = false;
+    proceed = true;
     targetText = "";
     currenText = "";
     currentDiag = 0;
@@ -101,8 +100,59 @@ void Game::DialogInstance::updWinValue(Shared<nite::BaseUIComponent> &win, const
     }
 }
 
+void Game::DialogInstance::updTextColor(Shared<nite::BaseUIComponent> &win, const nite::Color &color){
+    if(win.get() != NULL && win->children.size() > 0){
+        if(win->children[0]->type == "text"){
+            auto txt = std::dynamic_pointer_cast<nite::TextUI>(win->children[0]);
+            txt->setFontColor(color);
+        }else{
+            nite::print("DialogInstance::updWinValue: no text was found on the window");
+        }
+    }else{
+        nite::print("DialogInstance::updWinValue: window doesn't exist");
+    }
+}
+
+void Game::DialogInstance::updWinBorderColor(Shared<nite::BaseUIComponent> &win, const nite::Color &color){
+    if(win.get() != NULL && win->type == "window"){
+        auto cwin = std::dynamic_pointer_cast<nite::WindowUI>(win);
+        cwin->setBorderColor(color);
+    }else{
+        nite::print("DialogInstance::updWinValue: window doesn't exist");
+    }    
+}
+
+
+void Game::DialogInstance::cont(){
+    if(this->ready){
+        this->proceed = true;
+    }
+}
+
+
 void Game::DialogInstance::step(){
     if(nite::getTicks()-lastChar < 20 || currenText.size() >= targetText.size()){
+        if(currenText.size() >= targetText.size()){
+            this->ready = true;
+            if(currentDiag >= lines.size()){
+                done = true;
+            }else
+            if(proceed){
+                currentChar = 0;
+                currenText = "";
+                proceed = false;
+                ready = false;
+                targetText = lines[currentDiag]->message;
+                // updTextColor(textWin, lines[currentDiag]->color);
+                updTextColor(emtWin, lines[currentDiag]->color);
+                updWinValue(emtWin, lines[currentDiag]->emitter);
+
+                updWinBorderColor(textWin, lines[currentDiag]->color);
+                updWinBorderColor(emtWin, lines[currentDiag]->color);
+                
+                ++currentDiag;
+            }
+        }
         return;
     }
     
