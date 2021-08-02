@@ -29,6 +29,8 @@
         struct DialogInstance {
             nite::Font font;
             nite::Font subFont;
+            nite::Texture empty;
+            nite::Vec2 dialogPos;
             Shared<nite::BaseUIComponent> emtWin;
             Shared<nite::BaseUIComponent> textWin;
 
@@ -42,6 +44,7 @@
             bool ready;
             bool proceed;
 
+            bool isReady();
             void cont();
             Vector<Shared<DialogLine>> lines;
             DialogInstance();

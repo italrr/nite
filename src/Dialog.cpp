@@ -15,6 +15,8 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
         return;
     }
 
+    auto actpos = pos;
+
     static const float borderWdith = 5.0f;
 
     if(!font.isLoaded()){
@@ -22,6 +24,17 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
     }
     if(!subFont.isLoaded()){
         subFont.load("data/font/BebasNeueRegular-X34j2.otf", 20, 1.0f);
+    }
+    if(!empty.isLoaded()){
+        empty.load("data/texture/empty.png");
+    }
+
+
+    if(textWin.get() != NULL){
+        std::dynamic_pointer_cast<nite::WindowUI>(textWin)->close();
+    }
+    if(emtWin.get() != NULL){
+        std::dynamic_pointer_cast<nite::WindowUI>(emtWin)->close();
     }
 
     textWin = nite::UI::build("data/ui/dialog_window.json");
@@ -32,10 +45,20 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
 
     float bwidth = 4;
     float padd = 4;
+    float embwidth = 3;
+    float empadd = 3;
     float h = font.getHeight() * nlines + bwidth * 2 + padd * 2;
+    float emh = subFont.getHeight() + embwidth * 2 + empadd * 2;
+
+
+    if(actpos.x == 0.0f && actpos.y == 0.0f){
+        actpos.x = 8.0f;
+        actpos.y = nite::getHeight() - (h  + 8.0f + 44.0f);
+        dialogPos.set(actpos - nite::Vec2(8.0f, 8.0f));
+    }
 
     twin->setBorderThickness(borderWdith);
-    twin->setPosition(nite::Vec2(0.0f, 44.0f) + pos);
+    twin->setPosition(nite::Vec2(0.0f, 44.0f) + actpos);
     twin->setSize(nite::Vec2(width + padd * 2, h));
     twin->removeCornerPattern();
     twin->setShadow(true);
@@ -48,18 +71,15 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
     }
 
 
-    bwidth = 3;
-    padd = 3;
-
     emwin->setBorderThickness(borderWdith);
-    emwin->setPosition(pos);
+    emwin->setPosition(actpos);
     emwin->setShadow(true);
-    emwin->setSize(nite::Vec2(width * 0.33f, subFont.getHeight() + bwidth * 2 + padd * 2));
+    emwin->setSize(nite::Vec2(width * 0.33f, emh));
     emwin->removeCornerPattern();
 
     if(emwin->children.size() > 0 && emwin->children[0]->type == "text"){
         auto text = std::dynamic_pointer_cast<nite::TextUI>(emwin->children[0]);
-        text->setPadding(nite::Vec2(padd * 2 + bwidth * 2, padd * 2));
+        text->setPadding(nite::Vec2(empadd * 2 + embwidth * 2, empadd * 2));
         text->setFont(subFont);
     }else{
         nite::print("DialogInstance::start: missing text child");
@@ -81,10 +101,17 @@ void Game::DialogInstance::reset(){
     currentDiag = 0;
     currentChar = 0;
     lastChar = nite::getTicks();
+    lines.clear();
     if(textWin.get() != NULL){
-        auto casted = std::dynamic_pointer_cast<nite::WindowUI>(textWin);
-        casted->close();
+        std::dynamic_pointer_cast<nite::WindowUI>(textWin)->close();
     }
+    if(emtWin.get() != NULL){
+        std::dynamic_pointer_cast<nite::WindowUI>(emtWin)->close();
+    }    
+}
+
+bool Game::DialogInstance::isReady(){
+    return done && lines.size() == currentDiag || currentDiag == 0 && lines.size() == 0;
 }
 
 void Game::DialogInstance::updWinValue(Shared<nite::BaseUIComponent> &win, const String &newval){
@@ -167,5 +194,9 @@ void Game::DialogInstance::step(){
 }
 
 void Game::DialogInstance::render(){
+	// nite::setRenderTarget(nite::RenderTargetUI);
+	// nite::setDepth(nite::DepthBottom);
+    // nite::setColor(0.0f, 0.0f, 0.0f, 0.55f);
+    // empty.draw(dialogPos.x, dialogPos.y, nite::getWidth(), nite::getHeight()-dialogPos.y, 0.0f, 0.0f, 0.0f);
 
 }

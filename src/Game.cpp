@@ -7,6 +7,7 @@
 
 #include "World.hpp"
 #include "Dialog.hpp"
+#include "Battle.hpp"
 
 
 struct Player : Game::Object {
@@ -75,12 +76,15 @@ int main(int argc, char* argv[]){
 	world.add(std::make_shared<Obstacle>(Obstacle()));
 	
 	auto dialog = Shared<Game::DialogInstance>(new Game::DialogInstance());
+	auto battle = Shared<Game::Battle>(new Game::Battle());
+	battle->setDialog(dialog);
+
 	dialog->add("betsy", "this is a line of text", nite::Color("#d20021"));
 	dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
 	dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
 	dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
 
-	dialog->start(nite::Vec2(64.0f), 720, 3);
+	dialog->start(nite::Vec2(0.0f), 720, 3);
 
 	while(nite::isRunning()){	
 		nite::viewUpdate();
@@ -95,6 +99,7 @@ int main(int argc, char* argv[]){
 		world.render();
 
 		dialog->step();
+		dialog->render();
 
 		nite::graphicsRender();
 	}
