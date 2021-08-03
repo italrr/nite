@@ -9,14 +9,11 @@
 	"backgroundColor": {"r":1, "g": 0, "b": 0, "a": 0},
 	"styles": {
 		"menu-button": {	
-			"width": 100,
-			"width": 64,
-			"margin": { "vert": 4, "hor": 4 },
 			"font": "data/font/BebasNeueRegular-X34j2.otf",
-			"fontSize": 18, 
+			"fontSize": 32, 
 			"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
-			"baseColor": {"r": 0.1, "g": 0.05, "b": 0.05, "a": 0.0},
-			"secondColor": {"r": 0.0, "g": 0.0, "b": 0.0, "a": 0.0}
+			"baseColor": {"r": 0.1, "g": 0.05, "b": 0.05, "a": 1.0},
+			"secondColor": {"r": 0.0, "g": 0.0, "b": 0.0, "a": 1.0}
 		}
 	},
 	"children": [
@@ -67,12 +64,12 @@
 							"children": [
 								{
 									"type": "button",
-									"text": "YES",
+									"text": "yes",
 									"style": "menu-button"
 								},
 								{
 									"type": "button",
-									"text": "YES",
+									"text": "yes",
 									"style": "menu-button"
 								}
 								

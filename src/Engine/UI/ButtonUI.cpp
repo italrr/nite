@@ -63,7 +63,9 @@ void nite::ButtonUI::setOnClick(nite::ListenerLambda onClick){
 }
 
 void nite::ButtonUI::onCreate(){ 
-    font.load(defaultFontUI, fontSize * defaultFontRatio, 1.0f); 
+    if(!font.isLoaded()){
+        font.load(defaultFontUI, fontSize * defaultFontRatio, 0.0f);  
+    }
     calculateSize();
 }
 
@@ -72,10 +74,10 @@ void nite::ButtonUI::setFontSize(int size){
     this->fontSize = size;
     auto fn = font.getFilename();
     if(fn.length() > 0){
-        font.load(fn, size, 1.0f);
+        font.load(fn, size, 0.0f);
     }
     calculateSize();  
-    recalculate(); 
+    recalculate();
 }
 
 int nite::ButtonUI::getFontSize(){

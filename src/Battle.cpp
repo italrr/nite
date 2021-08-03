@@ -88,6 +88,7 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
         win->setPosition(nite::Vec2(x, y));
         win->setSize(nite::Vec2(w, h));     
 
+        // set text-box font
         auto ftbox = win->getComponentById("text-box");
         if(ftbox.get() != NULL && ftbox->type == "text"){
             auto text = std::dynamic_pointer_cast<nite::TextUI>(ftbox);
@@ -95,6 +96,17 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
         }else{
             nite::print("Battle::start: cannot find 'text-box'");
         }
+
+        // set buttons font
+        auto optBox = win->getComponentById("options-box");
+
+        for(int i = 0; i < optBox->children.size(); ++i){
+            auto button = std::dynamic_pointer_cast<nite::ButtonUI>(optBox->children[i]);
+            // nite::print(text->getText());
+            button->setFont(font);
+        }
+
+
 
     }
 
