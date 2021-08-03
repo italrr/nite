@@ -117,7 +117,7 @@ void nite::NavUI::update(BaseUIComponent *comp){
 
 	if(enable && nite::keyboardPressed(nite::keyDOWN)){
 		if(comp->layout->xorient && !comp->layout->yorient || !comp->layout->xorient && comp->layout->yorient){
-			current = index+1 >= comp->children.size() ? current : current + 1;
+			current = (current + 1) >= comp->children.size() ? current : current + 1;
 		}else
 		if(comp->layout->xorient && comp->layout->yorient && split != 0){
 			current += split;
@@ -132,7 +132,7 @@ void nite::NavUI::update(BaseUIComponent *comp){
 
 	if(enable && nite::keyboardPressed(nite::keyUP)){
 		if(comp->layout->xorient && !comp->layout->yorient || !comp->layout->xorient && comp->layout->yorient){
-			current = index-1 < 0 ? current : current - 1;
+			current = current-1 < 0 ? current : current - 1;
 		}else
 		if(comp->layout->xorient && comp->layout->yorient && split != 0){
 			current -= split;

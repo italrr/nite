@@ -6,6 +6,7 @@ void nite::PanelUI::defaultInit(){
     componentName = "Panel"; 
     type = "panel";   
     flex = 0.0f;
+    borderThickness = 0.0f;
     baseColor.set(1.0f, 1.0f, 1.0f, 0.0f);
     onClickMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *panel){
         return;
@@ -16,6 +17,16 @@ void nite::PanelUI::defaultInit(){
     onUnhoverMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *panel){
         return;
     };    
+}
+
+void nite::PanelUI::setBorderColor(const nite::Color &color){
+	this->borderColor.set(color);
+	recalculate();  
+}
+
+void nite::PanelUI::setBorderThickness(float tn){
+	borderThickness = tn;
+	recalculate();  
 }
 
 void nite::PanelUI::rerender(){
@@ -31,14 +42,18 @@ void nite::PanelUI::rerender(){
         }
     }else{  
         auto ref = uiBasicTexture.draw(0.0f, 0.0f, size.x, size.y, 0.0f, 0.0f, 0.0f);
-        // if(ref != NULL && useShader){
-        //     nite::Uniform uni;
-        //     uni.add("size", size);
-        //     uni.add("color", baseColor);
-        //     uni.add("alpha", baseColor.a);
-        //     uni.add("thickness", 5.0f);
-        //     ref->apply(shader, uni);
-        // }        
+        if(borderThickness > 0.0f && uiShader.isLoaded()){
+            nite::Uniform uni;
+            uni.add("p_size", size);
+            uni.add("p_bcolor", baseColor);
+            uni.add("p_lbcolor", borderColor);
+            uni.add("p_salpha", borderColor.a);
+            uni.add("p_alpha", baseColor.a);
+            uni.add("p_hborder", nite::Vec2(borderThickness * getGeneralScale()));
+            uni.add("p_vborder", nite::Vec2(borderThickness * getGeneralScale(), borderThickness * getGeneralScale()));     
+            uni.add("p_blurthickness", 2.0f * (1.0f / ((size.avg() * getGeneralScale()) / nite::Vec2(nite::Vec2(300, 500)*getGeneralScale()).avg()))); // 300x500 was the original design size
+            ref->apply(uiShader, uni);    
+        } 
     }
 
     // Render Children
@@ -109,6 +124,7 @@ nite::Vec2 nite::PanelUI::computeSize(){
 }
 
 void nite::PanelUI::onCreate(){
+    uiShader.load("data/shaders/basic_ui_background_f.glsl", "data/shaders/basic_ui_background_v.glsl");
     uiBasicTexture.load("data/texture/empty.png");
     recalculate();
 }

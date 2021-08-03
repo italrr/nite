@@ -10,11 +10,16 @@
   namespace nite {  
 
     struct PanelUI : public nite::BaseUIComponent {
+        float borderThickness;
+        nite::Color borderColor;
+        nite::Shader uiShader;
         nite::Texture uiBasicTexture;
         nite::Texture uiBackgroundImage;
         nite::Batch batch;
         void rerender();
         void recalculate();
+        void setBorderThickness(float tn);
+        void setBorderColor(const nite::Color &color);
         void defaultInit();
         bool toRerender;
         void onHover();

@@ -960,6 +960,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto backgroundColor = _parseColor("backgroundColor", node, style, nite::Color(1.0f, 1.0f, 1.0f, 0.0f), base);     
         auto size = _parseSize(node, style, nite::Vec2(16.0f), base); 
         auto flex = _parseFloat("flex", node, style, ref->flex, base);
+        auto borderColor = _parseColor("borderColor", node, NULL,ref->borderColor, base);
+        auto borderthickness = _parseFloat("borderThickness", node, NULL, 0.0f, base);
         auto onUnhoverMethod = getListener(node.get("onUnhover").toString());
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
@@ -996,6 +998,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         ref->setOnClick(onClickMethod);
         ref->setOnHover(onHoverMethod);
         ref->setLayout(layout);
+        ref->setBorderThickness(borderthickness);
+        ref->setBorderColor(borderColor);        
         if(backgroundImage != "" && nite::fileExists(backgroundImage)){
             ref->setBackgroundImage(nite::Texture(backgroundImage));
         }         

@@ -1,17 +1,135 @@
 #include "Dialog.hpp"
 #include <memory>
 
-Game::DialogInstance::DialogInstance(){
+
+bool Game::DialogHook::isReady(){
+    return done && lines.size() == currentDiag || currentDiag == 0 && lines.size() == 0;
+}
+
+void Game::DialogHook::cont(){
+    if(this->ready){
+        this->proceed = true;
+    }
+}
+
+Game::DialogHook::DialogHook(){
+    this->onReset = [](){
+
+    };
+    this->onUpdateText = [](){
+
+    };
+    this->onNextLine = [](const Shared<DialogLine> &line){
+
+    };        
     reset();
 }
 
-void Game::DialogInstance::add(const String &emt, const String &text, const nite::Color &color){
+void Game::DialogHook::add(const String &emt, const String &text, const nite::Color &color){
     auto line = std::make_shared<Game::DialogLine>(Game::DialogLine(emt, text, color));
     this->lines.push_back(line);
 }
 
-void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
+void Game::DialogHook::start(){
+    targetText = "";
+}
+
+void Game::DialogHook::reset(){
+    done = false;
+    ready = false;
+    proceed = true;
+    targetText = "";
+    currenText = "";
+    currentDiag = 0;
+    currentChar = 0;
+    lastChar = nite::getTicks();
+    lines.clear();
+    onReset();
+}
+
+void Game::DialogHook::step(){
+    if(nite::getTicks()-lastChar < 20 || currenText.size() >= targetText.size()){
+        if(currenText.size() >= targetText.size()){
+            this->ready = true;
+            if(currentDiag >= lines.size()){
+                done = true;
+            }else
+            if(proceed){
+                currentChar = 0;
+                currenText = "";
+                proceed = false;
+                ready = false;
+                targetText = lines[currentDiag]->message;
+
+                onNextLine(lines[currentDiag]);
+
+                ++currentDiag;
+            }
+        }
+        return;
+    }
+    
+    ++currentChar;
+
+    currenText = targetText.substr(0, currentChar);
+
+    onUpdateText();
+    
+    lastChar = nite::getTicks();
+}
+
+
+
+
+
+
+Game::DialogBox::DialogBox(){
+    reset();
+
+    this->onReset = [&](){
+        if(textWin.get() != NULL){
+            std::dynamic_pointer_cast<nite::WindowUI>(textWin)->close();
+        }
+        if(emtWin.get() != NULL){
+            std::dynamic_pointer_cast<nite::WindowUI>(emtWin)->close();
+        } 
+    };
+
+    this->onUpdateText = [&](){
+        updWinValue(textWin, currenText);
+    };
+
+    this->onNextLine = [&](const Shared<DialogLine> &line){
+        updTextColor(emtWin, line->color);
+        updWinValue(emtWin, line->emitter);
+
+        updWinBorderColor(textWin, line->color);
+        updWinBorderColor(emtWin, line->color);
+    };
+
+}
+
+void Game::DialogBox::setStaticBorderColor(bool v, const nite::Color &color){
+    useStBColor = v;
+    borderColor = color;
+    if(v){
+        updWinBorderColor(textWin, borderColor);
+        updWinBorderColor(emtWin, borderColor);
+    }
+}
+
+void Game::DialogBox::setBgColor(const nite::Color &color){
+    if(textWin.get() != NULL && textWin->type == "window"){
+        auto cwin = std::dynamic_pointer_cast<nite::WindowUI>(textWin);
+        cwin->setBackgroundColor(color);
+    }else{
+        nite::print("DialogBox::updWinValue: window doesn't exist");
+    }   
+}
+
+void Game::DialogBox::start(const nite::Vec2 &pos, int width, int nlines, bool useTitle){
     if(done){
+        nite::print("xD");
         return;
     }
 
@@ -50,15 +168,21 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
     float h = font.getHeight() * nlines + bwidth * 2 + padd * 2;
     float emh = subFont.getHeight() + embwidth * 2 + empadd * 2;
 
+    float digBarOffset = useTitle ? 44.0f : 0.0f;
 
-    if(actpos.x == 0.0f && actpos.y == 0.0f){
+
+    if(actpos.x == 0.0f){
         actpos.x = 8.0f;
-        actpos.y = nite::getHeight() - (h  + 8.0f + 44.0f);
-        dialogPos.set(actpos - nite::Vec2(8.0f, 8.0f));
+        dialogPos.x = actpos.x - 8.0f;
+    }
+
+    if(actpos.y == 0.0f){
+        actpos.y = nite::getHeight() - (h  + 8.0f + digBarOffset);
+        dialogPos.y = actpos.y - 8.0f;
     }
 
     twin->setBorderThickness(borderWdith);
-    twin->setPosition(nite::Vec2(0.0f, 44.0f) + actpos);
+    twin->setPosition(nite::Vec2(0.0f, digBarOffset) + actpos);
     twin->setSize(nite::Vec2(width + padd * 2, h));
     twin->removeCornerPattern();
     twin->setShadow(true);
@@ -67,7 +191,7 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
         text->setPadding(nite::Vec2(padd * 2 + bwidth * 2, padd * 2));
         text->setFont(font);
     }else{
-        nite::print("DialogInstance::start: missing text child");
+        nite::print("DialogBox::start: missing text child");
     }
 
 
@@ -76,13 +200,13 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
     emwin->setShadow(true);
     emwin->setSize(nite::Vec2(width * 0.33f, emh));
     emwin->removeCornerPattern();
-
+    emwin->setVisible(useTitle);
     if(emwin->children.size() > 0 && emwin->children[0]->type == "text"){
         auto text = std::dynamic_pointer_cast<nite::TextUI>(emwin->children[0]);
         text->setPadding(nite::Vec2(empadd * 2 + embwidth * 2, empadd * 2));
         text->setFont(subFont);
     }else{
-        nite::print("DialogInstance::start: missing text child");
+        nite::print("DialogBox::start: missing text child");
     }    
     
     updWinValue(textWin, "");
@@ -92,111 +216,45 @@ void Game::DialogInstance::start(const nite::Vec2 &pos, int width, int nlines){
     nite::print("[debug] started dialog");
 }
 
-void Game::DialogInstance::reset(){
-    done = false;
-    ready = false;
-    proceed = true;
-    targetText = "";
-    currenText = "";
-    currentDiag = 0;
-    currentChar = 0;
-    lastChar = nite::getTicks();
-    lines.clear();
-    if(textWin.get() != NULL){
-        std::dynamic_pointer_cast<nite::WindowUI>(textWin)->close();
-    }
-    if(emtWin.get() != NULL){
-        std::dynamic_pointer_cast<nite::WindowUI>(emtWin)->close();
-    }    
-}
-
-bool Game::DialogInstance::isReady(){
-    return done && lines.size() == currentDiag || currentDiag == 0 && lines.size() == 0;
-}
-
-void Game::DialogInstance::updWinValue(Shared<nite::BaseUIComponent> &win, const String &newval){
+void Game::DialogBox::updWinValue(Shared<nite::BaseUIComponent> &win, const String &newval){
     if(win.get() != NULL && win->children.size() > 0){
         if(win->children[0]->type == "text"){
             auto txt = std::dynamic_pointer_cast<nite::TextUI>(win->children[0]);
             txt->setText(newval);
         }else{
-            nite::print("DialogInstance::updWinValue: no text was found on the window");
+            nite::print("DialogBox::updWinValue: no text was found on the window");
         }
     }else{
-        nite::print("DialogInstance::updWinValue: window doesn't exist");
+        nite::print("DialogBox::updWinValue: window doesn't exist");
     }
 }
 
-void Game::DialogInstance::updTextColor(Shared<nite::BaseUIComponent> &win, const nite::Color &color){
+void Game::DialogBox::updTextColor(Shared<nite::BaseUIComponent> &win, const nite::Color &color){
     if(win.get() != NULL && win->children.size() > 0){
         if(win->children[0]->type == "text"){
             auto txt = std::dynamic_pointer_cast<nite::TextUI>(win->children[0]);
             txt->setFontColor(color);
         }else{
-            nite::print("DialogInstance::updWinValue: no text was found on the window");
+            nite::print("DialogBox::updWinValue: no text was found on the window");
         }
     }else{
-        nite::print("DialogInstance::updWinValue: window doesn't exist");
+        nite::print("DialogBox::updWinValue: window doesn't exist");
     }
 }
 
-void Game::DialogInstance::updWinBorderColor(Shared<nite::BaseUIComponent> &win, const nite::Color &color){
+void Game::DialogBox::updWinBorderColor(Shared<nite::BaseUIComponent> &win, const nite::Color &color){
     if(win.get() != NULL && win->type == "window"){
         auto cwin = std::dynamic_pointer_cast<nite::WindowUI>(win);
-        cwin->setBorderColor(color);
+        cwin->setBorderColor(useStBColor ? borderColor : color);
     }else{
-        nite::print("DialogInstance::updWinValue: window doesn't exist");
+        nite::print("DialogBox::updWinValue: window doesn't exist");
     }    
 }
 
 
-void Game::DialogInstance::cont(){
-    if(this->ready){
-        this->proceed = true;
-    }
-}
-
-
-void Game::DialogInstance::step(){
-    if(nite::getTicks()-lastChar < 20 || currenText.size() >= targetText.size()){
-        if(currenText.size() >= targetText.size()){
-            this->ready = true;
-            if(currentDiag >= lines.size()){
-                done = true;
-            }else
-            if(proceed){
-                currentChar = 0;
-                currenText = "";
-                proceed = false;
-                ready = false;
-                targetText = lines[currentDiag]->message;
-                // updTextColor(textWin, lines[currentDiag]->color);
-                updTextColor(emtWin, lines[currentDiag]->color);
-                updWinValue(emtWin, lines[currentDiag]->emitter);
-
-                updWinBorderColor(textWin, lines[currentDiag]->color);
-                updWinBorderColor(emtWin, lines[currentDiag]->color);
-                
-                ++currentDiag;
-            }
-        }
-        return;
-    }
-    
-    ++currentChar;
-
-    currenText = targetText.substr(0, currentChar);
-
-    updWinValue(textWin, currenText);
-
-    
-    lastChar = nite::getTicks();
-}
-
-void Game::DialogInstance::render(){
+void Game::DialogBox::render(){
 	// nite::setRenderTarget(nite::RenderTargetUI);
 	// nite::setDepth(nite::DepthBottom);
     // nite::setColor(0.0f, 0.0f, 0.0f, 0.55f);
     // empty.draw(dialogPos.x, dialogPos.y, nite::getWidth(), nite::getHeight()-dialogPos.y, 0.0f, 0.0f, 0.0f);
-
 }

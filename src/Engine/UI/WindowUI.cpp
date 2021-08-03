@@ -464,7 +464,7 @@ void nite::WindowUI::render(const nite::Vec2 &offset){
 	if(shadow){
 		nite::setColor(0.0f, 0.0f, 0.0f, 0.70f);
 		auto bg = uiBasicTexture.draw(origPosition.x + 4, origPosition.y + 4, batch.getSize().x, batch.getSize().y, 0.0f, 0.0f, 0.0f);
-		bg->smooth = true;
+		bg->smooth = true;	
 	}
 	float d = 1.0f; // 1.0f - nite::distance(origPosition, position) / 32.0f;
 	nite::setColor(1.0f, 1.0f, 1.0f, d * (generalAlpha / 100.0f));

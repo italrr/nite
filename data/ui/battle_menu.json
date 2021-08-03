@@ -1,0 +1,86 @@
+{
+	"type": "window",
+	"notitle": true,
+	"title": "battle",
+	"unmovable": true,
+	"resizeable": false,
+	"borderThickness": 0.0,
+	"layout": "hbox",
+	"backgroundColor": {"r":1, "g": 0, "b": 0, "a": 0},
+	"styles": {
+		"menu-button": {	
+			"width": 100,
+			"width": 64,
+			"margin": { "vert": 4, "hor": 4 },
+			"font": "data/font/BebasNeueRegular-X34j2.otf",
+			"fontSize": 18, 
+			"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
+			"baseColor": {"r": 0.1, "g": 0.05, "b": 0.05, "a": 0.0},
+			"secondColor": {"r": 0.0, "g": 0.0, "b": 0.0, "a": 0.0}
+		}
+	},
+	"children": [
+		{
+			"type": "panel",
+			"flex": 1,
+			"layout": "hbox",
+			"backgroundColor": {"r":1, "g": 1, "b": 0, "a": 0},
+			"children": [
+				{
+					"type": "panel",
+					"flex": 1,
+					"height": "100%",
+					"padding": { "hor": 32, "vert": 32 },
+					"children": [
+						{
+							"type": "panel",
+							"flex": 1,
+							"backgroundColor": "#0f0f0f",
+							"borderThickness": 5.0,
+							"borderColor": "#4d34eb",							
+							"padding": { "hor": 32, "vert": 32 },
+							"children": [
+								{
+									"id": "text-box",
+									"type": "text",
+									"flex": 1
+								}
+							]
+						}
+					]
+				},
+				{
+					"type": "panel",
+					"width": "30%",
+					"height": "100%"
+					"backgroundColor": {"r":0, "g": 1, "b": 1, "a": 1},	
+					"children": [
+						{
+							"id": "options-box",
+							"type": "panel",
+							"flex": 1,
+							"layout": "vbox",
+							"navigate": {
+								"enable": true,
+								"split": 4
+							},			
+							"children": [
+								{
+									"type": "button",
+									"text": "YES",
+									"style": "menu-button"
+								},
+								{
+									"type": "button",
+									"text": "YES",
+									"style": "menu-button"
+								}
+								
+							]							
+						}
+					]
+				}
+			]
+		}
+	]
+}

@@ -26,14 +26,7 @@
             }            
         };
 
-        struct DialogInstance {
-            nite::Font font;
-            nite::Font subFont;
-            nite::Texture empty;
-            nite::Vec2 dialogPos;
-            Shared<nite::BaseUIComponent> emtWin;
-            Shared<nite::BaseUIComponent> textWin;
-
+        struct DialogHook {
             int currentDiag;
             int currentChar;
             UInt64 lastChar;
@@ -44,17 +37,45 @@
             bool ready;
             bool proceed;
 
+            Vector<Shared<DialogLine>> lines;
+            
             bool isReady();
             void cont();
-            Vector<Shared<DialogLine>> lines;
-            DialogInstance();
+            DialogHook();
+            void add(const String &emt, const String &text, const nite::Color &color = nite::White);
+            void start();
+            void reset();
+            void step();
+
+            // virtual void onUpdate() {}
+            // virtual void onReset(){}
+            // virtual void onUpdateText(){}
+            // virtual void onNextLine(const Shared<DialogLine> &line){}
+
+            std::function<void()> onReset;
+            std::function<void()> onUpdateText;
+            std::function<void(const Shared<DialogLine> &line)> onNextLine;
+
+        };
+
+        struct DialogBox : DialogHook {
+            nite::Font font;
+            nite::Font subFont;
+            nite::Texture empty;
+            nite::Vec2 dialogPos;
+            Shared<nite::BaseUIComponent> emtWin;
+            Shared<nite::BaseUIComponent> textWin;
+            bool useStBColor;
+            nite::Color borderColor;
+            nite::Color bgColor;            
+
+            void start(const nite::Vec2 &pos, int width, int nlines, bool useTitle = true);
+            void setBgColor(const nite::Color &color);
+            void setStaticBorderColor(bool v, const nite::Color &color = nite::Color(0.0f, 0.0f, 0.0f, 1.0f));
+            DialogBox();
             void updWinValue(Shared<nite::BaseUIComponent> &win, const String &newval);
             void updTextColor(Shared<nite::BaseUIComponent> &win, const nite::Color &color);
             void updWinBorderColor(Shared<nite::BaseUIComponent> &win, const nite::Color &color);
-            void add(const String &emt, const String &text, const nite::Color &color = nite::White);
-            void start(const nite::Vec2 &pos, int width, int nlines);
-            void reset();
-            void step();
             void render();
         };
 

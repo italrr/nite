@@ -219,20 +219,20 @@ void nite::ButtonUI::setBorderThickness(const nite::Vec2 &bt){
 }
 
 void nite::ButtonUI::update(){
-    // if(!realPosition.cInterpDiscrete(position, componentTranslationSpeed)){
-    //     recalculate();    
-    // }
-    // if(!nite::cInterp(currentPressOffset, buttonState == 2 ? pressOffset : 0.0f, 0.70f)){
-    //     recalculate();
-    // }
-    // if(buttonState != 0){
-    //     recalculate();
-    //     if(nite::getTicks()-stateTimeout > 35 * (buttonState == 2 ? 4 : 1)){
-    //         if(buttonState == 2){
-    //             this->onClickMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);    
-    //         }
-    //         buttonState = 0;
-    //         recalculate();
-    //     }
-    // }
+    if(!realPosition.cInterpDiscrete(position, componentTranslationSpeed)){
+        recalculate();    
+    }
+    if(!nite::cInterp(currentPressOffset, buttonState == 2 ? pressOffset : 0.0f, 0.70f)){
+        recalculate();
+    }
+    if(buttonState != 0){
+        recalculate();
+        if(nite::getTicks()-stateTimeout > 35 * (buttonState == 2 ? 4 : 1)){
+            if(buttonState == 2){
+                this->onClickMethod(Shared<nite::ListenerInfo>(new nite::ListenerInfo()), this);    
+            }
+            buttonState = 0;
+            recalculate();
+        }
+    }
 }
