@@ -130,7 +130,6 @@ void Game::DialogBox::setBgColor(const nite::Color &color){
 
 void Game::DialogBox::start(const nite::Vec2 &pos, int width, int nlines, bool useTitle){
     if(done){
-        nite::print("xD");
         return;
     }
 
@@ -173,8 +172,9 @@ void Game::DialogBox::start(const nite::Vec2 &pos, int width, int nlines, bool u
 
 
     if(actpos.x == 0.0f){
-        actpos.x = 8.0f;
-        dialogPos.x = actpos.x - 8.0f;
+        actpos.x = nite::getWidth() * 0.5f - (width + padd * 2) * 0.5f;
+        // actpos.x = 8.0f;
+        // dialogPos.x = actpos.x - 8.0f;
     }
 
     if(actpos.y == 0.0f){
