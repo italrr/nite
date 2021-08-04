@@ -343,10 +343,10 @@ void nite::WindowUI::update(){
 	}
 	
 	if(toDestroy){
-		if(nite::cInterpDiscrete(generalAlpha, 0.0f, 0.15f)){
+		// if(nite::cInterpDiscrete(generalAlpha, 0.0f, 0.35f)){
 			destroy();
 			return;
-		}
+		// }
 	}
 	// Drag
 	if(!unmovable && nite::mousePressed(nite::butLEFT) && nite::isPointInRegion(nite::mousePosition(), position + nite::Vec2(0.0f, headerHeight * 0.3), position + nite::Vec2(size.x, headerHeight))){

@@ -254,3 +254,12 @@ bool Game::EntityStat::heal(int hp, int mana, int stamina){
 	recalculateStats();
 	return true;
 }
+
+
+Game::Entity::Entity(){
+	walkSpeed = 1.0f;	
+}
+
+void Game::Entity::moveEntity(float x, float y){
+	move(walkSpeed * x, walkSpeed * y);
+}

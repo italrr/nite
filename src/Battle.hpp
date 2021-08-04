@@ -9,7 +9,7 @@
     namespace Game {
 
 
-        enum BattleStatus : int {
+        enum BattleState : int {
             BATTLE_READY,
             TURN_START,
         };
@@ -20,13 +20,15 @@
 
             Shared<nite::BaseUIComponent> batWin;
 
-            int status;
+            int state;
             nite::Texture empty;
             nite::Vec2 actBarPos;
             Shared<Game::DialogHook> dialog;
             Vector<Shared<Game::Entity>> groupA;
             Vector<Shared<Game::Entity>> groupB;
 
+            bool isShowing();
+            void setState(int nstate);
             Battle();
             void start(const Vector<Shared<Game::Entity>> &groupA, const Vector<Shared<Game::Entity>> &groupB);
             void end();

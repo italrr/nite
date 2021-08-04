@@ -52,6 +52,7 @@
             // virtual void onUpdateText(){}
             // virtual void onNextLine(const Shared<DialogLine> &line){}
 
+            std::function<void()> onCont;
             std::function<void()> onReset;
             std::function<void()> onUpdateText;
             std::function<void(const Shared<DialogLine> &line)> onNextLine;
@@ -69,6 +70,7 @@
             nite::Color borderColor;
             nite::Color bgColor;            
 
+            bool isShowing();
             void start(const nite::Vec2 &pos, int width, int nlines, bool useTitle = true);
             void setBgColor(const nite::Color &color);
             void setStaticBorderColor(bool v, const nite::Color &color = nite::Color(0.0f, 0.0f, 0.0f, 1.0f));

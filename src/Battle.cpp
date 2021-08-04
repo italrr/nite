@@ -2,7 +2,7 @@
 #include "Engine/Input.hpp"
 
 Game::Battle::Battle(){
-    this->status = Game::BattleStatus::BATTLE_READY;
+    this->state = Game::BattleState::BATTLE_READY;
     
     this->dialog = Shared<Game::DialogHook>(new Game::DialogHook());
 
@@ -36,6 +36,14 @@ Game::Battle::Battle(){
         // updWinBorderColor(emtWin, line->color);
     };
 
+}
+
+bool Game::Battle::isShowing(){
+    return this->state != BattleState::BATTLE_READY;
+}
+
+void Game::Battle::setState(int nstate){
+    this->state = nstate;
 }
 
 void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vector<Shared<Game::Entity>> &groupB){
@@ -109,6 +117,8 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
 
 
     }
+
+    setState(BattleState::TURN_START);
 
     // dialog->reset();
     // if(optWin.get() != NULL && optWin->type == "window"){

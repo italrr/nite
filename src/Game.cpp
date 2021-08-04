@@ -18,18 +18,7 @@ struct Player : Game::Entity {
 	}
 	
 	void step(){
-		if(nite::keyboardCheck(nite::keyW)){
-			move(0.0f, -1.0f);
-		}
-		if(nite::keyboardCheck(nite::keyD)){
-			move(1.0f, 0.0f);
-		}
-		if(nite::keyboardCheck(nite::keyS)){
-			move(0.0f, 1.0f);
-		}
-		if(nite::keyboardCheck(nite::keyA)){
-			move(-1.0f, 0.0f);
-		}			
+		
 	}
 
 	void render(){
@@ -90,15 +79,18 @@ Game::GameCore::GameCore(){
 }
 
 void Game::GameCore::init(){
+	// init engine
 	nite::graphicsInit();
 	nite::inputInit();
+
+	// init game core
 	dialog = Shared<Game::DialogBox>(new Game::DialogBox());
 	battle = Shared<Game::Battle>(new Game::Battle());	
 	world = Shared<Game::World>(new Game::World());	
 
-	auto player = std::make_shared<Player>(Player());
-	auto mob = std::make_shared<Mob>(Mob());
-
+	// start game
+	player = std::make_shared<Player>(Player());
+	mob = std::make_shared<Mob>(Mob());
 	world->init(1000, 1000);
 	world->add(player);
 	world->add(mob);
@@ -113,20 +105,38 @@ void Game::GameCore::step(){
 	battle->step();
 	dialog->step();
 
-	if(nite::keyboardPressed(nite::keyZ) && dialog->isReady()){
-		dialog->reset();
-		dialog->add("betsy", "this is a line of text", nite::Color("#d20021"));
-		dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
-		dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
-		dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
-
-		dialog->start(nite::Vec2(0.0f), 720, 3);			
+	// player movement
+	if(player.get() != NULL){
+		if(!dialog->isShowing() && !battle->isShowing()){
+			if(nite::keyboardCheck(nite::keyW)){
+				player->moveEntity(0.0f, -1.0f);
+			}
+			if(nite::keyboardCheck(nite::keyD)){
+				player->moveEntity(1.0f, 0.0f);
+			}
+			if(nite::keyboardCheck(nite::keyS)){
+				player->moveEntity(0.0f, 1.0f);
+			}
+			if(nite::keyboardCheck(nite::keyA)){
+				player->moveEntity(-1.0f, 0.0f);
+			}	
+		}		
+		if(nite::keyboardPressed(nite::keyZ)){
+			if(!battle->isShowing()){
+				battle->start({player}, {mob}); // this could go so wrong lol
+			}
+			// if(dialog->isReady() && !dialog->isShowing()){
+			// 	dialog->reset();
+			// 	dialog->add("betsy", "this is a line of text", nite::Color("#d20021"));
+			// 	dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
+			// 	dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
+			// 	dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
+			// 	dialog->start(nite::Vec2(0.0f), 720, 3);
+			// }else{
+			// 	dialog->cont();
+			// }
+		}		
 	}
-	
-	if(nite::keyboardPressed(nite::keySPACE)){
-		dialog->cont();
-	}
-
 }
 
 void Game::GameCore::render(){

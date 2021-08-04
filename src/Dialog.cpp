@@ -9,10 +9,14 @@ bool Game::DialogHook::isReady(){
 void Game::DialogHook::cont(){
     if(this->ready){
         this->proceed = true;
-    }
+        onCont();
+    }        
 }
 
 Game::DialogHook::DialogHook(){
+    this->onCont = [](){
+
+    };
     this->onReset = [](){
 
     };
@@ -78,21 +82,25 @@ void Game::DialogHook::step(){
     lastChar = nite::getTicks();
 }
 
-
-
-
-
-
 Game::DialogBox::DialogBox(){
     reset();
     useStBColor = false;
 
+    this->onCont = [&](){
+        if(isShowing() && isReady()){
+            nite::print("[debug] finish dialog");
+            reset();
+        }        
+    };
+
     this->onReset = [&](){
         if(textWin.get() != NULL){
             std::dynamic_pointer_cast<nite::WindowUI>(textWin)->close();
+            textWin = nullptr;
         }
         if(emtWin.get() != NULL){
             std::dynamic_pointer_cast<nite::WindowUI>(emtWin)->close();
+            emtWin = nullptr;
         } 
     };
 
@@ -252,6 +260,9 @@ void Game::DialogBox::updWinBorderColor(Shared<nite::BaseUIComponent> &win, cons
     }    
 }
 
+bool Game::DialogBox::isShowing(){
+    return textWin.get() != nullptr && textWin->isVisible();
+}
 
 void Game::DialogBox::render(){
 	// nite::setRenderTarget(nite::RenderTargetUI);
