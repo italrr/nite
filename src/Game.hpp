@@ -3,11 +3,12 @@
 
     #include "Dialog.hpp"
     #include "Battle.hpp"
+    #include "World.hpp"
     
     namespace Game {
 
         struct GameCore {
-
+            Shared<Game::World> world;
             Shared<DialogBox> dialog;
             Shared<Game::Battle> battle;
             GameCore();

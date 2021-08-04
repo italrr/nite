@@ -6,7 +6,6 @@
 #include "Engine/Shapes.hpp"
 
 #include "Game.hpp"
-#include "World.hpp"
 
 
 struct Player : Game::Entity {
@@ -95,20 +94,35 @@ void Game::GameCore::init(){
 	nite::inputInit();
 	dialog = Shared<Game::DialogBox>(new Game::DialogBox());
 	battle = Shared<Game::Battle>(new Game::Battle());	
+	world = Shared<Game::World>(new Game::World());	
 
-	dialog->add("betsy", "this is a line of text", nite::Color("#d20021"));
-	dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
-	dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
-	dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
+	auto player = std::make_shared<Player>(Player());
+	auto mob = std::make_shared<Mob>(Mob());
 
-	dialog->start(nite::Vec2(0.0f), 720, 3);	
+	world->init(1000, 1000);
+	world->add(player);
+	world->add(mob);
+
+
 }
 
 void Game::GameCore::step(){
 	nite::viewUpdate();
 	nite::inputUpdate();	
+	world->step();
 	battle->step();
 	dialog->step();
+
+	if(nite::keyboardPressed(nite::keyZ) && dialog->isReady()){
+		dialog->reset();
+		dialog->add("betsy", "this is a line of text", nite::Color("#d20021"));
+		dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
+		dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
+		dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
+
+		dialog->start(nite::Vec2(0.0f), 720, 3);			
+	}
+	
 	if(nite::keyboardPressed(nite::keySPACE)){
 		dialog->cont();
 	}
@@ -116,6 +130,7 @@ void Game::GameCore::step(){
 }
 
 void Game::GameCore::render(){
+	world->render();	
 	dialog->render();
 	battle->render();
 	nite::graphicsRender();
@@ -135,31 +150,10 @@ int main(int argc, char* argv[]){
 	}
 	nite::setParameters(params);
 
-
 	auto game = Game::getGameIns();
-
 	game->init();
 
-
-	auto player = std::make_shared<Player>(Player());
-	auto mob = std::make_shared<Mob>(Mob());
-
-	Game::World world;
-	world.init(1000, 1000);
-	world.add(player);
-	world.add(mob);
-	
-
-	// battle->start({player}, {mob});
-	// battle->setDialog(dialog);
-
-
-
 	while(nite::isRunning()){	
-
-		world.step();
-		world.render();
-
 		game->step();
 		game->render();
 
