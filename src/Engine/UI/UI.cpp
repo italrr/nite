@@ -840,14 +840,15 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto onClickMethod = getListener(node.get("onClick").toString());
         auto onHoverMethod = getListener(node.get("onHover").toString());
         auto size = _parseSize(node, style, nite::Vec2(-1.0f), base); 
-        auto baseColor = _parseColor("baseColor", node, style, ref->getBaseColor(), base); 
+        auto baseColor = _parseColor("backgroundColor", node, style, ref->getBaseColor(), base); 
         auto fontColor = _parseColor("fontColor", node, style, ref->getFontColor(), base); 
-        auto secondColor = _parseColor("secondColor", node, style, ref->getSecondColor(), base); 
+        auto borderColor = _parseColor("borderColor", node, style,ref->getBorderColor(), base);
+        auto borderthickness = _parseFloat("borderThickness", node, style, ref->getBorderThickness(), base);
         auto flex = _parseFloat("flex", node, style, 0.0f, base);
         auto onUnhoverMethod = getListener(node.get("onUnhover").toString());
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
-        auto padding = _parseDimensions("padding", node, style, nite::Vec2(8.0f), base);
-        auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
+        auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
+        auto backgroundImage = _parseString("backgroundImage", node, style, "", base);
         auto id = _parseString("id", node, style, base->literalId, base);
         auto font = _parseString("font", node, style, "", base); 
         // auto userShader = _parseShader("shader", node, style, base);
@@ -870,7 +871,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         ref->setOnHover(onHoverMethod);
         ref->setBaseColor(baseColor);
         ref->setFontColor(fontColor);
-        ref->setSecondColor(secondColor);    
+        ref->setBorderThickness(borderthickness);
+        ref->setBorderColor(borderColor);        
         ref->setOnClick(onClickMethod);
         if(node.has("flex") && flex > 0.0f){
             ref->setFlex(flex);
@@ -960,8 +962,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto backgroundColor = _parseColor("backgroundColor", node, style, nite::Color(1.0f, 1.0f, 1.0f, 0.0f), base);     
         auto size = _parseSize(node, style, nite::Vec2(16.0f), base); 
         auto flex = _parseFloat("flex", node, style, ref->flex, base);
-        auto borderColor = _parseColor("borderColor", node, NULL,ref->borderColor, base);
-        auto borderthickness = _parseFloat("borderThickness", node, NULL, 0.0f, base);
+        auto borderColor = _parseColor("borderColor", node, style,ref->borderColor, base);
+        auto borderthickness = _parseFloat("borderThickness", node, style, 0.0f, base);
         auto onUnhoverMethod = getListener(node.get("onUnhover").toString());
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);

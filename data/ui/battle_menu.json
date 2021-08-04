@@ -6,14 +6,17 @@
 	"resizeable": false,
 	"borderThickness": 0.0,
 	"layout": "hbox",
-	"backgroundColor": {"r":1, "g": 0, "b": 0, "a": 0},
+	"backgroundColor": {"r":0.1, "g": 0.1, "b": 0.1, "a": 0.85},
 	"styles": {
 		"menu-button": {	
 			"font": "data/font/BebasNeueRegular-X34j2.otf",
-			"fontSize": 32, 
+			"fontSize": 16, 
+			"width": 140,
+			"padding": { "vert": 8, "hor": 0 },
+			"margin": { "hor": 4, "vert": 4},
+			"borderThickness": 0.0,
 			"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
-			"baseColor": {"r": 0.1, "g": 0.05, "b": 0.05, "a": 1.0},
-			"secondColor": {"r": 0.0, "g": 0.0, "b": 0.0, "a": 1.0}
+			"backgroundColor": "#4d34eb"
 		}
 	},
 	"children": [
@@ -50,30 +53,53 @@
 					"type": "panel",
 					"width": "30%",
 					"height": "100%"
-					"backgroundColor": {"r":0, "g": 1, "b": 1, "a": 1},	
+					"backgroundColor": {"r":0, "g": 1, "b": 1, "a": 0},	
 					"children": [
 						{
-							"id": "options-box",
 							"type": "panel",
-							"flex": 1,
-							"layout": "vbox",
-							"navigate": {
-								"enable": true,
-								"split": 4
-							},			
+							"width": "100%",
+							"height": "100%",
+							"layout": "hbox",
 							"children": [
 								{
-									"type": "button",
-									"text": "yes",
-									"style": "menu-button"
-								},
-								{
-									"type": "button",
-									"text": "yes",
-									"style": "menu-button"
+									"id": "options-box",
+									"type": "panel",
+									"flex": 1,
+									"layout": "inline",
+									"margin": { "hor": 16, "vert": 16 },
+									"padding": { "hor": 16, "vert": 16 },
+									"navigate": {
+										"enable": true,
+										"split": 2
+									},			
+									"children": [
+										{
+											"type": "button",
+											"text": "OFFENSE",
+											"style": "menu-button",
+											"backgroundColor": "#c92600"
+										},
+										{
+											"type": "button",
+											"text": "DEFENSE",
+											"style": "menu-button",
+											"backgroundColor": "#226e46"
+										},
+										{
+											"type": "button",
+											"text": "CARRY",
+											"style": "menu-button",
+											"backgroundColor": "#4d34eb"
+										},
+										{
+											"type": "button",
+											"text": "ESCAPE",
+											"style": "menu-button",
+											"backgroundColor": "#fbad3c"
+										}	
+									]											
 								}
-								
-							]							
+							]
 						}
 					]
 				}

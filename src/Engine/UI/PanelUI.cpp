@@ -74,7 +74,7 @@ void nite::PanelUI::rerender(){
             // TODO: move this to an appropriate place
             static nite::Shader marker("data/shaders/ui/ui_marker_f.glsl", "data/shaders/ui/ui_marker_v.glsl");
             nite::setColor(nav.a);
-            auto ref = uiBasicTexture.draw(children[i]->position.x + usoffset.x, children[i]->position.y + usoffset.y, children[i]->size.x, children[i]->size.y, 0.5f, 0.5f, 0.0f);
+            auto ref = uiBasicTexture.draw(children[i]->position.x + usoffset.x, children[i]->position.y + usoffset.y, cps.x, cps.y, 0.5f, 0.5f, 0.0f);
             // TODO: Scroll bar
             if(ref != NULL){
                 auto uni = nite::Uniform();
@@ -175,6 +175,9 @@ void nite::PanelUI::render(const nite::Vec2 &offset){
 
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     auto ref = batch.draw(rp.x, rp.y, size.x, size.y, 0.0f, 0.0f, 0.0f);
+    if(ref != NULL){
+        ref->smooth = false;
+    }
     if(ref != NULL && useShader){
         nite::Uniform uni = this->uniform; // make a copy
         uni.add("p_size", size);

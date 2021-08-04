@@ -103,25 +103,25 @@ int main(int argc, char* argv[]){
 	world.add(player);
 	world.add(mob);
 	
-	// auto dialog = Shared<Game::DialogInstance>(new Game::DialogInstance());
+	auto dialog = Shared<Game::DialogBox>(new Game::DialogBox());
 	auto battle = Shared<Game::Battle>(new Game::Battle());
-	battle->start({player}, {mob});
+	// battle->start({player}, {mob});
 	// battle->setDialog(dialog);
 
-	// dialog->add("betsy", "this is a line of text", nite::Color("#d20021"));
-	// dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
-	// dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
-	// dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
+	dialog->add("betsy", "this is a line of text", nite::Color("#d20021"));
+	dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
+	dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
+	dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
 
-	// dialog->start(nite::Vec2(0.0f), 720, 3);
+	dialog->start(nite::Vec2(0.0f), 720, 3);
 
 	while(nite::isRunning()){	
 		nite::viewUpdate();
 		nite::inputUpdate();
 
-		// if(nite::keyboardPressed(nite::keySPACE)){
-		// 	dialog->cont();
-		// }
+		if(nite::keyboardPressed(nite::keySPACE)){
+			dialog->cont();
+		}
 
 
 		world.step();
@@ -130,8 +130,8 @@ int main(int argc, char* argv[]){
 		battle->step();
 		battle->render();
 
-		// dialog->step();
-		// dialog->render();
+		dialog->step();
+		dialog->render();
 
 		nite::graphicsRender();
 	}

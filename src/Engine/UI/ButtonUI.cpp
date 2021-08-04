@@ -11,13 +11,17 @@ void nite::ButtonUI::defaultInit(){
     realSize.set(-1.0f);
     resetColor();
     fillUpType = false;
+    borderColor.set(nite::Color("#000000"));
+    baseColor.set(nite::Color("#ff0000"));
+    textColor.set(nite::Color("#000000"));
     componentName = "Button";
     type = "button";
-    padding.set(8.0f);
+    padding.set(0.0f);
     flex = 0.0f;
     pressOffset = 5.0f;
     currentPressOffset = 0.0f;
-    borderThickness.set(2.0f);
+    // borderThickness.set(2.0f);
+    borderThickness = 2.0f;
     onClickMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *button){
         return;
     };
@@ -42,9 +46,9 @@ void nite::ButtonUI::setSize(const nite::Vec2 &size){
 }
 
 void nite::ButtonUI::resetColor(){
-    baseColor.set(0.88f, 0.1f, 0.1f, 1.0f);
-    textColor.set(1.0f, 1.0f, 1.0f, 1.0f);
-    secondColor.set(0.0f);
+    borderColor.set(nite::Color("#000000"));
+    baseColor.set(nite::Color("#ff0000"));
+    textColor.set(nite::Color("#000000"));
     recalculate();
 }
 
@@ -63,6 +67,7 @@ void nite::ButtonUI::setOnClick(nite::ListenerLambda onClick){
 }
 
 void nite::ButtonUI::onCreate(){ 
+    uiShader.load("data/shaders/basic_ui_background_f.glsl", "data/shaders/basic_ui_background_v.glsl");
     if(!font.isLoaded()){
         font.load(defaultFontUI, fontSize * defaultFontRatio, 0.0f);  
     }
@@ -110,8 +115,8 @@ nite::Color nite::ButtonUI::getBaseColor(){
     return baseColor;
 }
 
-nite::Color nite::ButtonUI::getSecondColor(){
-    return secondColor;
+nite::Color nite::ButtonUI::getBorderColor(){
+    return borderColor;
 }
 
 nite::Color nite::ButtonUI::getFontColor(){
@@ -120,11 +125,6 @@ nite::Color nite::ButtonUI::getFontColor(){
 
 void nite::ButtonUI::setBaseColor(const nite::Color &baseColor){
     this->baseColor.set(baseColor);
-    recalculate();
-}
-
-void nite::ButtonUI::setSecondColor(const nite::Color &baseColor){
-    this->secondColor.set(baseColor);
     recalculate();
 }
 
@@ -164,6 +164,16 @@ void nite::ButtonUI::setOnUnhover(nite::ListenerLambda onUnhover){
 
 }
 
+void nite::ButtonUI::setBorderColor(const nite::Color &color){
+	this->borderColor.set(color);
+	recalculate();  
+}
+
+void nite::ButtonUI::setBorderThickness(float tn){
+	borderThickness = tn;
+	recalculate();  
+}
+
 void nite::ButtonUI::render(const nite::Vec2 &offset){
     static nite::Texture blank("data/texture/empty.png");
     nite::Vec2 p(position.x + offset.x, position.y + offset.y);
@@ -179,19 +189,33 @@ void nite::ButtonUI::render(const nite::Vec2 &offset){
         bc = baseColor * 1.0f;
         tc = textColor * 1.0f;
     }
-    nite::Vec2 &bt = borderThickness;
+    // nite::Vec2 &bt = borderThickness;
+    // auto bt = nite::Vec2(0.0f);
     nite::Vec2 rp(cs * 0.5f);
     //   nite::setColor(nite::Color(0.0f, 0.5f));
     //   blank.draw(p.x - rp.x + 3.0f, p.y - rp.y + 3.0f, cs.x, cs.y, 0.0f, 0.0f, 0.0f);
-    nite::setColor(secondColor.a == 0.0f ? baseColor * 0.95f : secondColor);  
-    blank.draw(p.x - rp.x, p.y - rp.y, cs.x, cs.y, 0.0f, 0.0f, 0.0f);
     nite::setColor(bc);  
-    blank.draw(p.x - rp.x + bt.x, p.y - rp.y + bt.y, cs.x - bt.x * 2.0f, cs.y - bt.y * 2.0f, 0.0f, 0.0f, 0.0f);
+    auto obj = blank.draw(p.x, p.y, cs.x, cs.y, 0.5f, 0.5f, 0.0f);
+    if(obj != NULL){
+        nite::Uniform uni;
+        uni.add("p_size", size);
+        uni.add("p_bcolor", bc);
+        uni.add("p_lbcolor", secondColor);
+        uni.add("p_salpha", secondColor.a);
+        uni.add("p_alpha", secondColor.a);
+        // nite::print(borderThickness);
+        uni.add("p_hborder", nite::Vec2(borderThickness * getGeneralScale()));
+        uni.add("p_vborder", nite::Vec2(borderThickness * getGeneralScale(), borderThickness * getGeneralScale()));     
+        uni.add("p_blurthickness", 2.0f * (1.0f / ((size.avg() * getGeneralScale()) / nite::Vec2(nite::Vec2(300, 500)*getGeneralScale()).avg()))); // 300x500 was the original design size
+        obj->apply(uiShader, uni);            
+    }
+    // nite::setColor(bc);  
+    // blank.draw(p.x - rp.x + bt.x, p.y - rp.y + bt.y, cs.x - bt.x * 2.0f, cs.y - bt.y * 2.0f, 0.0f, 0.0f, 0.0f);
     //   blank.draw(p.x - rp.x, p.y - rp.y, cs.x, cs.y, 0.0f, 0.0f, 0.0f);  
 
     if(!buttonImage.isLoaded()){
         nite::setColor(tc);  
-        auto *ref = font.draw(text, p.x, p.y, 0.5f, 0.35f, 0.0f);
+        auto *ref = font.draw(text, p.x, p.y, 0.5f, 0.5f, 0.0f);
         if(ref != NULL){
             ref->shadow = false;
             // nite::Color sc = bc.invert();
@@ -212,12 +236,8 @@ void nite::ButtonUI::render(const nite::Vec2 &offset){
     }
 }
 
-nite::Vec2 nite::ButtonUI::getBorderThickness(){
+float nite::ButtonUI::getBorderThickness(){
 	return borderThickness;
-}
-
-void nite::ButtonUI::setBorderThickness(const nite::Vec2 &bt){
-	this->borderThickness.set(bt);
 }
 
 void nite::ButtonUI::update(){

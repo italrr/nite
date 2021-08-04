@@ -27,20 +27,23 @@ void main() {
     float area = ((size.x + size.y) * 0.5);
     float thresW = (area * 0.01 * thickness) / area;
     float thresH = thresW * vOff;
-    if(tc.x >= (1.0 - thresW)){
-        _alpha *= (1.0 - (tc.x - (1.0 - thresW)) / thresW);
-    }
-    if(tc.x <= thresW){
-        _alpha *= tc.x / thresW;
-    }
-    if(tc.y >= (1.0 - thresH)){
-        _alpha *= (1.0 - (tc.y - (1.0 - thresH)) / thresH);
-    } 
-    if(tc.y <= thresH){
-        _alpha *= tc.y / thresH;
-    }      
+    // looks awful 
+    // if(tc.x >= (1.0 - thresW)){
+    //     _alpha *= (1.0 - (tc.x - (1.0 - thresW)) / thresW);
+    // }
+    // if(tc.x <= thresW){
+    //     _alpha *= tc.x / thresW;
+    // }
+    // if(tc.y >= (1.0 - thresH)){
+    //     _alpha *= (1.0 - (tc.y - (1.0 - thresH)) / thresH);
+    // } 
+    // if(tc.y <= thresH){
+    //     _alpha *= tc.y / thresH;
+    // }      
     if(tc.x <= (1.0 - thresW) && tc.x >= thresW && tc.y <= (1.0 - thresH) && tc.y >= thresH){
         _alpha = 0.0;
+    }else{
+        _alpha = 1.0;
     }
     gl_FragColor = vec4(color.rgb, _alpha);
 }

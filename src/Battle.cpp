@@ -68,7 +68,7 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
         font.load("data/font/BebasNeueRegular-X34j2.otf", 36, 2);
     }
     if(!subFont.isLoaded()){
-        subFont.load("data/font/BebasNeueRegular-X34j2.otf", 20, 1.0f);
+        subFont.load("data/font/BebasNeueRegular-X34j2.otf", 26, 2.0f);
     }
     if(!empty.isLoaded()){
         empty.load("data/texture/empty.png");
@@ -82,7 +82,7 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
         // setup window
         auto win =  std::dynamic_pointer_cast<nite::WindowUI>(batWin);
         float x = 0.0f;
-        float y = nite::getHeight() * (1.0f - 0.30f);
+        float y = nite::getHeight() * (1.0f - 0.33f);
         float w = nite::getWidth();
         float h = nite::getHeight()-y;
         win->setPosition(nite::Vec2(x, y));
@@ -103,7 +103,7 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
         for(int i = 0; i < optBox->children.size(); ++i){
             auto button = std::dynamic_pointer_cast<nite::ButtonUI>(optBox->children[i]);
             // nite::print(text->getText());
-            button->setFont(font);
+            button->setFont(subFont);
         }
 
 

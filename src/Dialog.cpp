@@ -85,6 +85,7 @@ void Game::DialogHook::step(){
 
 Game::DialogBox::DialogBox(){
     reset();
+    useStBColor = false;
 
     this->onReset = [&](){
         if(textWin.get() != NULL){
