@@ -64,6 +64,7 @@
 					"layout": "hbox",
 					"children": [
 						{
+							"id": "options-box-list",
 							"type": "panel",
 							"flex": 1,
 							"layout": "inline",
@@ -74,30 +75,7 @@
 								"split": 2
 							},			
 							"children": [
-								{
-									"type": "button",
-									"text": "ENGAGE",
-									"style": "menu-button",
-									"backgroundColor": "#c92600"
-								},
-								{
-									"type": "button",
-									"text": "EVADE",
-									"style": "menu-button",
-									"backgroundColor": "#226e46"
-								},
-								{
-									"type": "button",
-									"text": "BAG",
-									"style": "menu-button",
-									"backgroundColor": "#4d34eb"
-								},
-								{
-									"type": "button",
-									"text": "ESCAPE",
-									"style": "menu-button",
-									"backgroundColor": "#fbad3c"
-								}	
+
 							]											
 						}
 					]

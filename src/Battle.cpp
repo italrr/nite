@@ -193,9 +193,69 @@ void Game::Battle::step(){
 
     const static UInt64 avgTransitionWait = 80;
 
+    auto generateButton = [&](Shared<nite::BaseUIComponent> &container, const String &text){
+        Jzon::Node json = Jzon::object();
+        json.add("import", "data/ui/battle_menu_button.json");
+        auto added = container->add(json);
+        if(added.get() != NULL && added->type == "button"){
+            auto button = std::dynamic_pointer_cast<nite::ButtonUI>(added);
+            button->setText(text);
+            button->setFont(subFont);
+            return button;
+        }else{
+            nite::print("Battle::step::generateButton: no button was generated");
+        }
+        return Shared<nite::ButtonUI>(NULL);
+    };
+
+    auto generateMainOptions = [&](){
+        auto list = batWin->getComponentById("options-box-list");
+        list->clearChildren();
+
+        auto engButton = generateButton(list, "ENGAGE");
+        if(engButton.get() != NULL){
+            engButton->setBaseColor(nite::Color("#c92600"));
+            engButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+                nite::print("ENGAGE");
+                return;
+            });
+        }
+
+        auto evButton = generateButton(list, "EVADE");
+        if(evButton.get() != NULL){
+            evButton->setBaseColor(nite::Color("#226e46"));
+            evButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+                nite::print("EVADE");
+                return;
+            });            
+        }
+
+        auto bagButton = generateButton(list, "BAG");
+        if(bagButton.get() != NULL){
+            bagButton->setBaseColor(nite::Color("#4d34eb"));
+            bagButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+                nite::print("BAG");
+                return;
+            });                 
+        }
+
+        auto escButton = generateButton(list, "ESCAPE");
+        if(escButton.get() != NULL){
+            escButton->setBaseColor(nite::Color("#fbad3c"));
+            escButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+                nite::print("ESCAPE");
+                return;
+            });              
+        }         
+
+        list->fixNavIndexes();
+    };
+
+
     switch(state){
         case BATTLE_START: {
             if(dialog->canCont() && nite::getTicks()-lastStChange > avgTransitionWait){
+                generateMainOptions();
                 setState(PRE_TURN);
             }
         } break;

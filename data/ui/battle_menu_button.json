@@ -1,0 +1,13 @@
+{	
+	"type": "button",
+	"text": "BUTTON",
+	"backgroundColor": "#fbad3c"
+	"font": "data/font/BebasNeueRegular-X34j2.otf",
+	"fontSize": 16, 
+	"width": 140,
+	"padding": { "vert": 8, "hor": 0 },
+	"margin": { "hor": 4, "vert": 4},
+	"borderThickness": 0.0,
+	"fontColor": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0},
+	"backgroundColor": "#4d34eb"
+}

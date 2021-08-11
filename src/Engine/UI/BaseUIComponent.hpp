@@ -81,6 +81,7 @@
         float expInc;
         NavUI();
         void update(BaseUIComponent *comp);
+        void reset();
     };
 
 
@@ -191,6 +192,17 @@
 
         bool isVisible(){
             return this->visible;
+        }
+
+        bool isTopVisible(){
+            auto top = getHeadComponent();
+            if(top == this){
+                return isVisible();
+            }
+            if(!top->isVisible()){
+                return false;
+            }
+            return top->isTopVisible();
         }
 
         void updateRelativePosition(const nite::Vec2 &pos){

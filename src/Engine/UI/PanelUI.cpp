@@ -131,6 +131,9 @@ void nite::PanelUI::onCreate(){
 }
 
 void nite::PanelUI::update(){
+    if(!visible){
+        return;
+    }
     if(!realPosition.cInterpDiscrete(position, this->snapInterpRate)){
         recalculate();    
     }    

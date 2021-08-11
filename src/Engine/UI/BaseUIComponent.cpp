@@ -27,6 +27,14 @@ nite::NavUI::NavUI(){
     colorFlip = false;
 }
 
+void nite::NavUI::reset(){
+    current = 0;
+    enable = false;
+    index = 0;
+    split = 0;
+    cursor = 0.0f;
+}
+
 void nite::NavUI::update(BaseUIComponent *comp){
     if(comp == NULL){
         return;
@@ -215,7 +223,7 @@ nite::BaseUIComponent::BaseUIComponent(){
     realPosition.set(0.0f);
     scrollOffsetTrans.set(0.0f);
     solid = false;
-    onClickAnalogueKey = nite::keyW;
+    onClickAnalogueKey = nite::keyZ;
     fillUpType = false;
     layout = std::shared_ptr<nite::LayoutSystemUI>(new nite::Layout::HBox());
     headComponent = NULL;

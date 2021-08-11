@@ -712,7 +712,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         if(borderPattern != "" && nite::fileExists(borderPattern)){
             ref->setCornerPattern(nite::Texture(borderPattern, nite::Color(0.0f, 0.0f, 0.0f, 1.0f)));
         }
-        auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "W", base);
+        auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "Z", base);
         auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);   
         ref->onClickAnalogueKey = nite::translateKey(clickAnalogue);        
         ref->setSnapInterpRate(snapInterpRate);        
@@ -981,7 +981,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto id = _parseString("id", node, style, base->literalId, base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
         // auto userShader = _parseShader("shader", node, style, base);
-        auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "W", base);
+        auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "Z", base);
         auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
         auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
         ref->setVisible(visible);        
