@@ -258,6 +258,7 @@ bool Game::EntityStat::heal(int hp, int mana, int stamina){
 
 Game::Entity::Entity(){
 	walkSpeed = 1.0f;	
+	nickname = "Entity";
 }
 
 void Game::Entity::moveEntity(float x, float y){

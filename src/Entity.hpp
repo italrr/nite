@@ -165,6 +165,7 @@
 
         struct Entity : Object, EntityStat {
 			// TODO: recalcualte this using complexStats
+			String nickname;
 			float walkSpeed;
 			Entity();
 			void moveEntity(float x, float y);

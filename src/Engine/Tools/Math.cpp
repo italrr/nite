@@ -146,6 +146,7 @@ bool nite::lerp(float &x1, float x2, float step, float limit){
 }
 
 bool nite::lerpDiscrete(float &x1, float x2, float step, float limit){
+	// TODO: re-implement this
 	if(x1 == x2) return true;	
 	if(step > 1.0f || step <= 0.0f || std::isnan(step)){
 		step = 1.0f;

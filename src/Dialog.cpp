@@ -6,6 +6,10 @@ bool Game::DialogHook::isReady(){
     return done && lines.size() == currentDiag || currentDiag == 0 && lines.size() == 0;
 }
 
+bool Game::DialogHook::canCont(){
+    return isReady() && this->proceed;
+}
+
 void Game::DialogHook::cont(){
     if(this->ready){
         this->proceed = true;

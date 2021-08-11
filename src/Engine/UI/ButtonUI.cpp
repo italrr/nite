@@ -192,8 +192,8 @@ void nite::ButtonUI::render(const nite::Vec2 &offset){
     // nite::Vec2 &bt = borderThickness;
     // auto bt = nite::Vec2(0.0f);
     nite::Vec2 rp(cs * 0.5f);
-    //   nite::setColor(nite::Color(0.0f, 0.5f));
-    //   blank.draw(p.x - rp.x + 3.0f, p.y - rp.y + 3.0f, cs.x, cs.y, 0.0f, 0.0f, 0.0f);
+    nite::setColor(nite::Color(0.0f, 0.5f));
+    blank.draw(p.x + 1, p.y + 1, cs.x, cs.y, 0.5f, 0.5f, 0.0f);
     nite::setColor(bc);  
     auto obj = blank.draw(p.x, p.y, cs.x, cs.y, 0.5f, 0.5f, 0.0f);
     if(obj != NULL){

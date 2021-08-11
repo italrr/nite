@@ -692,6 +692,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto center = _parseBool("center", node, NULL, false, base);
         auto fontSize = _parseInt("fontSize", node, style, ref->getFontSize(), base);
         auto font = _parseString("font", node, style, "", base);        
+        auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
+        // ref->setVisible(visible);        
         // auto userShader = _parseShader("shader", node, NULL, base);
         _parseOverflow("overflow", node, base);
         _parseNav("navigate", node, base);
@@ -711,7 +713,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
             ref->setCornerPattern(nite::Texture(borderPattern, nite::Color(0.0f, 0.0f, 0.0f, 1.0f)));
         }
         auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "W", base);
-        auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
+        auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);   
         ref->onClickAnalogueKey = nite::translateKey(clickAnalogue);        
         ref->setSnapInterpRate(snapInterpRate);        
         ref->resizeable = resizeable;
@@ -748,6 +750,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
+        auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
+        ref->setVisible(visible);        
         // auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);
@@ -798,6 +802,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base);  
         auto id = _parseString("id", node, style, base->literalId, base);
         auto font = _parseString("font", node, style, "", base); 
+        auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
+        ref->setVisible(visible);
         // auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);
@@ -810,6 +816,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
         ref->setSnapInterpRate(snapInterpRate);                     
         ref->setId(id);       
+
         ref->setShadowColor(shadowColor);
         ref->setShadowOffset(shadowOffset);    
         ref->setMargin(margin);
@@ -851,6 +858,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto backgroundImage = _parseString("backgroundImage", node, style, "", base);
         auto id = _parseString("id", node, style, base->literalId, base);
         auto font = _parseString("font", node, style, "", base); 
+        auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
+        ref->setVisible(visible);        
         // auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);
@@ -912,6 +921,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto font = _parseString("font", node, style, "", base); 
         auto shadowOffset = _parseDimensions("shadowOffset", node, style, ref->getShadowOffset(), base); 
         auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base); 
+        auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
+        ref->setVisible(visible);        
         // auto userShader = _parseShader("shader", node, style, base);
         _parseNav("navigate", node, base);
         _parseListenOn("listenOn", node, listeners, base);
@@ -972,6 +983,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         // auto userShader = _parseShader("shader", node, style, base);
         auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "W", base);
         auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
+        auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
+        ref->setVisible(visible);        
         ref->setSnapInterpRate(snapInterpRate);        
         _parseOverflow("overflow", node, base);
         _parseNav("navigate", node, base);

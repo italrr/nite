@@ -23,6 +23,7 @@ nite::NavUI::NavUI(){
     a = nite::Color(0.89f, 0.87f, 0.15f, 1.0f);
     b = nite::Color(0.83f, 0.79f, 0.10f, 1.0f);
     color = a;
+    expInc = 0.0f;
     colorFlip = false;
 }
 
@@ -64,6 +65,7 @@ void nite::NavUI::update(BaseUIComponent *comp){
     };
 
 	auto lrpUpd = color.cInterpDiscrete(colorFlip ? a : b, colorFlip ? 0.34f : 0.11f);
+    nite::lerpDiscrete(expInc, colorFlip ? 100 : 0, colorFlip ? 0.34f : 0.11f);
 
 	if(comp->visible){
 		for(auto &key : comp->keyListeners){
@@ -320,6 +322,9 @@ void nite::Layout::VBox::recalculate(BaseUIComponent &head){
     float zeroFlexSizes = 0.0f;  
     for(int i = 0; i < head.children.size(); ++i){
         auto child = head.children[i];      
+        if(!child->isVisible()){
+            continue;
+        }        
         equalDiv += child->flex;
         if(child->flex > 0){
             ++haveFlex;
@@ -333,6 +338,9 @@ void nite::Layout::VBox::recalculate(BaseUIComponent &head){
     // apply size
     for(int i = 0; i < head.children.size(); ++i){
         auto child = head.children[i];
+        if(!child->isVisible()){
+            continue;
+        }
         float ownDiv = child->flex / equalDiv;
         float ownDivSize = ownDiv * zeroFlexSizes;
         bool applyZeroFlex = ownDivSize > 0.0f;
@@ -367,6 +375,9 @@ void nite::Layout::HBox::recalculate(BaseUIComponent &head){
     float zeroFlexSizes = 0.0f;  
     for(int i = 0; i < head.children.size(); ++i){
         auto child = head.children[i];      
+        if(!child->isVisible()){
+            continue;
+        }        
         equalDiv += child->flex;
         if(child->flex > 0){
             ++haveFlex;
@@ -379,6 +390,9 @@ void nite::Layout::HBox::recalculate(BaseUIComponent &head){
     zeroFlexSizes = zeroFlexSizes > 0.0f ? totalSpace.x - zeroFlexSizes : totalSpace.x;
     for(int i = 0; i < head.children.size(); ++i){
         auto child = head.children[i];
+        if(!child->isVisible()){
+            continue;
+        }        
         float ownDiv = child->flex / equalDiv;
         float ownDivSize = ownDiv * zeroFlexSizes;
         bool applyZeroFlex = ownDivSize > 0.0f;
@@ -410,6 +424,9 @@ void nite::Layout::Inline::recalculate(BaseUIComponent &head){
     float lastLineHeight = 0.0f;
     for(int i = 0; i < head.children.size(); ++i){
         auto child = head.children[i];
+        if(!child->isVisible()){
+            continue;
+        }        
         if(child->useRelSizeX || child->useRelSizeY){
             nite::Vec2 ap;
             ap.x = child->useRelSizeX ? totalSpace.x * child->relSize.x : (child->size.x == -1.0f ? totalSpace.x : child->size.x);

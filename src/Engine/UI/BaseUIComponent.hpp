@@ -78,6 +78,7 @@
         nite::Color b;
         nite::Color color;
         bool colorFlip;
+        float expInc;
         NavUI();
         void update(BaseUIComponent *comp);
     };

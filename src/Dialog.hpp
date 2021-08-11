@@ -39,6 +39,7 @@
 
             Vector<Shared<DialogLine>> lines;
             
+            bool canCont();
             bool isReady();
             void cont();
             DialogHook();

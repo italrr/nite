@@ -15,6 +15,7 @@ struct Player : Game::Entity {
 		setMass(1.0f);
 		this->friction = 4.0f;
 		this->setupStat(1);
+		this->nickname = "Player";
 	}
 	
 	void step(){
@@ -38,6 +39,7 @@ struct Mob : Game::Entity {
 		setMass(1.0f);
 		this->friction = 4.0f;
 		this->setupStat(1);
+		this->nickname = "Soother";
 	}
 	
 	void step(){
