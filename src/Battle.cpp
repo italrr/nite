@@ -76,10 +76,10 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     static const String mainFont = "MONOFONT.TTF";
 
     if(!font.isLoaded()){
-        font.load("data/font/"+mainFont, 36, 2);
+        font.load("data/font/"+mainFont, 32, 2);
     }
     if(!subFont.isLoaded()){
-        subFont.load("data/font/"+mainFont, 26, 2.0f);
+        subFont.load("data/font/"+mainFont, 22, 2.0f);
     }
     if(!empty.isLoaded()){
         empty.load("data/texture/empty.png");
@@ -208,6 +208,83 @@ void Game::Battle::step(){
         return Shared<nite::ButtonUI>(NULL);
     };
 
+
+    auto generateEngageOptions = [&](){
+        auto list = batWin->getComponentById("options-box-list");
+        list->clearChildren();
+
+        auto attkButton = generateButton(list, "ATTACK");
+        if(attkButton.get() != NULL){
+            attkButton->setBaseColor(nite::Color("#ff5400"));
+            attkButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+                return;
+            });
+        }
+
+        auto sayButton = generateButton(list, "SAY...");
+        if(sayButton.get() != NULL){
+            sayButton->setBaseColor(nite::Color("#5541aa"));
+            sayButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+                return;
+            });
+        }
+
+
+        auto offerButton = generateButton(list, "OFFER...");
+        if(offerButton.get() != NULL){
+            offerButton->setBaseColor(nite::Color("#937014"));
+            offerButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+                return;
+            });
+        }
+
+
+        auto escapeButton = generateButton(list, "BACK");
+        if(escapeButton.get() != NULL){
+            escapeButton->setBaseColor(nite::Color("#394739"));
+            escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+                setState(PRE_PICK_ACTION);
+            });
+        }                    
+
+        list->fixNavIndexes();
+        list->nav.current = 0;
+
+    };
+
+    auto generateEvadeOptions = [&](){
+        auto list = batWin->getComponentById("options-box-list");
+        list->clearChildren();
+
+        auto parryButton = generateButton(list, "BLOCK");
+        if(parryButton.get() != NULL){
+            parryButton->setBaseColor(nite::Color("#ff5400"));
+            parryButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+                return;
+            });
+        }
+
+        auto evadeButton = generateButton(list, "DODGE");
+        if(evadeButton.get() != NULL){
+            evadeButton->setBaseColor(nite::Color("#5541aa"));
+            evadeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+                return;
+            });
+        }
+
+        auto escapeButton = generateButton(list, "BACK");
+        if(escapeButton.get() != NULL){
+            escapeButton->setBaseColor(nite::Color("#394739"));
+            escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+                setState(PRE_PICK_ACTION);
+            });
+        }                    
+
+        list->fixNavIndexes();
+        list->nav.current = 0;
+
+    };
+
     auto generateMainOptions = [&](){
         auto list = batWin->getComponentById("options-box-list");
         list->clearChildren();
@@ -216,7 +293,7 @@ void Game::Battle::step(){
         if(engButton.get() != NULL){
             engButton->setBaseColor(nite::Color("#c92600"));
             engButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                nite::print("ENGAGE");
+                setState(Game::BattleState::PICK_ENGAGE_OPT);
                 return;
             });
         }
@@ -225,7 +302,7 @@ void Game::Battle::step(){
         if(evButton.get() != NULL){
             evButton->setBaseColor(nite::Color("#226e46"));
             evButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                nite::print("EVADE");
+                setState(Game::BattleState::PICK_EVADE_OPT);
                 return;
             });            
         }
@@ -249,13 +326,13 @@ void Game::Battle::step(){
         }         
 
         list->fixNavIndexes();
+        list->nav.current = 0;
     };
 
 
     switch(state){
         case BATTLE_START: {
             if(dialog->canCont() && nite::getTicks()-lastStChange > avgTransitionWait){
-                generateMainOptions();
                 setState(PRE_TURN);
             }
         } break;
@@ -287,6 +364,7 @@ void Game::Battle::step(){
         case PRE_PICK_ACTION: {
             if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
                 setState(PICK_ACTION);
+                generateMainOptions();
                 setOptBoxVis(true);
                 setDialogBoxVis(false);                
             }
@@ -296,6 +374,18 @@ void Game::Battle::step(){
 
             }
         } break;
+        case PICK_ENGAGE_OPT: {
+            if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
+                generateEngageOptions();
+                setState(PICK_ACTION);
+            }
+        } break;         
+        case PICK_EVADE_OPT: {
+            if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
+                generateEvadeOptions();
+                setState(PICK_ACTION);
+            }
+        } break;        
     }
 
     if(nite::keyboardPressed(nite::keyZ)){

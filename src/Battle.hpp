@@ -16,6 +16,10 @@
             TURN_START,
             PRE_PICK_ACTION,
             PICK_ACTION,
+
+            PICK_ENGAGE_OPT,
+            PICK_EVADE_OPT
+
         };
         
         enum ActionType : int {

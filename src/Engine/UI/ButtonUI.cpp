@@ -194,7 +194,7 @@ void nite::ButtonUI::render(const nite::Vec2 &offset){
     nite::Vec2 rp(cs * 0.5f);
     nite::setColor(nite::Color(0.0f, 0.5f));
     // TODO: handle DPI
-    blank.draw(p.x + 1, p.y + 1, cs.x, cs.y, 0.5f, 0.5f, 0.0f);
+    blank.draw(p.x + 2, p.y + 2, cs.x, cs.y, 0.5f, 0.5f, 0.0f);
     nite::setColor(bc);  
     auto obj = blank.draw(p.x, p.y, cs.x, cs.y, 0.5f, 0.5f, 0.0f);
     if(obj != NULL){
