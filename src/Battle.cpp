@@ -109,16 +109,25 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
         }
 
         // set buttons font
-        auto optBox = win->getComponentById("options-box");
-        if(optBox.get() != NULL && optBox->children.size() > 0 && optBox->children[0]->type == "panel"){
-            auto panel = optBox->children[0];
-            for(int i = 0; i < panel->children.size(); ++i){
-                auto button = std::dynamic_pointer_cast<nite::ButtonUI>(panel->children[i]);
-                button->setFont(subFont);
-            }            
-        }else{
-            nite::print("Battle::start: cannot find option-box's inline panel");
+        // auto optBox = win->getComponentById("options-box");
+        // if(optBox.get() != NULL && optBox->children.size() > 0 && optBox->children[0]->type == "panel"){
+        //     auto panel = optBox->children[0];
+        //     for(int i = 0; i < panel->children.size(); ++i){
+        //         auto button = std::dynamic_pointer_cast<nite::ButtonUI>(panel->children[i]);
+        //         button->setFont(subFont);
+        //     }            
+        // }else{
+        //     nite::print("Battle::start: cannot find option-box's inline panel");
+        // }
+
+        // set menu title font 
+        auto optBoxTitle = win->getComponentById("options-box-title");
+        if(optBoxTitle.get() != NULL && optBoxTitle->type == "text"){
+            auto txtUI = std::dynamic_pointer_cast<nite::TextUI>(optBoxTitle);
+            txtUI->setFont(subFont);
+            txtUI->setFontColor(nite::Color("#fd9e16"));
         }
+        
 
 
 
@@ -188,6 +197,14 @@ bool Game::Battle::isDialogBoxVis(){
     return optBox->isVisible();
 }
 
+void Game::Battle::updOptBoxTitle(const String &str){
+    auto optBoxTitle = batWin->getComponentById("options-box-title");
+    if(optBoxTitle.get() != NULL && optBoxTitle->type == "text"){
+        auto txtUI = std::dynamic_pointer_cast<nite::TextUI>(optBoxTitle);
+        txtUI->setText(str);
+    }    
+}
+
 void Game::Battle::step(){
     dialog->step();
 
@@ -249,6 +266,8 @@ void Game::Battle::step(){
 
         list->fixNavIndexes();
         list->nav.current = 0;
+        menuState = BattleMenuState::IN_ENGAGE;
+        updOptBoxTitle("ENGAGE");
 
     };
 
@@ -282,6 +301,8 @@ void Game::Battle::step(){
 
         list->fixNavIndexes();
         list->nav.current = 0;
+        menuState = BattleMenuState::IN_EVADE;
+        updOptBoxTitle("EVADE");
 
     };
 
@@ -327,6 +348,8 @@ void Game::Battle::step(){
 
         list->fixNavIndexes();
         list->nav.current = 0;
+        menuState = BattleMenuState::IN_MAIN;
+        updOptBoxTitle("WHAT DO?");
     };
 
 
@@ -388,6 +411,12 @@ void Game::Battle::step(){
         } break;        
     }
 
+    // go back
+    if(state == BattleState::PICK_ACTION && menuState != BattleMenuState::IN_MAIN && nite::keyboardPressed(nite::keyX)){
+        setState(PRE_PICK_ACTION);
+    }
+
+    // continue on dialog
     if(nite::keyboardPressed(nite::keyZ)){
     	dialog->cont();
     }

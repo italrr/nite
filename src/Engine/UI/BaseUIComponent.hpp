@@ -363,6 +363,7 @@
         virtual void render(const nite::Vec2 &offset){
 
         }
+        
         virtual void afterRender(){
 
         }

@@ -21,6 +21,12 @@
             PICK_EVADE_OPT
 
         };
+
+        enum BattleMenuState : int {
+            IN_MAIN,
+            IN_ENGAGE,
+            IN_EVADE
+        };
         
         enum ActionType : int {
             ATTACK,
@@ -44,6 +50,7 @@
             int startTurn;
             int currentTurn;
             int state;
+            int menuState;
 
             UInt64 lastStChange;
             nite::Texture empty;
@@ -62,6 +69,8 @@
             bool isShowing();
             void setState(int nstate);
             void nextTurn();
+
+            void updOptBoxTitle(const String &str);
 
             Battle();
             void start(const Vector<Shared<Game::Entity>> &groupA, const Vector<Shared<Game::Entity>> &groupB);

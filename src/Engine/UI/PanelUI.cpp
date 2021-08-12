@@ -69,26 +69,10 @@ void nite::PanelUI::rerender(){
         auto usoffset = scrollX || scrollY ? scrollOffsetTrans : nite::Vec2(0.0f);
         children[i]->beforeRender();
         children[i]->render(usoffset);
-        children[i]->afterRender();
-        if(nav.enable && nav.current == children[i]->nav.index){
-            // TODO: move this to an appropriate place
-            static nite::Shader marker("data/shaders/ui/ui_marker_f.glsl", "data/shaders/ui/ui_marker_v.glsl");
-            nite::setColor(nav.a);
-            nite::Vec2 expSize = nite::Vec2(4.0f * (nav.expInc/100.0f));
-            auto ref = uiBasicTexture.draw(children[i]->position.x + usoffset.x, children[i]->position.y + usoffset.y, cps.x + expSize.x, cps.y + expSize.y, 0.5f, 0.5f, 0.0f);
-            // TODO: Scroll bar
-            if(ref != NULL){
-                auto uni = nite::Uniform();
-                uni.add("size", size);
-                uni.add("color", nav.color);
-                uni.add("alpha", nav.color.a);
-                uni.add("thickness", 5.0f );//* (1.0f + (nav.expInc/100.0f)));
-                ref->apply(marker, uni);
-            }
-        }        
+        children[i]->afterRender();       
     }
     batch.end();
-    batch.flush();
+    batch.flush();    
     // toRerender = false;
 }
 
@@ -190,6 +174,46 @@ void nite::PanelUI::render(const nite::Vec2 &offset){
         // }
         ref->apply(shader, uni);
     }      
+
+    if(nav.enable){
+
+        for(int i = 0; i < children.size(); ++i){
+
+            if(children[i]->position.x < 0 || children[i]->position.y < 0 || !children[i]->visible || nav.current != children[i]->nav.index){
+                continue;
+            }
+
+            auto cps = children[i]->computeSize();
+            auto tcps = computeSize();
+
+            scrollOffsetTrans.cInterpDiscrete(scrollOffset, 0.004f);
+            auto usoffset = scrollX || scrollY ? scrollOffsetTrans : nite::Vec2(0.0f);
+            
+            // TODO: move this to an appropriate place
+            static nite::Shader marker("data/shaders/ui/ui_marker_f.glsl", "data/shaders/ui/ui_marker_v.glsl");
+            nite::setColor(nav.a);
+            nite::Vec2 expSize = nite::Vec2(1.0f * (nav.expInc/100.0f));
+            auto ref = uiBasicTexture.draw(
+                                            rp.x + children[i]->position.x + usoffset.x - cps.x * 0.5f - expSize.x,
+                                            rp.y + children[i]->position.y + usoffset.y - cps.y * 0.5f - expSize.y,
+                                            cps.x + expSize.x * 2.0f,
+                                            cps.y + expSize.y * 2.0f,
+                                            0.0f,
+                                            0.0f,
+                                            0.0f);
+            // TODO: Scroll bar
+            if(ref != NULL){
+                auto uni = nite::Uniform();
+                uni.add("size", size);
+                uni.add("color", nav.color);
+                uni.add("alpha", nav.color.a);
+                uni.add("thickness", 5.0f );//* (1.0f + (nav.expInc/100.0f)));
+                ref->apply(marker, uni);
+            }
+                    
+        }   
+    }
+
 }
 
 void nite::PanelUI::setBackgroundColor(const nite::Color &color){
