@@ -215,7 +215,7 @@ Shared<Game::Entity> Game::Battle::getCurrentTurnSubject(){
     if(cdecision <= groupA.size()-1){
         return groupA[cdecision];
     }else{
-        int adjcdecision = cdecision - (groupA.size()-1);
+        int adjcdecision = cdecision - groupA.size();
         return groupB[adjcdecision];
     }
 }
@@ -224,7 +224,7 @@ Shared<Game::Entity> Game::Battle::getCurrentSelTarget(){
     if(selTarget <= groupA.size()-1){
         return groupA[selTarget];
     }else{
-        int adjselTarget = selTarget - (groupA.size());
+        int adjselTarget = selTarget - groupA.size();
         return groupB[adjselTarget];
     }
 
@@ -441,6 +441,11 @@ void Game::Battle::step(){
         } break;   
         case TURN_START: {
             if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
+                auto total = groupA.size() + groupB.size();
+                // everyone chose
+                if(cdecision == total){
+                    setState(PLAY_ACTIONS_DECIDE_ORDER);
+                }else
                 // player chooses
                 if(cdecision <= groupA.size()-1){
                     dialog->reset();
@@ -451,9 +456,17 @@ void Game::Battle::step(){
                     }
                     dialog->start();               
                     setState(PRE_PICK_ACTION);
+                // AI Chooses
                 }else{
                     int adjcdecision = cdecision - (groupA.size()-1);
-                    // goes through AI
+                    auto who = getCurrentTurnSubject();
+                    ActionTurn act;
+                    act.owner = who;
+                    act.type = ActionType::ATTACK;
+                    act.target = groupA[0];
+                    decisions.push_back(act);
+                    nite::print("[AI] '"+who->nickname+"' decided to "+ActionType::name(act.type)+" '"+act.target->nickname+"'");
+                    ++cdecision;
                 }
             }
         } break;     
@@ -495,7 +508,7 @@ void Game::Battle::step(){
                 onSwitchSelTarget();
                 setState(PICK_TARGET);
             }            
-        };
+        } break;
         case PICK_TARGET: {
             if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
                 // setOptBoxVis(false);
@@ -505,8 +518,20 @@ void Game::Battle::step(){
                 // dialog->start();                  
                 // setState(PICK_TARGET);
             }            
-        };        
+        } break;      
 
+        case PLAY_ACTIONS_DECIDE_ORDER: {
+            // TODO: implement algorithm to decide order based on agility or some other stat
+            setState(PRE_PLAY_ACTIONS);
+        } break;
+
+        case PRE_PLAY_ACTIONS: {
+            
+        } break;
+
+        case PLAY_ACTIONS: {
+            
+        } break;
 
 
     }
@@ -527,6 +552,17 @@ void Game::Battle::step(){
     // continue on dialog
     if(nite::keyboardPressed(nite::keyZ)){
     	dialog->cont();
+        switch(state){
+            case BattleState::PICK_TARGET:{
+                // confirm target
+                selAction.target = getCurrentSelTarget();
+                ++cdecision;
+                decisions.push_back(selAction);
+                setOptBoxVis(false);
+                setDialogBoxVis(false);     
+                setState(BattleState::TURN_START);          
+            } break;
+        }        
     }
 
 

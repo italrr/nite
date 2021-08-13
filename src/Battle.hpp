@@ -20,9 +20,12 @@
             PICK_ENGAGE_OPT,
             PICK_EVADE_OPT,
 
-
             PRE_PICK_TARGET,
-            PICK_TARGET
+            PICK_TARGET,
+
+            PLAY_ACTIONS_DECIDE_ORDER,
+            PRE_PLAY_ACTIONS,
+            PLAY_ACTIONS
 
         };
 
@@ -32,17 +35,47 @@
             IN_EVADE
         };
         
-        enum ActionType : int {
-            NONE,
-            ATTACK,
-            SAY,
-            OFFER,
-            BLOCK,
-            DODGE,
-            TANK,
-            ESCAPE
-            
-        };
+        namespace ActionType {
+            enum ActionType : int {
+                NONE,
+                ATTACK,
+                SAY,
+                OFFER,
+                BLOCK,
+                DODGE,
+                TANK,
+                ESCAPE
+            };  
+            static String name(int type){
+                switch(type){
+                    case ATTACK: {
+                        return "Attack";
+                    } break;
+                    case SAY: {
+                        return "Say";
+                    } break;  
+                    case OFFER: {
+                        return "Offer";
+                    } break; 
+                    case BLOCK: {
+                        return "Block";
+                    } break; 
+                    case DODGE: {
+                        return "Dodge";
+                    } break; 
+                    case TANK: {
+                        return "Tank";
+                    } break;      
+                    case ESCAPE: {
+                        return "Escape";
+                    } break;                                                                                                                    
+                    case NONE:
+                    default: {
+                        return "[nothing]";
+                    } break;
+                }
+            }
+        }
 
         struct ActionTurn {
             int type;
