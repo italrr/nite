@@ -60,6 +60,7 @@
 			Color(const String &hex);
 			Color();
 			Color(const nite::Color &color);
+			Color(const std::string &color, float a);
 			Color(float r, float g, float b);
 			Color(float r, float g, float b, float a);
 			Color(float c);

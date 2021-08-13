@@ -53,6 +53,7 @@
             // virtual void onUpdateText(){}
             // virtual void onNextLine(const Shared<DialogLine> &line){}
 
+            void setImmediateText(const String &text);
             std::function<void()> onCont;
             std::function<void()> onReset;
             std::function<void()> onUpdateText;

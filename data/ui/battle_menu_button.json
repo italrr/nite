@@ -1,8 +1,6 @@
 {	
 	"type": "button",
 	"text": "BUTTON",
-	"backgroundColor": "#fbad3c"
-	"font": "data/font/BebasNeueRegular-X34j2.otf",
 	"fontSize": 16, 
 	"width": 140,
 	"padding": { "vert": 8, "hor": 0 },

@@ -1,5 +1,10 @@
 #include "Entity.hpp"
 
+static int lastId = nite::randomInt(25, 50);
+
+static int getId(){
+	return ++lastId;
+}
 
 Game::ComplexStat::ComplexStat() {
 	maxCarry = 1000;
@@ -257,10 +262,45 @@ bool Game::EntityStat::heal(int hp, int mana, int stamina){
 
 
 Game::Entity::Entity(){
+	id = getId();
 	walkSpeed = 1.0f;	
 	nickname = "Entity";
+
+	battlFaceFlip = false;
+	lastBattFaceTick = nite::getTicks();
 }
 
 void Game::Entity::moveEntity(float x, float y){
 	move(walkSpeed * x, walkSpeed * y);
+}
+
+void Game::Entity::loadAnim(){
+	face.load("data/texture/kekkers.png", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+}
+
+void Game::Entity::renderBattleFace(float x, float y, bool blink){
+
+	if(nite::getTicks()-lastBattFaceTick > 600){
+		battlFaceFlip = !battlFaceFlip;
+		lastBattFaceTick = nite::getTicks();
+	}
+
+	nite::lerpDiscrete(battlFaceAnBr, battlFaceFlip ? 100.0f : 0.0f, 0.05f);
+
+	float rateExp = battlFaceAnBr / 100.0f;
+	static const float maxExp = 8.0f;
+
+    nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);
+	auto fshad = face.draw(x - 5, y + 5, face.getWidth() * 2.0f + maxExp * rateExp, face.getHeight() * 2.0f + maxExp * rateExp, 0.5f, 0.5f, 0.0f);
+	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+	if(blink){
+		nite::setColor(1.0f -  0.5f * rateExp, 1.0f -  0.5f * rateExp, 1.0f - 0.5f * rateExp, 1.0f);
+	}
+	auto f = face.draw(x, y, face.getWidth() * 2.0f + maxExp * rateExp , face.getHeight() * 2.0f + maxExp * rateExp, 0.5f, 0.5f, 0.0f);
+	if(f != NULL){
+		f->smooth = true;
+	}
+	if(fshad != NULL){
+		fshad->smooth = true;
+	}
 }

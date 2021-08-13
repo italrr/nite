@@ -50,6 +50,11 @@ nite::Color::Color(const String &hex){
 	set(hex);
 }
 
+nite::Color::Color(const String &color, float a){
+	set(color);
+	this->a = a;
+}
+
 void nite::Color::set(const String &hex){
 	char *p;
 	int hexValue = strtol(hex.substr(1).c_str(), &p, 16);

@@ -1,6 +1,7 @@
 #ifndef GAME_ENTITY_HPP
     #define GAME_ENTITY_HPP
-
+	
+	#include "Engine/Texture.hpp"
     #include "Object.hpp"
 
 	#define GAME_MAX_LEVEL 48
@@ -165,9 +166,17 @@
 
         struct Entity : Object, EntityStat {
 			// TODO: recalcualte this using complexStats
+			nite::Texture face;
+			float battlFaceAnBr;
+			bool battlFaceFlip;
+			UInt64 lastBattFaceTick;
+			void renderBattleFace(float x, float y, bool blink);
+
 			String nickname;
 			float walkSpeed;
+			int id;
 			Entity();
+			void loadAnim();
 			void moveEntity(float x, float y);
         };
 

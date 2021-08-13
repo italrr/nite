@@ -14,11 +14,15 @@
             BATTLE_START,
             PRE_TURN,
             TURN_START,
+
             PRE_PICK_ACTION,
             PICK_ACTION,
-
             PICK_ENGAGE_OPT,
-            PICK_EVADE_OPT
+            PICK_EVADE_OPT,
+
+
+            PRE_PICK_TARGET,
+            PICK_TARGET
 
         };
 
@@ -29,28 +33,48 @@
         };
         
         enum ActionType : int {
+            NONE,
             ATTACK,
+            SAY,
+            OFFER,
+            BLOCK,
+            DODGE,
+            TANK,
+            ESCAPE
+            
         };
 
         struct ActionTurn {
             int type;
-            int target;
-            int owner;
+            Shared<Entity> target;
+            Shared<Entity> owner;
         };
 
         struct Battle {
             nite::Font font;
             nite::Font subFont;
+            nite::Texture selArrow;
 
             Shared<nite::BaseUIComponent> batWin;
 
             Vector<ActionTurn> decisions;
             int cdecision;
 
+            Game::ActionTurn selAction;
+
+            Shared<Entity> getCurrentTurnSubject();
+            Shared<Entity> getCurrentSelTarget();
+            void onSwitchSelTarget();
+
             int startTurn;
             int currentTurn;
             int state;
             int menuState;
+            int selTarget;
+
+            float selTargetOffset;
+            UInt64 selTargetTick;
+            bool selTargetFlip;
 
             UInt64 lastStChange;
             nite::Texture empty;

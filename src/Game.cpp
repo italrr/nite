@@ -39,7 +39,31 @@ struct Mob : Game::Entity {
 		setMass(1.0f);
 		this->friction = 4.0f;
 		this->setupStat(1);
-		this->nickname = "Soother";
+		this->nickname = "Jeremy";
+	}
+	
+	void step(){
+		
+	}
+
+	void render(){
+		nite::setRenderTarget(nite::RenderTargetGame);
+		nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
+		nite::setDepth(-lerpPos.y);
+		nite::setColor(1.0f, 0.0f, 1.0f, 1.0f);
+		auto ref = nite::Draw::Rectangle(lerpPos.x, lerpPos.y, size.x, size.y, true, 0.5f, 0.5f, 0.0f);
+	}
+};
+
+
+struct Mob2 : Game::Entity {
+
+	void create(){
+		setPosition(nite::Vec2(500, 500));
+		setMass(1.0f);
+		this->friction = 4.0f;
+		this->setupStat(1);
+		this->nickname = "Billy";
 	}
 	
 	void step(){
@@ -93,9 +117,14 @@ void Game::GameCore::init(){
 	// start game
 	player = std::make_shared<Player>(Player());
 	mob = std::make_shared<Mob>(Mob());
+	mob2 = std::make_shared<Mob2>(Mob2());
+	player->loadAnim();
+	mob->loadAnim();
+	mob2->loadAnim();
 	world->init(1000, 1000);
 	world->add(player);
 	world->add(mob);
+	world->add(mob2);
 
 
 }
@@ -125,7 +154,7 @@ void Game::GameCore::step(){
 		}		
 		if(nite::keyboardPressed(nite::keyZ)){
 			if(!battle->isShowing()){
-				battle->start({player}, {mob}); // this could go so wrong lol
+				battle->start({player}, {mob, mob2}); // this could go so wrong lol
 			}
 			// if(dialog->isReady() && !dialog->isShowing()){
 			// 	dialog->reset();

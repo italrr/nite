@@ -55,6 +55,12 @@ void Game::DialogHook::reset(){
     onReset();
 }
 
+void Game::DialogHook::setImmediateText(const String &text){
+    targetText = text;
+    currenText = text;
+    onUpdateText();
+}
+
 void Game::DialogHook::step(){
     if(nite::getTicks()-lastChar < 20 || currenText.size() >= targetText.size()){
         if(currenText.size() >= targetText.size()){

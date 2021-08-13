@@ -14,6 +14,7 @@
             Shared<Game::Battle> battle;
             Shared<Game::Entity> player;
             Shared<Game::Entity> mob; // temp
+            Shared<Game::Entity> mob2; // temp
             GameCore();
             void init();
             void step();
