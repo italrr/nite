@@ -266,8 +266,9 @@ Game::Entity::Entity(){
 	walkSpeed = 1.0f;	
 	nickname = "Entity";
 
-	battlFaceFlip = false;
-	lastBattFaceTick = nite::getTicks();
+	battlAnimBlinkFlip = false;
+	battleAnimStatus = EntityBattleAnim::IDLE;
+	lastBattleAnimBlinkTick = nite::getTicks();
 }
 
 void Game::Entity::moveEntity(float x, float y){
@@ -275,28 +276,48 @@ void Game::Entity::moveEntity(float x, float y){
 }
 
 void Game::Entity::loadAnim(){
-	face.load("data/texture/kekkers.png", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+	if(!battleAnim.isLoaded()){
+		battleAnim.load("data/texture/kekkers.png", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+	}
 }
 
-void Game::Entity::renderBattleFace(float x, float y, bool blink){
+void Game::Entity::renderBattleAnim(float x, float y, bool blink){
 
-	if(nite::getTicks()-lastBattFaceTick > 600){
-		battlFaceFlip = !battlFaceFlip;
-		lastBattFaceTick = nite::getTicks();
+
+	// blinking
+	if(nite::getTicks()-lastBattleAnimBlinkTick > 600){
+		battlAnimBlinkFlip = !battlAnimBlinkFlip;
+		lastBattleAnimBlinkTick = nite::getTicks();
 	}
-
-	nite::lerpDiscrete(battlFaceAnBr, battlFaceFlip ? 100.0f : 0.0f, 0.05f);
-
-	float rateExp = battlFaceAnBr / 100.0f;
+	nite::lerpDiscrete(battleAnimBlink, battlAnimBlinkFlip ? 100.0f : 0.0f, 0.05f);
+	float rateExp = battleAnimBlink / 100.0f;
 	static const float maxExp = 8.0f;
 
+	float xoff = 0.0f;
+	float yoff = 0.0f;
+	float angle = 0.0f;
+	nite::Vec2 origin(0.5f);
+
+	switch(battleAnimStatus){
+		case EntityBattleAnim::ATTACK: {
+			
+		} break;
+		case EntityBattleAnim::STUTTER: {
+
+		} break;			
+		case EntityBattleAnim::IDLE: {
+
+		} break;
+	}
+
+
     nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);
-	auto fshad = face.draw(x - 5, y + 5, face.getWidth() * 2.0f + maxExp * rateExp, face.getHeight() * 2.0f + maxExp * rateExp, 0.5f, 0.5f, 0.0f);
+	auto fshad = battleAnim.draw(xoff + x - 5, yoff + y + 5, battleAnim.getWidth() * 2.0f + maxExp * rateExp, battleAnim.getHeight() * 2.0f + maxExp * rateExp, origin.x, origin.y, angle);
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	if(blink){
 		nite::setColor(1.0f -  0.5f * rateExp, 1.0f -  0.5f * rateExp, 1.0f - 0.5f * rateExp, 1.0f);
 	}
-	auto f = face.draw(x, y, face.getWidth() * 2.0f + maxExp * rateExp , face.getHeight() * 2.0f + maxExp * rateExp, 0.5f, 0.5f, 0.0f);
+	auto f = battleAnim.draw(xoff + x, yoff + y, battleAnim.getWidth() * 2.0f + maxExp * rateExp , battleAnim.getHeight() * 2.0f + maxExp * rateExp, origin.x, origin.y, angle);
 	if(f != NULL){
 		f->smooth = true;
 	}

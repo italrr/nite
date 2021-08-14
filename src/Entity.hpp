@@ -164,13 +164,28 @@
             void setupStat(int lv);            
         };
 
+		namespace EntityBattleAnim {
+			enum EntityBattleAnim : int {
+				IDLE,
+				DEFEAT,
+				VICTORY,
+				ATTACK, // plain
+				STUTTER, // receive damage
+				BLOCK,
+				BLOCK_STUTTER,
+				EVADE,
+				EVADE_FAILS,
+			};
+		}
+
         struct Entity : Object, EntityStat {
-			// TODO: recalcualte this using complexStats
-			nite::Texture face;
-			float battlFaceAnBr;
-			bool battlFaceFlip;
-			UInt64 lastBattFaceTick;
-			void renderBattleFace(float x, float y, bool blink);
+			nite::Texture battleAnim;
+			float battleAnimBlink;
+			bool battlAnimBlinkFlip;
+			UInt64 lastBattleAnimBlinkTick;
+
+			int battleAnimStatus;
+			void renderBattleAnim(float x, float y, bool blink);
 
 			String nickname;
 			float walkSpeed;

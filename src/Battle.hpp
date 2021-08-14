@@ -25,7 +25,7 @@
 
             PLAY_ACTIONS_DECIDE_ORDER,
             PRE_PLAY_ACTIONS,
-            PLAY_ACTIONS
+            PLAY_ACTION_ATTACK
 
         };
 
@@ -104,6 +104,9 @@
             int state;
             int menuState;
             int selTarget;
+
+            UInt64 onActionTimeout;
+            UInt64 onActionTick;
 
             float selTargetOffset;
             UInt64 selTargetTick;

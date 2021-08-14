@@ -448,6 +448,8 @@ void Game::Battle::step(){
                 }else
                 // player chooses
                 if(cdecision <= groupA.size()-1){
+                    setOptBoxVis(false);
+                    setDialogBoxVis(true);                    
                     dialog->reset();
                     if(groupA.size() == 1){
                         dialog->add("", "What will you do?", nite::Color("#d20021"));
@@ -472,7 +474,7 @@ void Game::Battle::step(){
         } break;     
 
         case PRE_PICK_ACTION: {
-            if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
+            if(dialog->canCont() && nite::getTicks()-lastStChange > 0 || dialog->isReady() && nite::getTicks()-lastStChange > 1000){
                 setState(PICK_ACTION);
                 generateMainOptions();
                 setOptBoxVis(true);
@@ -521,16 +523,42 @@ void Game::Battle::step(){
         } break;      
 
         case PLAY_ACTIONS_DECIDE_ORDER: {
-            // TODO: implement algorithm to decide order based on agility or some other stat
+            // TODO: implement algorithm to decide the order based on agility or some other stat
             setState(PRE_PLAY_ACTIONS);
         } break;
 
         case PRE_PLAY_ACTIONS: {
-            
-        } break;
+            if(decisions.size() == 0){
+                dialog->cont();
+                setState(PRE_TURN);
+                break;
+            }
+            auto &current = decisions[0];
 
-        case PLAY_ACTIONS: {
-            
+            switch(current.type){
+                case ActionType::ATTACK: {
+                    setOptBoxVis(false);
+                    setDialogBoxVis(true);                    
+                    onActionTimeout = 1000;
+                    onActionTick = nite::getTicks();
+                    dialog->reset();
+                    dialog->add("", current.owner->nickname+" attacks "+current.target->nickname+"!", nite::Color("#d20021"));
+                    dialog->start();  
+                    setState(PLAY_ACTION_ATTACK);
+                } break;
+                default: {
+                    nite::print("Unimplemented action: '"+ActionType::name(current.type)+"'");
+                    decisions.erase(decisions.begin());
+                } break;
+            }
+
+        } break;
+        case PLAY_ACTION_ATTACK: {
+            if(dialog->isReady() && nite::getTicks()-onActionTick > onActionTimeout){
+                decisions.erase(decisions.begin());
+                dialog->cont();
+                setState(BattleState::PRE_PLAY_ACTIONS);
+            }         
         } break;
 
 
@@ -596,9 +624,8 @@ void Game::Battle::render(){
     for(int i = 0; i < groupB.size(); ++i){
         float x = parts * (i+1);
         float y = nite::getHeight() * 0.5f;
-        groupB[i]->renderBattleFace(x, y, state == PICK_TARGET && selTarget == i + groupA.size());
+        groupB[i]->renderBattleAnim(x, y, state == PICK_TARGET && selTarget == i + groupA.size());
         if(state == PICK_TARGET && selTarget == i + groupA.size()){
-
             if(nite::getTicks()-selTargetTick > 150){
                 selTargetTick = nite::getTicks();
                 selTargetFlip = !selTargetFlip;
