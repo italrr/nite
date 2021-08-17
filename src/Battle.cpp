@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "Battle.hpp"
 #include "Engine/Input.hpp"
 
@@ -68,8 +70,8 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     for(int i = 1; i < groupB.size(); ++i){
         names += i < groupB.size()-1 ? ", " : " and " + groupB[i]->nickname;
     }
-    static const Vector<String> randomEnterPhrase = {"Oh, ", "Quick, ", "Look, "};
-    dialog->add("", randomEnterPhrase[nite::randomInt(0, randomEnterPhrase.size())]+names+(groupB.size() > 1 ? " are " : " is ")+"approaching...", nite::Color("#d20021"));
+    static const Vector<String> randomEnterPhrase = {"Oh! ", "Quick! ", "Look! "};
+    dialog->add("", randomEnterPhrase[nite::randomInt(0, randomEnterPhrase.size())]+"@500!"+names+(groupB.size() > 1 ? " are " : " is ")+"approaching...", nite::Color("#d20021"));
     dialog->start();
 
     this->groupA = groupA;
@@ -269,7 +271,7 @@ void Game::Battle::step(){
 
         auto attkButton = generateButton(list, "ATTACK");
         if(attkButton.get() != NULL){
-            attkButton->setBaseColor(nite::Color("#ff5400"));
+            attkButton->setBaseColor(nite::Color("#7474b4"));
             attkButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 selAction.type = Game::ActionType::ATTACK;
                 selAction.owner = getCurrentTurnSubject();
@@ -279,7 +281,7 @@ void Game::Battle::step(){
 
         auto sayButton = generateButton(list, "SAY...");
         if(sayButton.get() != NULL){
-            sayButton->setBaseColor(nite::Color("#5541aa"));
+            sayButton->setBaseColor(nite::Color("#7474b4"));
             sayButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 return;
             });
@@ -288,7 +290,7 @@ void Game::Battle::step(){
 
         auto offerButton = generateButton(list, "OFFER...");
         if(offerButton.get() != NULL){
-            offerButton->setBaseColor(nite::Color("#937014"));
+            offerButton->setBaseColor(nite::Color("#7474b4"));
             offerButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 return;
             });
@@ -297,7 +299,7 @@ void Game::Battle::step(){
 
         auto escapeButton = generateButton(list, "BACK");
         if(escapeButton.get() != NULL){
-            escapeButton->setBaseColor(nite::Color("#394739"));
+            escapeButton->setBaseColor(nite::Color("#e68e27"));
             escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 setState(PRE_PICK_ACTION);
             });
@@ -320,32 +322,42 @@ void Game::Battle::step(){
 
         auto parryButton = generateButton(list, "BLOCK");
         if(parryButton.get() != NULL){
-            parryButton->setBaseColor(nite::Color("#ff5400"));
+            parryButton->setBaseColor(nite::Color("#7474b4"));
             parryButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                return;
+                selAction.type = Game::ActionType::BLOCK;
+                selAction.owner = getCurrentTurnSubject();
+                setState(BattleState::TURN_START);
+                ++cdecision;
+                decisions.push_back(selAction);                
             });
         }
 
         auto evadeButton = generateButton(list, "DODGE");
         if(evadeButton.get() != NULL){
-            evadeButton->setBaseColor(nite::Color("#5541aa"));
+            evadeButton->setBaseColor(nite::Color("#7474b4"));
             evadeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                return;
+                selAction.type = Game::ActionType::DODGE;
+                selAction.owner = getCurrentTurnSubject();
+                setState(BattleState::TURN_START);
+                ++cdecision;
+                decisions.push_back(selAction);                
             });
         }
 
 
-        auto tankButton = generateButton(list, "TANK IT");
-        if(tankButton.get() != NULL){
-            tankButton->setBaseColor(nite::Color("#4d34eb"));
-            tankButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                return;
-            });                 
-        }
+        // auto tankButton = generateButton(list, "TANK IT");
+        // if(tankButton.get() != NULL){
+        //     tankButton->setBaseColor(nite::Color("#4d34eb"));
+        //     tankButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         selAction.type = Game::ActionType::TANK;
+        //         selAction.owner = getCurrentTurnSubject();
+        //         setState(BattleState::TURN_START);
+        //     });                 
+        // }
 
         auto escapeButton = generateButton(list, "BACK");
         if(escapeButton.get() != NULL){
-            escapeButton->setBaseColor(nite::Color("#394739"));
+            escapeButton->setBaseColor(nite::Color("#e68e27"));
             escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 setState(PRE_PICK_ACTION);
             });
@@ -524,12 +536,24 @@ void Game::Battle::step(){
 
         case PLAY_ACTIONS_DECIDE_ORDER: {
             // TODO: implement algorithm to decide the order based on agility or some other stat
+
+            // BLOCK & DODGE are always last
+            std::sort(decisions.begin(), decisions.end(), [](ActionTurn &a, ActionTurn &b){
+                if(b.type == ActionType::BLOCK || b.type == ActionType::DODGE){
+                    return true;
+                }else{
+                    return true;
+                }
+            });      
+            for(int i = 0; i < decisions.size(); ++i){
+                nite::print(ActionType::name(decisions[i].type));
+            }
             setState(PRE_PLAY_ACTIONS);
         } break;
 
         case PRE_PLAY_ACTIONS: {
             if(decisions.size() == 0){
-                dialog->cont();
+                // dialog->cont();
                 setState(PRE_TURN);
                 break;
             }
@@ -537,15 +561,58 @@ void Game::Battle::step(){
 
             switch(current.type){
                 case ActionType::ATTACK: {
+
+                    bool triedToBlock = false;
+                    bool triedToDodge = false;
+                    // did target try to block/dodge it?
+                    for(int i = 0; i < decisions.size(); ++i){
+                        if(decisions[i].owner.get() == current.target.get()){
+                            if(decisions[i].type == ActionType::DODGE){
+                                triedToDodge = true;
+                                decisions.erase(decisions.begin() + i);
+                                break;                                
+                            }else                            
+                            if(decisions[i].type == ActionType::BLOCK){
+                                triedToBlock = true;
+                                decisions.erase(decisions.begin() + i);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    current.owner->setBattleAnim(EntityBattleAnim::ATTACK, 500);
+
+                    float dmg = 100.0f;
+                    float def = 50.0f;
+
+                    float after = (dmg - def) * (triedToBlock ? 0.90f : 1.0f);
+                    current.fDmg = after;
+
                     setOptBoxVis(false);
                     setDialogBoxVis(true);                    
-                    onActionTimeout = 1000;
+                    onActionTimeout = 500;
                     onActionTick = nite::getTicks();
                     dialog->reset();
-                    dialog->add("", current.owner->nickname+" attacks "+current.target->nickname+"!", nite::Color("#d20021"));
+                    if(triedToBlock){
+                        dialog->add("", current.owner->nickname+" attacks "+current.target->nickname+". @800!"+current.target->nickname+" tries to block it!", nite::Color("#d20021"));
+                    }else{
+                        dialog->add("", current.owner->nickname+" attacks "+current.target->nickname+"!", nite::Color("#d20021"));
+                    }
                     dialog->start();  
                     setState(PLAY_ACTION_ATTACK);
                 } break;
+                case ActionType::DODGE: {
+                    dialog->reset();
+                    dialog->add("", current.owner->nickname+" tried to dodged nothing...", nite::Color("#d20021"));
+                    dialog->start();  
+                    setState(POST_PLAY_ACTIONS);
+                } break;
+                case ActionType::BLOCK: {
+                    dialog->reset();
+                    dialog->add("", current.owner->nickname+" tried to block nothing...", nite::Color("#d20021"));
+                    dialog->start();  
+                    setState(POST_PLAY_ACTIONS);
+                } break;                
                 default: {
                     nite::print("Unimplemented action: '"+ActionType::name(current.type)+"'");
                     decisions.erase(decisions.begin());
@@ -554,11 +621,23 @@ void Game::Battle::step(){
 
         } break;
         case PLAY_ACTION_ATTACK: {
-            if(dialog->isReady() && nite::getTicks()-onActionTick > onActionTimeout){
-                decisions.erase(decisions.begin());
+            auto &current = decisions[0];
+            if(current.owner->isBattleAnim() && dialog->isReady() && dialog->getLastReady() > 1500 && nite::getTicks()-onActionTick > onActionTimeout){
+                current.owner->setBattleAnim(EntityBattleAnim::IDLE, 0);
+                dialog->reset();
+                dialog->add("", current.target->nickname+" received "+nite::toStr(current.fDmg)+" damage.", nite::Color("#d20021"));
+                dialog->start(); 
+                setState(POST_PLAY_ACTIONS);
+                // TODO: animation handling
+                // TODO: check if target died
+            }
+        } break;
+        case POST_PLAY_ACTIONS: {        
+            if(dialog->isReady()  && dialog->getLastReady() > 2200){
                 dialog->cont();
+                decisions.erase(decisions.begin());
                 setState(BattleState::PRE_PLAY_ACTIONS);
-            }         
+            } 
         } break;
 
 

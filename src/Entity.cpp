@@ -265,6 +265,7 @@ Game::Entity::Entity(){
 	id = getId();
 	walkSpeed = 1.0f;	
 	nickname = "Entity";
+	entityType = EntityType::UNDEFINED;
 
 	battlAnimBlinkFlip = false;
 	battleAnimStatus = EntityBattleAnim::IDLE;
@@ -281,17 +282,23 @@ void Game::Entity::loadAnim(){
 	}
 }
 
+void Game::Entity::setBattleAnim(int anim, UInt64 animTargetTime){
+	this->battleAnimTargetTime = animTargetTime;
+	this->battleAnimStatus = anim;
+	this->lastBattleAnimTick = nite::getTicks();
+	this->battleAnimStep = 0;
+	this->battleAnimTargetExp = 0.0f;
+	this->battlAnimPosOff.set(0.0f);
+}
+
+bool Game::Entity::isBattleAnim(){
+	return nite::getTicks()-this->lastBattleAnimTick  > battleAnimTargetTime;
+}
+
 void Game::Entity::renderBattleAnim(float x, float y, bool blink){
 
-
-	// blinking
-	if(nite::getTicks()-lastBattleAnimBlinkTick > 600){
-		battlAnimBlinkFlip = !battlAnimBlinkFlip;
-		lastBattleAnimBlinkTick = nite::getTicks();
-	}
-	nite::lerpDiscrete(battleAnimBlink, battlAnimBlinkFlip ? 100.0f : 0.0f, 0.05f);
-	float rateExp = battleAnimBlink / 100.0f;
-	static const float maxExp = 8.0f;
+	float rateExp = 0.0f;
+	float maxExp = 0.0f;
 
 	float xoff = 0.0f;
 	float yoff = 0.0f;
@@ -300,13 +307,38 @@ void Game::Entity::renderBattleAnim(float x, float y, bool blink){
 
 	switch(battleAnimStatus){
 		case EntityBattleAnim::ATTACK: {
+			float xFinOffset = -64.0f;
+			// origin.set(0.45f);
+			battlAnimPosOff.lerpDiscrete(xFinOffset, 0.05f);
+			xoff = battlAnimPosOff.x;
+			if(battlAnimPosOff.x / xFinOffset > 0.5f){
+				float n = battleAnimTargetExp * 100.0f;
+				rateExp = 1.0f;
+				nite::lerpDiscrete(n, 3000.0f, 0.25f);
+				battleAnimTargetExp = n / 100.0f;
+				maxExp = battleAnimTargetExp;
+				xoff += nite::randomInt(1, 2);
+				yoff += nite::randomInt(1, 2);
+			}
+			if(battlAnimPosOff.x / xFinOffset >= 0.95f){
+				battleAnimTargetTime = 0;
+			}
+			// if(nite::getTicks()-this->lastBattleAnimTick  > battleAnimTargetTime){
+			// 	setBattleAnim(EntityBattleAnim::IDLE, 0);
+			// }
 			
 		} break;
 		case EntityBattleAnim::STUTTER: {
 
 		} break;			
 		case EntityBattleAnim::IDLE: {
-
+			if(nite::getTicks()-lastBattleAnimBlinkTick > 600){
+				battlAnimBlinkFlip = !battlAnimBlinkFlip;
+				lastBattleAnimBlinkTick = nite::getTicks();
+			}			
+			nite::lerpDiscrete(battleAnimBlink, battlAnimBlinkFlip ? 100.0f : 0.0f, 0.05f);
+			rateExp = battleAnimBlink / 100.0f;
+			maxExp = 8.0f;
 		} break;
 	}
 

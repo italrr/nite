@@ -25,7 +25,8 @@
 
             PLAY_ACTIONS_DECIDE_ORDER,
             PRE_PLAY_ACTIONS,
-            PLAY_ACTION_ATTACK
+            PLAY_ACTION_ATTACK,
+            POST_PLAY_ACTIONS
 
         };
 
@@ -81,6 +82,7 @@
             int type;
             Shared<Entity> target;
             Shared<Entity> owner;
+            float fDmg;
         };
 
         struct Battle {

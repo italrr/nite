@@ -17,6 +17,10 @@ void Game::DialogHook::cont(){
     }        
 }
 
+UInt64 Game::DialogHook::getLastReady(){
+    return nite::getTicks()-lastReady;
+}
+
 Game::DialogHook::DialogHook(){
     this->onCont = [](){
 
@@ -43,6 +47,7 @@ void Game::DialogHook::start(){
 }
 
 void Game::DialogHook::reset(){
+    lastReady = nite::getTicks();
     done = false;
     ready = false;
     proceed = true;
@@ -62,10 +67,16 @@ void Game::DialogHook::setImmediateText(const String &text){
 }
 
 void Game::DialogHook::step(){
-    if(nite::getTicks()-lastChar < 20 || currenText.size() >= targetText.size()){
+    if(nite::getTicks()-lastChar < 20 || delay || currenText.size() >= targetText.size()){
+        if(delay && nite::getTicks()-delayTick > delayTimeout){
+            delay = false;
+        }
         if(currenText.size() >= targetText.size()){
             this->ready = true;
             if(currentDiag >= lines.size()){
+                if(!done){
+                    lastReady = nite::getTicks();
+                }
                 done = true;
             }else
             if(proceed){
@@ -84,6 +95,28 @@ void Game::DialogHook::step(){
     }
     
     ++currentChar;
+
+    // in-text delay
+    if(targetText[currentChar] == '@' && currentChar < targetText.length()-1){
+        for(int i = currentChar+1; i < targetText.size(); ++i){
+            if(targetText[i] == '!'){
+                int start = currentChar;
+                int nchars =  i-currentChar + 1;
+                String token = targetText.substr(currentChar, nchars);
+                if(token.size()-2 > 0){
+                    token.erase(0, 1);
+                    token.erase(token.size()-1, 1);
+                    if(nite::isNumber(token)){
+                        delay = true;
+                        delayTimeout = nite::toInt(token);
+                        delayTick = nite::getTicks();
+                        targetText.erase(start, nchars);
+                    }
+                }
+                break;
+            }
+        }
+    }
 
     currenText = targetText.substr(0, currentChar);
 

@@ -16,6 +16,7 @@ struct Player : Game::Entity {
 		this->friction = 4.0f;
 		this->setupStat(1);
 		this->nickname = "Player";
+		entityType = Game::EntityType::PLAYER;
 	}
 	
 	void step(){
@@ -40,6 +41,7 @@ struct Mob : Game::Entity {
 		this->friction = 4.0f;
 		this->setupStat(1);
 		this->nickname = "Jeremy";
+		entityType = Game::EntityType::MOB;
 	}
 	
 	void step(){
@@ -154,7 +156,7 @@ void Game::GameCore::step(){
 		}		
 		if(nite::keyboardPressed(nite::keyZ)){
 			if(!battle->isShowing()){
-				battle->start({player}, {mob, mob2}); // this could go so wrong lol
+				battle->start({player}, {mob}); // this could go so wrong lol
 			}
 			// if(dialog->isReady() && !dialog->isShowing()){
 			// 	dialog->reset();

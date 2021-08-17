@@ -30,9 +30,12 @@
             int currentDiag;
             int currentChar;
             UInt64 lastChar;
-            
+            bool delay;
+            UInt64 delayTick;
+            UInt64 delayTimeout;
             String targetText;
             String currenText;
+            UInt64 lastReady;
             bool done;
             bool ready;
             bool proceed;
@@ -43,6 +46,7 @@
             bool isReady();
             void cont();
             DialogHook();
+            UInt64 getLastReady();
             void add(const String &emt, const String &text, const nite::Color &color = nite::White);
             void start();
             void reset();

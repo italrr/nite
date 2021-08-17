@@ -12,41 +12,29 @@
 
     namespace Game {
 
-        namespace EntityStance {
-			enum EntityStance : UInt8 {
-				Undefined = 0,
-				Neutral,
-				Melee,
-				KnockedBack,
-				Gun,
-				Cast,
-				Bow
-			};
-		}
-
-		namespace EntityType {
-			enum EntityType : int {
-				Undefined = 0,
-				Humanoid,
-				Spectro,
-				Demon,
-				Angel,
-				Plant,
-				Insect,
-				Fish,
-				Mamal,
-				Undead
+		namespace EntityRace {
+			enum EntityRace : int {
+				UNDEFINED = 0,
+				HUMANOID,
+				SPECTER,
+				DEMON,
+				ANGEL,
+				PLANT,
+				INSECT,
+				FISH,
+				MAMAL,
+				UNDEAD
 			};
 		}
 		
-		namespace EntityClass {
-			enum EntityClass : int {
-				Undefined = 0,
-				Player,
-				Mob,
+		namespace EntityType {
+			enum EntityType : int {
+				UNDEFINED = 0,
+				PLAYER,
+				MOB,
 				NPC,
-				Boss,
-				MiniBoss
+				BOSS,
+				MINIBOSS
 			};
 		}
 
@@ -184,9 +172,18 @@
 			bool battlAnimBlinkFlip;
 			UInt64 lastBattleAnimBlinkTick;
 
+			UInt64 battleAnimTargetTime;
 			int battleAnimStatus;
-			void renderBattleAnim(float x, float y, bool blink);
+			float battleAnimTargetExp;
+			UInt64 lastBattleAnimTick;
+			int battleAnimStep;
+			nite::Vec2 battlAnimPosOff;
 
+
+			void renderBattleAnim(float x, float y, bool blink);
+			void setBattleAnim(int anim, UInt64 animTargetTime);
+			bool isBattleAnim();
+			int entityType;
 			String nickname;
 			float walkSpeed;
 			int id;
