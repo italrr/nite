@@ -271,7 +271,7 @@ void Game::Battle::step(){
 
         auto attkButton = generateButton(list, "ATTACK");
         if(attkButton.get() != NULL){
-            attkButton->setBaseColor(nite::Color("#7474b4"));
+            attkButton->setBaseColor(nite::Color("#ff5400"));
             attkButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 selAction.type = Game::ActionType::ATTACK;
                 selAction.owner = getCurrentTurnSubject();
@@ -281,7 +281,7 @@ void Game::Battle::step(){
 
         auto sayButton = generateButton(list, "SAY...");
         if(sayButton.get() != NULL){
-            sayButton->setBaseColor(nite::Color("#7474b4"));
+            sayButton->setBaseColor(nite::Color("#5541aa"));
             sayButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 return;
             });
@@ -290,7 +290,7 @@ void Game::Battle::step(){
 
         auto offerButton = generateButton(list, "OFFER...");
         if(offerButton.get() != NULL){
-            offerButton->setBaseColor(nite::Color("#7474b4"));
+            offerButton->setBaseColor(nite::Color("#937014"));
             offerButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 return;
             });
@@ -299,7 +299,7 @@ void Game::Battle::step(){
 
         auto escapeButton = generateButton(list, "BACK");
         if(escapeButton.get() != NULL){
-            escapeButton->setBaseColor(nite::Color("#e68e27"));
+            escapeButton->setBaseColor(nite::Color("#394739"));
             escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 setState(PRE_PICK_ACTION);
             });
@@ -322,7 +322,7 @@ void Game::Battle::step(){
 
         auto parryButton = generateButton(list, "BLOCK");
         if(parryButton.get() != NULL){
-            parryButton->setBaseColor(nite::Color("#7474b4"));
+            parryButton->setBaseColor(nite::Color("#ff5400"));
             parryButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 selAction.type = Game::ActionType::BLOCK;
                 selAction.owner = getCurrentTurnSubject();
@@ -334,7 +334,7 @@ void Game::Battle::step(){
 
         auto evadeButton = generateButton(list, "DODGE");
         if(evadeButton.get() != NULL){
-            evadeButton->setBaseColor(nite::Color("#7474b4"));
+            evadeButton->setBaseColor(nite::Color("#5541aa"));
             evadeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 selAction.type = Game::ActionType::DODGE;
                 selAction.owner = getCurrentTurnSubject();
@@ -357,7 +357,7 @@ void Game::Battle::step(){
 
         auto escapeButton = generateButton(list, "BACK");
         if(escapeButton.get() != NULL){
-            escapeButton->setBaseColor(nite::Color("#e68e27"));
+            escapeButton->setBaseColor(nite::Color("#394739"));
             escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
                 setState(PRE_PICK_ACTION);
             });
