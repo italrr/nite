@@ -805,10 +805,10 @@ void Game::DamageNumber::step(){
 void Game::DamageNumber::render(){
     if(!batch.isDirty()){
         String amount = "-"+nite::toStr(this->amount);
-        batch.init(font.getWidth(amount), font.getHeight(amount));
+        batch.init(font.getWidth(amount) + 2, font.getHeight(amount) + 2);
         batch.begin();
         nite::setColor(color);
-        font.draw(amount, 0.0f, 0.0f);
+        font.draw(amount, 1.0f, 1.0f);
         batch.end();
         batch.flush();
     }
