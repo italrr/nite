@@ -167,26 +167,12 @@
 		}
 
         struct Entity : Object, EntityStat {
+
 			nite::Texture battleAnim;
-			float battleAnimBlink;
-			bool battlAnimBlinkFlip;
-			UInt64 lastBattleAnimBlinkTick;
 
-			UInt64 battleAnimTargetTime;
-			int battleAnimStatus;
-			float battleAnimTargetExp;
-			UInt64 lastBattleAnimTick;
-			int battleAnimStep;
-			nite::Vec2 battlAnimPosOff;
-
-
-			void renderBattleAnim(float x, float y, bool blink);
-			void setBattleAnim(int anim, UInt64 animTargetTime);
-			bool isBattleAnim();
 			int entityType;
 			String nickname;
 			float walkSpeed;
-			int id;
 			Entity();
 			void loadAnim();
 			void moveEntity(float x, float y);

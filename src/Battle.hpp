@@ -8,6 +8,25 @@
 
     namespace Game {
 
+        namespace BattleGroup {
+            enum BattleGroup : int {
+                GROUP_A,
+                GROUP_B
+            };
+            static String name(int type){
+                switch(type){
+                    case GROUP_A: {
+                        return "GROUP A";
+                    } break;
+                    case GROUP_B: {
+                        return "GROUP B";
+                    } break;           
+                    default: {
+                        return "UNDEFINED";
+                    } break;      
+                }
+            }
+        }
 
         enum BattleState : int {
             BATTLE_READY,
@@ -78,10 +97,59 @@
             }
         }
 
+        struct DamageNumber : Object {
+            int amount;
+            nite::Batch batch;
+            nite::Color color;
+            UInt64 startTime;
+            UInt64 lifetime;
+            nite::Font font;
+            nite::Vec2 offPosition;
+            nite::Vec2 targetPosition;
+            nite::Vec2 startPosition;
+            UInt64 lastShakeTick;
+            float angle;
+            float targetAngle;
+            DamageNumber();
+            void step();
+            void render();
+            int animStep;
+            void setPosition(const nite::Vec2 &p){
+                this->position = p;
+                this->lerpPos = p;
+                this->targetPosition = p;
+                this->startPosition = p;
+            }            
+        };
+
+        struct BattleEntity {
+            Shared<Entity> entity;
+            int group;
+
+			float battleAnimBlink;
+			bool battlAnimBlinkFlip;
+			UInt64 lastBattleAnimBlinkTick;
+
+			UInt64 battleAnimTargetTime;
+			int battleAnimStatus;
+			float battleAnimTargetExp;
+			UInt64 lastBattleAnimTick;
+			UInt64 lastBattleAnimInnerTick;
+			int battleAnimStep;
+			nite::Vec2 battlAnimPosOff;
+            
+            nite::Vec2 position;
+            BattleEntity();
+			void setBattleAnim(int anim, UInt64 animTargetTime);
+			bool isBattleAnim();
+			void renderBattleAnim(float x, float y, bool blink);
+        };
+
+
         struct ActionTurn {
             int type;
-            Shared<Entity> target;
-            Shared<Entity> owner;
+            Shared<BattleEntity> target;
+            Shared<BattleEntity> owner;
             float fDmg;
         };
 
@@ -90,6 +158,8 @@
             nite::Font subFont;
             nite::Texture selArrow;
 
+            Vector<Shared<DamageNumber>> dmgNumbers;
+
             Shared<nite::BaseUIComponent> batWin;
 
             Vector<ActionTurn> decisions;
@@ -97,8 +167,10 @@
 
             Game::ActionTurn selAction;
 
-            Shared<Entity> getCurrentTurnSubject();
-            Shared<Entity> getCurrentSelTarget();
+            void addDmgNumber(const nite::Vec2 &stPos, int amnt);
+
+            Shared<BattleEntity> getCurrentTurnSubject();
+            Shared<BattleEntity> getCurrentSelTarget();
             void onSwitchSelTarget();
 
             int startTurn;
@@ -119,8 +191,8 @@
             nite::Vec2 actBarPos;
             
             Shared<Game::DialogHook> dialog;
-            Vector<Shared<Game::Entity>> groupA;
-            Vector<Shared<Game::Entity>> groupB;
+            Vector<Shared<BattleEntity>> groupA;
+            Vector<Shared<BattleEntity>> groupB;
 
             void setOptBoxVis(bool v);
             bool isOptBoxVis();

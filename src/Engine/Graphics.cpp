@@ -611,7 +611,7 @@ void nite::Batch::add(Renderable *object){
 void nite::Batch::begin(){
 	if(objectId <= -1) return;
 	if(currentBatch != NULL){
-		nite::print("bad Batch::begin(): check your code, a batch is not closing properly");
+		nite::print("bad Batch::begin(): a batch is not closing properly");
 	}
 	currentBatch = this;
 }
@@ -667,6 +667,18 @@ static int getBatchId(){
 	return ++batchIdSeed;
 }
 
+unsigned  nite::Batch::getWidth(){
+	return size.x;
+}
+
+unsigned  nite::Batch::getHeight(){
+	return size.y;
+}
+
+bool nite::Batch::isDirty(){
+	return dirty;
+}
+
 void nite::Batch::init(int w, int h){
 	if(objectId >= 0){
 		if(w == size.x && h == size.y){
@@ -692,6 +704,7 @@ nite::Batch::Batch(int w, int h){
 }
 
 nite::Batch::Batch(){
+	dirty = false;
 	objectId = -1;
 }
 
@@ -806,9 +819,11 @@ void nite::Batch::flush(bool clear){
 	}	
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, batches[objectId].framebufferId);
 	setupTarget(size.x, size.y, clear);
+	dirty = false;
 	for(int i = 0; i < objects.size(); ++i){
 		objects[i]->function(objects[i]);
 	}
+	dirty = objects.size() > 0;
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	clearBuffer();
 }
@@ -851,8 +866,13 @@ static void drawTarget(RenderTarget &target){
 	float yOffset = (size.y * targetExcess - size.y) / 2.0f;
 	float transX = 0 - xOffset;
 	float transY = (h * (1.0f - 1.0f / targetExcess)) - yOffset;
-	glTranslatef(transX + size.x, size.y * targetExcess * 0.5f, 0.0f);
-	glRotatef(target.realAngle, 0.0, 0.0, 1.0);
+	
+	float ftransx = nite::round(transX + size.x);
+	float ftransy = nite::round(size.y * targetExcess * 0.5f);
+	float angle = nite::round(target.realAngle);
+
+	glTranslatef(ftransx, ftransy, 0.0f);
+	glRotatef(angle, 0.0, 0.0, 1.0);
 	for(int i = 0; i < target.programs.size(); ++i){
 		glUseProgram(target.programs[i].id);
 		// nite::print(nite::toStr(target.programs[i].uniforms.integers.size()));
@@ -917,7 +937,7 @@ static void drawTarget(RenderTarget &target){
 	}
 	glBindTexture(GL_TEXTURE_2D, target.texture);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, target.smooth ? GL_LINEAR : GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, target.smooth ? GL_LINEAR : GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, target.smooth ? GL_LINEAR : GL_NEAREST);   	
 	GLfloat Box[] = {
 		-wi, -hi,
 		w-wi, -hi,

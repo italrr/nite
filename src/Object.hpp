@@ -15,6 +15,7 @@
             float mass;
             float invMass;
             float friction;
+            bool destroyed;
             
             UInt8 moveState;
 
@@ -40,7 +41,7 @@
             void reshape(const nite::Vec2 &size);
             void push(float force, float angle);
             void move(float x = 0.0f, float y = 0.0f);
-            void setPosition(const nite::Vec2 &p);
+            virtual void setPosition(const nite::Vec2 &p);
         };     
 
     }

@@ -1,10 +1,5 @@
 #include "Entity.hpp"
 
-static int lastId = nite::randomInt(25, 50);
-
-static int getId(){
-	return ++lastId;
-}
 
 Game::ComplexStat::ComplexStat() {
 	maxCarry = 1000;
@@ -262,18 +257,9 @@ bool Game::EntityStat::heal(int hp, int mana, int stamina){
 
 
 Game::Entity::Entity(){
-	id = getId();
 	walkSpeed = 1.0f;	
 	nickname = "Entity";
 	entityType = EntityType::UNDEFINED;
-
-	battlAnimBlinkFlip = false;
-	battleAnimStatus = EntityBattleAnim::IDLE;
-	lastBattleAnimBlinkTick = nite::getTicks();
-}
-
-void Game::Entity::moveEntity(float x, float y){
-	move(walkSpeed * x, walkSpeed * y);
 }
 
 void Game::Entity::loadAnim(){
@@ -282,78 +268,7 @@ void Game::Entity::loadAnim(){
 	}
 }
 
-void Game::Entity::setBattleAnim(int anim, UInt64 animTargetTime){
-	this->battleAnimTargetTime = animTargetTime;
-	this->battleAnimStatus = anim;
-	this->lastBattleAnimTick = nite::getTicks();
-	this->battleAnimStep = 0;
-	this->battleAnimTargetExp = 0.0f;
-	this->battlAnimPosOff.set(0.0f);
+void Game::Entity::moveEntity(float x, float y){
+	move(walkSpeed * x, walkSpeed * y);
 }
 
-bool Game::Entity::isBattleAnim(){
-	return nite::getTicks()-this->lastBattleAnimTick  > battleAnimTargetTime;
-}
-
-void Game::Entity::renderBattleAnim(float x, float y, bool blink){
-
-	float rateExp = 0.0f;
-	float maxExp = 0.0f;
-
-	float xoff = 0.0f;
-	float yoff = 0.0f;
-	float angle = 0.0f;
-	nite::Vec2 origin(0.5f);
-
-	switch(battleAnimStatus){
-		case EntityBattleAnim::ATTACK: {
-			float xFinOffset = -64.0f;
-			// origin.set(0.45f);
-			battlAnimPosOff.lerpDiscrete(xFinOffset, 0.05f);
-			xoff = battlAnimPosOff.x;
-			if(battlAnimPosOff.x / xFinOffset > 0.5f){
-				float n = battleAnimTargetExp * 100.0f;
-				rateExp = 1.0f;
-				nite::lerpDiscrete(n, 3000.0f, 0.25f);
-				battleAnimTargetExp = n / 100.0f;
-				maxExp = battleAnimTargetExp;
-				xoff += nite::randomInt(1, 2);
-				yoff += nite::randomInt(1, 2);
-			}
-			if(battlAnimPosOff.x / xFinOffset >= 0.95f){
-				battleAnimTargetTime = 0;
-			}
-			// if(nite::getTicks()-this->lastBattleAnimTick  > battleAnimTargetTime){
-			// 	setBattleAnim(EntityBattleAnim::IDLE, 0);
-			// }
-			
-		} break;
-		case EntityBattleAnim::STUTTER: {
-
-		} break;			
-		case EntityBattleAnim::IDLE: {
-			if(nite::getTicks()-lastBattleAnimBlinkTick > 600){
-				battlAnimBlinkFlip = !battlAnimBlinkFlip;
-				lastBattleAnimBlinkTick = nite::getTicks();
-			}			
-			nite::lerpDiscrete(battleAnimBlink, battlAnimBlinkFlip ? 100.0f : 0.0f, 0.05f);
-			rateExp = battleAnimBlink / 100.0f;
-			maxExp = 8.0f;
-		} break;
-	}
-
-
-    nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);
-	auto fshad = battleAnim.draw(xoff + x - 5, yoff + y + 5, battleAnim.getWidth() * 2.0f + maxExp * rateExp, battleAnim.getHeight() * 2.0f + maxExp * rateExp, origin.x, origin.y, angle);
-	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-	if(blink){
-		nite::setColor(1.0f -  0.5f * rateExp, 1.0f -  0.5f * rateExp, 1.0f - 0.5f * rateExp, 1.0f);
-	}
-	auto f = battleAnim.draw(xoff + x, yoff + y, battleAnim.getWidth() * 2.0f + maxExp * rateExp , battleAnim.getHeight() * 2.0f + maxExp * rateExp, origin.x, origin.y, angle);
-	if(f != NULL){
-		f->smooth = true;
-	}
-	if(fshad != NULL){
-		fshad->smooth = true;
-	}
-}

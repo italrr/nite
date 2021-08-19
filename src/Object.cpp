@@ -1,7 +1,15 @@
 #include "Object.hpp"
 
+static int lastId = nite::randomInt(25, 50);
+
+static int getId(){
+	return ++lastId;
+}
+
 Game::Object::Object(){
+	id = getId();
     friction = 0.0f;
+    destroyed = false;
     setMass(0.0f);
     setPosition(nite::Vec2(0.0f));  
     reshape(nite::Vec2(64.0f));
