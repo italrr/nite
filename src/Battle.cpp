@@ -777,12 +777,12 @@ void Game::Battle::render(){
         auto &subject = groupA[0]->entity;
         nite::setDepth(nite::DepthTop);
         nite::setColor(0.1f, 0.1f, 0.1f, 0.85f);
-        empty.draw(x - 4, y - 4, 120, 124, 0.0f, 0.0f, 0.0f);
+        empty.draw(x - 4, y - 4, 150, 124, 0.0f, 0.0f, 0.0f);
         nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
         subFont.draw(groupA[0]->entity->nickname, x, y);
-        subFont.draw("HP "+nite::toStr(subject->healthStat.health), x, y + h);
-        subFont.draw("MA "+nite::toStr(subject->healthStat.mana), x, y + h*2);
-        subFont.draw("ST "+nite::toStr(subject->healthStat.stamina), x, y + h*3);
+        subFont.draw("HP "+nite::toStr(subject->healthStat.health)+" / "+nite::toStr(subject->healthStat.maxHealth), x, y + h);
+        subFont.draw("MA "+nite::toStr(subject->healthStat.mana)+" / "+nite::toStr(subject->healthStat.maxMana), x, y + h*2);
+        subFont.draw("ST "+nite::toStr(subject->healthStat.stamina)+" / "+nite::toStr(subject->healthStat.maxStamina), x, y + h*3);
     }
 
 
