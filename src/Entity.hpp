@@ -166,6 +166,15 @@
 			};
 		}
 
+		struct Entity;
+		struct DamageInfo {
+			Shared<Entity> owner;
+			Shared<Entity> target;
+			int dmg;
+			int element;
+			bool isCrit;
+		};
+
         struct Entity : Object, EntityStat {
 
 			nite::Texture battleAnim;
@@ -176,6 +185,7 @@
 			Entity();
 			void loadAnim();
 			void moveEntity(float x, float y);
+			bool damage(DamageInfo &info);
         };
 
 

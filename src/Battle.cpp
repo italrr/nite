@@ -5,6 +5,7 @@
 #include "Engine/Input.hpp"
 
 Game::Battle::Battle(){
+    playerStatPos.set(8);
     this->state = Game::BattleState::BATTLE_READY;
     
     this->dialog = Shared<Game::DialogHook>(new Game::DialogHook());
@@ -75,20 +76,6 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     dialog->add("", randomEnterPhrase[nite::randomInt(0, randomEnterPhrase.size())]+"@500!"+names+(groupB.size() > 1 ? " are " : " is ")+"approaching...", nite::Color("#d20021"));
     dialog->start();
 
-    // group a
-    for(int i = 0; i < groupA.size(); ++i){
-        auto ent = std::make_shared<BattleEntity>(BattleEntity());
-        ent->entity = groupA[i];
-        ent->group = BattleGroup::GROUP_A;
-        this->groupA.push_back(ent);
-    }
-    for(int i = 0; i < groupB.size(); ++i){
-        auto ent = std::make_shared<BattleEntity>(BattleEntity());
-        ent->entity = groupB[i];
-        ent->group = BattleGroup::GROUP_B;
-        this->groupB.push_back(ent);
-    } 
-
     static const String mainFont = "MONOFONT.TTF";
 
     if(!font.isLoaded()){
@@ -103,6 +90,23 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     if(!selArrow.isLoaded()){
         selArrow.load("data/texture/arrow.png", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
     }
+
+    // group a
+    for(int i = 0; i < groupA.size(); ++i){
+        auto ent = std::make_shared<BattleEntity>(BattleEntity());
+        ent->font = font;
+        ent->subFont = subFont;
+        ent->entity = groupA[i];
+        ent->group = BattleGroup::GROUP_A;
+        this->groupA.push_back(ent);
+    }
+    for(int i = 0; i < groupB.size(); ++i){
+        auto ent = std::make_shared<BattleEntity>(BattleEntity());
+        ent->entity = groupB[i];
+        ent->subFont = subFont;      
+        ent->group = BattleGroup::GROUP_B;
+        this->groupB.push_back(ent);
+    } 
     
     if(batWin.get() != NULL){
         std::dynamic_pointer_cast<nite::WindowUI>(batWin)->close();
@@ -115,6 +119,7 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
         float y = nite::getHeight() * (1.0f - 0.25f);
         float w = nite::getWidth();
         float h = nite::getHeight()-y;
+        batWinPos.set(x, y);
         win->setPosition(nite::Vec2(x, y));
         win->setSize(nite::Vec2(w, h));     
 
@@ -250,6 +255,8 @@ void Game::Battle::onSwitchSelTarget(){
 
 void Game::Battle::step(){
 
+    playerStatPos.lerpDiscrete(nite::Vec2(8) + shakeOffPos, 0.15f);
+
     Vector<int> dmgNumToBeRemoved;
     for(int i = 0; i < dmgNumbers.size(); ++i){
         dmgNumbers[i]->step();
@@ -267,6 +274,7 @@ void Game::Battle::step(){
     }
 
     dialog->step();
+    vfxDev.step();
 
     const static UInt64 avgTransitionWait = 80;
 
@@ -611,19 +619,12 @@ void Game::Battle::step(){
                     onActionTimeout = 750;
                     onActionTick = nite::getTicks();
 
-                    current.owner->setBattleAnim(EntityBattleAnim::ATTACK, onActionTimeout);
-                    current.target->setBattleAnim(EntityBattleAnim::STUTTER, 500);
+                    // float dmg = 100.0f;
+                    // float def = 50.0f;
 
-
-                    float dmg = 100.0f;
-                    float def = 50.0f;
-
-                    float after = (dmg - def) * (triedToBlock ? 0.90f : 1.0f);
-                    current.fDmg = after;
-
-                    if(current.target->group != BattleGroup::GROUP_A){
-                        addDmgNumber(current.target->position, after);
-                    }                    
+                    // float after = (dmg - def) * (triedToBlock ? 0.90f : 1.0f);
+                    // current.fDmg = after;
+       
 
                     setOptBoxVis(false);
                     setDialogBoxVis(true);                    
@@ -658,11 +659,37 @@ void Game::Battle::step(){
         } break;
         case PLAY_ACTION_ATTACK: {
             auto &current = decisions[0];
-            if(current.owner->isBattleAnim() && dialog->isReady() && dialog->getLastReady() > 1500 && nite::getTicks()-onActionTick > onActionTimeout){
-                current.owner->setBattleAnim(EntityBattleAnim::IDLE, 0);
-                current.target->setBattleAnim(EntityBattleAnim::IDLE, 0);
+            if(current.owner->isBattleAnim() && dialog->isReady() && dialog->getLastReady() > 750 && nite::getTicks()-onActionTick > onActionTimeout){
+
+                current.owner->setBattleAnim(EntityBattleAnim::ATTACK, onActionTimeout);
+                current.target->setBattleAnim(EntityBattleAnim::STUTTER, 500);    
+
+
+
+                auto dmginfo = DamageInfo();
+                dmginfo.owner = current.owner->entity;
+                dmginfo.target = current.target->entity;
+                dmginfo.target->damage(dmginfo);
+
+
+                if(current.target->group != BattleGroup::GROUP_A){
+                    addDmgNumber(current.target->position, dmginfo.dmg);
+
+                    auto ef = Shared<Game::VfxBang>(new Game::VfxBang());
+                    ef->position = current.target->position;
+                    this->vfxDev.add(ef);     
+
+                }else{
+                    shakeEff();
+                    addDmgNumber(playerStatPos + 100, dmginfo.dmg, DamageNumberPattern::DROP_RIGHT);
+
+                    auto ef = Shared<Game::VfxBang>(new Game::VfxBang());
+                    ef->position = playerStatPos + 100;
+                    this->vfxDev.add(ef);                       
+                }
+
                 dialog->reset();
-                dialog->add("", current.target->entity->nickname+" received "+nite::toStr(current.fDmg)+" damage.", nite::Color("#d20021"));
+                dialog->add("", current.target->entity->nickname+" received "+nite::toStr(dmginfo.dmg)+" damage.", nite::Color("#d20021"));
                 dialog->start(); 
                 setState(POST_PLAY_ACTIONS);
                 // TODO: animation handling
@@ -670,9 +697,14 @@ void Game::Battle::step(){
             }
         } break;
         case POST_PLAY_ACTIONS: {        
+            auto &current = decisions[0];
+
             if(dialog->isReady()  && dialog->getLastReady() > 2200){
+                current.owner->setBattleAnim(EntityBattleAnim::IDLE, 0);
+                current.target->setBattleAnim(EntityBattleAnim::IDLE, 0);                
                 dialog->cont();
                 decisions.erase(decisions.begin());
+                // TODO: check if someone died
                 setState(BattleState::PRE_PLAY_ACTIONS);
             } 
         } break;
@@ -726,15 +758,37 @@ void Game::Battle::step(){
             onSwitchSelTarget();
         }    
     }
+    if(shakeDamageEff){
+        if(nite::getTicks()-shakeDmgEffTick > 500){
+            shakeDamageEff = false;
+            shakeOffPos.set(0.0f);
+        }else
+        if(nite::getTicks()-shakeDmgEffAppTick > 30){
+            shakeDmgEffAppTick = nite::getTicks();
+            shakeOffPos.x = nite::randomInt(-2, 2);
+            shakeOffPos.y = nite::randomInt(-2, 2);
+        }
+    }
 }
 
-void Game::Battle::addDmgNumber(const nite::Vec2 &stPos, int amnt){
+void Game::Battle::shakeEff(){
+
+    shakeDamageEff = true;
+    shakeDmgEffTick = nite::getTicks();
+    shakeDmgEffAppTick = nite::getTicks();
+    shakeOffPos.x = nite::randomInt(-2, 2);
+    shakeOffPos.y = nite::randomInt(-2, 2);    
+
+}
+
+void Game::Battle::addDmgNumber(const nite::Vec2 &stPos, int amnt, int pattern){
     auto num = std::make_shared<Game::DamageNumber>(Game::DamageNumber());
     num->setPosition(stPos);
     num->startTime = nite::getTicks();
     num->lifetime = 1800;
     num->font = this->font;
     num->amount = amnt;
+    num->pattern = pattern;
     this->dmgNumbers.push_back(num);
 }
 
@@ -749,7 +803,7 @@ void Game::Battle::render(){
 
     for(int i = 0; i < groupB.size(); ++i){
         float x = parts * (i+1);
-        float y = nite::getHeight() * 0.5f;
+        float y = nite::getHeight() * 0.4f;
         groupB[i]->renderBattleAnim(x, y, state == PICK_TARGET && selTarget == i + groupA.size());
         if(state == PICK_TARGET && selTarget == i + groupA.size()){
             if(nite::getTicks()-selTargetTick > 150){
@@ -771,21 +825,27 @@ void Game::Battle::render(){
 
     // draw player stats
     if(groupA.size() > 0){
-        float x = 8;
-        float y = 8;
+        nite::setDepth(nite::DepthMiddle);
+        nite::setRenderTarget(nite::RenderTargetUI);        
+        float x = playerStatPos.x;
+        float y = playerStatPos.y;
         float h = subFont.getHeight();
         auto &subject = groupA[0]->entity;
-        nite::setDepth(nite::DepthTop);
         nite::setColor(0.1f, 0.1f, 0.1f, 0.85f);
-        empty.draw(x - 4, y - 4, 150, 124, 0.0f, 0.0f, 0.0f);
+        empty.draw(x - 4, y - 4, 225, 124, 0.0f, 0.0f, 0.0f);
         nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-        subFont.draw(groupA[0]->entity->nickname, x, y);
+        subFont.draw(groupA[0]->entity->nickname+" | Lv. "+nite::toStr(groupA[0]->entity->healthStat.lv), x, y);
         subFont.draw("HP "+nite::toStr(subject->healthStat.health)+" / "+nite::toStr(subject->healthStat.maxHealth), x, y + h);
         subFont.draw("MA "+nite::toStr(subject->healthStat.mana)+" / "+nite::toStr(subject->healthStat.maxMana), x, y + h*2);
         subFont.draw("ST "+nite::toStr(subject->healthStat.stamina)+" / "+nite::toStr(subject->healthStat.maxStamina), x, y + h*3);
     }
 
 
+    nite::setDepth(nite::DepthTop);
+    nite::setRenderTarget(nite::RenderTargetUI);  
+    vfxDev.draw();
+
+    // shakeOffPos.
 
     // dialog->render();
 }
@@ -794,6 +854,7 @@ Game::DamageNumber::DamageNumber(){
     color.set("#ff3500");
     targetAngle = 0.0f;
     angle = 0.0f;
+    pattern = DamageNumberPattern::FALL_LEFT;
 }
 
 void Game::DamageNumber::step(){
@@ -802,19 +863,31 @@ void Game::DamageNumber::step(){
     if(elapsed > lifetime){
         destroyed = true;
     }
+    nite::Vec2 patternPos;
+    float patternAngle;
+    switch(pattern){
+        case DamageNumberPattern::DROP_RIGHT: {
+            patternPos = nite::Vec2(80.0f, 0.0f);
+            patternAngle = 10.0f;
+        } break;
+        case DamageNumberPattern::FALL_LEFT: {
+            patternPos = nite::Vec2(-80.0f, -80.0f);
+            patternAngle = -10.0f;
+        } break;
+    }
     if(elapsed < lifetime/3){
-        this->targetPosition = startPosition - nite::Vec2(64.0f, 64.0f);
-        this->targetAngle = -10.0f;
+        this->targetPosition = startPosition + patternPos;
+        this->targetAngle = patternAngle;
     }else
     if(elapsed > lifetime/3){
-        this->targetPosition = nite::Vec2(startPosition.x - 64.0f, this->targetPosition.y + 1);
+        this->targetPosition = nite::Vec2(startPosition.x + patternPos.x, this->targetPosition.y + 1);
         this->targetAngle = 0.0f;
     }
     nite::lerpDiscrete(angle, targetAngle * 100.0f, 0.20f);
     this->position.lerpDiscrete(this->targetPosition, 0.1f);
     if(nite::getTicks()-lastShakeTick > 200){
-        this->offPosition.x = nite::randomInt(-2, 2);
-        this->offPosition.y = nite::randomInt(-2, 2);
+        this->offPosition.x = nite::randomInt(-3, 3);
+        this->offPosition.y = nite::randomInt(-3, 3);
     }
     lerpPos.lerpDiscrete(this->position + this->offPosition, 0.10f);
 }
@@ -830,6 +903,7 @@ void Game::DamageNumber::render(){
         batch.flush();
     }
     nite::setDepth(nite::DepthTop);
+    nite::setRenderTarget(nite::RenderTargetUI);
     nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     auto obj = batch.draw(lerpPos.x, lerpPos.y, batch.getSize().x, batch.getSize().y, 0.5f, 0.5f, angle / 100.0f);
     if(obj != NULL){
@@ -886,13 +960,13 @@ void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
 			double timeDiff = (double)(nite::getTicks()-lastBattleAnimInnerTick) / (double)splitTime;
 			if(npassed && this->battleAnimStep == 0){
 				battlAnimPosOff.lerpDiscrete(xFinOffset, 0.25f);
-				xoff = battlAnimPosOff.x;				
+							
 			}else
 			if(npassed && this->battleAnimStep == 1){
 				battlAnimPosOff.lerpDiscrete(xFinOffset, 0.25f);
 				xoff = battlAnimPosOff.x;
-				xoff += nite::randomInt(2, 3);
-				yoff += nite::randomInt(2, 3);
+				xoff += nite::randomInt(-3, 3);
+				yoff += nite::randomInt(-3, 3);
 				nite::lerpDiscrete(battleAnimTargetExp, 8 * 100.0f, 0.25f);
 				rateExp = battleAnimTargetExp / 100.0f;
 				maxExp = 4.0f;
@@ -905,7 +979,7 @@ void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
 				rateExp = battleAnimTargetExp / 100.0f;
 				maxExp = 4.0f;				
 			}
-			
+			xoff = battlAnimPosOff.x;	
 			// // origin.set(0.45f);
 			// battlAnimPosOff.lerpDiscrete(xFinOffset, 0.05f);
 			// xoff = battlAnimPosOff.x;
@@ -941,8 +1015,8 @@ void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
 			if(npassed && this->battleAnimStep == 0){
 				battlAnimPosOff.lerpDiscrete(xFinOffset, 0.25f);
 				xoff = battlAnimPosOff.x;	
-				xoff += nite::randomInt(2, 3);
-				yoff += nite::randomInt(2, 3);	
+				xoff += nite::randomInt(-3, 3);
+				yoff += nite::randomInt(-3, 3);	
 				angle = 2.5f;						
 			}else
 			if(npassed && this->battleAnimStep == 1){
@@ -974,6 +1048,13 @@ void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
 		nite::setColor(1.0f -  0.5f * rateExp, 1.0f -  0.5f * rateExp, 1.0f - 0.5f * rateExp, 1.0f);
 	}
 	auto f = battleAnim.draw(position.x, position.y, battleAnim.getWidth() * 2.0f + maxExp * rateExp * ratio, battleAnim.getHeight() * 2.0f + maxExp * rateExp, origin.x, origin.y, angle);
+
+    // draw name and hp
+    nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+    float fontHeight = subFont.getHeight();
+    auto fobj = subFont.draw(entity->nickname+" | Lv. "+nite::toStr(entity->healthStat.lv), position.x, position.y  + battleAnim.getHeight() * 2.0f * 0.5f + 16, 0.5f, 0.5f, 0.0f);
+    subFont.draw("HP "+nite::toStr(entity->healthStat.health)+" / "+nite::toStr(entity->healthStat.maxHealth), position.x, position.y  + battleAnim.getHeight() * 2.0f * 0.5f + 16 + fontHeight, 0.5f, 0.5f, 0.0f);
+
 	if(f != NULL){
 		f->smooth = true;
 	}

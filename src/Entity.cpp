@@ -228,6 +228,7 @@ void Game::EntityStat::setupStat(int lv){
 	healthStat.dead = false;
 	baseStat.statPoints = 12;
 	while(healthStat.lv < lv && lvUp());
+	
 	fullHeal();
 }
 
@@ -272,3 +273,29 @@ void Game::Entity::moveEntity(float x, float y){
 	move(walkSpeed * x, walkSpeed * y);
 }
 
+bool Game::Entity::damage(Game::DamageInfo &info){
+	if(info.target->healthStat.dead || info.owner->healthStat.dead){
+		info.dmg = 0;
+		return false;
+	}
+	info.isCrit = false; // TODO: calculate crit chance
+	
+	float dmg = 1.0f + (float)info.owner->complexStat.atk * (info.isCrit ? 2.25f : 1.0f); // TODO: take weapon into account
+	float tdef = info.target->complexStat.def; // TODO: take equipment into account, and element
+
+	if(tdef > dmg){
+		dmg = 0;
+	}else{
+		dmg -= tdef;
+	}
+
+	if(dmg >= info.target->healthStat.health){
+		info.target->healthStat.dead = true;
+		info.target->healthStat.health = 0;
+	}else{
+		info.target->healthStat.health -= dmg;
+	}
+
+	info.dmg = dmg;
+	return true;
+}

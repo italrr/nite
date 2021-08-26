@@ -14,7 +14,6 @@ struct Player : Game::Entity {
 		setPosition(nite::Vec2(200, 500));
 		setMass(1.0f);
 		this->friction = 4.0f;
-		this->setupStat(1);
 		this->nickname = "Player";
 		entityType = Game::EntityType::PLAYER;
 	}
@@ -39,7 +38,6 @@ struct Mob : Game::Entity {
 		setPosition(nite::Vec2(500, 500));
 		setMass(1.0f);
 		this->friction = 4.0f;
-		this->setupStat(1);
 		this->nickname = "Jeremy";
 		entityType = Game::EntityType::MOB;
 	}
@@ -64,7 +62,6 @@ struct Mob2 : Game::Entity {
 		setPosition(nite::Vec2(500, 500));
 		setMass(1.0f);
 		this->friction = 4.0f;
-		this->setupStat(1);
 		this->nickname = "Billy";
 	}
 	
@@ -118,7 +115,13 @@ void Game::GameCore::init(){
 
 	// start game
 	player = std::make_shared<Player>(Player());
+	player->setupStat(5);
+	player->addBaseStat(BaseStatType::Strength, 1000);
+	
 	mob = std::make_shared<Mob>(Mob());
+	mob->setupStat(5);
+	mob->addBaseStat(BaseStatType::Strength, 1000);
+
 	mob2 = std::make_shared<Mob2>(Mob2());
 	player->loadAnim();
 	mob->loadAnim();

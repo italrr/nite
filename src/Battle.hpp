@@ -6,6 +6,8 @@
 
     #include "Dialog.hpp"
 
+    #include "Vfx.hpp"
+
     namespace Game {
 
         namespace BattleGroup {
@@ -97,6 +99,11 @@
             }
         }
 
+        enum DamageNumberPattern : int {
+            FALL_LEFT,
+            DROP_RIGHT
+        };
+
         struct DamageNumber : Object {
             int amount;
             nite::Batch batch;
@@ -113,6 +120,7 @@
             DamageNumber();
             void step();
             void render();
+            int pattern;
             int animStep;
             void setPosition(const nite::Vec2 &p){
                 this->position = p;
@@ -125,7 +133,8 @@
         struct BattleEntity {
             Shared<Entity> entity;
             int group;
-
+            nite::Font font;
+            nite::Font subFont;            
 			float battleAnimBlink;
 			bool battlAnimBlinkFlip;
 			UInt64 lastBattleAnimBlinkTick;
@@ -158,6 +167,8 @@
             nite::Font subFont;
             nite::Texture selArrow;
 
+            Game::VfxDevice vfxDev;
+
             Vector<Shared<DamageNumber>> dmgNumbers;
 
             Shared<nite::BaseUIComponent> batWin;
@@ -167,7 +178,7 @@
 
             Game::ActionTurn selAction;
 
-            void addDmgNumber(const nite::Vec2 &stPos, int amnt);
+            void addDmgNumber(const nite::Vec2 &stPos, int amnt, int pattern = DamageNumberPattern::FALL_LEFT);
 
             Shared<BattleEntity> getCurrentTurnSubject();
             Shared<BattleEntity> getCurrentSelTarget();
@@ -189,10 +200,19 @@
             UInt64 lastStChange;
             nite::Texture empty;
             nite::Vec2 actBarPos;
+            nite::Vec2 batWinPos;
+            nite::Vec2 shakeOffPos;
+            nite::Vec2 playerStatPos;
             
             Shared<Game::DialogHook> dialog;
             Vector<Shared<BattleEntity>> groupA;
             Vector<Shared<BattleEntity>> groupB;
+
+            bool shakeDamageEff;
+            UInt64 shakeDmgEffTick;
+            UInt64 shakeDmgEffAppTick;
+
+            void shakeEff();
 
             void setOptBoxVis(bool v);
             bool isOptBoxVis();
