@@ -697,14 +697,15 @@ void Game::Battle::step(){
             }
         } break;
         case POST_PLAY_ACTIONS: {        
-            auto &current = decisions[0];
-
             if(dialog->isReady()  && dialog->getLastReady() > 2200){
+                dialog->cont();
+
+                // TODO: check if someone died
+
+                auto &current = decisions[0];
                 current.owner->setBattleAnim(EntityBattleAnim::IDLE, 0);
                 current.target->setBattleAnim(EntityBattleAnim::IDLE, 0);                
-                dialog->cont();
                 decisions.erase(decisions.begin());
-                // TODO: check if someone died
                 setState(BattleState::PRE_PLAY_ACTIONS);
             } 
         } break;
