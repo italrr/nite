@@ -10,11 +10,21 @@ bool Game::DialogHook::canCont(){
     return isReady() && this->proceed;
 }
 
+bool Game::DialogHook::canNext(){
+    return lines.size() < currentDiag && currenText.size() >= targetText.size() || isReady();
+}
+
 void Game::DialogHook::cont(){
-    if(this->ready){
+    if(this->ready && !this->autocont){
         this->proceed = true;
         onCont();
     }        
+}
+
+void Game::DialogHook::setAutoCont(UInt64 timeout){
+    autocont = true;
+    autoContTimeout = timeout;
+    autoContTick = nite::getTicks();
 }
 
 UInt64 Game::DialogHook::getLastReady(){
@@ -55,6 +65,7 @@ void Game::DialogHook::reset(){
     currenText = "";
     currentDiag = 0;
     currentChar = 0;
+    autocont = false;
     lastChar = nite::getTicks();
     lines.clear();
     onReset();
@@ -67,6 +78,12 @@ void Game::DialogHook::setImmediateText(const String &text){
 }
 
 void Game::DialogHook::step(){
+
+    if(!proceed && ready && autocont && nite::getTicks()-autoContTick > autoContTimeout){
+        proceed = true;
+        autocont = false;
+        onCont();
+    }
     if(nite::getTicks()-lastChar < 20 || delay || currenText.size() >= targetText.size()){
         if(delay && nite::getTicks()-delayTick > delayTimeout){
             delay = false;

@@ -123,6 +123,9 @@ void Game::GameCore::init(){
 	mob->addBaseStat(BaseStatType::Strength, 1000);
 
 	mob2 = std::make_shared<Mob2>(Mob2());
+	mob2->setupStat(5);
+	mob2->addBaseStat(BaseStatType::Strength, 1000);
+
 	player->loadAnim();
 	mob->loadAnim();
 	mob2->loadAnim();
@@ -159,7 +162,7 @@ void Game::GameCore::step(){
 		}		
 		if(nite::keyboardPressed(nite::keyZ)){
 			if(!battle->isShowing()){
-				battle->start({player}, {mob}); // this could go so wrong lol
+				battle->start({player}, {mob, mob2}); // this could go so wrong lol
 			}
 			// if(dialog->isReady() && !dialog->isShowing()){
 			// 	dialog->reset();

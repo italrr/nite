@@ -42,11 +42,18 @@
 
             Vector<Shared<DialogLine>> lines;
             
+
+            bool autocont;
+            UInt64 autoContTick;
+            UInt64 autoContTimeout;
+            void setAutoCont(UInt64 timeout);
+
             bool canCont();
             bool isReady();
             void cont();
             DialogHook();
             UInt64 getLastReady();
+            bool canNext();
             void add(const String &emt, const String &text, const nite::Color &color = nite::White);
             void start();
             void reset();

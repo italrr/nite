@@ -47,7 +47,12 @@
             PLAY_ACTIONS_DECIDE_ORDER,
             PRE_PLAY_ACTIONS,
             PLAY_ACTION_ATTACK,
-            POST_PLAY_ACTIONS
+            POST_PLAY_ACTIONS,
+
+            ENTITY_DEATH,
+            DEATH_EXIT,
+
+            GAME_OVER
 
         };
 
@@ -147,6 +152,11 @@
 			int battleAnimStep;
 			nite::Vec2 battlAnimPosOff;
             
+            nite::Vec2 posOffset;
+            nite::Vec2 posLerp;
+
+            bool died;
+            bool isOut();
             nite::Vec2 position;
             BattleEntity();
 			void setBattleAnim(int anim, UInt64 animTargetTime);
@@ -165,7 +175,9 @@
         struct Battle {
             nite::Font font;
             nite::Font subFont;
-            nite::Texture selArrow;
+            nite::Texture selArrowBlack;
+            nite::Texture selArrowWhite;
+            nite::Texture empty;
 
             Game::VfxDevice vfxDev;
 
@@ -177,6 +189,10 @@
             int cdecision;
 
             Game::ActionTurn selAction;
+
+            // Shared<BattleEntity> whoDied;
+
+            Vector<Shared<BattleEntity>> whoDied;
 
             void addDmgNumber(const nite::Vec2 &stPos, int amnt, int pattern = DamageNumberPattern::FALL_LEFT);
 
@@ -197,8 +213,11 @@
             UInt64 selTargetTick;
             bool selTargetFlip;
 
+            float diagArrowOffset;
+            UInt64 diagArrowTick;
+            bool diagArrowFlip;            
+
             UInt64 lastStChange;
-            nite::Texture empty;
             nite::Vec2 actBarPos;
             nite::Vec2 batWinPos;
             nite::Vec2 shakeOffPos;
@@ -212,6 +231,9 @@
             UInt64 shakeDmgEffTick;
             UInt64 shakeDmgEffAppTick;
 
+
+            std::function<void(int winGroup)> onBattleEnd;
+
             void shakeEff();
 
             void setOptBoxVis(bool v);
@@ -220,15 +242,21 @@
             void setDialogBoxVis(bool v);
             bool isDialogBoxVis();
 
+
+            void setWinVis(bool v);
+            bool isWinVis();
+
             bool isShowing();
             void setState(int nstate);
             void nextTurn();
 
+            void end(int winGroup);
+
             void updOptBoxTitle(const String &str);
 
             Battle();
+            void reset();
             void start(const Vector<Shared<Game::Entity>> &groupA, const Vector<Shared<Game::Entity>> &groupB);
-            void end();
             void step();
             void render();
 

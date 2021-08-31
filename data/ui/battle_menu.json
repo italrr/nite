@@ -39,6 +39,7 @@
 					"padding": { "hor": 32, "vert": 32 },
 					"children": [
 						{
+							"id": "text-box-inner",
 							"type": "panel",
 							"flex": 1,
 							"backgroundColor": "#0f0f0f",

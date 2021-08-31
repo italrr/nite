@@ -12,6 +12,10 @@ Game::Battle::Battle(){
 
     this->startTurn = 0;
 
+    this->onBattleEnd = [](int winGroup){
+
+    };
+
     this->lastStChange = nite::getTicks();
 
     this->dialog->onReset = [&](){
@@ -60,6 +64,24 @@ void Game::Battle::setState(int nstate){
     nite::print("[debug] battle set new state "+nite::toStr(nstate));
 }
 
+void Game::Battle::end(int winGroup){
+    onBattleEnd(winGroup);
+    reset();
+}
+
+void Game::Battle::reset(){
+    setState(BATTLE_READY);
+    groupA.clear();
+    groupB.clear();
+    dialog->reset();
+    setWinVis(false);
+    setOptBoxVis(false);
+    setDialogBoxVis(false);
+    this->selTargetTick = nite::getTicks();
+    this->selTargetFlip = false;    
+    this->startTurn = 0;
+}
+
 void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vector<Shared<Game::Entity>> &groupB){
     if(!empty.isLoaded()){
         empty.load("data/texture/empty.png");
@@ -87,9 +109,12 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     if(!empty.isLoaded()){
         empty.load("data/texture/empty.png");
     }
-    if(!selArrow.isLoaded()){
-        selArrow.load("data/texture/arrow.png", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+    if(!selArrowBlack.isLoaded()){
+        selArrowBlack.load("data/texture/ui/arrow_black.png", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
     }
+    if(!selArrowWhite.isLoaded()){
+        selArrowWhite.load("data/texture/ui/arrow_white.png", nite::Color(1.0f, 0.0f, 0.0f, 1.0f));
+    }    
 
     // group a
     for(int i = 0; i < groupA.size(); ++i){
@@ -173,8 +198,15 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     // }
 }
 
-void Game::Battle::end(){
+void Game::Battle::setWinVis(bool v){
+    if(batWin.get() == NULL){
+        return;
+    }
+    batWin->setVisible(v);
+}
 
+bool Game::Battle::isWinVis(){
+    return batWin->isVisible();
 }
 
 void Game::Battle::setOptBoxVis(bool v){
@@ -254,6 +286,10 @@ void Game::Battle::onSwitchSelTarget(){
 }
 
 void Game::Battle::step(){
+    
+    if(state == BattleState::BATTLE_READY){
+        return;
+    }
 
     playerStatPos.lerpDiscrete(nite::Vec2(8) + shakeOffPos, 0.15f);
 
@@ -473,6 +509,21 @@ void Game::Battle::step(){
         setDialogBoxVis(false);          
     };
 
+    auto getFirstDeadOne = [&](){
+        Vector<Shared<BattleEntity>> dead;
+        for(int i = 0; i < groupA.size(); ++i){
+            if(groupA[i]->entity->healthStat.dead){
+                dead.push_back(groupA[i]);
+            }
+        }
+        for(int i = 0; i < groupB.size(); ++i){
+            if(groupB[i]->entity->healthStat.dead){
+                dead.push_back(groupB[i]);
+            }
+        }                    
+
+        return dead;
+    };
 
     switch(state){
         case BATTLE_START: {
@@ -504,7 +555,8 @@ void Game::Battle::step(){
                     }else{
                         dialog->add("", "What will "+groupA[cdecision]->entity->nickname+" do?", nite::Color("#d20021"));
                     }
-                    dialog->start();               
+                    dialog->start();           
+                    dialog->setAutoCont(1000);
                     setState(PRE_PICK_ACTION);
                 // AI Chooses
                 }else{
@@ -512,7 +564,7 @@ void Game::Battle::step(){
                     auto who = getCurrentTurnSubject();
                     ActionTurn act;
                     act.owner = who;
-                    act.type = ActionType::ATTACK;
+                    act.type = ActionType::BLOCK;
                     act.target = groupA[0];
                     decisions.push_back(act);
                     nite::print("[AI] '"+who->entity->nickname+"' decided to "+ActionType::name(act.type)+" '"+act.target->entity->nickname+"'");
@@ -522,7 +574,7 @@ void Game::Battle::step(){
         } break;     
 
         case PRE_PICK_ACTION: {
-            if(dialog->canCont() && nite::getTicks()-lastStChange > 0 || dialog->isReady() && nite::getTicks()-lastStChange > 1000){
+            if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
                 setState(PICK_ACTION);
                 generateMainOptions();
                 setOptBoxVis(true);
@@ -578,7 +630,7 @@ void Game::Battle::step(){
                 if(b.type == ActionType::BLOCK || b.type == ActionType::DODGE){
                     return true;
                 }else{
-                    return true;
+                    return false;
                 }
             });      
             for(int i = 0; i < decisions.size(); ++i){
@@ -631,23 +683,26 @@ void Game::Battle::step(){
 
                     dialog->reset();
                     if(triedToBlock){
-                        dialog->add("", current.owner->entity->nickname+" attacks "+current.target->entity->nickname+". @800!"+current.target->entity->nickname+" tries to block it!", nite::Color("#d20021"));
+                        dialog->add("", current.owner->entity->nickname+" attacks "+current.target->entity->nickname+"@100!.@100!.@100!.@100! But "+current.target->entity->nickname+" blocks it!", nite::Color("#d20021"));
                     }else{
                         dialog->add("", current.owner->entity->nickname+" attacks "+current.target->entity->nickname+"!", nite::Color("#d20021"));
                     }
                     dialog->start();  
+                    dialog->setAutoCont(triedToBlock ? 2500 : 1600);
                     setState(PLAY_ACTION_ATTACK);
                 } break;
                 case ActionType::DODGE: {
                     dialog->reset();
                     dialog->add("", current.owner->entity->nickname+" tried to dodged nothing...", nite::Color("#d20021"));
                     dialog->start();  
+                    dialog->setAutoCont(1600);
                     setState(POST_PLAY_ACTIONS);
                 } break;
                 case ActionType::BLOCK: {
                     dialog->reset();
                     dialog->add("", current.owner->entity->nickname+" tried to block nothing...", nite::Color("#d20021"));
                     dialog->start();  
+                    dialog->setAutoCont(1600);
                     setState(POST_PLAY_ACTIONS);
                 } break;                
                 default: {
@@ -659,7 +714,7 @@ void Game::Battle::step(){
         } break;
         case PLAY_ACTION_ATTACK: {
             auto &current = decisions[0];
-            if(current.owner->isBattleAnim() && dialog->isReady() && dialog->getLastReady() > 750 && nite::getTicks()-onActionTick > onActionTimeout){
+            if(current.owner->isBattleAnim() && dialog->canCont()){
 
                 current.owner->setBattleAnim(EntityBattleAnim::ATTACK, onActionTimeout);
                 current.target->setBattleAnim(EntityBattleAnim::STUTTER, 500);    
@@ -691,25 +746,85 @@ void Game::Battle::step(){
                 dialog->reset();
                 dialog->add("", current.target->entity->nickname+" received "+nite::toStr(dmginfo.dmg)+" damage.", nite::Color("#d20021"));
                 dialog->start(); 
+                dialog->setAutoCont(2000);                
                 setState(POST_PLAY_ACTIONS);
                 // TODO: animation handling
                 // TODO: check if target died
             }
         } break;
         case POST_PLAY_ACTIONS: {        
-            if(dialog->isReady()  && dialog->getLastReady() > 2200){
+            if(dialog->canCont()){
                 dialog->cont();
 
-                // TODO: check if someone died
-
-                auto &current = decisions[0];
-                current.owner->setBattleAnim(EntityBattleAnim::IDLE, 0);
-                current.target->setBattleAnim(EntityBattleAnim::IDLE, 0);                
-                decisions.erase(decisions.begin());
-                setState(BattleState::PRE_PLAY_ACTIONS);
+                auto died = getFirstDeadOne();
+                
+                // if no one died, carry on
+                if(died.size() == 0){
+                    auto &current = decisions[0];
+                    current.owner->setBattleAnim(EntityBattleAnim::IDLE, 0);
+                    current.target->setBattleAnim(EntityBattleAnim::IDLE, 0);                
+                    decisions.erase(decisions.begin());
+                    setState(BattleState::PRE_PLAY_ACTIONS);
+                }else{
+                // someone died, do the animation
+                    setState(BattleState::ENTITY_DEATH);
+                }
             } 
         } break;
+        case ENTITY_DEATH: {  
+            if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
+                auto died = getFirstDeadOne();
 
+                if(died.size() == 0){
+                    setState(BattleState::POST_PLAY_ACTIONS);
+                    break;
+                }
+
+                std::sort(died.begin(), died.end(), [](Shared<BattleEntity> &a, Shared<BattleEntity> &b){
+                    return a->entity->entityType != EntityType::PLAYER || b->entity->entityType != EntityType::PLAYER;
+                });      
+
+                if(died[0]->entity->entityType == EntityType::PLAYER){
+                    dialog->reset();
+                    dialog->add("", "You died.", nite::Color("#d20021"));
+                    dialog->start();                     
+                    setState(BattleState::GAME_OVER);
+                }
+
+                // TODO: calculate gained exp
+                // remove
+                if(!died[0]->died){
+                    dialog->reset();
+                    dialog->add("", died[0]->entity->nickname+" died.", nite::Color("#d20021"));
+                    dialog->start();                     
+                    died[0]->died = true;
+                    died[0]->setBattleAnim(EntityBattleAnim::IDLE, 0); 
+                }
+
+                if(died[0]->isOut()){
+                    if(died[0]->group == BattleGroup::GROUP_A){
+                        for(int i = 0; i < groupA.size(); ++i){
+                            if(died[0].get() == groupA[i].get()){
+                                 groupA.erase(groupA.begin() + i);
+                            }
+                        }
+                    }else
+                    if(died[0]->group == BattleGroup::GROUP_B){                
+                        for(int i = 0; i < groupB.size(); ++i){
+                            if(died[0].get() == groupB[i].get()){
+                                 groupB.erase(groupB.begin() + i);
+                            }
+                        }
+                    }                    
+                }
+
+            }
+        } break;
+        case GAME_OVER: {
+            if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
+                end(BattleGroup::GROUP_B);
+            }
+        } break;
 
     }
 
@@ -795,6 +910,10 @@ void Game::Battle::addDmgNumber(const nite::Vec2 &stPos, int amnt, int pattern){
 
 void Game::Battle::render(){
     
+    if(state == BattleState::BATTLE_READY){
+        return;
+    }
+
 	nite::setRenderTarget(nite::RenderTargetUI);
 	nite::setDepth(nite::DepthBottom);
     nite::setColor(nite::Color("#b19ddd", 1.0f));
@@ -811,8 +930,14 @@ void Game::Battle::render(){
                 selTargetTick = nite::getTicks();
                 selTargetFlip = !selTargetFlip;
             }
+            nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);            
+            auto arrefsha = selArrowBlack.draw(x + 1, y - nite::getHeight() * 0.25f + 32.0f * (selTargetOffset/100.0f) + 1, 32, 32, 0.5f, 0.5f, 0.0f);
+            if(arrefsha != NULL){
+                arrefsha->smooth = true;
+            }
+            nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);            
             nite::lerpDiscrete(selTargetOffset, selTargetFlip ? 0.0f : 100.0f, 0.08f);
-            auto arref = selArrow.draw(x, y - nite::getHeight() * 0.25f + 32.0f * (selTargetOffset/100.0f), 32, 32, 0.5f, 0.5f, 0.0f);
+            auto arref = selArrowBlack.draw(x, y - nite::getHeight() * 0.25f + 32.0f * (selTargetOffset/100.0f), 32, 32, 0.5f, 0.5f, 0.0f);
             if(arref != NULL){
                 arref->smooth = true;
             }
@@ -823,6 +948,36 @@ void Game::Battle::render(){
         dmgNumbers[i]->render();
     }
 
+    // this is stupid 
+    // TODO: improve it
+    if(batWin.get() != NULL && batWin->isVisible() && isDialogBoxVis()){
+        auto textInnerBox = batWin->getComponentById("text-box-inner");
+        if(textInnerBox.get() != NULL && textInnerBox->type == "panel"){
+            auto head =  textInnerBox->getHeadComponent();
+            if(head != NULL){
+                if(nite::getTicks()-diagArrowTick > 320){
+                    diagArrowTick = nite::getTicks();
+                    diagArrowFlip = !diagArrowFlip;
+                }                
+                nite::lerpDiscrete(diagArrowOffset, diagArrowFlip ? 0.0f : 100.0f, diagArrowFlip ? 0.12f : 0.04f);
+                nite::setDepth(nite::DepthTop);
+                nite::setRenderTarget(nite::RenderTargetUI);                     
+                auto p = batWinPos + head->position - head->size * 0.5f + textInnerBox->size * nite::Vec2(0.95f, 0.95f) + nite::Vec2(0.0f, 24.0f * (diagArrowOffset/100.0f)) - nite::Vec2(0.0f, 24.0f);
+                if(dialog->canNext() && !dialog->autocont){
+                    nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);
+                    auto arrefsha = selArrowWhite.draw(p.x + 2, p.y + 2, 32, 32, 0.5f, 0.5f, 0.0f);
+                    nite::setColor(0.91f, 0.08f, 0.15f, 1.0f);
+                    auto arref = selArrowWhite.draw(p.x, p.y, 32, 32, 0.5f, 0.5f, 0.0f);
+                    if(arref != NULL){
+                        arref->smooth = true;
+                    } 
+                    if(arrefsha != NULL){
+                        arrefsha->smooth = true;
+                    }                     
+                }           
+            }
+        }
+    }
 
     // draw player stats
     if(groupA.size() > 0){
@@ -913,7 +1068,8 @@ void Game::DamageNumber::render(){
 }
 
 Game::BattleEntity::BattleEntity(){
-
+    died = false;
+    posOffset = nite::Vec2(0.0f);
 	battlAnimBlinkFlip = false;
 	battleAnimStatus = EntityBattleAnim::IDLE;
 	lastBattleAnimBlinkTick = nite::getTicks();    
@@ -934,6 +1090,10 @@ bool Game::BattleEntity::isBattleAnim(){
 	return nite::getTicks()-this->lastBattleAnimTick  > battleAnimTargetTime;
 }
 
+bool Game::BattleEntity::isOut(){
+    return posOffset.y > nite::getHeight()-1;
+}
+
 void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
 
     auto &battleAnim = entity->battleAnim;
@@ -945,6 +1105,10 @@ void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
 	float yoff = 0.0f;
 	float angle = 0.0f;
 	nite::Vec2 origin(0.5f);
+
+    if(died){
+        posOffset.lerpDiscrete(nite::Vec2(0.0f, nite::getHeight()), 0.10f);
+    }
 
 	switch(battleAnimStatus){
 		case EntityBattleAnim::ATTACK: {
@@ -966,8 +1130,8 @@ void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
 			if(npassed && this->battleAnimStep == 1){
 				battlAnimPosOff.lerpDiscrete(xFinOffset, 0.25f);
 				xoff = battlAnimPosOff.x;
-				xoff += nite::randomInt(-3, 3);
-				yoff += nite::randomInt(-3, 3);
+				xoff += nite::randomInt(-16, 16);
+				yoff += nite::randomInt(-16, 16);
 				nite::lerpDiscrete(battleAnimTargetExp, 8 * 100.0f, 0.25f);
 				rateExp = battleAnimTargetExp / 100.0f;
 				maxExp = 4.0f;
@@ -1016,8 +1180,8 @@ void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
 			if(npassed && this->battleAnimStep == 0){
 				battlAnimPosOff.lerpDiscrete(xFinOffset, 0.25f);
 				xoff = battlAnimPosOff.x;	
-				xoff += nite::randomInt(-3, 3);
-				yoff += nite::randomInt(-3, 3);	
+				xoff += nite::randomInt(-128, 128);
+				yoff += nite::randomInt(-128, 128);	
 				angle = 2.5f;						
 			}else
 			if(npassed && this->battleAnimStep == 1){
@@ -1041,8 +1205,9 @@ void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
 
     nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);
 	float ratio = battleAnim.getWidth() / battleAnim.getHeight();
-    position.x = xoff + x;
-    position.y = yoff + y;
+
+    posLerp.set(xoff + x + posOffset.x, yoff + y + posOffset.y);
+    position.lerpDiscrete(posLerp, 0.10f);
 	auto fshad = battleAnim.draw(position.x - 5, position.y + 5, battleAnim.getWidth() * 2.0f + maxExp * rateExp * ratio, battleAnim.getHeight() * 2.0f + maxExp * rateExp, origin.x, origin.y, angle);
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	if(blink){
