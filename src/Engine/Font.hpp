@@ -11,8 +11,24 @@
 			};
 		}
 
+		struct FontStyle {
+			int size;
+			float outline;
+			nite::Color outlineColor;
+			nite::Vec2 shadow;
+			nite::Color shadowColor;
+			FontStyle(){
+				size = 14;
+				outline = 0.0f;
+				shadow.set(0.0f);
+				shadowColor.set(0.0f);
+				outlineColor.set(0.0f);
+			}
+		};		
+
 		class Font;
 		struct RenderableFont : public nite::Renderable {
+			nite::FontStyle style;
 			String text;
 			nite::Font *ref;
 			unsigned objectId;
@@ -58,8 +74,10 @@
 			public:
 				bool isLoaded();
 				void load(const String &path, unsigned size, float outlineThickness = 0.0f);
+				void load(const String &path, const nite::FontStyle &style);
 				Font();
 				Font(const String &path, unsigned size, float outlineThickness = 0.0f);
+				Font(const String &path, const nite::FontStyle &style);
 				~Font();
 				Font& operator= (const nite::Font &other);
 				nite::RenderableFont *draw(const String &text, float x, float y);
@@ -69,6 +87,7 @@
 				nite::RenderableFont *draw(const String &text, const nite::Vec2 &P, const nite::Vec2 &orig, float angle);
 				nite::RenderableFont *draw(const String &text, const nite::Vec2 &P);
 				void setTick(bool v);
+				float getTickness();
 				float getWidth(const String &str);
 				float getHeight();
 				float getHeight(const String &str);
@@ -79,7 +98,9 @@
 				void setSmooth(bool s);
 				int getFontSize();
 				String getFilename();
+				nite::FontStyle style;
 			private:	
+				float thickness;
 				int size;
 				float ln;
 				bool smooth;

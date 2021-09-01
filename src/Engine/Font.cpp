@@ -134,48 +134,67 @@ struct Single {
 	}
 	// pure makes a base with the exact same level per channel
 	void pure(int w, int h, unsigned char* src){
-		int channels = 4;
+		int channels = 2;
 		this->w = w;
 		this->h = h;
 		size = w * h * channels;
 		buffer = new unsigned char[size];
 		memset(buffer, 0, size);
 		for(int i = 0; i < w*h; ++i){
-			buffer[i*4 + 0] = src[i];
-			buffer[i*4 + 1] = src[i];
-			buffer[i*4 + 2] = src[i];
-			buffer[i*4 + 3] = src[i];
+			buffer[i*channels + 0] = src[i];
 		}
 	}
 	// strong makes a base with strong opposite (> 0 -> 0, == 0 -> 255)
 	void strong(int w, int h, unsigned char* src){
-		int channels = 4;
+		int channels = 2;
 		this->w = w;
 		this->h = h;
 		size = w * h * channels;
 		buffer = new unsigned char[size];
 		memset(buffer, 0, size);
 		for(int i = 0; i < w*h; ++i){
-			unsigned char v = src[i] > 0 ? 0 : 255;
-			buffer[i*4 + 0] = v;
-			buffer[i*4 + 1] = v;
-			buffer[i*4 + 2] = v;
-			buffer[i*4 + 3] = src[i];
+			// unsigned char v = src[i] > 0 ? 0 : 255;
+			// buffer[i*channels + 0] = v;
+			// buffer[i*channels + 1] = v;
+			// buffer[i*channels + 2] = v;
+			// buffer[i*channels + 3] = src[i];
+			buffer[i*channels + 1] = src[i];
 		}
 	}
 	// bliz paints over a strong base
 	void blitz(int w, int h, unsigned char* src){
 		// blitz expects a smaller bitmap
-		int offsetx = (this->w - w) / 2;
-		int offsety = (this->h - h) / 2;
+		int channels = 2;
+		int offsetx = nite::round((float)(this->w - w) / 2.0f);
+		int offsety = nite::round((float)(this->h - h) / 2.0f);
 		for(int y = 0; y < h; ++y){
 			for(int x = 0; x < w; ++x){
 				int i = y * w  + x; //src
 				int j = (y + offsety)  * this->w + x + offsetx; // target
-				buffer[j*4 + 0] = src[i];
-				buffer[j*4 + 1] = src[i];
-				buffer[j*4 + 2] = src[i];
+				// buffer[j*4 + 0] = src[i];
+				// buffer[j*4 + 1] = src[i];
+				// buffer[j*4 + 2] = src[i];
 				// buffer[j*4 + 3] = (buffer[j*4 + 3] + src[i]); // disregard alpha			
+				buffer[j*channels + 0] = src[i];
+			}
+		}
+	}
+
+	// bliz paints over a strong base
+	void blitz(int x, int y, int w, int h, unsigned char* src){
+		// blitz expects a smaller bitmap
+		int channels = 2;
+		int offsetx = nite::round((float)(this->w - w) / 2.0f) + x;
+		int offsety = nite::round((float)(this->h - h) / 2.0f) + y;
+		for(int y = 0; y < h; ++y){
+			for(int x = 0; x < w; ++x){
+				int i = y * w  + x; //src
+				int j = (y + offsety)  * this->w + x + offsetx; // target
+				// buffer[j*4 + 0] = src[i];
+				// buffer[j*4 + 1] = src[i];
+				// buffer[j*4 + 2] = src[i];
+				// buffer[j*4 + 3] = (buffer[j*4 + 3] + src[i]); // disregard alpha			
+				buffer[j*channels + 0] = src[i];
 			}
 		}
 	}
@@ -189,13 +208,23 @@ struct Single {
 	}
 };
 
-// TODO: Unicode
 void nite::Font::load(const String &path, unsigned size, float thickness){
+	nite::FontStyle style;
+	style.outline = thickness;
+	style.size = size;
+	load(path, style);
+}
+
+// TODO: Unicode
+void nite::Font::load(const String &path, const nite::FontStyle &style){
 	FT_Library library;
 	FT_Face face;
 	String filename = path;
-	size *= SCALING;
+	this->size = style.size * SCALING;
+	this->style = style;
+	this->thickness = style.outline;
 	ln = -1.0f;
+	// thickness = 0.0f;
 
 	if(!nite::fileExists(filename)){
 		nite::print("couldn't load font '"+filename+"': doesn't exist");
@@ -214,7 +243,7 @@ void nite::Font::load(const String &path, unsigned size, float thickness){
 	}	
 
 	unload();
-	String pathAndSize = path+nite::toStr(size);
+	String pathAndSize = path+nite::toStr(style.size);
 	String fileHash = nite::hashMemory((char*)pathAndSize.c_str(), pathAndSize.size());
 	objectId = getSlotByHash(fileHash);
 	if (objectId <= -1){
@@ -230,7 +259,7 @@ void nite::Font::load(const String &path, unsigned size, float thickness){
 	fontT &proxy = fontList[objectId];
 
 
-	if(FT_Set_Char_Size(face, size << 6, size << 6, 96, 96)){
+	if(FT_Set_Char_Size(face, 0, style.size << 6, 96, 96)){
 		nite::print("failure loading font '"+filename+"': FT_New_Face");
 		FT_Done_FreeType(library);		
 		return;
@@ -246,12 +275,13 @@ void nite::Font::load(const String &path, unsigned size, float thickness){
 	int xcursor = 0.0f;
 	// render characters
 	for(int i = ASCII_MIN; i < ASCII_MAX; i++){
-		FT_UInt cindex = FT_Get_Char_Index(face, i);
+		FT_Load_Char(face, i, FT_LOAD_NO_BITMAP | FT_LOAD_TARGET_NORMAL);//FT_Get_Char_Index(face, i);
 		FT_Glyph glyph, stroke;
-		if(FT_Load_Glyph(face, cindex, FT_LOAD_DEFAULT)){
-			nite::print("failed to load char '"+nite::toStr((char)i)+"' for font '"+filename+"'");
-			continue;
-		}
+		// if(FT_Load_Glyph(face, cindex, FT_LOAD_DEFAULT)){
+		// 	nite::print("failed to load char '"+nite::toStr((char)i)+"' for font '"+filename+"'");
+		// 	continue;
+		// }
+
 		if(FT_Get_Glyph(face->glyph, &glyph)){
 			nite::print("failed to load char '"+nite::toStr((char)i)+"' for font '"+filename+"'");
 			continue;
@@ -317,23 +347,38 @@ void nite::Font::load(const String &path, unsigned size, float thickness){
 	glEnable(GL_TEXTURE_2D);
 	glGenTextures(1, &atlas);
 	glBindTexture(GL_TEXTURE_2D, atlas);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims.x, dims.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);	
+	
+	// if(thickness > 0){
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8, dims.x, dims.y, 0, GL_RG, GL_UNSIGNED_BYTE, 0);	
+	// }else{
+	// 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	// 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims.x, dims.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);			
+	// }
+	
 	xcursor = 0;
 	for(int i = 0; i < frags.size(); ++i){
 		auto &frag = frags[i];
-		glTexSubImage2D(GL_TEXTURE_2D, 0, xcursor, 0, frag.w, frag.h, GL_RGBA, GL_UNSIGNED_BYTE, frag.buffer);
+		// if(thickness > 0){
+			glTexSubImage2D(GL_TEXTURE_2D, 0, xcursor, 0, frag.w, frag.h, GL_RG, GL_UNSIGNED_BYTE, frag.buffer);
+		// }else{
+		// 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		// 	glTexSubImage2D(GL_TEXTURE_2D, 0, xcursor, 0, frag.w, frag.h, GL_RGBA, GL_UNSIGNED_BYTE, frag.buffer);
+		// }
 		xcursor += frag.w + 2;
 		frag.clear();
 	}
+	
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);		
+	
 	// finish up
 	proxy.hash = fileHash;
 	proxy.atlasSize = dims;
 	proxy.path = path;
-	proxy.size = size;
 	proxy.empty = false;
 	proxy.atlas = atlas;
 
@@ -362,6 +407,14 @@ nite::Font::Font(){
 	scale = nite::Vec2(1, 1);
 	smooth = false;
 	shadow = true;
+}
+
+nite::Font::Font(const String &path, const nite::FontStyle &style){
+	objectId = -1;
+	scale = nite::Vec2(1, 1);
+	shadow = false;
+	smooth = true;
+	load(path, style);	
 }
 
 nite::Font::Font(const String &path, unsigned size, float outlineThickness){
@@ -394,9 +447,11 @@ nite::Font::~Font(){
 nite::Font& nite::Font::operator= (const nite::Font &other){
 	if(other.objectId <= -1) return *this;
 	unload();
+	style = other.style;
 	scale = other.scale;
 	shadowColor = other.shadowColor;
 	shadow = other.shadow;
+	thickness = other.thickness;
 	objectId = other.objectId;
 	fontList[objectId].owners.push_back(this);
 	return *this;
@@ -467,15 +522,20 @@ static Token fetchToken(int stPos, const String &input){
 	return token;
 }
 
+static nite::Shader fontRenderShader;
+
 static void drawText(nite::Renderable *object){
 	if(!renText) return;
+	if(!fontRenderShader.isLoaded()){
+		fontRenderShader.load("data/shaders/font_render_f.glsl", "data/shaders/font_render_v.glsl");
+	}
+
 	flushTexture();
 	nite::RenderableFont &obj = *(nite::RenderableFont*)object;
 	unsigned Font = obj.objectId;
 	if (fontList[Font].empty) return;
 	GLint currentBind = fontList[Font].atlas;
 	glEnable(GL_TEXTURE_2D);
-	glColor4f(obj.color.r, obj.color.g, obj.color.b, obj.color.a);
 	glBindTexture(GL_TEXTURE_2D, fontList[Font].atlas);
 	if(currentBind != lastBind) // avoid re-binding the last texture.(an optimization, supposedly)
 		glBindTexture(GL_TEXTURE_2D, currentBind);
@@ -486,49 +546,38 @@ static void drawText(nite::Renderable *object){
 	glPushMatrix();
 	glTranslatef((int)nite::round(obj.position.x - nite::getViewX(obj.target) + offset.x), (int)nite::round(obj.position.y - nite::getViewY(obj.target) + offset.y), 0.f);
 	glRotatef((int)obj.angle, 0.0, 0.0, 1.0);
-	for(int i = 0; i < obj.programs.size(); ++i){
-		glUseProgram(obj.programs[i]->id);
-		for(const auto& Uniform : obj.programs[i]->uniforms.integers){
-			int tex = glGetUniformLocation(obj.programs[i]->id, Uniform.first.c_str());
-			if(tex != -1){
-				glUniform1i(tex, Uniform.second);
-			}else{
-				if(!obj.programs[i]->ref->faulty){
-					nite::print("'"+obj.programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
-					obj.programs[i]->ref->faulty = true;
-				}
-			}
-		}
-		for(const auto& Uniform : obj.programs[i]->uniforms.floats){
-			int tex = glGetUniformLocation(obj.programs[i]->id, Uniform.first.c_str());
-			if(tex != -1){
-				glUniform1f(tex, Uniform.second);
-			}else{
-				if(!obj.programs[i]->ref->faulty){
-					nite::print("'"+obj.programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
-					obj.programs[i]->ref->faulty = true;
-				}
-			}
-		}
-		for(const auto& Uniform : obj.programs[i]->uniforms.vectors){
-			int tex = glGetUniformLocation(obj.programs[i]->id, Uniform.first.c_str());
-			if(tex != -1){
-				float v[2];
-				v[0] = Uniform.second.x;
-				v[1] = Uniform.second.y;
-				glUniform2fv(tex, 1, v);
-			}else{
-				if(!obj.programs[i]->ref->faulty){
-					nite::print("'"+obj.programs[i]->shaderName+"': Failed to find Shader Location '"+Uniform.first+"'");
-					obj.programs[i]->ref->faulty = true;
-				}
-			}
-		}
-	}
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+	auto applyTextColor = [&](const nite::Color &fillColor, const nite::Color &outlineColor){
+		glUseProgram(fontRenderShader.getProgram());
+		float v[3];
+		int olcuniform = glGetUniformLocation(fontRenderShader.getProgram(), "outline_col");
+		v[0] = outlineColor.r;
+		v[1] = outlineColor.g;
+		v[2] = outlineColor.b;
+		glUniform3fv(olcuniform, 1, v);
+		int fcuniform = glGetUniformLocation(fontRenderShader.getProgram(), "fill_col");
+		v[0] = fillColor.r;
+		v[1] = fillColor.g;
+		v[2] = fillColor.b;
+		glUniform3fv(fcuniform, 1, v);
+	};
+	applyTextColor(obj.color, obj.style.outlineColor);
+
+	auto startBatch = [&](){
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glEnableClientState(GL_VERTEX_ARRAY);
+	};
+
+	auto endBatch = [&](){
+		glDisableClientState( GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
+	};
+
+	startBatch();
 
 	// use rounded numbers to avoid atlas artifacts
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_VERTEX_ARRAY);
+
 	auto wordList = nite::split(obj.text, ' ');
 
 	Vector<Word> words;
@@ -572,10 +621,11 @@ static void drawText(nite::Renderable *object){
 						switch(token.type){
 							case TokenType::COLOR_SET: {
 								auto color = nite::Color(token.value);
-								glColor4f(color.r, color.g, color.b, 1.0f);
+								// glColor4f(color.r, color.g, color.b, 1.0f);
+								applyTextColor(color, obj.style.outlineColor);
 							} break;
 							case TokenType::COLOR_RESET: {
-								glColor4f(obj.color.r, obj.color.g, obj.color.b, obj.color.a);
+								applyTextColor(obj.color, obj.style.outlineColor);
 							} break;
 						}
 					}
@@ -679,13 +729,16 @@ static void drawText(nite::Renderable *object){
 	}
 
 	//glBindTexture(GL_TEXTURE_2D, 0);
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
+	endBatch();
 	glPopMatrix();
 	glDisable(GL_TEXTURE_2D);
 	lastBind = currentBind;
 	glUseProgram(0);
 	obj.programs.clear();
+}
+
+float nite::Font::getTickness(){
+	return thickness;
 }
 
 nite::RenderableFont * nite::Font::draw(const String &text, const nite::Vec2 &P){
@@ -716,6 +769,7 @@ nite::RenderableFont *nite::Font::draw(const String &text, float x, float y){
 	obj->color = nite::getColor();
 	obj->angle = 0;
 	obj->ref = this;
+	obj->style = this->style;
 	obj->ln = -1;
 	obj->smooth = smooth;
 	obj->scale = scale;
@@ -746,6 +800,7 @@ nite::RenderableFont *nite::Font::draw(const String &text, float x, float y, flo
 	obj->smooth = smooth;
 	obj->ln = -1;
 	obj->ref = this;
+	obj->style = this->style;
 	obj->shadow = false;
 	obj->avgHeight = this->getHeight(text);
 	obj->scale = nite::Vec2(scaleX, scaleY);
@@ -766,6 +821,7 @@ nite::RenderableFont *nite::Font::draw(const String &text, float x, float y, flo
 	obj->angle = angle;
 	obj->ref = this;
 	obj->ln = -1;
+	obj->style = this->style;
 	obj->smooth = smooth;
 	obj->shadow = false;
 	obj->scale = scale;

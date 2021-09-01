@@ -113,13 +113,13 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     dialog->add("", randomEnterPhrase[nite::randomInt(0, randomEnterPhrase.size())]+"@500!"+names+(groupB.size() > 1 ? " are " : " is ")+"approaching...", nite::Color("#d20021"));
     dialog->start();
 
-    static const String mainFont = "DejaVuSans.ttf";
+    static const String mainFont = "SimvoniBold-w1dOn.otf";
 
     if(!font.isLoaded()){
         font.load("data/font/"+mainFont, 28, 2.0f);
     }
     if(!subFont.isLoaded()){
-        subFont.load("data/font/"+mainFont, 16, 2.0f);
+        subFont.load("data/font/"+mainFont, 16, 1.0f);
     }
     if(!empty.isLoaded()){
         empty.load("data/texture/empty.png");
