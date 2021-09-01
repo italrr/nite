@@ -34,6 +34,66 @@ void nite::TextUI::defaultInit(){
     };    
 }
 
+struct Token {
+	int type;
+	nite::Color color;
+	int position;
+	String value;
+	bool found;
+	Token(){
+		found = false;
+	}
+};
+
+namespace TokenType {
+	enum TokenType : int {
+		UNDEFINED,
+		COLOR_SET,
+		COLOR_RESET
+	};
+	static int type(const String &name){
+		if(name == "cs"){
+			return COLOR_SET;
+		}else
+		if(name == "cr"){
+			return COLOR_RESET;
+		}else{
+			return UNDEFINED;
+		}
+	}
+}
+
+
+static Token fetchToken(int stPos, const String &input){
+	String found = "";
+	Token token;
+	for(int i = stPos; i < input.size(); ++i){
+		if(i < input.size()-1 && input[i] == '$' && input[i+1] == '['){
+			int end = input.find("]", i+1);
+			if(end != std::string::npos){
+				found = input.substr(i+2, end-i-2);
+				token.position = end;
+				break;
+			}
+		}
+	}
+	if(found.size() > 0){
+		int colon = found.find(":");
+		if(colon != std::string::npos){
+			String first = found.substr(0, colon);
+			String value = found.substr(colon+1, found.length()-colon);
+			token.type = TokenType::type(first);
+			token.value = value;
+		}else{
+			token.type = TokenType::type(found);
+		}
+		token.found = true;
+	}
+	return token;
+}
+
+
+
 void nite::TextUI::accommodate(float w, float h){
     // fix
     nite::Vec2 left(w, h);
@@ -45,6 +105,16 @@ void nite::TextUI::accommodate(float w, float h){
     auto getWordWidth = [&](const String &word){
         float _w = 0.0f;
         for(int i = 0; i < word.size(); ++i){
+
+            if(i < word.size()-1 && word[i] == '$' && word[i+1] == '['){
+                auto token = fetchToken(i, word);
+                if(token.found){
+                    i = token.position;
+                    continue;
+                }
+            }
+
+
             _w += font.getWidth(String("")+word[i]);
         }
         return _w;

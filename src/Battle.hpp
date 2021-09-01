@@ -52,7 +52,8 @@
             ENTITY_DEATH,
             DEATH_EXIT,
 
-            GAME_OVER
+            GAME_OVER,
+            BATTLE_END
 
         };
 

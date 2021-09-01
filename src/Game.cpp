@@ -115,8 +115,11 @@ void Game::GameCore::init(){
 
 	// start game
 	player = std::make_shared<Player>(Player());
-	player->setupStat(5);
-	player->addBaseStat(BaseStatType::Strength, 1000);
+	player->setupStat(100);
+	player->addBaseStat(BaseStatType::Strength, 10000);
+	player->addBaseStat(BaseStatType::Endurance, 10000);
+	player->fullHeal();
+	player->printInfo();
 	
 	mob = std::make_shared<Mob>(Mob());
 	mob->setupStat(5);
@@ -162,7 +165,7 @@ void Game::GameCore::step(){
 		}		
 		if(nite::keyboardPressed(nite::keyZ)){
 			if(!battle->isShowing()){
-				battle->start({player}, {mob, mob2}); // this could go so wrong lol
+				battle->start({player}, {mob}); // this could go so wrong lol
 			}
 			// if(dialog->isReady() && !dialog->isShowing()){
 			// 	dialog->reset();

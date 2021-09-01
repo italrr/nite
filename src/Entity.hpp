@@ -163,6 +163,7 @@
 				BLOCK_STUTTER,
 				EVADE,
 				EVADE_FAILS,
+				DEATH
 			};
 		}
 
@@ -183,6 +184,7 @@
 			String nickname;
 			float walkSpeed;
 			Entity();
+			void printInfo();
 			void loadAnim();
 			void moveEntity(float x, float y);
 			bool damage(DamageInfo &info);

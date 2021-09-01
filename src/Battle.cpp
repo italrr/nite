@@ -82,6 +82,21 @@ void Game::Battle::reset(){
     this->startTurn = 0;
 }
 
+
+static inline String bttTextColorEnemyName(const String &input){
+    return "$[cs:#3273ef]"+input+"$[cr]";
+}
+
+static inline String bttTextColorPlayerName(const String &input){
+    return "$[cs:#ff9e00]"+input+"$[cr]";
+}
+
+static inline String bttTextColorDamageNumber(const String &input){
+    return "$[cs:#ff3900]"+input+"$[cr]";
+}
+
+
+
 void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vector<Shared<Game::Entity>> &groupB){
     if(!empty.isLoaded()){
         empty.load("data/texture/empty.png");
@@ -90,21 +105,21 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     // TODO: handle if groupB is empty
 
     // prepare first line
-    String names = groupB[0]->nickname;
+    String names = bttTextColorEnemyName(groupB[0]->nickname);
     for(int i = 1; i < groupB.size(); ++i){
-        names += i < groupB.size()-1 ? ", " : " and " + groupB[i]->nickname;
+        names += i < groupB.size()-1 ? ", " : " and " + bttTextColorEnemyName(groupB[i]->nickname);
     }
     static const Vector<String> randomEnterPhrase = {"Oh! ", "Quick! ", "Look! "};
     dialog->add("", randomEnterPhrase[nite::randomInt(0, randomEnterPhrase.size())]+"@500!"+names+(groupB.size() > 1 ? " are " : " is ")+"approaching...", nite::Color("#d20021"));
     dialog->start();
 
-    static const String mainFont = "MONOFONT.TTF";
+    static const String mainFont = "DejaVuSans.ttf";
 
     if(!font.isLoaded()){
-        font.load("data/font/"+mainFont, 32, 2);
+        font.load("data/font/"+mainFont, 28, 2.0f);
     }
     if(!subFont.isLoaded()){
-        subFont.load("data/font/"+mainFont, 22, 2.0f);
+        subFont.load("data/font/"+mainFont, 16, 2.0f);
     }
     if(!empty.isLoaded()){
         empty.load("data/texture/empty.png");
@@ -187,6 +202,7 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     setState(BattleState::BATTLE_START);
     setOptBoxVis(false);
     nite::print("[debug] battle start");
+    // dialog->reset();
 
     // dialog->reset();
     // if(optWin.get() != NULL && optWin->type == "window"){
@@ -282,7 +298,7 @@ Shared<Game::BattleEntity> Game::Battle::getCurrentSelTarget(){
 
 void Game::Battle::onSwitchSelTarget(){
     auto sel = getCurrentSelTarget();
-    dialog->setImmediateText("Attack "+sel->entity->nickname+"?");
+    dialog->setImmediateText("Attack "+bttTextColorEnemyName(sel->entity->nickname)+"?");
 }
 
 void Game::Battle::step(){
@@ -551,9 +567,9 @@ void Game::Battle::step(){
                     setDialogBoxVis(true);                    
                     dialog->reset();
                     if(groupA.size() == 1){
-                        dialog->add("", "What will you do?", nite::Color("#d20021"));
+                        dialog->add("", "What will "+bttTextColorPlayerName("you")+" do?", nite::Color("#d20021"));
                     }else{
-                        dialog->add("", "What will "+groupA[cdecision]->entity->nickname+" do?", nite::Color("#d20021"));
+                        dialog->add("", "What will "+bttTextColorPlayerName(groupA[cdecision]->entity->nickname)+" do?", nite::Color("#d20021"));
                     }
                     dialog->start();           
                     dialog->setAutoCont(1000);
@@ -640,11 +656,22 @@ void Game::Battle::step(){
         } break;
 
         case PRE_PLAY_ACTIONS: {
+            if(groupB.size() == 0){
+                // TODO: handle exp gain, and level up
+                dialog->reset();
+                dialog->add("", "Phew, you made it.", nite::Color("#d20021"));
+                dialog->start(); 
+                setState(BATTLE_END);
+                break;
+            }
             if(decisions.size() == 0){
                 // dialog->cont();
                 setState(PRE_TURN);
                 break;
             }
+
+            setOptBoxVis(false);
+            setDialogBoxVis(true);
             auto &current = decisions[0];
 
             switch(current.type){
@@ -683,24 +710,36 @@ void Game::Battle::step(){
 
                     dialog->reset();
                     if(triedToBlock){
-                        dialog->add("", current.owner->entity->nickname+" attacks "+current.target->entity->nickname+"@100!.@100!.@100!.@100! But "+current.target->entity->nickname+" blocks it!", nite::Color("#d20021"));
+                        String ownName = current.owner->entity->nickname;
+                        ownName = current.owner->entity->entityType == EntityType::PLAYER ? bttTextColorPlayerName(ownName) : bttTextColorEnemyName(ownName);
+                        String tarName = current.target->entity->nickname;
+                        tarName = current.target->entity->entityType == EntityType::PLAYER ? bttTextColorPlayerName(tarName) : bttTextColorEnemyName(tarName);
+                        dialog->add("", ownName+" attacks "+tarName+"@100!.@100!.@100!.@100!, "+tarName+" tries blocking it!", nite::Color("#d20021"));
                     }else{
-                        dialog->add("", current.owner->entity->nickname+" attacks "+current.target->entity->nickname+"!", nite::Color("#d20021"));
+                        String ownName = current.owner->entity->nickname;
+                        ownName = current.owner->entity->entityType == EntityType::PLAYER ? bttTextColorPlayerName(ownName) : bttTextColorEnemyName(ownName);
+                        String tarName = current.target->entity->nickname;
+                        tarName = current.target->entity->entityType == EntityType::PLAYER ? bttTextColorPlayerName(tarName) : bttTextColorEnemyName(tarName);                        
+                        dialog->add("", ownName+" attacks "+tarName+"!", nite::Color("#d20021"));
                     }
                     dialog->start();  
-                    dialog->setAutoCont(triedToBlock ? 2500 : 1600);
+                    dialog->setAutoCont(triedToBlock ? 2300 : 1600);
                     setState(PLAY_ACTION_ATTACK);
                 } break;
                 case ActionType::DODGE: {
+                    String ownName = current.owner->entity->nickname;
+                    ownName = current.owner->entity->entityType == EntityType::PLAYER ? bttTextColorPlayerName(ownName) : bttTextColorEnemyName(ownName);                    
                     dialog->reset();
-                    dialog->add("", current.owner->entity->nickname+" tried to dodged nothing...", nite::Color("#d20021"));
+                    dialog->add("",  ownName+" tried to dodged nothing...", nite::Color("#d20021"));
                     dialog->start();  
                     dialog->setAutoCont(1600);
                     setState(POST_PLAY_ACTIONS);
                 } break;
                 case ActionType::BLOCK: {
+                    String ownName = current.owner->entity->nickname;
+                    ownName = current.owner->entity->entityType == EntityType::PLAYER ? bttTextColorPlayerName(ownName) : bttTextColorEnemyName(ownName);                      
                     dialog->reset();
-                    dialog->add("", current.owner->entity->nickname+" tried to block nothing...", nite::Color("#d20021"));
+                    dialog->add("", ownName+" tried to block nothing...", nite::Color("#d20021"));
                     dialog->start();  
                     dialog->setAutoCont(1600);
                     setState(POST_PLAY_ACTIONS);
@@ -742,9 +781,10 @@ void Game::Battle::step(){
                     ef->position = playerStatPos + 100;
                     this->vfxDev.add(ef);                       
                 }
-
+                String tarName = current.target->entity->nickname;
+                tarName = current.target->entity->entityType == EntityType::PLAYER ? bttTextColorPlayerName(tarName) : bttTextColorEnemyName(tarName);   
                 dialog->reset();
-                dialog->add("", current.target->entity->nickname+" received "+nite::toStr(dmginfo.dmg)+" damage.", nite::Color("#d20021"));
+                dialog->add("", tarName+" received "+bttTextColorDamageNumber(nite::toStr(dmginfo.dmg)+ " damage")+".", nite::Color("#d20021"));
                 dialog->start(); 
                 dialog->setAutoCont(2000);                
                 setState(POST_PLAY_ACTIONS);
@@ -757,12 +797,16 @@ void Game::Battle::step(){
                 dialog->cont();
 
                 auto died = getFirstDeadOne();
-                
+
                 // if no one died, carry on
                 if(died.size() == 0){
                     auto &current = decisions[0];
-                    current.owner->setBattleAnim(EntityBattleAnim::IDLE, 0);
-                    current.target->setBattleAnim(EntityBattleAnim::IDLE, 0);                
+                    if(current.owner.get() != NULL){
+                        current.owner->setBattleAnim(EntityBattleAnim::IDLE, 0);
+                    }
+                    if(current.target.get() != NULL){
+                        current.target->setBattleAnim(EntityBattleAnim::IDLE, 0);                
+                    }
                     decisions.erase(decisions.begin());
                     setState(BattleState::PRE_PLAY_ACTIONS);
                 }else{
@@ -791,11 +835,11 @@ void Game::Battle::step(){
                     setState(BattleState::GAME_OVER);
                 }
 
-                // TODO: calculate gained exp
-                // remove
                 if(!died[0]->died){
+                    String tarName = died[0]->entity->nickname;
+                    tarName = died[0]->entity->entityType == EntityType::PLAYER ? bttTextColorPlayerName(tarName) : bttTextColorEnemyName(tarName);                      
                     dialog->reset();
-                    dialog->add("", died[0]->entity->nickname+" died.", nite::Color("#d20021"));
+                    dialog->add("", tarName+" died.", nite::Color("#d20021"));
                     dialog->start();                     
                     died[0]->died = true;
                     died[0]->setBattleAnim(EntityBattleAnim::IDLE, 0); 
@@ -823,6 +867,11 @@ void Game::Battle::step(){
         case GAME_OVER: {
             if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
                 end(BattleGroup::GROUP_B);
+            }
+        } break;
+        case BATTLE_END: {
+            if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
+                end(BattleGroup::GROUP_A);
             }
         } break;
 

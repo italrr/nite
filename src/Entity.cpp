@@ -76,7 +76,7 @@ void Game::EntityStat::recalculateComplexStats(){
 		return;
 	}	
 	complexStat.maxCarry += 1000 + nite::ceil(baseStat.strAdd * GAME_STAT_BASE_SCALE * 150.0f + baseStat.enduAdd * GAME_STAT_BASE_SCALE * 65.0f);
-	complexStat.atk += nite::ceil(baseStat.strAdd * 8.5f + baseStat.enduAdd * 1.2f);
+	complexStat.atk += nite::ceil(baseStat.strAdd * 25.0f + baseStat.enduAdd * 5.2f);
 	complexStat.magicAtk += nite::ceil(baseStat.intelAdd * 8.5f);
 	complexStat.def += nite::ceil(baseStat.enduAdd * 5.8f + healthStat.lv * 0.7f);
 	complexStat.magicDef += nite::ceil(baseStat.intelAdd * 4.5f + baseStat.enduAdd * 1.2f);		
@@ -271,6 +271,26 @@ void Game::Entity::loadAnim(){
 
 void Game::Entity::moveEntity(float x, float y){
 	move(walkSpeed * x, walkSpeed * y);
+}
+
+void Game::Entity::printInfo(){
+	String p = this->position.str();
+	#define str nite::toStr
+	String ms = str(GAME_MAX_STAT);
+	nite::print("ID "+str(id)+" | Name: "+nickname+" | LV "+str(healthStat.lv)+" | Carry "+str(complexStat.maxCarry)+" | Position "+p);
+	nite::print("HP "+str(healthStat.maxHealth)+" | Mana "+str(healthStat.maxMana)+" | Stamina "+str(healthStat.maxStamina)+" | StatPoints "+str(baseStat.statPoints));
+	nite::print("Str "+str(baseStat.strAdd)+"/"+ms+" | Agi "+str(baseStat.agiAdd)+"/"+ms+
+	" | Dex "+str(baseStat.dexAdd)+"/"+ms+" | Endurance "+str(baseStat.enduAdd)+"/"+ms+
+	"| Luk "+str(baseStat.lukAdd)+"/"+ms+" | Int "+str(baseStat.intelAdd)+"/"+ms+
+	" | Char "+str(baseStat.charmAdd)+"/"+ms);
+	nite::print("Atk "+str(complexStat.atk)+" "+"MAtk "+str(complexStat.magicAtk)+" "+"Def "+str(complexStat.def)+" "+"MDef "+str(complexStat.magicDef));
+	nite::print("WalkRate "+str(complexStat.walkRate));
+	nite::print("CritRate "+str(complexStat.critRate));
+	nite::print("PrecsRate "+str(complexStat.precsRate));
+	nite::print("AtkRate "+str(complexStat.atkRate));
+	nite::print("CharmRate "+str(complexStat.charmRate));
+	nite::print("PersuasionRate "+str(complexStat.persuasionRate));
+	#undef str
 }
 
 bool Game::Entity::damage(Game::DamageInfo &info){

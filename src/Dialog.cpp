@@ -1,6 +1,62 @@
 #include "Dialog.hpp"
 #include <memory>
 
+struct Token {
+	int type;
+	nite::Color color;
+	int position;
+	String value;
+	bool found;
+	Token(){
+		found = false;
+	}
+};
+
+namespace TokenType {
+	enum TokenType : int {
+		UNDEFINED,
+		COLOR_SET,
+		COLOR_RESET
+	};
+	static int type(const String &name){
+		if(name == "cs"){
+			return COLOR_SET;
+		}else
+		if(name == "cr"){
+			return COLOR_RESET;
+		}else{
+			return UNDEFINED;
+		}
+	}
+}
+
+static Token fetchToken(int stPos, const String &input){
+	String found = "";
+	Token token;
+	for(int i = stPos; i < input.size(); ++i){
+		if(i < input.size()-1 && input[i] == '$' && input[i+1] == '['){
+			int end = input.find("]", i+1);
+			if(end != std::string::npos){
+				found = input.substr(i+2, end-i-2);
+				token.position = end;
+				break;
+			}
+		}
+	}
+	if(found.size() > 0){
+		int colon = found.find(":");
+		if(colon != std::string::npos){
+			String first = found.substr(0, colon);
+			String value = found.substr(colon+1, found.length()-colon);
+			token.type = TokenType::type(first);
+			token.value = value;
+		}else{
+			token.type = TokenType::type(found);
+		}
+		token.found = true;
+	}
+	return token;
+}
 
 bool Game::DialogHook::isReady(){
     return done && lines.size() == currentDiag || currentDiag == 0 && lines.size() == 0;
@@ -68,6 +124,8 @@ void Game::DialogHook::reset(){
     autocont = false;
     lastChar = nite::getTicks();
     lines.clear();
+    delay = false;
+    autoContTick = nite::getTicks();
     onReset();
 }
 
@@ -111,7 +169,14 @@ void Game::DialogHook::step(){
         return;
     }
     
-    ++currentChar;
+    if(currentChar < targetText.length()-1 && targetText[currentChar] == '$' && targetText[currentChar+1] == '['){
+        auto token = fetchToken(currentChar, targetText);
+        if(token.found){
+            currentChar = token.position;
+        }
+    }  
+
+    ++currentChar;  
 
     // in-text delay
     if(targetText[currentChar] == '@' && currentChar < targetText.length()-1){

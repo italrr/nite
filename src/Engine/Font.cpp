@@ -410,6 +410,63 @@ void flushFont(){
 
 void flushTexture();
 
+struct Token {
+	int type;
+	nite::Color color;
+	int position;
+	String value;
+	bool found;
+	Token(){
+		found = false;
+	}
+};
+
+namespace TokenType {
+	enum TokenType : int {
+		UNDEFINED,
+		COLOR_SET,
+		COLOR_RESET
+	};
+	static int type(const String &name){
+		if(name == "cs"){
+			return COLOR_SET;
+		}else
+		if(name == "cr"){
+			return COLOR_RESET;
+		}else{
+			return UNDEFINED;
+		}
+	}
+}
+
+static Token fetchToken(int stPos, const String &input){
+	String found = "";
+	Token token;
+	for(int i = stPos; i < input.size(); ++i){
+		if(i < input.size()-1 && input[i] == '$' && input[i+1] == '['){
+			int end = input.find("]", i+1);
+			if(end != std::string::npos){
+				found = input.substr(i+2, end-i-2);
+				token.position = end;
+				break;
+			}
+		}
+	}
+	if(found.size() > 0){
+		int colon = found.find(":");
+		if(colon != std::string::npos){
+			String first = found.substr(0, colon);
+			String value = found.substr(colon+1, found.length()-colon);
+			token.type = TokenType::type(first);
+			token.value = value;
+		}else{
+			token.type = TokenType::type(found);
+		}
+		token.found = true;
+	}
+	return token;
+}
+
 static void drawText(nite::Renderable *object){
 	if(!renText) return;
 	flushTexture();
@@ -427,7 +484,7 @@ static void drawText(nite::Renderable *object){
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	nite::Vec2 offset = obj.target == nite::RenderTargetDummy ? nite::Vec2(0.0f) : nite::getRenderOffset();
 	glPushMatrix();
-	glTranslatef((int)(obj.position.x - nite::getViewX(obj.target) + offset.x), (int)(obj.position.y - nite::getViewY(obj.target) + offset.y), 0.f);
+	glTranslatef((int)nite::round(obj.position.x - nite::getViewX(obj.target) + offset.x), (int)nite::round(obj.position.y - nite::getViewY(obj.target) + offset.y), 0.f);
 	glRotatef((int)obj.angle, 0.0, 0.0, 1.0);
 	for(int i = 0; i < obj.programs.size(); ++i){
 		glUseProgram(obj.programs[i]->id);
@@ -503,8 +560,30 @@ static void drawText(nite::Renderable *object){
 	auto render = [&](const String &word, Cursor &from, nite::Vec2 &origin){
 		from.x = nite::round(from.x);
 		from.y = nite::round(from.y);
+
 		for(unsigned j = 0; j < word.size(); j++){
 			char current =  word[j];
+
+			if(j < word.size()-1 && word[j] == '$' && word[j+1] == '['){
+				auto token = fetchToken(j, word);
+				if(token.found){
+					// process
+					if(token.type != TokenType::UNDEFINED){
+						switch(token.type){
+							case TokenType::COLOR_SET: {
+								auto color = nite::Color(token.value);
+								glColor4f(color.r, color.g, color.b, 1.0f);
+							} break;
+							case TokenType::COLOR_RESET: {
+								glColor4f(obj.color.r, obj.color.g, obj.color.b, obj.color.a);
+							} break;
+						}
+					}
+					j = token.position;
+					continue;
+				}
+			}
+
 			// origin.set(0.0f);
 			if (current == '\n'){ from.x = 0; from.y += obj.ln != -1.0f ? obj.ln : vertAdv; continue; }
 			if (current == '\t'){ from.x += fontList[Font].glyphs['A'].size.x*3.0f; continue; }
@@ -551,6 +630,7 @@ static void drawText(nite::Renderable *object){
 	if(obj.horSpace > 0){
 		resetAlign(totalWidth);
 	}
+
 	if(!obj.autobreak){
 		nite::Vec2 origin(obj.origin.x*totalWidth, obj.origin.y*vertAdv);
 		for(int i = 0; i < words.size(); ++i){
@@ -705,6 +785,15 @@ float nite::Font::getWidth(const String &str){
 	float s = 0.0f;
 	float fs = 0.0f;
 	for(unsigned i=0; i<str.length(); i++){
+
+		if(i < str.size()-1 && str[i] == '$' && str[i+1] == '['){
+			auto token = fetchToken(i, str);
+			if(token.found){
+				i = token.position;
+				continue;
+			}
+		}
+
 		if(str[i] == '\n'){
 			fs = std::max(fs, s);
 			s = 0.0f;
