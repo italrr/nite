@@ -115,19 +115,19 @@ void Game::GameCore::init(){
 
 	// start game
 	player = std::make_shared<Player>(Player());
-	player->setupStat(100);
-	player->addBaseStat(BaseStatType::Strength, 10000);
-	player->addBaseStat(BaseStatType::Endurance, 10000);
+	player->setupStat(5);
+	player->addBaseStat(BaseStatType::Strength, 20);
+	// player->addBaseStat(BaseStatType::Endurance, 10000);
 	player->fullHeal();
 	player->printInfo();
 	
 	mob = std::make_shared<Mob>(Mob());
 	mob->setupStat(5);
-	mob->addBaseStat(BaseStatType::Strength, 1000);
+	mob->addBaseStat(BaseStatType::Strength, 20);
 
 	mob2 = std::make_shared<Mob2>(Mob2());
 	mob2->setupStat(5);
-	mob2->addBaseStat(BaseStatType::Strength, 1000);
+	mob2->addBaseStat(BaseStatType::Strength, 20);
 
 	player->loadAnim();
 	mob->loadAnim();

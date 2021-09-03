@@ -66,7 +66,7 @@ void Game::EntityStat::recalculateHealthStats(){
 	if(healthStat.dead){
 		return;
 	}	
-	healthStat.maxHealth = nite::ceil((12.5f + baseStat.enduAdd * 1.5f)  * GAME_STAT_BASE_SCALE * healthStat.lv);
+	healthStat.maxHealth = 100 + nite::ceil((25.5f + baseStat.enduAdd * 1.5f)  * GAME_STAT_BASE_SCALE * healthStat.lv);
 	healthStat.maxMana = nite::ceil((4.5f + baseStat.intelAdd * 0.5f) * GAME_STAT_BASE_SCALE * healthStat.lv);
 	healthStat.maxStamina = nite::ceil((1.9f + baseStat.dexAdd * 0.35f + baseStat.enduAdd * 0.15f) * GAME_STAT_BASE_SCALE * healthStat.lv);
 }

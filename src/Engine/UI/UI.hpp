@@ -8,6 +8,7 @@
     #include "CheckboxUI.hpp"  
     #include "PanelUI.hpp"
     #include "IconUI.hpp"
+    #include "Custom/ProgressiveBarUI.hpp"
     #include <memory>
 
     namespace nite {

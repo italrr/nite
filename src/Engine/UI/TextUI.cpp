@@ -169,7 +169,7 @@ void nite::TextUI::setFontSize(int size){
     this->fontSize = size;
     auto fn = font.getFilename();
     if(fn.length() > 0){
-        font.load(fn, size, 0.0f);
+        font.load(fn, size, font.getTickness());
     }
     calculateSize();  
     recalculate();

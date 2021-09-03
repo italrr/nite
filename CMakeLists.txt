@@ -206,6 +206,7 @@ set (nite_src
 	src/Engine/nScript.cpp
 	src/Engine/Audio.cpp
 	src/Engine/UI/UI.cpp
+	src/Engine/UI/Custom/ProgressiveBarUI.cpp
 	src/Engine/UI/WindowUI.cpp
 	src/Engine/UI/PanelUI.cpp
 	src/Engine/UI/TextUI.cpp

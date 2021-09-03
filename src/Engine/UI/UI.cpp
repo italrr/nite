@@ -750,6 +750,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
+        auto fontThickness = _parseFloat("fontThickness", node, style, 0.0f, base);
         auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
         ref->setVisible(visible);        
         // auto userShader = _parseShader("shader", node, style, base);
@@ -759,7 +760,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         //     base->apply(nite::Shader(userShader.frag, userShader.vert));
         // }        
         if(font != "" && nite::fileExists(font)){
-            ref->setFont(nite::Font(font,  fontSize));
+            ref->setFont(nite::Font(font,  fontSize, fontThickness));
         }
         auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
         ref->setSnapInterpRate(snapInterpRate);                  
@@ -802,6 +803,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto shadowColor = _parseColor("shadowColor", node, style, ref->getShadowColor(), base);  
         auto id = _parseString("id", node, style, base->literalId, base);
         auto font = _parseString("font", node, style, "", base); 
+        auto fontThickness = _parseFloat("fontThickness", node, style, 0.0f, base);
         auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
         ref->setVisible(visible);
         // auto userShader = _parseShader("shader", node, style, base);
@@ -811,7 +813,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         //     base->apply(nite::Shader(userShader.frag, userShader.vert));
         // }         
         if(font != "" && nite::fileExists(font)){
-            ref->setFont(nite::Font(font,  fontSize));
+            ref->setFont(nite::Font(font,  fontSize, fontThickness));
         }  
         auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
         ref->setSnapInterpRate(snapInterpRate);                     
@@ -856,6 +858,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto backgroundImage = _parseString("backgroundImage", node, style, "", base);
+        auto fontThickness = _parseFloat("fontThickness", node, style, 0.0f, base);
         auto id = _parseString("id", node, style, base->literalId, base);
         auto font = _parseString("font", node, style, "", base); 
         auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
@@ -867,7 +870,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         //     base->apply(nite::Shader(userShader.frag, userShader.vert));
         // }         
         if(font != "" && nite::fileExists(font)){
-            ref->setFont(nite::Font(font,  fontSize));
+            ref->setFont(nite::Font(font,  fontSize, fontThickness));
         }      
         auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
         ref->setSnapInterpRate(snapInterpRate);             
@@ -916,6 +919,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto index = _parseInt("index", node, style, ref->getIndex(), base);
         auto textPosition = _parseDimensions("textPosition", node, style, ref->getTextPosition(), base);
         auto text = _parseString("text", node, style, ref->getText(), base);
+        auto fontThickness = _parseFloat("fontThickness", node, style, 0.0f, base);
         auto fontColor = _parseColor("fontColor", node, style, ref->getTextColor(), base); 
         auto fontSize = _parseInt("fontSize", node, style, ref->getFontSize(), base);
         auto font = _parseString("font", node, style, "", base); 
@@ -930,7 +934,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         //     base->apply(nite::Shader(userShader.frag, userShader.vert));
         // }                 
         if(font != "" && nite::fileExists(font)){
-            ref->setFont(nite::Font(font,  fontSize));
+            ref->setFont(nite::Font(font,  fontSize, fontThickness));
         }           
         auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
         ref->setSnapInterpRate(snapInterpRate);
@@ -964,6 +968,78 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
             ref->setSource(nite::Texture(source));
         }         
     }else    
+    if(type == "progressive-bar"){
+        base = Shared<nite::BaseUIComponent>(new nite::ProgressiveBarUI());
+        auto *ref = static_cast<nite::ProgressiveBarUI*>(base.get());
+        auto layout = _parseLayout(node, style, base);
+        auto onClickMethod = getListener(node.get("onClick").toString());
+        auto onHoverMethod = getListener(node.get("onHover").toString());    
+        auto backgroundColor = _parseColor("backgroundColor", node, style, nite::Color(1.0f, 1.0f, 1.0f, 0.0f), base);     
+        auto barColor = _parseColor("barColor", node, style, nite::Color(1.0f, 1.0f, 1.0f, 0.0f), base);     
+        auto reduceColor = _parseColor("reduceColor", node, style, nite::Color(1.0f, 1.0f, 1.0f, 1.0f), base);     
+        auto size = _parseSize(node, style, nite::Vec2(16.0f), base); 
+        auto flex = _parseFloat("flex", node, style, ref->flex, base);
+        auto borderColor = _parseColor("borderColor", node, style,ref->borderColor, base);
+        auto borderthickness = _parseFloat("borderThickness", node, style, 0.0f, base);
+        auto onUnhoverMethod = getListener(node.get("onUnhover").toString());
+        auto margin = _parseDimensions("margin", node, style, nite::Vec2(0.0f), base);
+        auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
+        auto id = _parseString("id", node, style, base->literalId, base);
+        auto fontSize = _parseInt("fontSize", node, style, ref->font.getFontSize(), base);
+        auto font = _parseString("font", node, style, "", base);         
+        auto fontThickness = _parseFloat("fontThickness", node, style, 0.0f, base);
+        auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
+        // auto userShader = _parseShader("shader", node, style, base);
+        auto clickAnalogue = _parseString("clickAnalogueKey", node, NULL, "Z", base);
+        auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
+        auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
+        auto useReduce = _parseBool("useReduce", node, style, true, base); 
+        auto showMax = _parseBool("showMax", node, style, true, base); 
+        auto showValue = _parseBool("showValue", node, style, true, base); 
+
+    
+        ref->setVisible(visible);        
+        ref->setSnapInterpRate(snapInterpRate); 
+        _parseListenOn("listenOn", node, listeners, base);
+        // if(userShader.success){
+        //     nite::Shader shader;
+        //     shader.load(userShader.frag, userShader.vert);
+        //     base->apply(shader);
+        // }         
+        if(font != "" && nite::fileExists(font)){
+            ref->setFont(nite::Font(font,  fontSize, fontThickness));
+        }            
+        ref->setId(id);    
+        ref->setUseMax(showMax);
+        ref->setUseValue(showValue);
+        ref->setUseReduce(useReduce);
+        ref->setMargin(margin);
+        ref->setPadding(padding);        
+        ref->setReduceColor(reduceColor);
+        ref->setBarColor(barColor);
+        ref->setOnUnhover(onUnhoverMethod);   
+        ref->onClickAnalogueKey = nite::translateKey(clickAnalogue);             
+        if(node.has("flex") && flex > 0.0f){
+            ref->setFlex(flex);
+        }else{
+            ref->setFlex(0.0f);   
+            ref->fillUpType = false;   
+            ref->setSize(size.size);
+            ref->relSize.set(size.size);
+            ref->useRelSizeX = size.isX;
+            ref->useRelSizeY = size.isY;
+        }        
+        ref->setBackgroundColor(backgroundColor);
+        ref->setOnClick(onClickMethod);
+        ref->setOnHover(onHoverMethod);
+        ref->setFontSize(fontSize); 
+        ref->setLayout(layout);
+        ref->setBorderThickness(borderthickness);
+        ref->setBorderColor(borderColor);        
+        if(backgroundImage != "" && nite::fileExists(backgroundImage)){
+            ref->setBackgroundImage(nite::Texture(backgroundImage));
+        } 
+    }else
     if(type == "panel"){
         base = Shared<nite::BaseUIComponent>(new nite::PanelUI());
         auto *ref = static_cast<nite::PanelUI*>(base.get());

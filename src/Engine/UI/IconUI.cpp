@@ -119,7 +119,7 @@ void nite::IconUI::setFontSize(int s){
     this->fontSize = s;
     auto fn = font.getFilename();
     if(fn.length() > 0){
-        font.load(fn, s, 1.5f);
+        font.load(fn, s, font.getTickness());
     }
     calculateSize();  
     recalculate();

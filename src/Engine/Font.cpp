@@ -217,6 +217,9 @@ void nite::Font::load(const String &path, unsigned size, float thickness){
 
 // TODO: Unicode
 void nite::Font::load(const String &path, const nite::FontStyle &style){
+	if(style.size <= 0){
+		return;
+	}
 	FT_Library library;
 	FT_Face face;
 	String filename = path;

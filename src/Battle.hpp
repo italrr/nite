@@ -136,7 +136,22 @@
             }            
         };
 
+        struct BattleEntity;
+        struct PlayerStatusWindow {
+            Shared<nite::BaseUIComponent> win;
+            nite::Vec2 position;
+            nite::Vec2 size;
+            void load(bool small = false);
+            void setPosition(const nite::Vec2 &pos);
+            void setSize(const nite::Vec2 &pos);
+            nite::Vec2 getSize();
+            bool setVisible(bool v);
+            void close();
+            void update(BattleEntity *entity);
+        };
+
         struct BattleEntity {
+            PlayerStatusWindow statusWindow;
             Shared<Entity> entity;
             int group;
             nite::Font font;
@@ -162,6 +177,9 @@
             BattleEntity();
 			void setBattleAnim(int anim, UInt64 animTargetTime);
 			bool isBattleAnim();
+            void onJoin(const nite::Vec2 &winPos);
+            void onDeath();
+            void onAffect();
 			void renderBattleAnim(float x, float y, bool blink);
         };
 

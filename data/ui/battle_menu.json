@@ -4,8 +4,10 @@
 	"title": "battle",
 	"unmovable": true,
 	"resizeable": false,
-	"borderThickness": 0.0,
 	"layout": "hbox",
+	"borderThickness": 2.0,
+	"layout": "vbox",
+	"borderColor": "#000000",	
 	"backgroundColor": {"r":0.1, "g": 0.1, "b": 0.1, "a": 0.85},
 	"styles": {
 		"menu-button": {	
@@ -42,9 +44,9 @@
 							"id": "text-box-inner",
 							"type": "panel",
 							"flex": 1,
-							"backgroundColor": "#0f0f0f",
+							"backgroundColor": "#211e30",
 							"borderThickness": 5.0,
-							"borderColor": "#4d34eb",							
+							"borderColor": "#000000",							
 							"padding": { "hor": 32, "vert": 32 },
 							"children": [
 								{
