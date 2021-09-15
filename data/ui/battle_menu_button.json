@@ -2,6 +2,7 @@
 	"type": "button",
 	"text": "BUTTON",
 	"fontSize": 16, 
+	"fontThickness": 2.0,
 	"width": 140,
 	"padding": { "vert": 8, "hor": 0 },
 	"margin": { "hor": 4, "vert": 4},

@@ -6,12 +6,16 @@ void nite::ProgressiveBarUI::defaultInit(){
     componentName = "Progressive Bar"; 
     type = "progressive-bar";   
     flex = 0.0f;
+    fontSize = 14;
     borderThickness = 0.0f;
     baseColor.set(1.0f, 1.0f, 1.0f, 0.0f);
     useReduce = true;
     showMax = true;
     hitTimeout = nite::getTicks();
     showValue = true;    
+    maxValue = 0;
+    targetValue = 0;
+    currentValue = 0;
     onClickMethod = [](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *panel){
         return;
     };
@@ -71,6 +75,11 @@ void nite::ProgressiveBarUI::setUseValue(bool v){
     recalculate();     
 }
 
+void nite::ProgressiveBarUI::setFontColor(const nite::Color &color){
+    fontColor.set(color);
+    recalculate();
+}
+
 void nite::ProgressiveBarUI::rerender(){
     // if(!toRerender) return;  
     batch.begin();
@@ -92,6 +101,15 @@ void nite::ProgressiveBarUI::rerender(){
         nite::setColor(barColorFull);
         uiBasicTexture.draw(thickness, thickness, (float)nite::floor(fsize.x - thickness * 2.0f) * (targetValue / maxValue), nite::floor(fsize.y - thickness * 2.0f), 0.0f, 0.0f, 0.0f);
     }
+
+    if(showValue){
+        nite::setColor(fontColor);
+        String val = nite::toStr(nite::round(currentValue)) + (showMax ? " / "+nite::toStr(nite::round(maxValue)) : "");
+        float h = font.getHeight();
+        font.draw(val, nite::round(size.x * 0.5f), h * 0.25f, 0.5f, 0.0f, 0.0f);
+    }
+    
+
 
     batch.end();
     batch.flush();    
@@ -140,7 +158,6 @@ void nite::ProgressiveBarUI::onCreate(){
     if(!font.isLoaded()){
         font.load(defaultFontUI, fontSize * defaultFontRatio, 0.0f);  
     }
-
     recalculate();
 }
 

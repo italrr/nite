@@ -986,6 +986,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto padding = _parseDimensions("padding", node, style, nite::Vec2(0.0f), base);
         auto id = _parseString("id", node, style, base->literalId, base);
         auto fontSize = _parseInt("fontSize", node, style, ref->font.getFontSize(), base);
+        auto fontColor = _parseColor("fontColor", node, style, ref->fontColor, base); 
         auto font = _parseString("font", node, style, "", base);         
         auto fontThickness = _parseFloat("fontThickness", node, style, 0.0f, base);
         auto backgroundImage = _parseString("backgroundImage", node, NULL, "", base);
@@ -994,8 +995,8 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         auto snapInterpRate = _parseFloat("snapInterpRate", node, style, ref->snapInterpRate, base);
         auto visible = _parseBool("visible", node, style, ref->isVisible(), base); 
         auto useReduce = _parseBool("useReduce", node, style, true, base); 
-        auto showMax = _parseBool("showMax", node, style, true, base); 
-        auto showValue = _parseBool("showValue", node, style, true, base); 
+        auto showMax = _parseBool("showMax", node, style, false, base); 
+        auto showValue = _parseBool("showValue", node, style, false, base); 
 
     
         ref->setVisible(visible);        
@@ -1015,6 +1016,7 @@ Shared<nite::BaseUIComponent> nite::UI::build(Jzon::Node &node, Dict<String, Jzo
         ref->setUseReduce(useReduce);
         ref->setMargin(margin);
         ref->setPadding(padding);        
+        ref->setFontColor(fontColor);
         ref->setReduceColor(reduceColor);
         ref->setBarColor(barColor);
         ref->setOnUnhover(onUnhoverMethod);   

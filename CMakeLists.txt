@@ -219,6 +219,7 @@ set (nite_src
 add_library(nite ${nite_src})
 
 set(src_files
+	src/UI/BattlePlayerInfo.cpp
 	src/World.cpp
 	src/Battle.cpp
 	src/Entity.cpp

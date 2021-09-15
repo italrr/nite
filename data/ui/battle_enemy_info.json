@@ -5,15 +5,15 @@
 	"unmovable": true,
 	"resizeable": false,
 	"width": 200,
-	"height": 65,
+	"height": 75,
 	"borderThickness": 2.0,
 	"layout": "vbox",
 	"borderColor": "#000000",
 	"backgroundColor": {"r":0.1, "g": 0.1, "b": 0.1, "a": 0.85},
 	"styles": {
 		"main-text": {
-			"font": "data/font/SimvoniBold-w1dOn.otf",
-			"fontSize": 16,
+			"font": "data/font/DejaVuSans.ttf",
+			"fontSize": 14,
 			"fontThickness": 2.0,
 			"padding": { "hor": 0, "vert": 2 }			
 		}
@@ -53,13 +53,13 @@
 					"flex": 1,
 					"width": "100%",
 					"layout": "vbox",
-					"padding": { "hor": 4, "vert": 4}
+					"padding": { "hor": 2, "vert":8}
 					"children": [
 						{
 							"type": "panel",
 							"width": "100%",
 							"flex": 1,			
-							"padding": {"vert": 4, "hor": 0},							
+							"padding": {"vert": 0, "hor": 0},							
 							"layout": "hbox",
 							"children": [
 								{
@@ -76,7 +76,7 @@
 									"height": "100%",
 									"backgroundColor": "#211e30",
 									"borderColor": "#000000",
-									"borderThickness": 2.0,
+									"borderThickness": 0.0,
 									"barColor": "#55aa22",
 									"reduceColor": "#ff260d",
 									"useReduce": true

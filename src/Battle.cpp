@@ -4,95 +4,103 @@
 #include "Battle.hpp"
 #include "Engine/Input.hpp"
 
-void Game::PlayerStatusWindow::load(bool small){
-    if(win.get() != NULL){
-        return;
-    }
-    this->win = nite::UI::build(small ? "data/ui/battle_enemy_info.json" : "data/ui/battle_player_info.json");
-    this->win->setVisible(false);
-}
+// void Game::PlayerStatusWindow::load(bool small){
+//     if(win.get() != NULL){
+//         return;
+//     }
+//     this->win = nite::UI::build(small ? "data/ui/battle_enemy_info.json" : "data/ui/battle_player_info.json");
+//     this->win->setVisible(false);
+// }
 
-void Game::PlayerStatusWindow::setPosition(const nite::Vec2 &pos){
-    if(win.get() == NULL){
-        return;
-    }    
-    this->position = pos;
-    auto casted = std::static_pointer_cast<nite::WindowUI>(win);
-    casted->setPosition(pos);
-}
+// void Game::PlayerStatusWindow::setPosition(const nite::Vec2 &pos){
+//     if(win.get() == NULL){
+//         return;
+//     }    
+//     this->position = pos;
+//     auto casted = std::static_pointer_cast<nite::WindowUI>(win);
+//     casted->setPosition(pos);
+// }
 
-nite::Vec2 Game::PlayerStatusWindow::getSize(){
-    if(win.get() == NULL){
-        return nite::Vec2();
-    }     
-    return std::static_pointer_cast<nite::WindowUI>(win)->size;
-}
+// nite::Vec2 Game::PlayerStatusWindow::getSize(){
+//     if(win.get() == NULL){
+//         return nite::Vec2();
+//     }     
+//     return std::static_pointer_cast<nite::WindowUI>(win)->size;
+// }
 
-void Game::PlayerStatusWindow::setSize(const nite::Vec2 &size){
-    if(win.get() == NULL){
-        return;
-    }     
-    this->size = size;
-    auto casted = std::static_pointer_cast<nite::WindowUI>(win);
-    casted->setPosition(size);
-}
+// void Game::PlayerStatusWindow::setSize(const nite::Vec2 &size){
+//     if(win.get() == NULL){
+//         return;
+//     }     
+//     this->size = size;
+//     auto casted = std::static_pointer_cast<nite::WindowUI>(win);
+//     casted->setPosition(size);
+// }
 
-void Game::PlayerStatusWindow::close(){
-    if(win.get() == NULL){
-        return;
-    }     
-    auto casted = std::static_pointer_cast<nite::WindowUI>(win);
-    casted->close();
-}
+// void Game::PlayerStatusWindow::close(){
+//     if(win.get() == NULL){
+//         return;
+//     }     
+//     auto casted = std::static_pointer_cast<nite::WindowUI>(win);
+//     casted->close();
+// }
 
-bool Game::PlayerStatusWindow::setVisible(bool v){
-    if(win.get() == NULL){
-        return false;
-    }     
-    this->win->setVisible(v);
-    return v;
-}
+// bool Game::PlayerStatusWindow::setVisible(bool v){
+//     if(win.get() == NULL){
+//         return false;
+//     }     
+//     this->win->setVisible(v);
+//     return v;
+// }
 
-void Game::PlayerStatusWindow::update(BattleEntity *entity){
-    if(win.get() == NULL){
-        return;
-    } 
-    auto getBar = [&](const String &id){
-        auto barObj = win->getComponentById(id);
-        if(barObj.get() == NULL || barObj->type != "progressive-bar"){
-            return Shared<nite::ProgressiveBarUI>(NULL);
-        }
-        return std::dynamic_pointer_cast<nite::ProgressiveBarUI>(barObj);
-    };
-    auto getText = [&](const String &id){
-        auto obj = win->getComponentById(id);
-        if(obj.get() == NULL || obj->type != "text"){
-            return Shared<nite::TextUI>(NULL);
-        }
-        return std::dynamic_pointer_cast<nite::TextUI>(obj);
-    };
-    // name
-    auto nametext = getText("name");
-    if(nametext.get() != NULL){
-        nametext->setText(entity->entity->nickname+" | Lv. "+nite::toStr(entity->entity->healthStat.lv));
-    }
-    // set health
-    auto hltbar = getBar("health-bar");
-    if(hltbar.get() != NULL){
-        hltbar->setValue(entity->entity->healthStat.health, entity->entity->healthStat.maxHealth);
-    }
-    // set sp
-    auto spbar = getBar("sp-bar");
-    if(spbar.get() != NULL){
-        spbar->setValue(entity->entity->healthStat.mana, entity->entity->healthStat.maxMana);
-    }
-    // set st
-    auto stbar = getBar("st-bar");
-    if(stbar.get() != NULL){
-        stbar->setValue(entity->entity->healthStat.stamina, entity->entity->healthStat.maxStamina);
-    }        
+// void Game::PlayerStatusWindow::update(BattleEntity *entity){
+//     if(win.get() == NULL){
+//         return;
+//     } 
+//     auto getBar = [&](const String &id){
+//         auto barObj = win->getComponentById(id);
+//         if(barObj.get() == NULL || barObj->type != "progressive-bar"){
+//             return Shared<nite::ProgressiveBarUI>(NULL);
+//         }
+//         return std::dynamic_pointer_cast<nite::ProgressiveBarUI>(barObj);
+//     };
+//     auto getText = [&](const String &id){
+//         auto obj = win->getComponentById(id);
+//         if(obj.get() == NULL || obj->type != "text"){
+//             return Shared<nite::TextUI>(NULL);
+//         }
+//         return std::dynamic_pointer_cast<nite::TextUI>(obj);
+//     };
+//     // name
+//     auto nametext = getText("name");
+//     if(nametext.get() != NULL){
+//         nametext->setText(entity->entity->nickname+" | Lv. "+nite::toStr(entity->entity->healthStat.lv));
+//     }
+//     // set health
+//     auto hltbar = getBar("health-bar");
+//     if(hltbar.get() != NULL){
+//         hltbar->setValue(entity->entity->healthStat.health, entity->entity->healthStat.maxHealth);
+//     }
+//     auto hlttext = getText("health-text");
+//     if(hlttext.get() != NULL){
+//         hlttext->setText(nite::toStr(entity->entity->healthStat.health)+" / "+nite::toStr(entity->entity->healthStat.maxHealth));
+//     }    
+//     // set sp
+//     auto spbar = getBar("sp-bar");
+//     if(spbar.get() != NULL){
+//         spbar->setValue(entity->entity->healthStat.mana, entity->entity->healthStat.maxMana);
+//     }
+//     auto sptext = getText("sp-text");
+//     if(sptext.get() != NULL){
+//         sptext->setText(nite::toStr(entity->entity->healthStat.mana)+" / "+nite::toStr(entity->entity->healthStat.maxMana));
+//     }       
+//     // // set st
+//     // auto stbar = getBar("st-bar");
+//     // if(stbar.get() != NULL){
+//     //     stbar->setValue(entity->entity->healthStat.stamina, entity->entity->healthStat.maxStamina);
+//     // }        
     
-}
+// }
 
 Game::Battle::Battle(){
     playerStatPos.set(8);
@@ -141,6 +149,10 @@ Game::Battle::Battle(){
 
     this->selTargetTick = nite::getTicks();
     this->selTargetFlip = false;
+
+
+    theme = std::make_shared<Game::UITheming>(Game::UITheming());
+    theme->load("data/ui/base_theme.json");
 
 }
 
@@ -200,16 +212,17 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
         names += i < groupB.size()-1 ? ", " : " and " + bttTextColorEnemyName(groupB[i]->nickname);
     }
     static const Vector<String> randomEnterPhrase = {"Oh! ", "Quick! ", "Look! "};
-    dialog->add("", randomEnterPhrase[nite::randomInt(0, randomEnterPhrase.size())]+"@500!"+names+(groupB.size() > 1 ? " are " : " is ")+"approaching...", nite::Color("#d20021"));
+    String pickedPhrase = randomEnterPhrase[nite::randomInt(1, randomEnterPhrase.size()+1)-1];
+    dialog->add("", pickedPhrase+"@500!"+names+(groupB.size() > 1 ? " are " : " is ")+"approaching...", nite::Color("#d20021"));
     dialog->start();
 
-    static const String mainFont = "SimvoniBold-w1dOn.otf";
+    static const String mainFont = "DejaVuSans.ttf";
 
     if(!font.isLoaded()){
         font.load("data/font/"+mainFont, 28, 2.0f);
     }
     if(!subFont.isLoaded()){
-        subFont.load("data/font/"+mainFont, 16, 1.0f);
+        subFont.load("data/font/"+mainFont, 16, 2.0f);
     }
     if(!empty.isLoaded()){
         empty.load("data/texture/empty.png");
@@ -224,8 +237,9 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     // group a
     for(int i = 0; i < groupA.size(); ++i){
         auto ent = std::make_shared<BattleEntity>(BattleEntity());
-        ent->font = font;
-        ent->subFont = subFont;
+        ent->theme = theme;
+        // ent->font = font;
+        // ent->subFont = subFont;
         ent->entity = groupA[i];
         ent->group = BattleGroup::GROUP_A;
         ent->onJoin(nite::Vec2(16.0f));
@@ -233,8 +247,9 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     }
     for(int i = 0; i < groupB.size(); ++i){
         auto ent = std::make_shared<BattleEntity>(BattleEntity());
+        ent->theme = theme;
         ent->entity = groupB[i];
-        ent->subFont = subFont;      
+        // ent->subFont = subFont;      
         ent->group = BattleGroup::GROUP_B;
         ent->onJoin(nite::Vec2(0.0f));
         this->groupB.push_back(ent);
@@ -421,6 +436,13 @@ void Game::Battle::step(){
     vfxDev.step();
 
     const static UInt64 avgTransitionWait = 80;
+
+
+    for(int i = 0; i < groupA.size(); ++i){
+        groupA[i]->statusWindow->step();
+        groupA[i]->statusWindow->position = nite::Vec2(16.0f);
+        groupA[i]->statusWindow->render();
+    }
 
     auto generateButton = [&](Shared<nite::BaseUIComponent> &container, const String &text){
         Jzon::Node json = Jzon::object();
@@ -1218,23 +1240,30 @@ Game::BattleEntity::BattleEntity(){
 	battlAnimBlinkFlip = false;
 	battleAnimStatus = EntityBattleAnim::IDLE;
 	lastBattleAnimBlinkTick = nite::getTicks();    
+    statusWindow = std::make_shared<UIBattlePlayerInfo>(UIBattlePlayerInfo());
 }
 
 void Game::BattleEntity::onJoin(const nite::Vec2 &winPos){
 
-    this->statusWindow.load(group != BattleGroup::GROUP_A);
-    this->statusWindow.setVisible(true);
-    this->statusWindow.setPosition(winPos);
-    this->statusWindow.update(this);
+    // this->statusWindow.load(group != BattleGroup::GROUP_A);
+    // this->statusWindow.setVisible(true);
+    // this->statusWindow.setPosition(winPos);
+    // this->statusWindow.update(this);
+
+    this->statusWindow->entity = entity;
+    this->statusWindow->theme = theme;
+    this->statusWindow->position = winPos;
+    this->statusWindow->onCreate();
     // TODO: handle enemy windows
 }
 
 void Game::BattleEntity::onDeath(){
-    this->statusWindow.close();
+    // this->statusWindow.close();
 }
 
 void Game::BattleEntity::onAffect(){
-    this->statusWindow.update(this);
+    // this->statusWindow.update(this);
+    this->statusWindow->setAffected();
 }
 
 void Game::BattleEntity::setBattleAnim(int anim, UInt64 animTargetTime){
@@ -1382,10 +1411,12 @@ void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
     // auto fobj = subFont.draw(entity->nickname+" | Lv. "+nite::toStr(entity->healthStat.lv), position.x, position.y  + battleAnim.getHeight() * 2.0f * 0.5f + 16, 0.5f, 0.5f, 0.0f);
     // subFont.draw("HP "+nite::toStr(entity->healthStat.health)+" / "+nite::toStr(entity->healthStat.maxHealth), position.x, position.y  + battleAnim.getHeight() * 2.0f * 0.5f + 16 + fontHeight, 0.5f, 0.5f, 0.0f);
     
-    auto winSize = statusWindow.getSize() * nite::Vec2(0.5f, 0.25f);
+    // auto winSize = statusWindow->size * nite::Vec2(0.5f, 0.25f);
     
-    statusWindow.setPosition(nite::Vec2(position.x - winSize.x, (position.y  + battleAnim.getHeight() * 2.0f * 0.5f + 16) - winSize.y + maxExp * rateExp));
-
+    // statusWindow->step();
+    // statusWindow->position = nite::Vec2(position.x - winSize.x, (position.y  + battleAnim.getHeight() * 2.0f * 0.5f + 16) - winSize.y);
+    // statusWindow->render();
+    
 
 	if(f != NULL){
 		f->smooth = true;

@@ -39,11 +39,13 @@
         void setUseValue(bool v);
 
         nite::Font font;
+        nite::Color fontColor;
         int fontSize;
 
         nite::Batch batch;
         void setFont(const nite::Font &font);
         void setFontSize(int size);
+        void setFontColor(const nite::Color &color);
         void rerender();
         void recalculate();
         void setBorderThickness(float tn);
