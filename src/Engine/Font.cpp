@@ -127,6 +127,7 @@ void nite::Font::setTick(bool v){
 
 struct Single {
 	int w, h;
+	int bw, bh;
 	unsigned char *buffer;
 	size_t size;
 	Single(int w, int h, unsigned char *src){
@@ -137,6 +138,8 @@ struct Single {
 		int channels = 2;
 		this->w = w;
 		this->h = h;
+		this->bw = w;
+		this->bh = h;
 		size = w * h * channels;
 		buffer = new unsigned char[size];
 		memset(buffer, 0, size);
@@ -144,44 +147,35 @@ struct Single {
 			buffer[i*channels + 0] = src[i];
 		}
 	}
-	// strong makes a base with strong opposite (> 0 -> 0, == 0 -> 255)
-	void strong(int w, int h, unsigned char* src){
+	// strong makes a base with strong opposite
+	void strong(int x, int y, int w, int h, int bw, int bh, unsigned char* src){
 		int channels = 2;
 		this->w = w;
 		this->h = h;
-		size = w * h * channels;
+		this->bw = bw == 0 ? w : bw;
+		this->bh = bh == 0 ? h : bh;
+		size = this->bw * this->bh * channels;
 		buffer = new unsigned char[size];
 		memset(buffer, 0, size);
-		for(int i = 0; i < w*h; ++i){
-			// unsigned char v = src[i] > 0 ? 0 : 255;
-			// buffer[i*channels + 0] = v;
-			// buffer[i*channels + 1] = v;
-			// buffer[i*channels + 2] = v;
-			// buffer[i*channels + 3] = src[i];
-			buffer[i*channels + 1] = src[i];
-		}
-	}
-	// bliz paints over a strong base
-	void blitz(int w, int h, unsigned char* src){
-		// blitz expects a smaller bitmap
-		int channels = 2;
-		int offsetx = nite::round((float)(this->w - w) / 2.0f);
-		int offsety = nite::round((float)(this->h - h) / 2.0f);
+		int offsetx = nite::round((float)(this->w - w) / 2.0f) + x;
+		int offsety = nite::round((float)(this->h - h) / 2.0f) + y;		
+		// for(int i = 0; i < w*h; ++i){
+		// 	// unsigned char v = src[i] > 0 ? 0 : 255;
+		// 	// buffer[i*channels + 0] = v;
+		// 	// buffer[i*channels + 1] = v;
+		// 	// buffer[i*channels + 2] = v;
+		// 	// buffer[i*channels + 3] = src[i];
+		// 	buffer[i*channels + 1] = src[i];
+		// }
 		for(int y = 0; y < h; ++y){
 			for(int x = 0; x < w; ++x){
-				int i = y * w  + x; //src
-				int j = (y + offsety)  * this->w + x + offsetx; // target
-				// buffer[j*4 + 0] = src[i];
-				// buffer[j*4 + 1] = src[i];
-				// buffer[j*4 + 2] = src[i];
-				// buffer[j*4 + 3] = (buffer[j*4 + 3] + src[i]); // disregard alpha			
-				buffer[j*channels + 0] = src[i];
+				int i = y * w  + x;
+				int j = (y + offsety)  * this->bw + x + offsetx;		
+				buffer[j*channels + 1] = src[i];
 			}
-		}
-	}
-
-	// bliz paints over a strong base
-	void blitz(int x, int y, int w, int h, unsigned char* src){
+		}		
+	}	
+	void blitz(int x, int y, int w, int h, int bw, int bh, unsigned char* src){
 		// blitz expects a smaller bitmap
 		int channels = 2;
 		int offsetx = nite::round((float)(this->w - w) / 2.0f) + x;
@@ -189,7 +183,7 @@ struct Single {
 		for(int y = 0; y < h; ++y){
 			for(int x = 0; x < w; ++x){
 				int i = y * w  + x; //src
-				int j = (y + offsety)  * this->w + x + offsetx; // target
+				int j = (y + offsety)  * (bw == 0 ? this->w : bw) + x + offsetx; // target
 				// buffer[j*4 + 0] = src[i];
 				// buffer[j*4 + 1] = src[i];
 				// buffer[j*4 + 2] = src[i];
@@ -276,6 +270,7 @@ void nite::Font::load(const String &path, const nite::FontStyle &style){
 	Vector<Single> frags; // maybe a vector could be too slow?
 	nite::Vec2 dims;
 	int xcursor = 0.0f;
+	float singleSpacing = 6.0f;
 	// render characters
 	for(int i = ASCII_MIN; i < ASCII_MAX; i++){
 		FT_Load_Char(face, i, FT_LOAD_NO_BITMAP | FT_LOAD_TARGET_NORMAL);//FT_Get_Char_Index(face, i);
@@ -307,16 +302,23 @@ void nite::Font::load(const String &path, const nite::FontStyle &style){
 		}
 		
 		Single buffer;
-
+		nite::Vec2 bmapSize = nite::Vec2(bitmap->bitmap.width, bitmap->bitmap.rows);
 		// render filler alone
-		if(thickness == 0.0f){
+		if(thickness == 0.0f && style.shadow.x == 0.0f && style.shadow.y == 0.0f){
 			buffer = Single();
 			buffer.pure(bitmap->bitmap.width, bitmap->bitmap.rows, bitmap->bitmap.buffer);
 		// render outline as a strong and blit on it the filler
-		}else{
+		}else
+		if(style.shadow.x > 0.0f || style.shadow.y > 0.0f){
+			bmapSize = nite::Vec2(bitmap->bitmap.width + style.shadow.x, bitmap->bitmap.rows + style.shadow.y);
 			buffer = Single();
-			buffer.strong(bitmapStroke->bitmap.width, bitmapStroke->bitmap.rows, bitmapStroke->bitmap.buffer);
-			buffer.blitz(bitmap->bitmap.width, bitmap->bitmap.rows, bitmap->bitmap.buffer);		
+			buffer.strong(style.shadow.x, style.shadow.y, bitmap->bitmap.width, bitmap->bitmap.rows, bmapSize.x, bmapSize.y, bitmap->bitmap.buffer);
+			buffer.blitz(0,  0, bitmap->bitmap.width, bitmap->bitmap.rows, bmapSize.x, bmapSize.y, bitmap->bitmap.buffer);
+		}else{
+			bmapSize = nite::Vec2( bitmapStroke->bitmap.width, bitmapStroke->bitmap.rows);
+			buffer = Single();
+			buffer.strong(0, 0, bitmapStroke->bitmap.width, bitmapStroke->bitmap.rows, 0, 0, bitmapStroke->bitmap.buffer);
+			buffer.blitz(0, 0, bitmap->bitmap.width, bitmap->bitmap.rows, 0, 0, bitmap->bitmap.buffer);		
 		}
 
 		frags.push_back(buffer);
@@ -325,17 +327,17 @@ void nite::Font::load(const String &path, const nite::FontStyle &style){
 		// metrics
 		proxy.glyphs[i].index.x = xcursor;
 		proxy.glyphs[i].index.y = 0;
-		proxy.glyphs[i].coors.x = biggest->bitmap.width;
-		proxy.glyphs[i].coors.y = biggest->bitmap.rows;
+		proxy.glyphs[i].coors.x = bmapSize.x;
+		proxy.glyphs[i].coors.y = bmapSize.y;
 		proxy.glyphs[i].orig.x = biggest->left;
 		proxy.glyphs[i].orig.y = biggest->top; 
 		proxy.glyphs[i].size.x = face->glyph->advance.x >> 6;
 		proxy.glyphs[i].size.y = face->glyph->metrics.horiBearingY >> 6;
 		// atlas info
-		dims.x += biggest->bitmap.width + 2;
-		dims.y = std::max((unsigned)dims.y, biggest->bitmap.rows);
+		dims.x += bmapSize.x + singleSpacing;
+		dims.y = std::max((unsigned)dims.y, (unsigned)bmapSize.y);
 		// cursor update
-		xcursor += biggest->bitmap.width + 2;
+		xcursor += bmapSize.x + singleSpacing;
 		FT_Done_Glyph(glyph);
 		if(thickness > 0.0f){
 			FT_Done_Glyph(stroke);
@@ -363,12 +365,12 @@ void nite::Font::load(const String &path, const nite::FontStyle &style){
 	for(int i = 0; i < frags.size(); ++i){
 		auto &frag = frags[i];
 		// if(thickness > 0){
-			glTexSubImage2D(GL_TEXTURE_2D, 0, xcursor, 0, frag.w, frag.h, GL_RG, GL_UNSIGNED_BYTE, frag.buffer);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, xcursor, 0, frag.bw, frag.bh, GL_RG, GL_UNSIGNED_BYTE, frag.buffer);
 		// }else{
 		// 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 		// 	glTexSubImage2D(GL_TEXTURE_2D, 0, xcursor, 0, frag.w, frag.h, GL_RGBA, GL_UNSIGNED_BYTE, frag.buffer);
 		// }
-		xcursor += frag.w + 2;
+		xcursor += frag.bw + singleSpacing;
 		frag.clear();
 	}
 	

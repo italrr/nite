@@ -1,19 +1,18 @@
 {
-	"fontColor": "#b7aac0",
-	"fontSubColor": "#b7aac0",
+	"fontColor": "#c7c739",
+	"fontSubColor": "#c7c739",
 	
-	"backgroundColor": "#494949",
-	"borderColor": "#ffffff",
+	"backgroundColor": "#ffffff",
+	"borderColor": "#000000",
 	
 	"solidColor": "#952b2b",
 	"subColor": "#27279d",
 	
 	"bigFont": "data/font/DejaVuSans.ttf",
-	"bigFontSize": 16,
+	"bigFontSize": 32,
 	"regularFont": "data/font/DejaVuSans.ttf",	
-	"regularFontSize": 14,
+	"regularFontSize": 24,
 	"smallFont": "data/font/DejaVuSans.ttf",
-	"smallFontSize": 10,
-	
+	"smallFontSize": 20,
 	"base": "data/texture/empty.png"
 }

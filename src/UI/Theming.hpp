@@ -31,6 +31,9 @@
                     return;
                 }
                 Jzon::Parser parser;
+                nite::FontStyle style;
+                style.shadow = nite::Vec2(2.0f);
+                // style.outline = 2.0f;
                 auto root = parser.parseFile(path);
                 fontColor.set(nite::Color(root.get("fontColor").toString()));
                 fontSubColor.set(nite::Color(root.get("fontSubColor").toString()));
@@ -39,11 +42,14 @@
                 solidColor.set(nite::Color(root.get("solidColor").toString()));
                 subColor.set(nite::Color(root.get("subColor").toString()));
                 bigFontSize = root.get("bigFontSize").toInt();
-                bigFont.load(root.get("bigFont").toString(), bigFontSize, 2.0f);
+                style.size = bigFontSize;
+                bigFont.load(root.get("bigFont").toString(), style);
                 regularFontSize = root.get("regularFontSize").toInt();
-                regularFont.load(root.get("regularFont").toString(), regularFontSize, 2.0f);
+                style.size = regularFontSize;
+                regularFont.load(root.get("regularFont").toString(), style);
                 smallFontSize = root.get("smallFontSize").toInt();
-                smallFont.load(root.get("smallFont").toString(), smallFontSize, 2.0f);
+                style.size = smallFontSize;
+                smallFont.load(root.get("smallFont").toString(), style);
                 base.load("data/texture/empty.png");
             }
         };
