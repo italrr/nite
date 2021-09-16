@@ -32,7 +32,7 @@
                 }
                 Jzon::Parser parser;
                 nite::FontStyle style;
-                style.shadow = nite::Vec2(1.0f);
+                style.shadow = nite::Vec2(2.0f);
                 // style.outline = 2.0f;
                 auto root = parser.parseFile(path);
                 fontColor.set(nite::Color(root.get("fontColor").toString()));

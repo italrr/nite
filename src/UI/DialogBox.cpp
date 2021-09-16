@@ -96,7 +96,7 @@ void Game::UIDialogBox::setText(const String &text){
             }
 
 
-            _w += theme->regularFont.getWidth(String("")+word[i]);
+            _w += theme->bigFont.getWidth(String("")+word[i]);
         }
         return _w;
     };
@@ -118,7 +118,9 @@ void Game::UIDialogBox::refresh(){
 }
 
 void Game::UIDialogBox::onCreate(){
-
+    if(!selArrowWhite.isLoaded()){
+        selArrowWhite.load("data/texture/ui/arrow_white.png", nite::Color(1.0f, 0.0f, 0.0f, 1.0f));
+    } 
 }
 
 void Game::UIDialogBox::onDestroy(){
@@ -144,5 +146,29 @@ void Game::UIDialogBox::render(){
     nite::setColor(theme->backgroundColor);
     theme->base.draw(position.x, position.y, size.x, size.y, 0.0f, 0.0f, 0.0f);
     nite::setColor(theme->fontColor);
-    theme->regularFont.draw(targetText, p.x + margin.x * 0.5f, p.y + margin.y * 0.5f, 0.0f, 0.0f, 0.0f);
+    theme->bigFont.draw(targetText, p.x + margin.x * 0.5f, p.y + margin.y * 0.5f, 0.0f, 0.0f, 0.0f);
+
+    if(nite::getTicks()-diagArrowTick > 320){
+        diagArrowTick = nite::getTicks();
+        diagArrowFlip = !diagArrowFlip;
+    }                
+    nite::lerpDiscrete(diagArrowOffset, diagArrowFlip ? 0.0f : 100.0f, diagArrowFlip ? 0.12f : 0.04f);
+    nite::setDepth(nite::DepthTop);
+    nite::setRenderTarget(nite::RenderTargetUI);                     
+    auto pos = p + size * nite::Vec2(0.95f, 0.95f) + nite::Vec2(0.0f, 24.0f * (diagArrowOffset/100.0f)) - nite::Vec2(0.0f, 24.0f);
+    if(showArrow){
+        nite::setColor(theme->backgroundColor);
+        auto arrefsha = selArrowWhite.draw(pos.x + 2, pos.y + 2, 32, 32, 0.5f, 0.5f, 0.0f);
+        nite::setColor(theme->solidColor);
+        auto arref = selArrowWhite.draw(pos.x, pos.y, 32, 32, 0.5f, 0.5f, 0.0f);
+        if(arref != NULL){
+            arref->smooth = true;
+        } 
+        if(arrefsha != NULL){
+            arrefsha->smooth = true;
+        }                     
+    }           
+    
+        
+    
 }

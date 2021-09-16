@@ -184,13 +184,13 @@
 
             Shared<UITheming> theme;
             Shared<UITheming> themeEnemy;
+            Shared<UITheming> themeDialogBox;
 
             Shared<UIDialogBox> dialogBox;
 
             nite::Font font;
             nite::Font subFont;
             nite::Texture selArrowBlack;
-            nite::Texture selArrowWhite;
             nite::Texture empty;
 
             Game::VfxDevice vfxDev;
@@ -226,11 +226,7 @@
 
             float selTargetOffset;
             UInt64 selTargetTick;
-            bool selTargetFlip;
-
-            float diagArrowOffset;
-            UInt64 diagArrowTick;
-            bool diagArrowFlip;            
+            bool selTargetFlip;         
 
             UInt64 lastStChange;
             nite::Vec2 actBarPos;

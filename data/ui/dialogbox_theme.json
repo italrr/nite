@@ -1,0 +1,18 @@
+{
+	"fontColor": "#ffffff",
+	"fontSubColor": "#ffffff",
+	
+	"backgroundColor": "#232323",
+	"borderColor": "#090909",
+	
+	"solidColor": "#ca1616",
+	"subColor": "#2d0cb1",
+	
+	"bigFont": "data/font/SimvoniBold-w1dOn.otf",
+	"bigFontSize": 32,
+	"regularFont": "data/font/SimvoniBold-w1dOn.otf",	
+	"regularFontSize": 26,
+	"smallFont": "data/font/SimvoniBold-w1dOn.otf",
+	"smallFontSize": 24,
+	"base": "data/texture/empty.png"
+}

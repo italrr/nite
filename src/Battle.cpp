@@ -154,13 +154,15 @@ Game::Battle::Battle(){
     this->selTargetTick = nite::getTicks();
     this->selTargetFlip = false;
 
-
     theme = std::make_shared<Game::UITheming>(Game::UITheming());
     themeEnemy = std::make_shared<Game::UITheming>(Game::UITheming());
+    themeDialogBox = std::make_shared<Game::UITheming>(Game::UITheming());
+
     theme->load("data/ui/base_theme.json");
     themeEnemy->load("data/ui/base_enemy_theme.json");
+    themeDialogBox->load("data/ui/dialogbox_theme.json");
 
-    this->dialogBox->theme = theme;
+    this->dialogBox->theme = themeDialogBox;
 }
 
 bool Game::Battle::isShowing(){
@@ -240,10 +242,7 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     }
     if(!selArrowBlack.isLoaded()){
         selArrowBlack.load("data/texture/ui/arrow_black.png", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
-    }
-    if(!selArrowWhite.isLoaded()){
-        selArrowWhite.load("data/texture/ui/arrow_white.png", nite::Color(1.0f, 0.0f, 0.0f, 1.0f));
-    }    
+    }   
 
     // group a
     for(int i = 0; i < groupA.size(); ++i){
@@ -319,6 +318,8 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     // }
 
     currentTurn = startTurn;
+    
+    dialogBox->onCreate();
 
     setState(BattleState::BATTLE_START);
     setOptBoxVis(false);
@@ -1146,37 +1147,6 @@ void Game::Battle::render(){
         dmgNumbers[i]->render();
     }
 
-    // this is stupid 
-    // TODO: improve it
-    // if(batWin.get() != NULL && batWin->isVisible() && isDialogBoxVis()){
-    //     auto textInnerBox = batWin->getComponentById("text-box-inner");
-    //     if(textInnerBox.get() != NULL && textInnerBox->type == "panel"){
-    //         auto head =  textInnerBox->getHeadComponent();
-    //         if(head != NULL){
-    //             if(nite::getTicks()-diagArrowTick > 320){
-    //                 diagArrowTick = nite::getTicks();
-    //                 diagArrowFlip = !diagArrowFlip;
-    //             }                
-    //             nite::lerpDiscrete(diagArrowOffset, diagArrowFlip ? 0.0f : 100.0f, diagArrowFlip ? 0.12f : 0.04f);
-    //             nite::setDepth(nite::DepthTop);
-    //             nite::setRenderTarget(nite::RenderTargetUI);                     
-    //             auto p = batWinPos + head->position - head->size * 0.5f + textInnerBox->size * nite::Vec2(0.95f, 0.95f) + nite::Vec2(0.0f, 24.0f * (diagArrowOffset/100.0f)) - nite::Vec2(0.0f, 24.0f);
-    //             if(dialog->canNext() && !dialog->autocont){
-    //                 nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);
-    //                 auto arrefsha = selArrowWhite.draw(p.x + 2, p.y + 2, 32, 32, 0.5f, 0.5f, 0.0f);
-    //                 nite::setColor(0.91f, 0.08f, 0.15f, 1.0f);
-    //                 auto arref = selArrowWhite.draw(p.x, p.y, 32, 32, 0.5f, 0.5f, 0.0f);
-    //                 if(arref != NULL){
-    //                     arref->smooth = true;
-    //                 } 
-    //                 if(arrefsha != NULL){
-    //                     arrefsha->smooth = true;
-    //                 }                     
-    //             }           
-    //         }
-    //     }
-    // }
-
     // draw player stats
     // if(groupA.size() > 0){
     //     nite::setDepth(nite::DepthMiddle);
@@ -1195,10 +1165,12 @@ void Game::Battle::render(){
     // }
 
 
+    dialogBox->showArrow = dialog->canNext() && !dialog->autocont;
+
     nite::setDepth(nite::DepthTop);
     nite::setRenderTarget(nite::RenderTargetUI);  
+    
     dialogBox->render();
-
     vfxDev.draw();
 
     // shakeOffPos.

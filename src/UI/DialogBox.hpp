@@ -9,6 +9,11 @@
             nite::Vec2 margin;
             String targetText;
             String bufferText;
+            bool showArrow;
+            nite::Texture selArrowWhite;
+            float diagArrowOffset;
+            UInt64 diagArrowTick;
+            bool diagArrowFlip;               
             UIDialogBox();
             bool visible;
             nite::Vec2 size;
