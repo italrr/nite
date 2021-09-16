@@ -65,6 +65,8 @@ Game::UIDialogBox::UIDialogBox(){
     targetText = "";
     visible = false;
     margin.set(16.0f);
+    diagArrowFlip = false;
+    diagArrowTick = nite::getTicks();
 }
 
 void Game::UIDialogBox::setSize(const nite::Vec2 &size){

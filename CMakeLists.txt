@@ -106,6 +106,7 @@ add_library(nite ${nite_src})
 set(src_files
 	src/UI/BattlePlayerInfo.cpp
 	src/UI/DialogBox.cpp
+	src/UI/ListMenu.cpp
 	src/World.cpp
 	src/Battle.cpp
 	src/Entity.cpp

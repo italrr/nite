@@ -7,6 +7,7 @@
 
     #include "UI/BattlePlayerInfo.hpp"
     #include "UI/DialogBox.hpp"
+    #include "UI/ListMenu.hpp"
 
     namespace Game {
 
@@ -187,6 +188,7 @@
             Shared<UITheming> themeDialogBox;
 
             Shared<UIDialogBox> dialogBox;
+            Shared<UIListMenu> optionsMenu;
 
             nite::Font font;
             nite::Font subFont;
@@ -237,6 +239,8 @@
             Shared<Game::DialogHook> dialog;
             Vector<Shared<BattleEntity>> groupA;
             Vector<Shared<BattleEntity>> groupB;
+
+            
 
             bool shakeDamageEff;
             UInt64 shakeDmgEffTick;

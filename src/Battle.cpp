@@ -108,6 +108,7 @@ Game::Battle::Battle(){
     
     this->dialog = Shared<Game::DialogHook>(new Game::DialogHook());
     this->dialogBox = std::make_shared<Game::UIDialogBox>(Game::UIDialogBox());
+    this->optionsMenu = std::make_shared<Game::UIListMenu>(Game::UIListMenu());
 
     this->startTurn = 0;
 
@@ -163,6 +164,7 @@ Game::Battle::Battle(){
     themeDialogBox->load("data/ui/dialogbox_theme.json");
 
     this->dialogBox->theme = themeDialogBox;
+    this->optionsMenu->theme = theme;
 }
 
 bool Game::Battle::isShowing(){
@@ -228,6 +230,9 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     dialogBox->setVisible(true);
     dialogBox->setSize(nite::Vec2(nite::getWidth() * 0.50f, dialogBox->theme->bigFont.getHeight() * 3.0f));
     dialogBox->position = nite::Vec2(nite::getWidth() * 0.5f - dialogBox->size.x * 0.5f, nite::getHeight() - dialogBox->size.y - 16);
+
+    optionsMenu->setSize(nite::Vec2(200.0f, 0.0f));
+    optionsMenu->position = nite::Vec2(nite::getWidth() - optionsMenu->size.x - 32, nite::getHeight() * 0.5f);
 
     static const String mainFont = "DejaVuSans.ttf";
 
@@ -320,6 +325,7 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     currentTurn = startTurn;
     
     dialogBox->onCreate();
+    optionsMenu->onCreate();
 
     setState(BattleState::BATTLE_START);
     setOptBoxVis(false);
@@ -600,6 +606,19 @@ void Game::Battle::step(){
     */
 
     auto generateMainOptions = [&](){
+        optionsMenu->clear();
+        optionsMenu->addOption("ENGAGE", [&](Game::UIListMenuOption *opt){
+
+        });
+        optionsMenu->addOption("EVADE", [&](Game::UIListMenuOption *opt){
+
+        });
+        optionsMenu->addOption("BAG", [&](Game::UIListMenuOption *opt){
+
+        });
+        optionsMenu->addOption("ESCAPE", [&](Game::UIListMenuOption *opt){
+
+        });                        
         // auto list = batWin->getComponentById("options-box-list");
         // list->clearChildren();
 
@@ -731,7 +750,8 @@ void Game::Battle::step(){
             if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
                 setState(PICK_ACTION);
                 generateMainOptions();
-                setOptBoxVis(true);
+                // setOptBoxVis(true);
+                optionsMenu->setVisible(true);
                 // setDialogBoxVis(false);  
                 dialogBox->setVisible(false);
 
@@ -1171,6 +1191,7 @@ void Game::Battle::render(){
     nite::setRenderTarget(nite::RenderTargetUI);  
     
     dialogBox->render();
+    optionsMenu->render();
     vfxDev.draw();
 
     // shakeOffPos.
