@@ -6,6 +6,7 @@
     #include "Vfx.hpp"
 
     #include "UI/BattlePlayerInfo.hpp"
+    #include "UI/DialogBox.hpp"
 
     namespace Game {
 
@@ -182,6 +183,9 @@
         struct Battle {
 
             Shared<UITheming> theme;
+            Shared<UITheming> themeEnemy;
+
+            Shared<UIDialogBox> dialogBox;
 
             nite::Font font;
             nite::Font subFont;
@@ -193,7 +197,8 @@
 
             Vector<Shared<DamageNumber>> dmgNumbers;
 
-            Shared<nite::BaseUIComponent> batWin;
+            // Shared<nite::BaseUIComponent> batWin;
+
 
             Vector<ActionTurn> decisions;
             int cdecision;
@@ -249,8 +254,8 @@
             void setOptBoxVis(bool v);
             bool isOptBoxVis();
 
-            void setDialogBoxVis(bool v);
-            bool isDialogBoxVis();
+            // void setDialogBoxVis(bool v);
+            // bool isDialogBoxVis();
 
 
             void setWinVis(bool v);

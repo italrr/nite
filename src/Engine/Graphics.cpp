@@ -113,6 +113,7 @@ static void setupTarget(float x, float y, bool clear){
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
+	
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glViewport(0, 0, x, y);
 	glMatrixMode(GL_PROJECTION);

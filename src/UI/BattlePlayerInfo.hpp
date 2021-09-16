@@ -7,6 +7,8 @@
 
         struct Entity;
         struct UIBattlePlayerInfo : Game::UIObject {
+            UIBattlePlayerInfo();
+            bool small;
             Shared<Entity> entity;
             float secondBar;
             bool affected;

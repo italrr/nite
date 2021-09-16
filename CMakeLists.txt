@@ -6,121 +6,6 @@ set(CMAKE_C_FLAGS "-DGLEW_STATIC -g -m64")
 set(CMAKE_CXX_FLAGS "-DGLEW_STATIC -std=c++11 -g -m64")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/builds/cmake)
 
-# Build FreeType2 #
-set (FreeType2_src
-	src/Engine/FreeType/src/autofit/autofit.c
-	src/Engine/FreeType/src/base/ftbase.c
-	src/Engine/FreeType/src/base/ftbbox.c
-	src/Engine/FreeType/src/base/ftbdf.c
-	src/Engine/FreeType/src/base/ftbitmap.c
-	src/Engine/FreeType/src/base/ftcid.c
-	src/Engine/FreeType/src/base/ftfntfmt.c
-	src/Engine/FreeType/src/base/ftfstype.c
-	src/Engine/FreeType/src/base/ftgasp.c
-	src/Engine/FreeType/src/base/ftglyph.c
-	src/Engine/FreeType/src/base/ftgxval.c
-	src/Engine/FreeType/src/base/ftinit.c
-	src/Engine/FreeType/src/base/ftlcdfil.c
-	src/Engine/FreeType/src/base/ftmm.c
-	src/Engine/FreeType/src/base/ftotval.c
-	src/Engine/FreeType/src/base/ftpatent.c
-	src/Engine/FreeType/src/base/ftpfr.c
-	src/Engine/FreeType/src/base/ftstroke.c
-	src/Engine/FreeType/src/base/ftsynth.c
-	src/Engine/FreeType/src/base/ftsystem.c
-	src/Engine/FreeType/src/base/fttype1.c
-	src/Engine/FreeType/src/base/ftwinfnt.c
-	src/Engine/FreeType/src/bdf/bdf.c
-	src/Engine/FreeType/src/bzip2/ftbzip2.c
-	src/Engine/FreeType/src/cache/ftcache.c
-	src/Engine/FreeType/src/cff/cff.c
-	src/Engine/FreeType/src/cid/type1cid.c
-	src/Engine/FreeType/src/gzip/ftgzip.c
-	src/Engine/FreeType/src/lzw/ftlzw.c
-	src/Engine/FreeType/src/pcf/pcf.c
-	src/Engine/FreeType/src/pfr/pfr.c
-	src/Engine/FreeType/src/psaux/psaux.c
-	src/Engine/FreeType/src/pshinter/pshinter.c
-	src/Engine/FreeType/src/psnames/psnames.c
-	src/Engine/FreeType/src/raster/raster.c
-	src/Engine/FreeType/src/sfnt/sfnt.c
-	src/Engine/FreeType/src/smooth/smooth.c
-	src/Engine/FreeType/src/truetype/truetype.c
-	src/Engine/FreeType/src/type1/type1.c
-	src/Engine/FreeType/src/type42/type42.c
-	src/Engine/FreeType/src/winfonts/winfnt.c)
-
-if (WIN32)
-  set(FreeType2_src ${FreeType2_src} src/Engine/FreeType/builds/windows/ftdebug.c)
-elseif (WINCE)
-  set(FreeType2_src ${FreeType2_src} src/Engine/FreeType/builds/wince/ftdebug.c)
-else ()
-  set(FreeType2_src ${FreeType2_src} src/Engine/FreeType/src/base/ftdebug.c)
-endif ()
-
-set(VERSION_MAJOR "2")
-set(VERSION_MINOR "9")
-set(VERSION_PATCH "0")
-
-add_definitions(-DFT2_BUILD_LIBRARY)
-
-# Find dependencies
-foreach (d ZLIB BZip2 PNG HarfBuzz)
-  string(TOUPPER "${d}" D)
-
-  if (DEFINED WITH_${d} OR DEFINED WITH_${D})
-    if (WITH_${d} OR WITH_${D})
-      find_package(${d} QUIET REQUIRED)
-    endif ()
-  else ()
-    find_package(${d} QUIET)
-  endif ()
-
-  if (${d}_FOUND OR ${D}_FOUND)
-    message(STATUS "Building with ${d}")
-  endif ()
-endforeach ()
-
-if (UNIX)
-
-  file(READ "src/Engine/FreeType/builds/unix/ftconfig.in"
-    FTCONFIG_H)
-  if (HAVE_UNISTD_H)
-    string(REGEX REPLACE
-      "#undef +(HAVE_UNISTD_H)" "#define \\1"
-      FTCONFIG_H "${FTCONFIG_H}")
-  endif ()
-  if (HAVE_FCNTL_H)
-    string(REGEX REPLACE
-      "#undef +(HAVE_FCNTL_H)" "#define \\1"
-      FTCONFIG_H "${FTCONFIG_H}")
-  endif ()
-  if (HAVE_STDINT_H)
-    string(REGEX REPLACE
-      "#undef +(HAVE_STDINT_H)" "#define \\1"
-      FTCONFIG_H "${FTCONFIG_H}")
-  endif ()
-  string(REPLACE "/undef " "#undef "
-    FTCONFIG_H "${FTCONFIG_H}")
-  file(WRITE "src/Engine/FreeType/include/freetype/config/ftconfig.h-new"
-    "${FTCONFIG_H}")
-else ()
-  file(READ "src/Engine/FreeType/include/freetype/config/ftconfig.h"
-    FTCONFIG_H)
-  file(WRITE "src/Engine/FreeType/include/freetype/config/ftconfig.h-new"
-    "${FTCONFIG_H}")
-endif ()
-
-execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different
- 	"src/Engine/FreeType/include/freetype/config/ftconfig.h-new"
-	"src/Engine/FreeType/include/freetype/config/ftconfig.h")
-
-include_directories("src/Engine/FreeType/include")
-include_directories(BEFORE "src/Engine/FreeType/include")	
-
-
-add_library(FreeType2 ${FreeType2_src})
-
 # Build SOIL #
 set (SOIL_src
 		src/Engine/SOIL/image_DXT.c
@@ -220,6 +105,7 @@ add_library(nite ${nite_src})
 
 set(src_files
 	src/UI/BattlePlayerInfo.cpp
+	src/UI/DialogBox.cpp
 	src/World.cpp
 	src/Battle.cpp
 	src/Entity.cpp
@@ -251,7 +137,8 @@ IF(MINGW)
 	target_link_libraries(src -lws2_32)
 ENDIF(MINGW)
 target_link_libraries(src SOIL)
-target_link_libraries(src FreeType2)
+#target_link_libraries(src FreeType2)#
+target_link_libraries(src -lfreetype)
 
 IF(MINGW)
 	target_link_libraries(src RaptorAudio)

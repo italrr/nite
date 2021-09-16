@@ -2,17 +2,17 @@
 	"fontColor": "#ffffff",
 	"fontSubColor": "#ffffff",
 	
-	"backgroundColor": "#232323",
-	"borderColor": "#090909",
+	"backgroundColor": "#3d1a1a",
+	"borderColor": "#140909",
 	
 	"solidColor": "#ca1616",
 	"subColor": "#2d0cb1",
 	
 	"bigFont": "data/font/SimvoniBold-w1dOn.otf",
-	"bigFontSize": 20,
+	"bigFontSize": 18,
 	"regularFont": "data/font/SimvoniBold-w1dOn.otf",	
-	"regularFontSize": 18,
+	"regularFontSize": 16,
 	"smallFont": "data/font/SimvoniBold-w1dOn.otf",
-	"smallFontSize": 14,
+	"smallFontSize": 12,
 	"base": "data/texture/empty.png"
 }

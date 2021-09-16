@@ -32,7 +32,7 @@
                 }
                 Jzon::Parser parser;
                 nite::FontStyle style;
-                style.shadow = nite::Vec2(2.0f);
+                style.shadow = nite::Vec2(1.0f);
                 // style.outline = 2.0f;
                 auto root = parser.parseFile(path);
                 fontColor.set(nite::Color(root.get("fontColor").toString()));
@@ -41,6 +41,7 @@
                 borderColor.set(nite::Color(root.get("borderColor").toString()));
                 solidColor.set(nite::Color(root.get("solidColor").toString()));
                 subColor.set(nite::Color(root.get("subColor").toString()));
+                style.outlineColor = borderColor;
                 bigFontSize = root.get("bigFontSize").toInt();
                 style.size = bigFontSize;
                 bigFont.load(root.get("bigFont").toString(), style);
@@ -50,6 +51,9 @@
                 smallFontSize = root.get("smallFontSize").toInt();
                 style.size = smallFontSize;
                 smallFont.load(root.get("smallFont").toString(), style);
+
+                // fontColor.set("#000000");
+
                 base.load("data/texture/empty.png");
             }
         };

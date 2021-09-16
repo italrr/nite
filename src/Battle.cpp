@@ -107,6 +107,7 @@ Game::Battle::Battle(){
     this->state = Game::BattleState::BATTLE_READY;
     
     this->dialog = Shared<Game::DialogHook>(new Game::DialogHook());
+    this->dialogBox = std::make_shared<Game::UIDialogBox>(Game::UIDialogBox());
 
     this->startTurn = 0;
 
@@ -117,25 +118,28 @@ Game::Battle::Battle(){
     this->lastStChange = nite::getTicks();
 
     this->dialog->onReset = [&](){
-        auto ftbox = batWin->getComponentById("text-box-object");
-        if(ftbox.get() != NULL && ftbox->type == "text"){
-            auto text = std::dynamic_pointer_cast<nite::TextUI>(ftbox);
-            text->setText("");
-        }else{
-            nite::print("Battle::Battle::onReset: cannot find 'text-box-object'");
-        }   
+        dialogBox->setText("");
+        // auto ftbox = batWin->getComponentById("text-box-object");
+        // if(ftbox.get() != NULL && ftbox->type == "text"){
+        //     auto text = std::dynamic_pointer_cast<nite::TextUI>(ftbox);
+        //     text->setText("");
+        // }else{
+        //     nite::print("Battle::Battle::onReset: cannot find 'text-box-object'");
+        // }   
     };
 
     this->dialog->onUpdateText = [&](){
+
+        dialogBox->setText(dialog->currenText);
         // updWinValue(textWin, currenText);
 
-        auto ftbox = batWin->getComponentById("text-box-object");
-        if(ftbox.get() != NULL && ftbox->type == "text"){
-            auto text = std::dynamic_pointer_cast<nite::TextUI>(ftbox);
-            text->setText(dialog->currenText);
-        }else{
-            nite::print("Battle::Battle::onUpdateText: cannot find 'text-box-object'");
-        }        
+        // auto ftbox = batWin->getComponentById("text-box-object");
+        // if(ftbox.get() != NULL && ftbox->type == "text"){
+        //     auto text = std::dynamic_pointer_cast<nite::TextUI>(ftbox);
+        //     text->setText(dialog->currenText);
+        // }else{
+        //     nite::print("Battle::Battle::onUpdateText: cannot find 'text-box-object'");
+        // }        
 
     };
 
@@ -152,8 +156,11 @@ Game::Battle::Battle(){
 
 
     theme = std::make_shared<Game::UITheming>(Game::UITheming());
+    themeEnemy = std::make_shared<Game::UITheming>(Game::UITheming());
     theme->load("data/ui/base_theme.json");
+    themeEnemy->load("data/ui/base_enemy_theme.json");
 
+    this->dialogBox->theme = theme;
 }
 
 bool Game::Battle::isShowing(){
@@ -177,8 +184,9 @@ void Game::Battle::reset(){
     groupB.clear();
     dialog->reset();
     setWinVis(false);
-    setOptBoxVis(false);
-    setDialogBoxVis(false);
+    dialogBox->setVisible(false);
+    // setOptBoxVis(false);
+    // setDialogBoxVis(false);
     this->selTargetTick = nite::getTicks();
     this->selTargetFlip = false;    
     this->startTurn = 0;
@@ -215,6 +223,9 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     String pickedPhrase = randomEnterPhrase[nite::randomInt(1, randomEnterPhrase.size()+1)-1];
     dialog->add("", pickedPhrase+"@500!"+names+(groupB.size() > 1 ? " are " : " is ")+"approaching...", nite::Color("#d20021"));
     dialog->start();
+    dialogBox->setVisible(true);
+    dialogBox->setSize(nite::Vec2(nite::getWidth() * 0.50f, dialogBox->theme->bigFont.getHeight() * 3.0f));
+    dialogBox->position = nite::Vec2(nite::getWidth() * 0.5f - dialogBox->size.x * 0.5f, nite::getHeight() - dialogBox->size.y - 16);
 
     static const String mainFont = "DejaVuSans.ttf";
 
@@ -247,62 +258,65 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     }
     for(int i = 0; i < groupB.size(); ++i){
         auto ent = std::make_shared<BattleEntity>(BattleEntity());
-        ent->theme = theme;
+        ent->theme = themeEnemy;
         ent->entity = groupB[i];
+        ent->statusWindow->small = true;
         // ent->subFont = subFont;      
         ent->group = BattleGroup::GROUP_B;
         ent->onJoin(nite::Vec2(0.0f));
         this->groupB.push_back(ent);
     } 
     
-    if(batWin.get() != NULL){
-        std::dynamic_pointer_cast<nite::WindowUI>(batWin)->close();
-    }
-    batWin = nite::UI::build("data/ui/battle_menu.json");
-    if(batWin.get() != NULL && batWin->type == "window"){
-        // setup window
-        auto win =  std::dynamic_pointer_cast<nite::WindowUI>(batWin);
-        float x = 0.0f;
-        float y = nite::getHeight() * (1.0f - 0.25f);
-        float w = nite::getWidth();
-        float h = nite::getHeight()-y;
-        batWinPos.set(x, y);
-        win->setPosition(nite::Vec2(x, y));
-        win->setSize(nite::Vec2(w, h));     
+    // if(batWin.get() != NULL){
+    //     std::dynamic_pointer_cast<nite::WindowUI>(batWin)->close();
+    // }
+    // dialogBox->setVisible(false);
 
-        // set text-box-object font
-        auto ftbox = win->getComponentById("text-box-object");
-        if(ftbox.get() != NULL && ftbox->type == "text"){
-            auto text = std::dynamic_pointer_cast<nite::TextUI>(ftbox);
-            text->setFont(font);
-        }else{
-            nite::print("Battle::start: cannot find 'text-box-object'");
-        }
+    // batWin = nite::UI::build("data/ui/battle_menu.json");
+    // if(batWin.get() != NULL && batWin->type == "window"){
+    //     // setup window
+    //     auto win =  std::dynamic_pointer_cast<nite::WindowUI>(batWin);
+    //     float x = 0.0f;
+    //     float y = nite::getHeight() * (1.0f - 0.25f);
+    //     float w = nite::getWidth();
+    //     float h = nite::getHeight()-y;
+    //     batWinPos.set(x, y);
+    //     win->setPosition(nite::Vec2(x, y));
+    //     win->setSize(nite::Vec2(w, h));     
 
-        // set buttons font
-        // auto optBox = win->getComponentById("options-box");
-        // if(optBox.get() != NULL && optBox->children.size() > 0 && optBox->children[0]->type == "panel"){
-        //     auto panel = optBox->children[0];
-        //     for(int i = 0; i < panel->children.size(); ++i){
-        //         auto button = std::dynamic_pointer_cast<nite::ButtonUI>(panel->children[i]);
-        //         button->setFont(subFont);
-        //     }            
-        // }else{
-        //     nite::print("Battle::start: cannot find option-box's inline panel");
-        // }
+    //     // set text-box-object font
+    //     auto ftbox = win->getComponentById("text-box-object");
+    //     if(ftbox.get() != NULL && ftbox->type == "text"){
+    //         auto text = std::dynamic_pointer_cast<nite::TextUI>(ftbox);
+    //         text->setFont(font);
+    //     }else{
+    //         nite::print("Battle::start: cannot find 'text-box-object'");
+    //     }
 
-        // set menu title font 
-        auto optBoxTitle = win->getComponentById("options-box-title");
-        if(optBoxTitle.get() != NULL && optBoxTitle->type == "text"){
-            auto txtUI = std::dynamic_pointer_cast<nite::TextUI>(optBoxTitle);
-            txtUI->setFont(subFont);
-            txtUI->setFontColor(nite::Color("#fd9e16"));
-        }
+    //     // set buttons font
+    //     // auto optBox = win->getComponentById("options-box");
+    //     // if(optBox.get() != NULL && optBox->children.size() > 0 && optBox->children[0]->type == "panel"){
+    //     //     auto panel = optBox->children[0];
+    //     //     for(int i = 0; i < panel->children.size(); ++i){
+    //     //         auto button = std::dynamic_pointer_cast<nite::ButtonUI>(panel->children[i]);
+    //     //         button->setFont(subFont);
+    //     //     }            
+    //     // }else{
+    //     //     nite::print("Battle::start: cannot find option-box's inline panel");
+    //     // }
+
+    //     // set menu title font 
+    //     auto optBoxTitle = win->getComponentById("options-box-title");
+    //     if(optBoxTitle.get() != NULL && optBoxTitle->type == "text"){
+    //         auto txtUI = std::dynamic_pointer_cast<nite::TextUI>(optBoxTitle);
+    //         txtUI->setFont(subFont);
+    //         txtUI->setFontColor(nite::Color("#fd9e16"));
+    //     }
         
 
 
 
-    }
+    // }
 
     currentTurn = startTurn;
 
@@ -322,66 +336,68 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
 }
 
 void Game::Battle::setWinVis(bool v){
-    if(batWin.get() == NULL){
-        return;
-    }
-    batWin->setVisible(v);
+    // if(batWin.get() == NULL){
+    //     return;
+    // }
+    // batWin->setVisible(v);
 }
 
 bool Game::Battle::isWinVis(){
-    return batWin->isVisible();
+    // return batWin->isVisible();
+    return false;
 }
 
 void Game::Battle::setOptBoxVis(bool v){
-    if(batWin.get() == NULL){
-        return;
-    }
-    auto optBox = batWin->getComponentById("options-box");
-    if(optBox.get() == NULL || optBox->type != "panel"){
-        return;
-    }
-    optBox->setVisible(v);
+    // if(batWin.get() == NULL){
+    //     return;
+    // }
+    // auto optBox = batWin->getComponentById("options-box");
+    // if(optBox.get() == NULL || optBox->type != "panel"){
+    //     return;
+    // }
+    // optBox->setVisible(v);
 }
 
 bool Game::Battle::isOptBoxVis(){
-    if(batWin.get() == NULL){
-        return false;
-    }
-    auto optBox = batWin->getComponentById("options-box");
-    if(optBox.get() == NULL || optBox->type != "panel"){
-        return false;
-    }  
-    return optBox->isVisible();
+    // if(batWin.get() == NULL){
+    //     return false;
+    // }
+    // auto optBox = batWin->getComponentById("options-box");
+    // if(optBox.get() == NULL || optBox->type != "panel"){
+    //     return false;
+    // }  
+    // return optBox->isVisible();
 }
 
-void Game::Battle::setDialogBoxVis(bool v){
-    if(batWin.get() == NULL){
-        return;
-    }
-    auto optBox = batWin->getComponentById("text-box");
-    if(optBox.get() == NULL || optBox->type != "panel"){
-        return;
-    }
-    optBox->setVisible(v);
-}
+// void Game::Battle::setDialogBoxVis(bool v){
+//     // if(batWin.get() == NULL){
+//     //     return;
+//     // }
+//     // auto optBox = batWin->getComponentById("text-box");
+//     // if(optBox.get() == NULL || optBox->type != "panel"){
+//     //     return;
+//     // }
+//     // optBox->setVisible(v);
+// }
 
-bool Game::Battle::isDialogBoxVis(){
-    if(batWin.get() == NULL){
-        return false;
-    }
-    auto optBox = batWin->getComponentById("text-box");
-    if(optBox.get() == NULL || optBox->type != "panel"){
-        return false;
-    }  
-    return optBox->isVisible();
-}
+// bool Game::Battle::isDialogBoxVis(){
+//     // if(batWin.get() == NULL){
+//     //     return false;
+//     // }
+//     // auto optBox = batWin->getComponentById("text-box");
+//     // if(optBox.get() == NULL || optBox->type != "panel"){
+//     //     return false;
+//     // }  
+//     // return optBox->isVisible();
+//     return true;
+// }
 
 void Game::Battle::updOptBoxTitle(const String &str){
-    auto optBoxTitle = batWin->getComponentById("options-box-title");
-    if(optBoxTitle.get() != NULL && optBoxTitle->type == "text"){
-        auto txtUI = std::dynamic_pointer_cast<nite::TextUI>(optBoxTitle);
-        txtUI->setText(str);
-    }    
+    // auto optBoxTitle = batWin->getComponentById("options-box-title");
+    // if(optBoxTitle.get() != NULL && optBoxTitle->type == "text"){
+    //     auto txtUI = std::dynamic_pointer_cast<nite::TextUI>(optBoxTitle);
+    //     txtUI->setText(str);
+    // }    
 }
 
 Shared<Game::BattleEntity> Game::Battle::getCurrentTurnSubject(){
@@ -444,73 +460,79 @@ void Game::Battle::step(){
         groupA[i]->statusWindow->render();
     }
 
-    auto generateButton = [&](Shared<nite::BaseUIComponent> &container, const String &text){
-        Jzon::Node json = Jzon::object();
-        json.add("import", "data/ui/battle_menu_button.json");
-        auto added = container->add(json);
-        if(added.get() != NULL && added->type == "button"){
-            auto button = std::dynamic_pointer_cast<nite::ButtonUI>(added);
-            button->setText(text);
-            button->setFont(subFont);
-            return button;
-        }else{
-            nite::print("Battle::step::generateButton: no button was generated");
-        }
-        return Shared<nite::ButtonUI>(NULL);
-    };
+    // for(int i = 0; i < groupB.size(); ++i){
+    //     groupB[i]->statusWindow->step();
+    //     // groupB[i]->statusWindow->position = nite::Vec2(16.0f);
+    //     groupB[i]->statusWindow->render();
+    // }    
 
-    auto clearOptionBox = [&](){
-        auto list = batWin->getComponentById("options-box-list");
-        list->clearChildren();        
-    };
+    // auto generateButton = [&](Shared<nite::BaseUIComponent> &container, const String &text){
+    //     Jzon::Node json = Jzon::object();
+    //     json.add("import", "data/ui/battle_menu_button.json");
+    //     auto added = container->add(json);
+    //     if(added.get() != NULL && added->type == "button"){
+    //         auto button = std::dynamic_pointer_cast<nite::ButtonUI>(added);
+    //         button->setText(text);
+    //         button->setFont(subFont);
+    //         return button;
+    //     }else{
+    //         nite::print("Battle::step::generateButton: no button was generated");
+    //     }
+    //     return Shared<nite::ButtonUI>(NULL);
+    // };
+
+    // auto clearOptionBox = [&](){
+    //     auto list = batWin->getComponentById("options-box-list");
+    //     list->clearChildren();        
+    // };
 
     /*
         ENGAGE
     */  
     auto generateEngageOptions = [&](){
-        auto list = batWin->getComponentById("options-box-list");
-        list->clearChildren();
+        // auto list = batWin->getComponentById("options-box-list");
+        // list->clearChildren();
 
-        auto attkButton = generateButton(list, "ATTACK");
-        if(attkButton.get() != NULL){
-            attkButton->setBaseColor(nite::Color("#ff5400"));
-            attkButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                selAction.type = Game::ActionType::ATTACK;
-                selAction.owner = getCurrentTurnSubject();
-                setState(PRE_PICK_TARGET);
-            });
-        }
+        // auto attkButton = generateButton(list, "ATTACK");
+        // if(attkButton.get() != NULL){
+        //     attkButton->setBaseColor(nite::Color("#ff5400"));
+        //     attkButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         selAction.type = Game::ActionType::ATTACK;
+        //         selAction.owner = getCurrentTurnSubject();
+        //         setState(PRE_PICK_TARGET);
+        //     });
+        // }
 
-        auto sayButton = generateButton(list, "SAY...");
-        if(sayButton.get() != NULL){
-            sayButton->setBaseColor(nite::Color("#5541aa"));
-            sayButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                return;
-            });
-        }
-
-
-        auto offerButton = generateButton(list, "OFFER...");
-        if(offerButton.get() != NULL){
-            offerButton->setBaseColor(nite::Color("#937014"));
-            offerButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                return;
-            });
-        }
+        // auto sayButton = generateButton(list, "SAY...");
+        // if(sayButton.get() != NULL){
+        //     sayButton->setBaseColor(nite::Color("#5541aa"));
+        //     sayButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         return;
+        //     });
+        // }
 
 
-        auto escapeButton = generateButton(list, "BACK");
-        if(escapeButton.get() != NULL){
-            escapeButton->setBaseColor(nite::Color("#394739"));
-            escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                setState(PRE_PICK_ACTION);
-            });
-        }                    
+        // auto offerButton = generateButton(list, "OFFER...");
+        // if(offerButton.get() != NULL){
+        //     offerButton->setBaseColor(nite::Color("#937014"));
+        //     offerButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         return;
+        //     });
+        // }
 
-        list->fixNavIndexes();
-        list->nav.current = 0;
-        menuState = BattleMenuState::IN_ENGAGE;
-        updOptBoxTitle("ENGAGE");
+
+        // auto escapeButton = generateButton(list, "BACK");
+        // if(escapeButton.get() != NULL){
+        //     escapeButton->setBaseColor(nite::Color("#394739"));
+        //     escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         setState(PRE_PICK_ACTION);
+        //     });
+        // }                    
+
+        // list->fixNavIndexes();
+        // list->nav.current = 0;
+        // menuState = BattleMenuState::IN_ENGAGE;
+        // updOptBoxTitle("ENGAGE");
 
     };
 
@@ -519,56 +541,56 @@ void Game::Battle::step(){
         EVADE OPTIONS
     */    
     auto generateEvadeOptions = [&](){
-        auto list = batWin->getComponentById("options-box-list");
-        list->clearChildren();
+        // auto list = batWin->getComponentById("options-box-list");
+        // list->clearChildren();
 
-        auto parryButton = generateButton(list, "BLOCK");
-        if(parryButton.get() != NULL){
-            parryButton->setBaseColor(nite::Color("#ff5400"));
-            parryButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                selAction.type = Game::ActionType::BLOCK;
-                selAction.owner = getCurrentTurnSubject();
-                setState(BattleState::TURN_START);
-                ++cdecision;
-                decisions.push_back(selAction);                
-            });
-        }
-
-        auto evadeButton = generateButton(list, "DODGE");
-        if(evadeButton.get() != NULL){
-            evadeButton->setBaseColor(nite::Color("#5541aa"));
-            evadeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                selAction.type = Game::ActionType::DODGE;
-                selAction.owner = getCurrentTurnSubject();
-                setState(BattleState::TURN_START);
-                ++cdecision;
-                decisions.push_back(selAction);                
-            });
-        }
-
-
-        // auto tankButton = generateButton(list, "TANK IT");
-        // if(tankButton.get() != NULL){
-        //     tankButton->setBaseColor(nite::Color("#4d34eb"));
-        //     tankButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         selAction.type = Game::ActionType::TANK;
+        // auto parryButton = generateButton(list, "BLOCK");
+        // if(parryButton.get() != NULL){
+        //     parryButton->setBaseColor(nite::Color("#ff5400"));
+        //     parryButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         selAction.type = Game::ActionType::BLOCK;
         //         selAction.owner = getCurrentTurnSubject();
         //         setState(BattleState::TURN_START);
-        //     });                 
+        //         ++cdecision;
+        //         decisions.push_back(selAction);                
+        //     });
         // }
 
-        auto escapeButton = generateButton(list, "BACK");
-        if(escapeButton.get() != NULL){
-            escapeButton->setBaseColor(nite::Color("#394739"));
-            escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                setState(PRE_PICK_ACTION);
-            });
-        }                    
+        // auto evadeButton = generateButton(list, "DODGE");
+        // if(evadeButton.get() != NULL){
+        //     evadeButton->setBaseColor(nite::Color("#5541aa"));
+        //     evadeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         selAction.type = Game::ActionType::DODGE;
+        //         selAction.owner = getCurrentTurnSubject();
+        //         setState(BattleState::TURN_START);
+        //         ++cdecision;
+        //         decisions.push_back(selAction);                
+        //     });
+        // }
 
-        list->fixNavIndexes();
-        list->nav.current = 0;
-        menuState = BattleMenuState::IN_EVADE;
-        updOptBoxTitle("EVADE");
+
+        // // auto tankButton = generateButton(list, "TANK IT");
+        // // if(tankButton.get() != NULL){
+        // //     tankButton->setBaseColor(nite::Color("#4d34eb"));
+        // //     tankButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        // //         selAction.type = Game::ActionType::TANK;
+        // //         selAction.owner = getCurrentTurnSubject();
+        // //         setState(BattleState::TURN_START);
+        // //     });                 
+        // // }
+
+        // auto escapeButton = generateButton(list, "BACK");
+        // if(escapeButton.get() != NULL){
+        //     escapeButton->setBaseColor(nite::Color("#394739"));
+        //     escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         setState(PRE_PICK_ACTION);
+        //     });
+        // }                    
+
+        // list->fixNavIndexes();
+        // list->nav.current = 0;
+        // menuState = BattleMenuState::IN_EVADE;
+        // updOptBoxTitle("EVADE");
 
     };
 
@@ -577,66 +599,66 @@ void Game::Battle::step(){
     */
 
     auto generateMainOptions = [&](){
-        auto list = batWin->getComponentById("options-box-list");
-        list->clearChildren();
+        // auto list = batWin->getComponentById("options-box-list");
+        // list->clearChildren();
 
-        auto engButton = generateButton(list, "ENGAGE");
-        if(engButton.get() != NULL){
-            engButton->setBaseColor(nite::Color("#c92600"));
-            engButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                setState(Game::BattleState::PICK_ENGAGE_OPT);
-                return;
-            });
-        }
+        // auto engButton = generateButton(list, "ENGAGE");
+        // if(engButton.get() != NULL){
+        //     engButton->setBaseColor(nite::Color("#c92600"));
+        //     engButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         setState(Game::BattleState::PICK_ENGAGE_OPT);
+        //         return;
+        //     });
+        // }
 
-        auto evButton = generateButton(list, "EVADE");
-        if(evButton.get() != NULL){
-            evButton->setBaseColor(nite::Color("#226e46"));
-            evButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                setState(Game::BattleState::PICK_EVADE_OPT);
-                return;
-            });            
-        }
+        // auto evButton = generateButton(list, "EVADE");
+        // if(evButton.get() != NULL){
+        //     evButton->setBaseColor(nite::Color("#226e46"));
+        //     evButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         setState(Game::BattleState::PICK_EVADE_OPT);
+        //         return;
+        //     });            
+        // }
 
-        auto bagButton = generateButton(list, "BAG");
-        if(bagButton.get() != NULL){
-            bagButton->setBaseColor(nite::Color("#4d34eb"));
-            bagButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                nite::print("BAG");
-                return;
-            });                 
-        }
+        // auto bagButton = generateButton(list, "BAG");
+        // if(bagButton.get() != NULL){
+        //     bagButton->setBaseColor(nite::Color("#4d34eb"));
+        //     bagButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         nite::print("BAG");
+        //         return;
+        //     });                 
+        // }
 
-        auto escButton = generateButton(list, "ESCAPE");
-        if(escButton.get() != NULL){
-            escButton->setBaseColor(nite::Color("#fbad3c"));
-            escButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-                nite::print("ESCAPE");
-                return;
-            });              
-        }         
+        // auto escButton = generateButton(list, "ESCAPE");
+        // if(escButton.get() != NULL){
+        //     escButton->setBaseColor(nite::Color("#fbad3c"));
+        //     escButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
+        //         nite::print("ESCAPE");
+        //         return;
+        //     });              
+        // }         
 
-        list->fixNavIndexes();
-        list->nav.current = 0;
-        menuState = BattleMenuState::IN_MAIN;
-        updOptBoxTitle("WHAT DO?");
+        // list->fixNavIndexes();
+        // list->nav.current = 0;
+        // menuState = BattleMenuState::IN_MAIN;
+        // updOptBoxTitle("WHAT DO?");
     };
  
     auto switchToMenu = [&](int nstate, int menuOpt){  
         setState(nstate);
-        switch(menuOpt){
-            case BattleMenuState::IN_ENGAGE: {
-                generateEngageOptions();
-            } break;
-            case BattleMenuState::IN_EVADE: {
-                generateEvadeOptions();
-            } break;
-            case BattleMenuState::IN_MAIN: {
-                generateMainOptions();
-            } break;                        
-        }
-        setOptBoxVis(true);
-        setDialogBoxVis(false);          
+        // switch(menuOpt){
+        //     case BattleMenuState::IN_ENGAGE: {
+        //         generateEngageOptions();
+        //     } break;
+        //     case BattleMenuState::IN_EVADE: {
+        //         generateEvadeOptions();
+        //     } break;
+        //     case BattleMenuState::IN_MAIN: {
+        //         generateMainOptions();
+        //     } break;                        
+        // }
+        // setOptBoxVis(true);
+        // setDialogBoxVis(false);          
     };
 
     auto getFirstDeadOne = [&](){
@@ -677,8 +699,9 @@ void Game::Battle::step(){
                 }else
                 // player chooses
                 if(cdecision <= groupA.size()-1){
-                    setOptBoxVis(false);
-                    setDialogBoxVis(true);                    
+                    // setOptBoxVis(false);
+                    // setDialogBoxVis(true); 
+                    dialogBox->setVisible(true);
                     dialog->reset();
                     if(groupA.size() == 1){
                         dialog->add("", "What will "+bttTextColorPlayerName("you")+" do?", nite::Color("#d20021"));
@@ -708,7 +731,9 @@ void Game::Battle::step(){
                 setState(PICK_ACTION);
                 generateMainOptions();
                 setOptBoxVis(true);
-                setDialogBoxVis(false);                
+                // setDialogBoxVis(false);  
+                dialogBox->setVisible(false);
+
                 // switchToMenu(BattleState::PICK_ACTION, lastMenuOption);
             }
         } break;        
@@ -732,7 +757,8 @@ void Game::Battle::step(){
         case PRE_PICK_TARGET: {
             if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
                 setOptBoxVis(false);
-                setDialogBoxVis(true);
+                // setDialogBoxVis(true);
+                dialogBox->setVisible(true);
                 dialog->reset();
                 dialog->add("", "", nite::Color("#d20021"));
                 dialog->start();                  
@@ -785,7 +811,9 @@ void Game::Battle::step(){
             }
 
             setOptBoxVis(false);
-            setDialogBoxVis(true);
+            // setDialogBoxVis(true);
+            dialogBox->setVisible(true);
+
             auto &current = decisions[0];
 
             switch(current.type){
@@ -820,7 +848,8 @@ void Game::Battle::step(){
        
 
                     setOptBoxVis(false);
-                    setDialogBoxVis(true);                    
+                    // setDialogBoxVis(true); 
+                    dialogBox->setVisible(true);
 
                     dialog->reset();
                     if(triedToBlock){
@@ -1018,7 +1047,9 @@ void Game::Battle::step(){
                 ++cdecision;
                 decisions.push_back(selAction);
                 setOptBoxVis(false);
-                setDialogBoxVis(false);     
+                // setDialogBoxVis(false);     
+                dialogBox->setVisible(false);
+
                 setState(BattleState::TURN_START);          
             } break;
         }        
@@ -1117,34 +1148,34 @@ void Game::Battle::render(){
 
     // this is stupid 
     // TODO: improve it
-    if(batWin.get() != NULL && batWin->isVisible() && isDialogBoxVis()){
-        auto textInnerBox = batWin->getComponentById("text-box-inner");
-        if(textInnerBox.get() != NULL && textInnerBox->type == "panel"){
-            auto head =  textInnerBox->getHeadComponent();
-            if(head != NULL){
-                if(nite::getTicks()-diagArrowTick > 320){
-                    diagArrowTick = nite::getTicks();
-                    diagArrowFlip = !diagArrowFlip;
-                }                
-                nite::lerpDiscrete(diagArrowOffset, diagArrowFlip ? 0.0f : 100.0f, diagArrowFlip ? 0.12f : 0.04f);
-                nite::setDepth(nite::DepthTop);
-                nite::setRenderTarget(nite::RenderTargetUI);                     
-                auto p = batWinPos + head->position - head->size * 0.5f + textInnerBox->size * nite::Vec2(0.95f, 0.95f) + nite::Vec2(0.0f, 24.0f * (diagArrowOffset/100.0f)) - nite::Vec2(0.0f, 24.0f);
-                if(dialog->canNext() && !dialog->autocont){
-                    nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);
-                    auto arrefsha = selArrowWhite.draw(p.x + 2, p.y + 2, 32, 32, 0.5f, 0.5f, 0.0f);
-                    nite::setColor(0.91f, 0.08f, 0.15f, 1.0f);
-                    auto arref = selArrowWhite.draw(p.x, p.y, 32, 32, 0.5f, 0.5f, 0.0f);
-                    if(arref != NULL){
-                        arref->smooth = true;
-                    } 
-                    if(arrefsha != NULL){
-                        arrefsha->smooth = true;
-                    }                     
-                }           
-            }
-        }
-    }
+    // if(batWin.get() != NULL && batWin->isVisible() && isDialogBoxVis()){
+    //     auto textInnerBox = batWin->getComponentById("text-box-inner");
+    //     if(textInnerBox.get() != NULL && textInnerBox->type == "panel"){
+    //         auto head =  textInnerBox->getHeadComponent();
+    //         if(head != NULL){
+    //             if(nite::getTicks()-diagArrowTick > 320){
+    //                 diagArrowTick = nite::getTicks();
+    //                 diagArrowFlip = !diagArrowFlip;
+    //             }                
+    //             nite::lerpDiscrete(diagArrowOffset, diagArrowFlip ? 0.0f : 100.0f, diagArrowFlip ? 0.12f : 0.04f);
+    //             nite::setDepth(nite::DepthTop);
+    //             nite::setRenderTarget(nite::RenderTargetUI);                     
+    //             auto p = batWinPos + head->position - head->size * 0.5f + textInnerBox->size * nite::Vec2(0.95f, 0.95f) + nite::Vec2(0.0f, 24.0f * (diagArrowOffset/100.0f)) - nite::Vec2(0.0f, 24.0f);
+    //             if(dialog->canNext() && !dialog->autocont){
+    //                 nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);
+    //                 auto arrefsha = selArrowWhite.draw(p.x + 2, p.y + 2, 32, 32, 0.5f, 0.5f, 0.0f);
+    //                 nite::setColor(0.91f, 0.08f, 0.15f, 1.0f);
+    //                 auto arref = selArrowWhite.draw(p.x, p.y, 32, 32, 0.5f, 0.5f, 0.0f);
+    //                 if(arref != NULL){
+    //                     arref->smooth = true;
+    //                 } 
+    //                 if(arrefsha != NULL){
+    //                     arrefsha->smooth = true;
+    //                 }                     
+    //             }           
+    //         }
+    //     }
+    // }
 
     // draw player stats
     // if(groupA.size() > 0){
@@ -1166,6 +1197,8 @@ void Game::Battle::render(){
 
     nite::setDepth(nite::DepthTop);
     nite::setRenderTarget(nite::RenderTargetUI);  
+    dialogBox->render();
+
     vfxDev.draw();
 
     // shakeOffPos.
@@ -1411,11 +1444,11 @@ void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
     // auto fobj = subFont.draw(entity->nickname+" | Lv. "+nite::toStr(entity->healthStat.lv), position.x, position.y  + battleAnim.getHeight() * 2.0f * 0.5f + 16, 0.5f, 0.5f, 0.0f);
     // subFont.draw("HP "+nite::toStr(entity->healthStat.health)+" / "+nite::toStr(entity->healthStat.maxHealth), position.x, position.y  + battleAnim.getHeight() * 2.0f * 0.5f + 16 + fontHeight, 0.5f, 0.5f, 0.0f);
     
-    // auto winSize = statusWindow->size * nite::Vec2(0.5f, 0.25f);
+    auto winSize = statusWindow->size * nite::Vec2(0.5f, 0.25f);
     
-    // statusWindow->step();
-    // statusWindow->position = nite::Vec2(position.x - winSize.x, (position.y  + battleAnim.getHeight() * 2.0f * 0.5f + 16) - winSize.y);
-    // statusWindow->render();
+    statusWindow->step();
+    statusWindow->position = nite::Vec2(position.x - winSize.x, (position.y  + battleAnim.getHeight()) + winSize.y);
+    statusWindow->render();
     
 
 	if(f != NULL){

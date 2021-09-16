@@ -1,7 +1,7 @@
-#include "FreeType/include/ft2build.h"
-#include "FreeType/include/freetype/freetype.h"
-#include "FreeType/include/freetype/ftglyph.h"
-#include "FreeType/include/freetype/ftstroke.h"
+#include <ft2build.h>
+#include <freetype/freetype.h>
+#include <freetype/ftglyph.h>
+#include <freetype/ftstroke.h>
 #include FT_FREETYPE_H
 
 #include  <algorithm>
@@ -552,8 +552,9 @@ static void drawText(nite::Renderable *object){
 	glTranslatef((int)nite::round(obj.position.x - nite::getViewX(obj.target) + offset.x), (int)nite::round(obj.position.y - nite::getViewY(obj.target) + offset.y), 0.f);
 	glRotatef((int)obj.angle, 0.0, 0.0, 1.0);
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	auto applyTextColor = [&](const nite::Color &fillColor, const nite::Color &outlineColor){
+		// return;
 		glUseProgram(fontRenderShader.getProgram());
 		float v[3];
 		int olcuniform = glGetUniformLocation(fontRenderShader.getProgram(), "outline_col");
