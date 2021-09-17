@@ -64,7 +64,7 @@ static Token fetchToken(int stPos, const String &input){
 Game::UIDialogBox::UIDialogBox(){
     targetText = "";
     visible = false;
-    margin.set(16.0f);
+    margin.set(32.0f);
     diagArrowFlip = false;
     diagArrowTick = nite::getTicks();
 }

@@ -20,9 +20,14 @@
 
         struct UIListMenu : Game::UIObject {
             Vector<Shared<UIListMenuOption>> options;
+            UIListMenu();
             nite::Vec2 margin;
+            bool interact;
             bool visible;
             int selected;
+            float diagArrowOffset;
+            UInt64 diagArrowTick;
+            bool diagArrowFlip;                
             nite::Texture selArrowWhite;
             nite::Vec2 selArrowPos;
             nite::Vec2 selArrowSize;

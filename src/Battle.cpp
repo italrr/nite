@@ -228,7 +228,7 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
     dialog->add("", pickedPhrase+"@500!"+names+(groupB.size() > 1 ? " are " : " is ")+"approaching...", nite::Color("#d20021"));
     dialog->start();
     dialogBox->setVisible(true);
-    dialogBox->setSize(nite::Vec2(nite::getWidth() * 0.50f, dialogBox->theme->bigFont.getHeight() * 3.0f));
+    dialogBox->setSize(nite::Vec2(nite::getWidth() * 0.75f, dialogBox->theme->bigFont.getHeight() * 4.0f));
     dialogBox->position = nite::Vec2(nite::getWidth() * 0.5f - dialogBox->size.x * 0.5f, nite::getHeight() - dialogBox->size.y - 16);
 
     optionsMenu->setSize(nite::Vec2(200.0f, 0.0f));
@@ -455,6 +455,7 @@ void Game::Battle::step(){
         }
     }
 
+    optionsMenu->step();
     dialog->step();
     vfxDev.step();
 
@@ -465,13 +466,7 @@ void Game::Battle::step(){
         groupA[i]->statusWindow->step();
         groupA[i]->statusWindow->position = nite::Vec2(16.0f);
         groupA[i]->statusWindow->render();
-    }
-
-    // for(int i = 0; i < groupB.size(); ++i){
-    //     groupB[i]->statusWindow->step();
-    //     // groupB[i]->statusWindow->position = nite::Vec2(16.0f);
-    //     groupB[i]->statusWindow->render();
-    // }    
+    }  
 
     // auto generateButton = [&](Shared<nite::BaseUIComponent> &container, const String &text){
     //     Jzon::Node json = Jzon::object();
@@ -497,49 +492,30 @@ void Game::Battle::step(){
         ENGAGE
     */  
     auto generateEngageOptions = [&](){
-        // auto list = batWin->getComponentById("options-box-list");
-        // list->clearChildren();
+        optionsMenu->clear();
+        optionsMenu->setVisible(true);
 
-        // auto attkButton = generateButton(list, "ATTACK");
-        // if(attkButton.get() != NULL){
-        //     attkButton->setBaseColor(nite::Color("#ff5400"));
-        //     attkButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         selAction.type = Game::ActionType::ATTACK;
-        //         selAction.owner = getCurrentTurnSubject();
-        //         setState(PRE_PICK_TARGET);
-        //     });
-        // }
+        optionsMenu->addOption("ATTACK", [&](Game::UIListMenuOption *opt){
+            selAction.type = Game::ActionType::ATTACK;
+            selAction.owner = getCurrentTurnSubject();
+            setState(PRE_PICK_TARGET);
+        });  
 
-        // auto sayButton = generateButton(list, "SAY...");
-        // if(sayButton.get() != NULL){
-        //     sayButton->setBaseColor(nite::Color("#5541aa"));
-        //     sayButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         return;
-        //     });
-        // }
+        optionsMenu->addOption("SAY...", [&](Game::UIListMenuOption *opt){
+            optionsMenu->interact = true;
+            return;
+        });  
 
+        optionsMenu->addOption("OFFER...", [&](Game::UIListMenuOption *opt){
+            optionsMenu->interact = true;
+            return;
+        }); 
 
-        // auto offerButton = generateButton(list, "OFFER...");
-        // if(offerButton.get() != NULL){
-        //     offerButton->setBaseColor(nite::Color("#937014"));
-        //     offerButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         return;
-        //     });
-        // }
+        optionsMenu->addOption("BACK", [&](Game::UIListMenuOption *opt){
+            setState(PRE_PICK_ACTION);
+        });        
 
-
-        // auto escapeButton = generateButton(list, "BACK");
-        // if(escapeButton.get() != NULL){
-        //     escapeButton->setBaseColor(nite::Color("#394739"));
-        //     escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         setState(PRE_PICK_ACTION);
-        //     });
-        // }                    
-
-        // list->fixNavIndexes();
-        // list->nav.current = 0;
-        // menuState = BattleMenuState::IN_ENGAGE;
-        // updOptBoxTitle("ENGAGE");
+        menuState = BattleMenuState::IN_ENGAGE;
 
     };
 
@@ -548,56 +524,35 @@ void Game::Battle::step(){
         EVADE OPTIONS
     */    
     auto generateEvadeOptions = [&](){
-        // auto list = batWin->getComponentById("options-box-list");
-        // list->clearChildren();
+        optionsMenu->clear();
+        optionsMenu->setVisible(true);
+        optionsMenu->addOption("BLOCK", [&](Game::UIListMenuOption *opt){
+            selAction.type = Game::ActionType::BLOCK;
+            selAction.owner = getCurrentTurnSubject();
+            setState(BattleState::TURN_START);
+            ++cdecision;
+            decisions.push_back(selAction); 
+        });        
 
-        // auto parryButton = generateButton(list, "BLOCK");
-        // if(parryButton.get() != NULL){
-        //     parryButton->setBaseColor(nite::Color("#ff5400"));
-        //     parryButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         selAction.type = Game::ActionType::BLOCK;
-        //         selAction.owner = getCurrentTurnSubject();
-        //         setState(BattleState::TURN_START);
-        //         ++cdecision;
-        //         decisions.push_back(selAction);                
-        //     });
-        // }
+        optionsMenu->addOption("DODGE", [&](Game::UIListMenuOption *opt){
+            selAction.type = Game::ActionType::DODGE;
+            selAction.owner = getCurrentTurnSubject();
+            setState(BattleState::TURN_START);
+            ++cdecision;
+            decisions.push_back(selAction); 
+        });   
 
-        // auto evadeButton = generateButton(list, "DODGE");
-        // if(evadeButton.get() != NULL){
-        //     evadeButton->setBaseColor(nite::Color("#5541aa"));
-        //     evadeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         selAction.type = Game::ActionType::DODGE;
-        //         selAction.owner = getCurrentTurnSubject();
-        //         setState(BattleState::TURN_START);
-        //         ++cdecision;
-        //         decisions.push_back(selAction);                
-        //     });
-        // }
+        optionsMenu->addOption("TANK IT", [&](Game::UIListMenuOption *opt){
+            selAction.type = Game::ActionType::TANK;
+            selAction.owner = getCurrentTurnSubject();
+            setState(BattleState::TURN_START);
+        });    
 
+        optionsMenu->addOption("BACK", [&](Game::UIListMenuOption *opt){
+            setState(PRE_PICK_ACTION);
+        });                    
 
-        // // auto tankButton = generateButton(list, "TANK IT");
-        // // if(tankButton.get() != NULL){
-        // //     tankButton->setBaseColor(nite::Color("#4d34eb"));
-        // //     tankButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        // //         selAction.type = Game::ActionType::TANK;
-        // //         selAction.owner = getCurrentTurnSubject();
-        // //         setState(BattleState::TURN_START);
-        // //     });                 
-        // // }
-
-        // auto escapeButton = generateButton(list, "BACK");
-        // if(escapeButton.get() != NULL){
-        //     escapeButton->setBaseColor(nite::Color("#394739"));
-        //     escapeButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         setState(PRE_PICK_ACTION);
-        //     });
-        // }                    
-
-        // list->fixNavIndexes();
-        // list->nav.current = 0;
-        // menuState = BattleMenuState::IN_EVADE;
-        // updOptBoxTitle("EVADE");
+        menuState = BattleMenuState::IN_EVADE;
 
     };
 
@@ -607,78 +562,40 @@ void Game::Battle::step(){
 
     auto generateMainOptions = [&](){
         optionsMenu->clear();
+        optionsMenu->setVisible(true);
         optionsMenu->addOption("ENGAGE", [&](Game::UIListMenuOption *opt){
-
+            nite::print("SWITCH STATE");
+            setState(Game::BattleState::PICK_ENGAGE_OPT);
         });
         optionsMenu->addOption("EVADE", [&](Game::UIListMenuOption *opt){
-
+            setState(Game::BattleState::PICK_EVADE_OPT);
         });
         optionsMenu->addOption("BAG", [&](Game::UIListMenuOption *opt){
-
+            nite::print("BAG");
+            optionsMenu->interact = true;
         });
         optionsMenu->addOption("ESCAPE", [&](Game::UIListMenuOption *opt){
-
+            nite::print("ESCAPE");
+            optionsMenu->interact = true;
         });                        
-        // auto list = batWin->getComponentById("options-box-list");
-        // list->clearChildren();
-
-        // auto engButton = generateButton(list, "ENGAGE");
-        // if(engButton.get() != NULL){
-        //     engButton->setBaseColor(nite::Color("#c92600"));
-        //     engButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         setState(Game::BattleState::PICK_ENGAGE_OPT);
-        //         return;
-        //     });
-        // }
-
-        // auto evButton = generateButton(list, "EVADE");
-        // if(evButton.get() != NULL){
-        //     evButton->setBaseColor(nite::Color("#226e46"));
-        //     evButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         setState(Game::BattleState::PICK_EVADE_OPT);
-        //         return;
-        //     });            
-        // }
-
-        // auto bagButton = generateButton(list, "BAG");
-        // if(bagButton.get() != NULL){
-        //     bagButton->setBaseColor(nite::Color("#4d34eb"));
-        //     bagButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         nite::print("BAG");
-        //         return;
-        //     });                 
-        // }
-
-        // auto escButton = generateButton(list, "ESCAPE");
-        // if(escButton.get() != NULL){
-        //     escButton->setBaseColor(nite::Color("#fbad3c"));
-        //     escButton->setOnClick([&](const Shared<nite::ListenerInfo> &info, nite::BaseUIComponent *component){
-        //         nite::print("ESCAPE");
-        //         return;
-        //     });              
-        // }         
-
-        // list->fixNavIndexes();
-        // list->nav.current = 0;
-        // menuState = BattleMenuState::IN_MAIN;
-        // updOptBoxTitle("WHAT DO?");
+        menuState = BattleMenuState::IN_MAIN;
     };
  
     auto switchToMenu = [&](int nstate, int menuOpt){  
         setState(nstate);
-        // switch(menuOpt){
-        //     case BattleMenuState::IN_ENGAGE: {
-        //         generateEngageOptions();
-        //     } break;
-        //     case BattleMenuState::IN_EVADE: {
-        //         generateEvadeOptions();
-        //     } break;
-        //     case BattleMenuState::IN_MAIN: {
-        //         generateMainOptions();
-        //     } break;                        
-        // }
-        // setOptBoxVis(true);
-        // setDialogBoxVis(false);          
+        switch(menuOpt){
+            case BattleMenuState::IN_ENGAGE: {
+                generateEngageOptions();
+            } break;
+            case BattleMenuState::IN_EVADE: {
+                generateEvadeOptions();
+            } break;
+            case BattleMenuState::IN_MAIN: {
+                generateMainOptions();
+            } break;                        
+        }
+        optionsMenu->setVisible(true);
+        dialogBox->setVisible(false);        
     };
 
     auto getFirstDeadOne = [&](){
@@ -719,9 +636,8 @@ void Game::Battle::step(){
                 }else
                 // player chooses
                 if(cdecision <= groupA.size()-1){
-                    // setOptBoxVis(false);
-                    // setDialogBoxVis(true); 
-                    dialogBox->setVisible(true);
+                    optionsMenu->setVisible(false);
+                    dialogBox->setVisible(true);  
                     dialog->reset();
                     if(groupA.size() == 1){
                         dialog->add("", "What will "+bttTextColorPlayerName("you")+" do?", nite::Color("#d20021"));
@@ -754,6 +670,7 @@ void Game::Battle::step(){
                 optionsMenu->setVisible(true);
                 // setDialogBoxVis(false);  
                 dialogBox->setVisible(false);
+                
 
                 // switchToMenu(BattleState::PICK_ACTION, lastMenuOption);
             }
@@ -777,9 +694,10 @@ void Game::Battle::step(){
         } break;   
         case PRE_PICK_TARGET: {
             if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
-                setOptBoxVis(false);
-                // setDialogBoxVis(true);
-                dialogBox->setVisible(true);
+
+                optionsMenu->setVisible(false);
+                dialogBox->setVisible(true);  
+
                 dialog->reset();
                 dialog->add("", "", nite::Color("#d20021"));
                 dialog->start();                  
@@ -790,12 +708,14 @@ void Game::Battle::step(){
         } break;
         case PICK_TARGET: {
             if(dialog->canCont() && nite::getTicks()-lastStChange > 0){
-                // setOptBoxVis(false);
-                // setDialogBoxVis(true);
-                // dialog->reset();
-                // dialog->add("", "Attack who?", nite::Color("#d20021"));
-                // dialog->start();                  
-                // setState(PICK_TARGET);
+
+                optionsMenu->setVisible(false);
+                dialogBox->setVisible(true);  
+
+                dialog->reset();
+                dialog->add("", "Attack who?", nite::Color("#d20021"));
+                dialog->start();                  
+                setState(PICK_TARGET);
             }            
         } break;      
 
@@ -831,9 +751,10 @@ void Game::Battle::step(){
                 break;
             }
 
-            setOptBoxVis(false);
+            // setOptBoxVis(false);
             // setDialogBoxVis(true);
             dialogBox->setVisible(true);
+            optionsMenu->setVisible(false);
 
             auto &current = decisions[0];
 
@@ -868,9 +789,12 @@ void Game::Battle::step(){
                     // current.fDmg = after;
        
 
-                    setOptBoxVis(false);
+                    // setOptBoxVis(false);
                     // setDialogBoxVis(true); 
-                    dialogBox->setVisible(true);
+                    // dialogBox->setVisible(true);
+
+                    optionsMenu->setVisible(false);
+                    dialogBox->setVisible(true);                      
 
                     dialog->reset();
                     if(triedToBlock){
@@ -1059,18 +983,16 @@ void Game::Battle::step(){
     }
 
     // continue on dialog
-    if(nite::keyboardPressed(nite::keyZ)){
+    if(nite::keyboardPressed(nite::keyZ) && nite::getTicks()-lastStChange > 100){
     	dialog->cont();
         switch(state){
             case BattleState::PICK_TARGET:{
                 // confirm target
                 selAction.target = getCurrentSelTarget();
                 ++cdecision;
-                decisions.push_back(selAction);
-                setOptBoxVis(false);
-                // setDialogBoxVis(false);     
+                decisions.push_back(selAction);  
                 dialogBox->setVisible(false);
-
+                optionsMenu->setVisible(false);
                 setState(BattleState::TURN_START);          
             } break;
         }        
