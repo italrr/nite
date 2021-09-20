@@ -127,6 +127,8 @@
 			float atkRate;
 			float walkRate; // 'steps' per second
 			float precsRate;
+			float luckRate;
+			float fleeRate;
 			float persuasionRate;
 			float charmRate;
 			float cooldownRedRate;
@@ -158,6 +160,7 @@
 				DEFEAT,
 				VICTORY,
 				ATTACK, // plain
+				ATTACK_MISS,
 				STUTTER, // receive damage
 				BLOCK,
 				BLOCK_STUTTER,
@@ -171,9 +174,21 @@
 		struct DamageInfo {
 			Shared<Entity> owner;
 			Shared<Entity> target;
+			bool tryingBlock;
+			bool tryingDodge;
+			int blockDmg;
 			int dmg;
+			bool dodged;
+			bool byLuck;
 			int element;
 			bool isCrit;
+			DamageInfo(){
+				dodged = false;
+				byLuck = false;
+				isCrit = false;
+				tryingBlock = false;
+				tryingDodge = false;
+			}
 		};
 
         struct Entity : Object, EntityStat {

@@ -31,6 +31,7 @@
             nite::Texture selArrowWhite;
             nite::Vec2 selArrowPos;
             nite::Vec2 selArrowSize;
+            void setPosition(const nite::Vec2 &position);
             void setSize(const nite::Vec2 &size);
             void setVisible(bool v);
             void recalculate();

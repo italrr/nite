@@ -99,6 +99,12 @@ void Game::UIListMenu::setVisible(bool v){
     visible = v;
 }
 
+void Game::UIListMenu::setPosition(const nite::Vec2 &position){
+    this->position.set(position);
+    nite::Vec2 selArrPosTarget = nite::Vec2(position.x + 4 + margin.x * 0.5f + 8.0f * (diagArrowOffset / 100.0f), position.y + margin.y * 0.5f + selected * (theme->bigFont.getHeight() + 4) + theme->bigFont.getHeight() * 0.5f);
+    selArrowPos.lerpDiscrete(selArrPosTarget, 1.0f);
+}
+
 void Game::UIListMenu::setSize(const nite::Vec2 &size){
     this->size.x = size.x;
     recalculate();

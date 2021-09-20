@@ -112,6 +112,7 @@ set(src_files
 	src/Entity.cpp
 	src/Vfx.cpp
 	src/Object.cpp
+	src/Storyline.cpp
 	src/Dialog.cpp
 )
 add_library(src ${src_files})

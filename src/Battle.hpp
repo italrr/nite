@@ -117,7 +117,6 @@
             nite::Color color;
             UInt64 startTime;
             UInt64 lifetime;
-            nite::Font font;
             nite::Vec2 offPosition;
             nite::Vec2 targetPosition;
             nite::Vec2 startPosition;
@@ -129,6 +128,7 @@
             void render();
             int pattern;
             int animStep;
+            Shared<Game::UITheming> theme;
             void setPosition(const nite::Vec2 &p){
                 this->position = p;
                 this->lerpPos = p;
@@ -143,9 +143,7 @@
             Shared<UITheming> theme;
             Shared<UIBattlePlayerInfo> statusWindow;
             Shared<Entity> entity;
-            int group;
-            nite::Font font;
-            nite::Font subFont;            
+            int group;         
 			float battleAnimBlink;
 			bool battlAnimBlinkFlip;
 			UInt64 lastBattleAnimBlinkTick;
@@ -158,6 +156,12 @@
 			int battleAnimStep;
 			nite::Vec2 battlAnimPosOff;
             
+            bool tryBlocking;
+            bool tryDodging;
+
+            // float targetAngle;
+            float angle;
+
             nite::Vec2 posOffset;
             nite::Vec2 posLerp;
 
@@ -190,24 +194,18 @@
             Shared<UIDialogBox> dialogBox;
             Shared<UIListMenu> optionsMenu;
 
-            nite::Font font;
-            nite::Font subFont;
+
             nite::Texture selArrowBlack;
-            nite::Texture empty;
 
             Game::VfxDevice vfxDev;
 
             Vector<Shared<DamageNumber>> dmgNumbers;
-
-            // Shared<nite::BaseUIComponent> batWin;
 
 
             Vector<ActionTurn> decisions;
             int cdecision;
 
             Game::ActionTurn selAction;
-
-            // Shared<BattleEntity> whoDied;
 
             Vector<Shared<BattleEntity>> whoDied;
 
@@ -251,15 +249,6 @@
 
             void shakeEff();
 
-            void setOptBoxVis(bool v);
-            bool isOptBoxVis();
-
-            // void setDialogBoxVis(bool v);
-            // bool isDialogBoxVis();
-
-
-            void setWinVis(bool v);
-            bool isWinVis();
 
             bool isShowing();
             void setState(int nstate);
@@ -267,7 +256,6 @@
 
             void end(int winGroup);
 
-            void updOptBoxTitle(const String &str);
 
             Battle();
             void reset();

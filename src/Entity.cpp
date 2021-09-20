@@ -50,6 +50,8 @@ void Game::EntityStat::resetComplexStats(){
 	complexStat.persuasionRate = 0.0f;
 	complexStat.charmRate = 0.0f;
 	complexStat.cooldownRedRate = 0.0f;
+	complexStat.luckRate = 0.0f;
+	complexStat.fleeRate = 0.0f;
 }
 
 void Game::EntityStat::recalculateBaseStats(){
@@ -76,16 +78,18 @@ void Game::EntityStat::recalculateComplexStats(){
 		return;
 	}	
 	complexStat.maxCarry += 1000 + nite::ceil(baseStat.strAdd * GAME_STAT_BASE_SCALE * 150.0f + baseStat.enduAdd * GAME_STAT_BASE_SCALE * 65.0f);
-	complexStat.atk += nite::ceil(baseStat.strAdd * 25.0f + baseStat.enduAdd * 5.2f);
-	complexStat.magicAtk += nite::ceil(baseStat.intelAdd * 8.5f);
-	complexStat.def += nite::ceil(baseStat.enduAdd * 5.8f + healthStat.lv * 0.7f);
-	complexStat.magicDef += nite::ceil(baseStat.intelAdd * 4.5f + baseStat.enduAdd * 1.2f);		
+	complexStat.atk += 1.0f + nite::ceil(baseStat.strAdd * 25.0f + baseStat.enduAdd * 5.2f);
+	complexStat.magicAtk += 1.0f + nite::ceil(baseStat.intelAdd * 3.5f);
+	complexStat.def += 1.0f + nite::ceil(baseStat.enduAdd * 5.8f + healthStat.lv * 5.0f);
+	complexStat.magicDef += 1.0f + nite::ceil(baseStat.intelAdd * 3.5f + healthStat.lv * 2.5f);		
 	complexStat.walkRate += nite::ceil(0.06f * baseStat.agiAdd); // TODO: take weight into account
 	complexStat.critRate += (float)baseStat.lukAdd / (float)GAME_MAX_STAT;
-	complexStat.precsRate += baseStat.dexAdd * 1.25f;
+	complexStat.precsRate += 1.0f + nite::ceil(2.5f * baseStat.dexAdd);
 	complexStat.atkRate += baseStat.agiAdd * (3.85f + healthStat.lv * 0.15f) + baseStat.dexAdd * (1.1f + healthStat.lv * 0.1f);
 	complexStat.persuasionRate += nite::ceil(0.45f * healthStat.lv + baseStat.charmAdd * 5.96f + baseStat.intelAdd * 2.25f);
 	complexStat.charmRate += nite::ceil(0.5f * healthStat.lv + baseStat.charmAdd * 5.96f);
+	complexStat.luckRate += 1.0f + nite::ceil(0.25f * baseStat.lukAdd);
+	complexStat.fleeRate += 1.0f + nite::ceil(2.5f * baseStat.agiAdd);
 	complexStat.cooldownRedRate += 0.0f;
 }
 
@@ -301,6 +305,28 @@ bool Game::Entity::damage(Game::DamageInfo &info){
 	info.isCrit = false; // TODO: calculate crit chance
 	
 	float dmg = 1.0f + (float)info.owner->complexStat.atk * (info.isCrit ? 2.25f : 1.0f); // TODO: take weapon into account
+
+	if(info.tryingBlock){
+		int chance = nite::randomInt(10, 25); // TODO: take luk into consideration
+		float rate = (float)(100 - chance) / 100.0f;
+		int ndmg = dmg * rate;
+		info.blockDmg = dmg - ndmg;
+		dmg = ndmg;
+	}	
+
+	bool lucky = nite::randomInt(10, 100) > 95.0f-(complexStat.luckRate * 25.0f);
+	nite::print(lucky);
+
+	float difFleefRate = info.target->complexStat.fleeRate / info.owner->complexStat.precsRate;
+	if(!(9 < nite::randomInt(1, nite::round(10.0f * difFleefRate)))){ // if true attack connected
+		info.dodged = true;
+		info.dmg = 0;
+		return false;
+	}
+
+
+
+
 	float tdef = info.target->complexStat.def; // TODO: take equipment into account, and element
 
 	if(tdef > dmg){
