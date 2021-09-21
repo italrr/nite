@@ -528,7 +528,7 @@ void Game::Battle::step(){
                     dialog->reset();
                     if(triedToBlock || triedToDodge){
                         String verb = triedToBlock ? "block" : "dodge";
-                        dialog->add("", ownName+" attacks "+tarName+"@100!.@100!.@100!.@100! "+tarName+" prepares to "+verb+" it!", nite::Color("#d20021"));
+                        dialog->add("", ownName+" attacks "+tarName+" as they prepare to "+verb+" it!", nite::Color("#d20021"));
                     }else{                       
                         dialog->add("", ownName+" attacks "+tarName+"!", nite::Color("#d20021"));
                     }
@@ -606,12 +606,19 @@ void Game::Battle::step(){
                     dialog->add("", ownName+" missed!", nite::Color("#d20021"));
                 }else
                 if(dmginfo.tryingBlock){
-                    dialog->add("", tarName+" received "+bttTextColorDamageNumber(nite::toStr(dmginfo.dmg)+ " damage, "+bttTextColorReducedDamage(nite::toStr(dmginfo.blockDmg))+" was blocked")+".", nite::Color("#d20021"));
+                    dialog->add("", tarName+" received "+bttTextColorDamageNumber(nite::toStr(dmginfo.dmg)+ " damage, "+bttTextColorReducedDamage(nite::toStr(dmginfo.blockDmg))+" was blocked")+(dmginfo.isCrit ? ". It was a critical hit!" : "."), nite::Color("#d20021"));
                 }else{
-                    dialog->add("", tarName+" received "+bttTextColorDamageNumber(nite::toStr(dmginfo.dmg)+ " damage")+".", nite::Color("#d20021"));
+                    dialog->add("", tarName+" received "+bttTextColorDamageNumber(nite::toStr(dmginfo.dmg)+ " damage")+(dmginfo.isCrit ? ". It was a critical hit!" : "."), nite::Color("#d20021"));
                 }
                 dialog->start(); 
-                dialog->setAutoCont(2000);                
+                UInt64 contTimeout = 2000;
+                if(dmginfo.tryingBlock){
+                    contTimeout += 400;
+                }   
+                if(dmginfo.isCrit){
+                    contTimeout += 400;
+                }
+                dialog->setAutoCont(contTimeout);                
                 setState(POST_PLAY_ACTIONS);
                 // TODO: animation handling
                 // TODO: check if target died

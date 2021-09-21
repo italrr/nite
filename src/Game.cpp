@@ -115,8 +115,9 @@ void Game::GameCore::init(){
 
 	// start game
 	player = std::make_shared<Player>(Player());
-	player->setupStat(5);
+	player->setupStat(100);
 	player->addBaseStat(BaseStatType::Strength, 20);
+	player->addBaseStat(BaseStatType::Luck, 100);
 	// player->addBaseStat(BaseStatType::Endurance, 10000);
 	player->fullHeal();
 	player->printInfo();

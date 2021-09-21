@@ -88,7 +88,7 @@ void Game::EntityStat::recalculateComplexStats(){
 	complexStat.atkRate += baseStat.agiAdd * (3.85f + healthStat.lv * 0.15f) + baseStat.dexAdd * (1.1f + healthStat.lv * 0.1f);
 	complexStat.persuasionRate += nite::ceil(0.45f * healthStat.lv + baseStat.charmAdd * 5.96f + baseStat.intelAdd * 2.25f);
 	complexStat.charmRate += nite::ceil(0.5f * healthStat.lv + baseStat.charmAdd * 5.96f);
-	complexStat.luckRate += 1.0f + nite::ceil(0.25f * baseStat.lukAdd);
+	complexStat.luckRate += 0.0f + nite::ceil(0.25f * baseStat.lukAdd);
 	complexStat.fleeRate += 1.0f + nite::ceil(2.5f * baseStat.agiAdd);
 	complexStat.cooldownRedRate += 0.0f;
 }
@@ -154,6 +154,7 @@ void Game::EntityStat::recalculateStats(){
 	baseStat.resetAdd();
 	recalculateBaseStats();
 	recalculateHealthStats();
+	resetComplexStats();
 	recalculateComplexStats();	
 }
 
@@ -294,6 +295,7 @@ void Game::Entity::printInfo(){
 	nite::print("AtkRate "+str(complexStat.atkRate));
 	nite::print("CharmRate "+str(complexStat.charmRate));
 	nite::print("PersuasionRate "+str(complexStat.persuasionRate));
+	nite::print("LuckRate "+str(complexStat.luckRate));
 	#undef str
 }
 
@@ -302,7 +304,11 @@ bool Game::Entity::damage(Game::DamageInfo &info){
 		info.dmg = 0;
 		return false;
 	}
-	info.isCrit = false; // TODO: calculate crit chance
+
+	bool targetLucky = nite::randomInt(10, 100 + nite::round(info.target->complexStat.luckRate)) > 99.0f;
+	bool ownerLucky = nite::randomInt(10, 100 + nite::round(info.owner->complexStat.luckRate)) > 99.0f;
+
+	info.isCrit = ownerLucky;
 	
 	float dmg = 1.0f + (float)info.owner->complexStat.atk * (info.isCrit ? 2.25f : 1.0f); // TODO: take weapon into account
 
@@ -312,13 +318,11 @@ bool Game::Entity::damage(Game::DamageInfo &info){
 		int ndmg = dmg * rate;
 		info.blockDmg = dmg - ndmg;
 		dmg = ndmg;
-	}	
-
-	bool lucky = nite::randomInt(10, 100) > 95.0f-(complexStat.luckRate * 25.0f);
-	nite::print(lucky);
+	}
 
 	float difFleefRate = info.target->complexStat.fleeRate / info.owner->complexStat.precsRate;
-	if(!(9 < nite::randomInt(1, nite::round(10.0f * difFleefRate)))){ // if true attack connected
+	bool missChance =  nite::randomInt(10, nite::round(100.0f * difFleefRate * (targetLucky ? 2.0f : 0.0f))) > 95;
+	if(missChance){
 		info.dodged = true;
 		info.dmg = 0;
 		return false;
