@@ -231,7 +231,7 @@ Game::DialogBox::DialogBox(){
     };
 
     onNextLine = [&](const Shared<DialogLine> &line){
-
+        dialogBox->setTitle(line->emitter.size() > 0, line->emitter, line->color);
     };
 
 }

@@ -59,7 +59,11 @@ static Token fetchToken(int stPos, const String &input){
 	return token;
 }
 
-
+void Game::UIDialogBox::setTitle(bool v, const String &title, const nite::Color &color){
+    this->title = title;
+    this->showTitle = v;
+    this->titleColor = color;
+}
 
 Game::UIDialogBox::UIDialogBox(){
     targetText = "";
@@ -123,6 +127,7 @@ void Game::UIDialogBox::onCreate(){
     if(!selArrowWhite.isLoaded()){
         selArrowWhite.load("data/texture/ui/arrow_white.png", nite::Color(1.0f, 0.0f, 0.0f, 1.0f));
     } 
+    setTitle(false);
 }
 
 void Game::UIDialogBox::onDestroy(){
@@ -142,6 +147,7 @@ void Game::UIDialogBox::render(){
     if(theme.get() == NULL || !visible){
         return;
     }
+    // message
     nite::Vec2 p = position;
     nite::setColor(theme->borderColor);
     theme->base.draw(position.x + 4, position.y + 4, size.x, size.y, 0.0f, 0.0f, 0.0f);
@@ -150,13 +156,30 @@ void Game::UIDialogBox::render(){
     nite::setColor(theme->fontColor);
     theme->bigFont.draw(targetText, p.x + margin.x * 0.5f, p.y + margin.y * 0.5f, 0.0f, 0.0f, 0.0f);
 
+    // emitter
+    if(showTitle){
+        auto pmargin = nite::Vec2(0.0f, 8.0f);
+        float lh = theme->smallFont.getHeight() + margin.x * 0.5f;
+        float lw = theme->smallFont.getWidth(title) + margin.y * 0.5f;
+        nite::Vec2 pos = p - nite::Vec2(0.0f, lh) - pmargin;
+        
+        nite::setColor(theme->borderColor);
+        theme->base.draw(pos.x + 4, pos.y + 4, lw, lh, 0.0f, 0.0f, 0.0f);
+        nite::setColor(theme->backgroundColor);
+        theme->base.draw(pos.x, pos.y, lw, lh, 0.0f, 0.0f, 0.0f);
+
+        nite::setColor(titleColor);
+        theme->smallFont.draw(title, pos.x + margin.x * 0.25f, pos.y + margin.y * 0.25f, 0.0f, 0.0f, 0.0f);
+    }
+
+    // arrow
     if(nite::getTicks()-diagArrowTick > 320){
         diagArrowTick = nite::getTicks();
         diagArrowFlip = !diagArrowFlip;
     }                
     nite::lerpDiscrete(diagArrowOffset, diagArrowFlip ? 0.0f : 100.0f, diagArrowFlip ? 0.12f : 0.04f);
     nite::setDepth(nite::DepthTop);
-    nite::setRenderTarget(nite::RenderTargetUI);                     
+    nite::setRenderTarget(nite::RenderTargetUI);
     auto pos = p + size * nite::Vec2(0.95f, 0.95f) + nite::Vec2(0.0f, 24.0f * (diagArrowOffset/100.0f)) - nite::Vec2(0.0f, 24.0f);
     if(showArrow){
         nite::setColor(theme->backgroundColor);

@@ -11,8 +11,8 @@
 	"bigFont": "data/font/SimvoniBold-w1dOn.otf",
 	"bigFontSize": 32,
 	"regularFont": "data/font/SimvoniBold-w1dOn.otf",	
-	"regularFontSize": 26,
+	"regularFontSize": 24,
 	"smallFont": "data/font/SimvoniBold-w1dOn.otf",
-	"smallFontSize": 24,
+	"smallFontSize": 20,
 	"base": "data/texture/empty.png"
 }

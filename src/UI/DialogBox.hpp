@@ -15,6 +15,10 @@
             UInt64 diagArrowTick;
             bool diagArrowFlip;               
             UIDialogBox();
+            bool showTitle;
+            String title;
+            nite::Color titleColor;
+            void setTitle(bool v, const String &title = "", const nite::Color &color = nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
             bool visible;
             nite::Vec2 size;
             void setVisible(bool v);
