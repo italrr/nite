@@ -44,6 +44,10 @@
 
         };
 
+        struct UIYesNoMenu : UIListMenu {
+          void setup(const std::function<void(UIListMenuOption *opt)> &yescb, const std::function<void(UIListMenuOption *opt)> &nocb);
+        };
+
     }
 
 

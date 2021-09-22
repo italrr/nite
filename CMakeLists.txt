@@ -109,6 +109,7 @@ set(src_files
 	src/UI/ListMenu.cpp
 	src/World.cpp
 	src/Battle.cpp
+	src/Storyline.cpp
 	src/Entity.cpp
 	src/Vfx.cpp
 	src/Object.cpp

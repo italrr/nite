@@ -137,3 +137,10 @@ void Game::UIListMenu::render(){
 
 
 }
+
+void Game::UIYesNoMenu::setup(const std::function<void(UIListMenuOption *opt)> &yescb, const std::function<void(UIListMenuOption *opt)> &nocb){
+    clear();
+    addOption("Yes", yescb);
+    addOption("No", nocb);
+}
+

@@ -533,7 +533,7 @@ void Game::Battle::step(){
                         dialog->add("", ownName+" attacks "+tarName+"!", nite::Color("#d20021"));
                     }
                     dialog->start();  
-                    dialog->setAutoCont(triedToBlock || triedToDodge ? 2300 : 1600);
+                    dialog->setAutoCont(triedToBlock || triedToDodge ? 2500 : 1600);
                     setState(PLAY_ACTION_ATTACK);
                 } break;
                 case ActionType::DODGE: {

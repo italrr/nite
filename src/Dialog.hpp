@@ -1,7 +1,10 @@
 #ifndef GAME_DIALOG_HPP
     #define GAME_DIALOG_HPP
 
-    #include "Engine/UI/UI.hpp"
+    // #include "Engine/UI/UI.hpp"
+    #include "Engine/Tools/Tools.hpp"
+    #include "UI/Theming.hpp"
+    #include "UI/DialogBox.hpp"
 
 
     namespace Game {
@@ -73,24 +76,18 @@
         };
 
         struct DialogBox : DialogHook {
-            nite::Font font;
-            nite::Font subFont;
-            nite::Texture empty;
+            Shared<UIDialogBox> dialogBox;
+            Shared<Game::UITheming> theme;
             nite::Vec2 dialogPos;
-            Shared<nite::BaseUIComponent> emtWin;
-            Shared<nite::BaseUIComponent> textWin;
             bool useStBColor;
             nite::Color borderColor;
             nite::Color bgColor;            
-
+            void update();
             bool isShowing();
             void start(const nite::Vec2 &pos, int width, int nlines, bool useTitle = true);
-            void setBgColor(const nite::Color &color);
-            void setStaticBorderColor(bool v, const nite::Color &color = nite::Color(0.0f, 0.0f, 0.0f, 1.0f));
+            // void setBgColor(const nite::Color &color);
+            // void setStaticBorderColor(bool v, const nite::Color &color = nite::Color(0.0f, 0.0f, 0.0f, 1.0f));
             DialogBox();
-            void updWinValue(Shared<nite::BaseUIComponent> &win, const String &newval);
-            void updTextColor(Shared<nite::BaseUIComponent> &win, const nite::Color &color);
-            void updWinBorderColor(Shared<nite::BaseUIComponent> &win, const nite::Color &color);
             void render();
         };
 

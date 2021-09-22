@@ -5,6 +5,7 @@
 #include "Engine/Network.hpp"
 #include "Engine/Shapes.hpp"
 
+#include "Storyline.hpp"
 #include "Game.hpp"
 
 
@@ -149,7 +150,7 @@ void Game::GameCore::step(){
 	nite::inputUpdate();	
 	world->step();
 	battle->step();
-	dialog->step();
+	dialog->update();
 
 	// player movement
 	if(player.get() != NULL){
@@ -168,19 +169,19 @@ void Game::GameCore::step(){
 			}	
 		}		
 		if(nite::keyboardPressed(nite::keyZ)){
-			if(!battle->isShowing()){
-				battle->start({player}, {mob}); // this could go so wrong lol
-			}
-			// if(dialog->isReady() && !dialog->isShowing()){
-			// 	dialog->reset();
-			// 	dialog->add("betsy", "this is a line of text", nite::Color("#d20021"));
-			// 	dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
-			// 	dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
-			// 	dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
-			// 	dialog->start(nite::Vec2(0.0f), 720, 3);
-			// }else{
-			// 	dialog->cont();
+			// if(!battle->isShowing()){
+			// 	battle->start({player}, {mob}); // this could go so wrong lol
 			// }
+			if(dialog->isReady() && !dialog->isShowing()){
+				dialog->reset();
+				dialog->add("betsy", "this is a line of text", nite::Color("#d20021"));
+				dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
+				dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
+				dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
+				dialog->start(nite::Vec2(0.0f), 720, 3);
+			}else{
+				dialog->cont();
+			}
 		}		
 	}
 }
