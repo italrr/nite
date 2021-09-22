@@ -603,7 +603,7 @@ void Game::Battle::step(){
                 tarName = current.target->entity->entityType == EntityType::PLAYER ? bttTextColorPlayerName(tarName) : bttTextColorEnemyName(tarName);   
                 dialog->reset();
                 if(targetMissed){
-                    dialog->add("", ownName+" missed!", nite::Color("#d20021"));
+                    dialog->add("", ownName+" missed"+(dmginfo.byLuck ? ", "+tarName+" dodged by pure chance!" : "!"), nite::Color("#d20021"));
                 }else
                 if(dmginfo.tryingBlock){
                     dialog->add("", tarName+" received "+bttTextColorDamageNumber(nite::toStr(dmginfo.dmg)+ " damage, "+bttTextColorReducedDamage(nite::toStr(dmginfo.blockDmg))+" was blocked")+(dmginfo.isCrit ? ". It was a critical hit!" : "."), nite::Color("#d20021"));
@@ -613,10 +613,10 @@ void Game::Battle::step(){
                 dialog->start(); 
                 UInt64 contTimeout = 2000;
                 if(dmginfo.tryingBlock){
-                    contTimeout += 400;
+                    contTimeout += 600;
                 }   
                 if(dmginfo.isCrit){
-                    contTimeout += 400;
+                    contTimeout += 600;
                 }
                 dialog->setAutoCont(contTimeout);                
                 setState(POST_PLAY_ACTIONS);
@@ -895,7 +895,7 @@ void Game::DamageNumber::render(){
         return;
     }
     if(!batch.isDirty()){
-        String amount = "-"+nite::toStr(this->amount);
+        String amount = (this->amount == 0 ? "" : "-")+nite::toStr(this->amount);
         batch.init(theme->bigFont.getWidth(amount) + 2, theme->bigFont.getHeight(amount) + 2); 
         batch.begin();
         nite::setColor(color);

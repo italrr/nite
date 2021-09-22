@@ -77,19 +77,26 @@ void Game::EntityStat::recalculateComplexStats(){
 	if(healthStat.dead){
 		return;
 	}	
-	complexStat.maxCarry += 1000 + nite::ceil(baseStat.strAdd * GAME_STAT_BASE_SCALE * 150.0f + baseStat.enduAdd * GAME_STAT_BASE_SCALE * 65.0f);
-	complexStat.atk += 1.0f + nite::ceil(baseStat.strAdd * 25.0f + baseStat.enduAdd * 5.2f);
-	complexStat.magicAtk += 1.0f + nite::ceil(baseStat.intelAdd * 3.5f);
-	complexStat.def += 1.0f + nite::ceil(baseStat.enduAdd * 5.8f + healthStat.lv * 5.0f);
-	complexStat.magicDef += 1.0f + nite::ceil(baseStat.intelAdd * 3.5f + healthStat.lv * 2.5f);		
-	complexStat.walkRate += nite::ceil(0.06f * baseStat.agiAdd); // TODO: take weight into account
-	complexStat.critRate += (float)baseStat.lukAdd / (float)GAME_MAX_STAT;
-	complexStat.precsRate += 1.0f + nite::ceil(2.5f * baseStat.dexAdd);
-	complexStat.atkRate += baseStat.agiAdd * (3.85f + healthStat.lv * 0.15f) + baseStat.dexAdd * (1.1f + healthStat.lv * 0.1f);
-	complexStat.persuasionRate += nite::ceil(0.45f * healthStat.lv + baseStat.charmAdd * 5.96f + baseStat.intelAdd * 2.25f);
-	complexStat.charmRate += nite::ceil(0.5f * healthStat.lv + baseStat.charmAdd * 5.96f);
-	complexStat.luckRate += 0.0f + nite::ceil(0.25f * baseStat.lukAdd);
-	complexStat.fleeRate += 1.0f + nite::ceil(2.5f * baseStat.agiAdd);
+	complexStat.maxCarry += 1000 + nite::ceil((baseStat.strAdd * 150.0f + baseStat.enduAdd * 65.0f) * GAME_STAT_BASE_SCALE);
+	complexStat.atk += 1.0f + nite::ceil((baseStat.strAdd * 5.2f + baseStat.enduAdd * 1.2f + healthStat.lv * 2.0f) * GAME_STAT_BASE_SCALE);
+	complexStat.def += 1.0f + nite::ceil((baseStat.enduAdd * 5.8f + healthStat.lv * 1.5f) * GAME_STAT_BASE_SCALE);
+	
+	complexStat.magicAtk += 1.0f + nite::ceil((baseStat.intelAdd * 3.5f) * GAME_STAT_BASE_SCALE);	
+	complexStat.magicDef += 1.0f + nite::ceil((baseStat.intelAdd * 3.5f + healthStat.lv * 2.5f) * GAME_STAT_BASE_SCALE);		
+
+	complexStat.critRate += 0.0f + nite::ceil((0.25f * baseStat.lukAdd) * GAME_STAT_BASE_SCALE);
+	complexStat.luckRate += 0.0f + nite::ceil((0.25f * baseStat.lukAdd) * GAME_STAT_BASE_SCALE); // Improve this
+
+
+	complexStat.walkRate += nite::ceil((0.06f * baseStat.agiAdd) * GAME_STAT_BASE_SCALE); // TODO: take weight into account
+	
+	complexStat.precsRate += 1.0f + nite::ceil((2.5f * baseStat.dexAdd) * GAME_STAT_BASE_SCALE);
+	complexStat.atkRate += (baseStat.agiAdd * (3.85f + healthStat.lv * 0.15f) + baseStat.dexAdd * (1.1f + healthStat.lv * 0.1f)) * GAME_STAT_BASE_SCALE;
+	complexStat.persuasionRate += nite::ceil((0.45f * healthStat.lv + baseStat.charmAdd * 5.96f + baseStat.intelAdd * 2.25f) * GAME_STAT_BASE_SCALE);
+	complexStat.charmRate += nite::ceil((0.5f * healthStat.lv + baseStat.charmAdd * 5.96f) * GAME_STAT_BASE_SCALE);
+	
+	
+	complexStat.fleeRate += 1.0f + nite::ceil((2.5f * baseStat.agiAdd) * GAME_STAT_BASE_SCALE);
 	complexStat.cooldownRedRate += 0.0f;
 }
 
@@ -305,15 +312,15 @@ bool Game::Entity::damage(Game::DamageInfo &info){
 		return false;
 	}
 
-	bool targetLucky = nite::randomInt(10, 100 + nite::round(info.target->complexStat.luckRate)) > 99.0f;
-	bool ownerLucky = nite::randomInt(10, 100 + nite::round(info.owner->complexStat.luckRate)) > 99.0f;
+	bool targetLucky = nite::randomInt(11, 100 + nite::round(info.target->complexStat.critRate)) > 99.0f;
+	bool ownerCritChance = nite::randomInt(11, 100 + nite::round(info.owner->complexStat.critRate)) > 99.0f;
 
-	info.isCrit = ownerLucky;
+	info.isCrit = ownerCritChance;
 	
-	float dmg = 1.0f + (float)info.owner->complexStat.atk * (info.isCrit ? 2.25f : 1.0f); // TODO: take weapon into account
+	float dmg = 1.0f + (float)info.owner->complexStat.atk * (info.isCrit ? 1.5f : 1.0f); // TODO: take weapon into account
 
 	if(info.tryingBlock){
-		int chance = nite::randomInt(10, 25); // TODO: take luk into consideration
+		int chance = nite::randomInt(targetLucky ? 20 : 10, targetLucky ? 35 : 25);
 		float rate = (float)(100 - chance) / 100.0f;
 		int ndmg = dmg * rate;
 		info.blockDmg = dmg - ndmg;
@@ -321,15 +328,16 @@ bool Game::Entity::damage(Game::DamageInfo &info){
 	}
 
 	float difFleefRate = info.target->complexStat.fleeRate / info.owner->complexStat.precsRate;
-	bool missChance =  nite::randomInt(10, nite::round(100.0f * difFleefRate * (targetLucky ? 2.0f : 0.0f))) > 95;
+	float missChanceTop = nite::round(100.0f * difFleefRate * (targetLucky ? 1.25f : 0.0f));
+	int missChanceRoll = nite::randomInt(1, missChanceTop + (info.tryingDodge ? 10 : 0));
+	bool missChance =  missChanceTop > 1 && missChanceRoll > 95;
+	
 	if(missChance){
 		info.dodged = true;
+		info.byLuck = targetLucky;
 		info.dmg = 0;
 		return false;
 	}
-
-
-
 
 	float tdef = info.target->complexStat.def; // TODO: take equipment into account, and element
 
