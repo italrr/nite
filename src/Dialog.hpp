@@ -29,6 +29,10 @@
             }            
         };
 
+        static inline Shared<DialogLine> buildLine(const String &emt, const String &text, const nite::Color &color = nite::White){
+            return std::make_shared<DialogLine>(emt, text, color);
+        }
+
         struct DialogHook {
             int currentDiag;
             int currentChar;
@@ -68,6 +72,7 @@
             // virtual void onNextLine(const Shared<DialogLine> &line){}
 
             void setImmediateText(const String &text);
+            std::function<void()> onEndCallback;
             std::function<void()> onCont;
             std::function<void()> onReset;
             std::function<void()> onUpdateText;
@@ -84,6 +89,7 @@
             nite::Color bgColor;            
             void update();
             bool isShowing();
+            bool visible;
             void start(const nite::Vec2 &pos, int width, int nlines, bool useTitle = true);
             // void setBgColor(const nite::Color &color);
             // void setStaticBorderColor(bool v, const nite::Color &color = nite::Color(0.0f, 0.0f, 0.0f, 1.0f));

@@ -5,16 +5,20 @@
     #include "Battle.hpp"
     #include "Object.hpp"
     #include "World.hpp"
+    #include "Storyline.hpp"
+    #include "UI/ListMenu.hpp"
     
     namespace Game {
 
         struct GameCore {
+            Shared<Game::UIListMenu> optionsMenu;
             Shared<Game::World> world;
-            Shared<DialogBox> dialog;
+            Shared<Game::DialogBox> dialog;
             Shared<Game::Battle> battle;
             Shared<Game::Entity> player;
             Shared<Game::Entity> mob; // temp
             Shared<Game::Entity> mob2; // temp
+            Shared<Game::Story::InteractionDevice> interDevice;
             GameCore();
             void init();
             void step();

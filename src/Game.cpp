@@ -5,7 +5,6 @@
 #include "Engine/Network.hpp"
 #include "Engine/Shapes.hpp"
 
-#include "Storyline.hpp"
 #include "Game.hpp"
 
 
@@ -110,9 +109,15 @@ void Game::GameCore::init(){
 	nite::inputInit();
 
 	// init game core
+	optionsMenu = std::make_shared<Game::UIListMenu>(Game::UIListMenu());
 	dialog = Shared<Game::DialogBox>(new Game::DialogBox());
-	battle = Shared<Game::Battle>(new Game::Battle());	
-	world = Shared<Game::World>(new Game::World());	
+	battle = std::make_shared<Game::Battle>(Game::Battle());
+	world = std::make_shared<Game::World>(Game::World());
+	interDevice = std::make_shared<Game::Story::InteractionDevice>(Game::Story::InteractionDevice());
+	
+	interDevice->dialogDevice = dialog;
+	interDevice->optionsDevice = optionsMenu;
+
 
 	// start game
 	player = std::make_shared<Player>(Player());
@@ -150,7 +155,10 @@ void Game::GameCore::step(){
 	nite::inputUpdate();	
 	world->step();
 	battle->step();
+	optionsMenu->step();
 	dialog->update();
+	interDevice->step();
+
 
 	// player movement
 	if(player.get() != NULL){
@@ -172,16 +180,36 @@ void Game::GameCore::step(){
 			// if(!battle->isShowing()){
 			// 	battle->start({player}, {mob}); // this could go so wrong lol
 			// }
-			if(dialog->isReady() && !dialog->isShowing()){
-				dialog->reset();
-				dialog->add("betsy", "this is a line of text", nite::Color("#d20021"));
-				dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
-				dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
-				dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
-				dialog->start(nite::Vec2(0.0f), 720, 3);
-			}else{
-				dialog->cont();
+
+			// greetings
+			if(!interDevice->busy){
+				Vector<Shared<DialogLine>> greetingsLine;
+				greetingsLine.push_back(Game::buildLine("Kid", "I saw an old lady carrying a PP-79 last night."));
+				greetingsLine.push_back(Game::buildLine("Kid", "Those things are extremely toxic to touch."));
+				greetingsLine.push_back(Game::buildLine("Kid", "It's just so strange seeing an frail soul like her handling something so dangerous."));
+				
+				auto greetingsFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
+				greetingsFirst->lines = greetingsLine;
+
+				auto greetingsStart = std::make_shared<Game::Story::InteractionTreeContact>(Game::Story::InteractionTreeContact());
+				greetingsStart->next.push_back(greetingsFirst->symRefId);
+				
+				interDevice->addInter(greetingsStart);
+				interDevice->addInter(greetingsFirst);
+				interDevice->start();
 			}
+				
+
+			// if(dialog->isReady() && !dialog->isShowing()){
+			// 	dialog->reset();
+			// 	dialog->add("betsy", "Can I ask you a question?", nite::Color("#d20021"));
+			// 	dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
+			// 	dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
+			// 	dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
+			// 	dialog->start(nite::Vec2(0.0f), 720, 3);
+			// }else{
+			// 	dialog->cont();
+			// }
 		}		
 	}
 }
@@ -189,6 +217,7 @@ void Game::GameCore::step(){
 void Game::GameCore::render(){
 	world->render();	
 	dialog->render();
+	optionsMenu->render();
 	battle->render();
 	nite::graphicsRender();
 }

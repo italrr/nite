@@ -1,4 +1,13 @@
+#include "Engine/Input.hpp"
 #include "Storyline.hpp"
+
+static int indCounter = nite::randomInt(1000, 2000);
+
+Game::Story::Identifier::Identifier(){
+    refId = ++indCounter;
+    static hashidsxx::Hashids hash("STORY LINE OBJECT IDENTIFIER SALT");
+    symRefId = hash.encode({refId, 8493, 1004});
+}
 
 /*
         MEMORY OBJECT
@@ -103,4 +112,148 @@ bool Game::Story::MemoryObjectString::read(String &v){
     }
     v = String(this->data, size);
     return true;
+}
+
+
+/*
+        InteractionTree
+*/
+
+void Game::Story::InteractionTree::run(){
+    device->next("");
+}
+
+Game::Story::InteractionTree::InteractionTree(){
+    interType = InteractionTreeType::NONE;
+}  
+
+
+/*
+        InteractionTreeContact
+*/
+
+void Game::Story::InteractionTreeContact::run(){
+    // depending on conditions, we run the correspding interaction
+    // if no conditions, then it goes for the first one
+    // TODO: check conditions
+    if(conditions.size() == 0){
+        if(next.size() == 0){
+            this->device->end();
+        }else{
+            this->device->next(next[0]);
+        }
+    }
+}
+
+Game::Story::InteractionTreeContact::InteractionTreeContact(){
+    interType = InteractionTreeType::CONTACT;
+}  
+
+
+/*
+        InteractionTreeExposition
+*/
+
+void Game::Story::InteractionTreeExposition::run(){
+    dialogDevice->reset();
+    for(int i = 0; i < lines.size(); ++i){
+        dialogDevice->add(lines[i]->emitter, lines[i]->message, lines[i]->color);
+    }
+    dialogDevice->onEndCallback = [&](){
+        // TODO: check conditions
+        if(next.size() == 0){
+            this->device->end();
+        }else{
+            this->device->next(next[0]);
+        }       
+    };
+    dialogDevice->start(nite::Vec2(0.0f), 720, 3);
+    
+}
+
+Game::Story::InteractionTreeExposition::InteractionTreeExposition(){
+    interType = InteractionTreeType::EXPOSITION;
+}  
+
+
+/*
+        InteractionTreeDialog
+*/
+
+void Game::Story::InteractionTreeDialog::run(){
+    optionsDevice->clear();
+}
+
+Game::Story::InteractionTreeDialog::InteractionTreeDialog(){
+    interType = InteractionTreeType::DIALOG;
+}  
+
+
+/*
+        InteractionDevice
+*/
+
+Game::Story::InteractionDevice::InteractionDevice(){
+    busy = false;
+}
+
+void Game::Story::InteractionDevice::addInter(Shared<InteractionTree> inter){
+    auto copy = inter;
+    copy->device = this;
+    switch(inter->interType){
+        case InteractionTreeType::DIALOG: {
+            std::dynamic_pointer_cast<InteractionTreeDialog>(inter)->optionsDevice = optionsDevice;
+        };
+        case InteractionTreeType::EXPOSITION: {
+            std::dynamic_pointer_cast<InteractionTreeExposition>(inter)->dialogDevice = dialogDevice;
+        };
+    }
+    this->interactions[inter->symRefId] = inter;
+}
+
+void Game::Story::InteractionDevice::next(const String &symRefId){
+    nite::print("[debug] interactions device: started node '"+symRefId+"'");
+    auto iter = interactions.find(symRefId);
+    if(iter == interactions.end()){
+        nite::print("InteractionDevice: fatal failure: jumping to unexinsting node '"+symRefId+"': broken interaction");
+        end();
+        return;
+    }
+    iter->second->run();
+}
+
+void Game::Story::InteractionDevice::render(){
+
+}
+
+void Game::Story::InteractionDevice::step(){
+    if(!busy){
+        return;
+    }
+    if(nite::keyboardPressed(nite::keyZ)){
+        this->dialogDevice->cont();
+    }
+}
+
+void Game::Story::InteractionDevice::end(){
+    nite::print("interaction end");
+    dialogDevice->reset();
+    optionsDevice->clear();
+    optionsDevice->setVisible(false);
+}
+
+void Game::Story::InteractionDevice::start(const String &startInter){
+    this->startInter = startInter;
+    if(this->startInter == ""){
+        // if startInter is not provided, we look for a "contact" type
+        // first one found, first one started
+        for(auto &it : interactions){            
+            if(it.second->interType == InteractionTreeType::CONTACT){
+                this->startInter = it.second->symRefId;
+                break;
+            }
+        }
+    }
+    next(this->startInter);
+    busy = true;
 }
