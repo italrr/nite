@@ -73,11 +73,7 @@ bool Game::DialogHook::canNext(){
 void Game::DialogHook::cont(){
     if(this->ready && !this->autocont){
         this->proceed = true;
-        onCont();
-        if(isReady()){
-            nite::print("[debug] dialog called callback");
-            onEndCallback();        
-        }        
+        onCont();     
     }        
 }
 
@@ -131,7 +127,6 @@ void Game::DialogHook::reset(){
     delay = false;
     autoContTick = nite::getTicks();
     onEndCallback = [](){
-
     };
     onReset();
 }
@@ -147,11 +142,7 @@ void Game::DialogHook::step(){
     if(!proceed && ready && autocont && nite::getTicks()-autoContTick > autoContTimeout){
         proceed = true;
         autocont = false;
-        onCont();
-        if(isReady()){
-            nite::print("[debug] dialog[autocont] called callback");
-            onEndCallback();        
-        }         
+        onCont();     
     }
     if(nite::getTicks()-lastChar < 20 || delay || currenText.size() >= targetText.size()){
         if(delay && nite::getTicks()-delayTick > delayTimeout){
@@ -220,13 +211,14 @@ void Game::DialogHook::step(){
 
 Game::DialogBox::DialogBox(){
     reset();
-    useStBColor = false;
 
     this->onCont = [&](){
         if(isShowing() && isReady()){
             if(this->dialogBox.get() != NULL){
                 this->dialogBox->setVisible(false);
             }
+            nite::print("[debug] dialog[autocont] called callback");
+            onEndCallback();        
             reset();
         }        
     };

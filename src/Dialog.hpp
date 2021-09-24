@@ -5,6 +5,7 @@
     #include "Engine/Tools/Tools.hpp"
     #include "UI/Theming.hpp"
     #include "UI/DialogBox.hpp"
+    #include "UI/ListMenu.hpp"
 
 
     namespace Game {
@@ -82,11 +83,7 @@
 
         struct DialogBox : DialogHook {
             Shared<UIDialogBox> dialogBox;
-            Shared<Game::UITheming> theme;
-            nite::Vec2 dialogPos;
-            bool useStBColor;
-            nite::Color borderColor;
-            nite::Color bgColor;            
+            Shared<Game::UITheming> theme;        
             void update();
             bool isShowing();
             bool visible;
@@ -96,8 +93,6 @@
             DialogBox();
             void render();
         };
-
-
 
     }
 

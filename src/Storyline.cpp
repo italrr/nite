@@ -116,6 +116,63 @@ bool Game::Story::MemoryObjectString::read(String &v){
 
 
 /*
+        MemoryBox
+*/
+
+Game::Story::MemoryBox::MemoryBox(){
+
+}
+
+void Game::Story::MemoryBox::clearShortTerm(){
+    this->shortTerm.clear();
+}
+
+Shared<Game::Story::MemoryObject> Game::Story::MemoryBox::get(const String &name){
+    auto it = shortTerm.find(name);
+    if(it == shortTerm.end()){
+        auto it = bank.find(name);
+        if(it == bank.end()){
+            return Shared<Game::Story::MemoryObject>(NULL);
+        }
+        return it->second;
+    }
+    return it->second;
+}
+
+bool Game::Story::MemoryBox::store(const String &name, const String &v, bool tmp){
+    auto object = Shared<Game::Story::MemoryObjectString>(new Game::Story::MemoryObjectString());
+    object->write(v);
+    auto &bank = tmp ? this->shortTerm : this->bank;
+    bank[name] = object;
+    return true;
+}
+
+bool Game::Story::MemoryBox::store(const String &name, int32_t v, bool tmp){
+    auto object = Shared<Game::Story::MemoryObjectInt>(new Game::Story::MemoryObjectInt());
+    object->write(v);
+    auto &bank = tmp ? this->shortTerm : this->bank;
+    bank[name] = object;
+    return true;
+}
+
+bool Game::Story::MemoryBox::store(const String &name, float v, bool tmp){
+    auto object = Shared<Game::Story::MemoryObjectFloat>(new Game::Story::MemoryObjectFloat());
+    object->write(v);
+    auto &bank = tmp ? this->shortTerm : this->bank;
+    bank[name] = object;
+    return true;
+}
+
+bool Game::Story::MemoryBox::store(const String &name, bool v, bool tmp){
+    auto object = Shared<Game::Story::MemoryObjectBool>(new Game::Story::MemoryObjectBool());
+    object->write(v);
+    auto &bank = tmp ? this->shortTerm : this->bank;
+    bank[name] = object;
+    return true;   
+}
+
+
+/*
         InteractionTree
 */
 
@@ -182,6 +239,29 @@ Game::Story::InteractionTreeExposition::InteractionTreeExposition(){
 
 void Game::Story::InteractionTreeDialog::run(){
     optionsDevice->clear();
+    for(int i = 0; i < options.size(); ++i){
+        auto &opt = options[i];
+        optionsDevice->addOption(options[i]->label, [&, opt](Game::UIListMenuOption *selOpt){
+            switch(opt->type){
+                case InteractionTreeDialogOptionType::NEXT: {
+                    this->device->next(opt->next);
+                    optionsDevice->setVisible(false);
+                } break;
+                case InteractionTreeDialogOptionType::SCRIPT: {
+                    // TODO: implement script
+                } break;                
+                case InteractionTreeDialogOptionType::CALLBACK: {
+                    opt->callback(this->symRefId);
+                    optionsDevice->setVisible(false);
+                } break;                
+            }            
+        });
+    }
+    optionsDevice->setTitle(true, title);
+    optionsDevice->setSize(nite::Vec2(200.0f, 0.0f));    
+    optionsDevice->setPosition(nite::Vec2(nite::getWidth() * 0.5f - optionsDevice->size.x * 0.5f, nite::getHeight() -  optionsDevice->size.y - optionsDevice->margin.y));                   
+    // optionsDevice->setPosition(nite::Vec2(0.0f));
+    optionsDevice->setVisible(true);
 }
 
 Game::Story::InteractionTreeDialog::InteractionTreeDialog(){
@@ -195,18 +275,18 @@ Game::Story::InteractionTreeDialog::InteractionTreeDialog(){
 
 Game::Story::InteractionDevice::InteractionDevice(){
     busy = false;
+    lastInter = nite::getTicks();
 }
 
 void Game::Story::InteractionDevice::addInter(Shared<InteractionTree> inter){
-    auto copy = inter;
-    copy->device = this;
+    inter->device = this;
     switch(inter->interType){
         case InteractionTreeType::DIALOG: {
             std::dynamic_pointer_cast<InteractionTreeDialog>(inter)->optionsDevice = optionsDevice;
-        };
+        } break;
         case InteractionTreeType::EXPOSITION: {
             std::dynamic_pointer_cast<InteractionTreeExposition>(inter)->dialogDevice = dialogDevice;
-        };
+        } break;
     }
     this->interactions[inter->symRefId] = inter;
 }
@@ -237,12 +317,18 @@ void Game::Story::InteractionDevice::step(){
 
 void Game::Story::InteractionDevice::end(){
     nite::print("interaction end");
+    busy = false;
+    lastInter = nite::getTicks();
     dialogDevice->reset();
     optionsDevice->clear();
     optionsDevice->setVisible(false);
 }
 
 void Game::Story::InteractionDevice::start(const String &startInter){
+    if(nite::getTicks()-lastInter < 100){
+        nite::print("[debug] interaction delay");
+        return;
+    }
     this->startInter = startInter;
     if(this->startInter == ""){
         // if startInter is not provided, we look for a "contact" type
@@ -254,6 +340,39 @@ void Game::Story::InteractionDevice::start(const String &startInter){
             }
         }
     }
+    if(this->startInter == ""){
+        nite::print("InteractionDevice: fatal failure: current interaction does not have a contact node");
+        return;
+    }
     next(this->startInter);
     busy = true;
+}
+
+
+/*
+        StoryLine
+*/
+
+
+Game::Story::StoryLine::StoryLine(){
+    memBox = Shared<Game::Story::MemoryBox>(new Game::Story::MemoryBox());
+    interDevice = std::make_shared<Game::Story::InteractionDevice>(Game::Story::InteractionDevice());
+    interDevice->storyLine = this;
+}
+
+void Game::Story::StoryLine::loadStoryLine(const String &file){
+
+}
+
+void Game::Story::StoryLine::step(){
+    interDevice->step();
+}
+
+void Game::Story::StoryLine::render(){
+    interDevice->render();
+}
+
+void Game::Story::StoryLine::setup(Shared<UIListMenu> &optionsDevice, Shared<DialogBox> &dialogDevice){
+    this->interDevice->optionsDevice = optionsDevice;
+    this->interDevice->dialogDevice = dialogDevice;
 }

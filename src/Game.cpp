@@ -109,14 +109,20 @@ void Game::GameCore::init(){
 	nite::inputInit();
 
 	// init game core
-	optionsMenu = std::make_shared<Game::UIListMenu>(Game::UIListMenu());
+	optionsMenu = Shared<Game::UIListMenu>(new Game::UIListMenu());
 	dialog = Shared<Game::DialogBox>(new Game::DialogBox());
-	battle = std::make_shared<Game::Battle>(Game::Battle());
-	world = std::make_shared<Game::World>(Game::World());
-	interDevice = std::make_shared<Game::Story::InteractionDevice>(Game::Story::InteractionDevice());
+	battle = Shared<Game::Battle>(new Game::Battle());
+	world = Shared<Game::World>(new Game::World());
+	storyLine = Shared<Game::Story::StoryLine>(new Game::Story::StoryLine());
 	
-	interDevice->dialogDevice = dialog;
-	interDevice->optionsDevice = optionsMenu;
+	// manually setup options menu
+    auto theme = std::make_shared<Game::UITheming>(Game::UITheming());
+    theme->load("data/ui/base_theme.json");
+	optionsMenu->theme = theme;
+	optionsMenu->onCreate();
+
+
+	storyLine->setup(optionsMenu, dialog);
 
 
 	// start game
@@ -157,12 +163,13 @@ void Game::GameCore::step(){
 	battle->step();
 	optionsMenu->step();
 	dialog->update();
-	interDevice->step();
+	storyLine->step();
+
 
 
 	// player movement
 	if(player.get() != NULL){
-		if(!dialog->isShowing() && !battle->isShowing()){
+		if(!dialog->isShowing() && !battle->isShowing() && !storyLine->interDevice->busy){
 			if(nite::keyboardCheck(nite::keyW)){
 				player->moveEntity(0.0f, -1.0f);
 			}
@@ -182,21 +189,46 @@ void Game::GameCore::step(){
 			// }
 
 			// greetings
-			if(!interDevice->busy){
+			if(!storyLine->interDevice->busy){
 				Vector<Shared<DialogLine>> greetingsLine;
-				greetingsLine.push_back(Game::buildLine("Kid", "I saw an old lady carrying a PP-79 last night."));
-				greetingsLine.push_back(Game::buildLine("Kid", "Those things are extremely toxic to touch."));
-				greetingsLine.push_back(Game::buildLine("Kid", "It's just so strange seeing an frail soul like her handling something so dangerous."));
+				greetingsLine.push_back(Game::buildLine("Kid", "My father suffers from the L5 condition"));
+				greetingsLine.push_back(Game::buildLine("Kid", "Could you help me find the medicine?"));
 				
+
+				Vector<Shared<DialogLine>> rejectLine;
+				rejectLine.push_back(Game::buildLine("Kid", "Wow, you're a terrible person."));
+				auto rejectFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
+				rejectFirst->lines = rejectLine;
+
+
+				Vector<Shared<DialogLine>> approvalLine;
+				approvalLine.push_back(Game::buildLine("Kid", "Thanks mister, I really appreciate it!"));				
+				auto approvalFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
+				approvalFirst->lines = approvalLine;								
+
+
+				auto requestFirst = std::make_shared<Game::Story::InteractionTreeDialog>(Game::Story::InteractionTreeDialog());
+				Vector<Shared<Game::Story::InteractionTreeDialogOption>> requestFirstOptions;
+				requestFirstOptions.push_back(Game::Story::buildTreeDialogOption("Yes", approvalFirst->symRefId));
+				requestFirstOptions.push_back(Game::Story::buildTreeDialogOption("No", rejectFirst->symRefId));
+				requestFirst->options = requestFirstOptions;
+				requestFirst->title = "Could you help me find the medicine?";
+
+
+
 				auto greetingsFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
 				greetingsFirst->lines = greetingsLine;
+				greetingsFirst->next.push_back(requestFirst->symRefId);
 
 				auto greetingsStart = std::make_shared<Game::Story::InteractionTreeContact>(Game::Story::InteractionTreeContact());
 				greetingsStart->next.push_back(greetingsFirst->symRefId);
 				
-				interDevice->addInter(greetingsStart);
-				interDevice->addInter(greetingsFirst);
-				interDevice->start();
+				storyLine->interDevice->addInter(approvalFirst);
+				storyLine->interDevice->addInter(rejectFirst);
+				storyLine->interDevice->addInter(requestFirst);
+				storyLine->interDevice->addInter(greetingsStart);
+				storyLine->interDevice->addInter(greetingsFirst);
+				storyLine->interDevice->start();
 			}
 				
 
@@ -217,8 +249,11 @@ void Game::GameCore::step(){
 void Game::GameCore::render(){
 	world->render();	
 	dialog->render();
+    nite::setDepth(nite::DepthTop);
+    nite::setRenderTarget(nite::RenderTargetUI);  	
 	optionsMenu->render();
 	battle->render();
+	storyLine->render();
 	nite::graphicsRender();
 }
 

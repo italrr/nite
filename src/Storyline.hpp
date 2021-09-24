@@ -16,6 +16,14 @@
                 Identifier();
             };
 
+            namespace InteractionTreeDialogOptionType {
+                enum InteractionTreeDialogOptionType {
+                    SCRIPT,
+                    NEXT,
+                    CALLBACK
+                };
+            }            
+
             enum MemoryObjectTempType {
                 SHORT_TERM,
                 LONG_TERM
@@ -86,16 +94,22 @@
                 bool read(String &v);
             };                                    
 
+            struct MemoryBox {
+                Dict<String, Shared<MemoryObject>> bank;
+                Dict<String, Shared<MemoryObject>> shortTerm;
+                MemoryBox();
+                void clearShortTerm();
+                Shared<MemoryObject> get(const String &name);
+                bool store(const String &name, const String &v, bool tmp = false);
+                bool store(const String &name, int32_t v, bool tmp = false);
+                bool store(const String &name, float v, bool tmp = false);
+                bool store(const String &name, bool v, bool tmp = false);
+            };
+
             struct Condition : Identifier {
                 int condType;
                 int subjectId;
                 virtual bool check();
-            };
-
-            struct Quest : Identifier {
-                
-                Vector<Shared<Condition>> condition;
-
             };
 
             struct ConditionGroup {
@@ -135,20 +149,49 @@
                 InteractionTreeExposition();               
             };     
 
+            struct InteractionTreeDialogOption {
+                int type;
+                String next;
+                String script;
+                String label;
+                std::function<void(const String &root)> callback;
+
+                InteractionTreeDialogOption(){
+                    type = InteractionTreeDialogOptionType::NEXT;
+                }
+               
+            };
+
+            static Shared<InteractionTreeDialogOption> buildTreeDialogOption(const String &label, const String &next){
+                auto obj = std::make_shared<Game::Story::InteractionTreeDialogOption>(Game::Story::InteractionTreeDialogOption());
+                obj->label = label;
+                obj->next = next;
+                obj->type = InteractionTreeDialogOptionType::NEXT;
+                return obj;
+            }
+
             struct InteractionTreeDialog : InteractionTree {
-                Vector<Shared<UIListMenuOption>> options;
+                Vector<Shared<InteractionTreeDialogOption>> options;
+                String title;
                 Shared<UIListMenu> optionsDevice;
                 void run();
                 InteractionTreeDialog();              
             };                         
 
+            struct InteractionGroup : Identifier {
+                Dict<String, Shared<Game::Story::InteractionTree>> interactions;
+            };
+
+            struct StoryLine;
             struct InteractionDevice {
                 Shared<UIListMenu> optionsDevice;
                 Shared<DialogBox> dialogDevice;
-                Shared<InteractionTree> current;
+                // Shared<InteractionTree> current;
+                Game::Story::StoryLine *storyLine;
                 Dict<String, Shared<InteractionTree>> interactions;
                 String startInter; // symRefId
                 InteractionDevice();
+                UInt64 lastInter;
                 bool busy;
                 void addInter(Shared<InteractionTree> inter);
                 void next(const String &symRefId);
@@ -160,11 +203,19 @@
 
 
             struct StoryLine {
-                Dict<int, Shared<MemoryObject>> memoryBank;
+                Shared<Game::Story::InteractionDevice> interDevice;
+                Dict<String, Shared<Game::Story::InteractionGroup>> interactionGroups;
+                Shared<Game::Story::MemoryBox> memBox;
                 UInt64 runStart;
                 UInt64 runEnd;
                 int enemKilled;
                 int enemEncountered;
+                StoryLine();
+                void loadStoryLine(const String &file);
+                void step();
+                void render();
+                void setup(Shared<UIListMenu> &optionsDevice, Shared<DialogBox> &dialogDevice);
+                                
             };
 
         }

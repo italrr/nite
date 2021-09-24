@@ -103,7 +103,7 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
         names += i < groupB.size()-1 ? ", " : " and " + bttTextColorEnemyName(groupB[i]->nickname);
     }
     static const Vector<String> randomEnterPhrase = {"Oh! ", "Quick! ", "Look! "};
-    String pickedPhrase = randomEnterPhrase[nite::randomInt(1, randomEnterPhrase.size()+1)-1];
+    String pickedPhrase = randomEnterPhrase[nite::randomInt(1, randomEnterPhrase.size())-1];
     dialog->add("", pickedPhrase+"@500!"+names+(groupB.size() > 1 ? " are " : " is ")+"approaching...", nite::Color("#d20021"));
     dialog->start();
     dialogBox->setVisible(true);
@@ -112,6 +112,7 @@ void Game::Battle::start(const Vector<Shared<Game::Entity>> &groupA, const Vecto
 
     optionsMenu->setSize(nite::Vec2(200.0f, 0.0f));
     optionsMenu->setPosition(nite::Vec2(nite::getWidth() * 0.5f - optionsMenu->size.x * 0.5f, nite::getHeight() -  optionsMenu->size.y - optionsMenu->margin.y));
+
 
     if(!selArrowBlack.isLoaded()){
         selArrowBlack.load("data/texture/ui/arrow_black.png", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));

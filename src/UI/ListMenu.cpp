@@ -13,27 +13,45 @@ Shared<Game::UIListMenuOption> Game::UIListMenu::addOption(const String &label, 
     return option;
 }
 
+
+void Game::UIListMenu::setTitle(bool v, const String &title){
+    this->title = title;
+    this->useTitle = v;
+    recalculate();
+}
+
 void Game::UIListMenu::recalculate(){
     if(theme.get() == NULL){
         return;
     }
     float h = 0.0f;
     for(int i = 0; i < options.size(); ++i){
-        h += theme->bigFont.getHeight() + 4;
+        h += theme->regularFont.getHeight() + 4;
+    }
+    if(useTitle){
+        h +=  theme->bigFont.getHeight() + 4;
     }
     size.y = h + margin.y;
+    if(useTitle){
+        auto maxWidth = theme->bigFont.getWidth(title);
+        if(size.x < maxWidth*1.25f){
+            size.x = maxWidth*1.25f;
+        }
+    }
 }
 
 void Game::UIListMenu::clear(){
     size.y = 0.0f;
     selected = 0;
     options.clear();
-    selArrowPos = nite::Vec2(position.x + 4 + margin.x * 0.5f, position.y + margin.y * 0.5f + selected * (theme->bigFont.getHeight() + 4) + theme->bigFont.getHeight() * 0.5f);
+    selArrowPos = nite::Vec2(position.x + 4 + margin.x * 0.5f, position.y + margin.y * 0.5f + selected * (theme->bigFont.getHeight() + 4) + theme->bigFont.getHeight() * 0.5f + (useTitle ? theme->bigFont.getHeight() + 4 : 0));
     recalculate();
 }
 
 Game::UIListMenu::UIListMenu(){
     diagArrowFlip = false;
+    useTitle = false;
+    allowLineBreaking = true;    
     diagArrowTick = nite::getTicks();
     visible = false;
     interact = false;
@@ -66,7 +84,7 @@ void Game::UIListMenu::step(){
     }                
 
     nite::lerpDiscrete(diagArrowOffset, diagArrowFlip ? 0.0f : 100.0f, diagArrowFlip ? 0.12f : 0.04f);
-    nite::Vec2 selArrPosTarget = nite::Vec2(position.x + 4 + margin.x * 0.5f + 8.0f * (diagArrowOffset / 100.0f), position.y + margin.y * 0.5f + selected * (theme->bigFont.getHeight() + 4) + theme->bigFont.getHeight() * 0.5f);
+    nite::Vec2 selArrPosTarget = nite::Vec2(position.x + 4 + margin.x * 0.5f + 8.0f * (diagArrowOffset / 100.0f), position.y + margin.y * 0.5f + selected * (theme->regularFont.getHeight() + 4) + theme->regularFont.getHeight() * 0.5f + (useTitle ? theme->bigFont.getHeight() + 4 : 0));
     selArrowPos.lerpDiscrete(selArrPosTarget, 0.10f);
 
     if(!interact){
@@ -101,7 +119,7 @@ void Game::UIListMenu::setVisible(bool v){
 
 void Game::UIListMenu::setPosition(const nite::Vec2 &position){
     this->position.set(position);
-    nite::Vec2 selArrPosTarget = nite::Vec2(position.x + 4 + margin.x * 0.5f + 8.0f * (diagArrowOffset / 100.0f), position.y + margin.y * 0.5f + selected * (theme->bigFont.getHeight() + 4) + theme->bigFont.getHeight() * 0.5f);
+    nite::Vec2 selArrPosTarget = nite::Vec2(position.x + 4 + margin.x * 0.5f, position.y + margin.y * 0.5f + selected * (theme->bigFont.getHeight() + 4) + theme->bigFont.getHeight() * 0.5f + (useTitle ? theme->bigFont.getHeight() + 4 : 0));
     selArrowPos.lerpDiscrete(selArrPosTarget, 1.0f);
 }
 
@@ -121,12 +139,17 @@ void Game::UIListMenu::render(){
     theme->base.draw(p.x, p.y, size.x, size.y, 0.0f, 0.0f, 0.0f);
 
     float ycursor = margin.y * 0.5f;
-    nite::setColor(theme->fontColor);
+    if(useTitle){
+        nite::setColor(theme->solidColor);
+        String string = "\""+title+"\"";
+        theme->bigFont.draw(string, p.x + size.x * 0.5f - theme->bigFont.getWidth(string) * 0.50f, p.y + margin.y * 0.5f, 0.0f, 0.0f, 0.0f);
+        ycursor += theme->bigFont.getHeight() + 4;
+    }
     for(int i = 0; i < options.size(); ++i){
         nite::setColor(theme->fontColor);
         auto texp = nite::Vec2(p.x + margin.x * 0.5f + selArrowSize.x + 2, p.y + ycursor + 2);
-        theme->bigFont.draw(options[i]->label, texp.x, texp.y, 0.0f, 0.0f, 0.0f);
-        ycursor += theme->bigFont.getHeight() + 4;
+        theme->regularFont.draw(options[i]->label, texp.x, texp.y, 0.0f, 0.0f, 0.0f);
+        ycursor += theme->regularFont.getHeight() + 4;
     }
 
     nite::setColor(theme->borderColor);
