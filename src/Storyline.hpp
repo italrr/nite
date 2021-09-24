@@ -10,12 +10,6 @@
 
         namespace Story {
 
-            struct Identifier {
-                int refId;
-                String symRefId;
-                Identifier();
-            };
-
             namespace InteractionTreeDialogOptionType {
                 enum InteractionTreeDialogOptionType {
                     SCRIPT,

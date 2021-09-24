@@ -153,6 +153,8 @@ void Game::GameCore::init(){
 	world->add(mob);
 	world->add(mob2);
 
+	world->setFollowObject(true, player->symRefId);
+
 
 }
 

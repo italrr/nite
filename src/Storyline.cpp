@@ -1,14 +1,6 @@
 #include "Engine/Input.hpp"
 #include "Storyline.hpp"
 
-static int indCounter = nite::randomInt(1000, 2000);
-
-Game::Story::Identifier::Identifier(){
-    refId = ++indCounter;
-    static hashidsxx::Hashids hash("STORY LINE OBJECT IDENTIFIER SALT");
-    symRefId = hash.encode({refId, 8493, 1004});
-}
-
 /*
         MEMORY OBJECT
 */

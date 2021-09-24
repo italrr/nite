@@ -180,16 +180,16 @@ void Game::Battle::step(){
 
     playerStatPos.lerpDiscrete(nite::Vec2(8) + shakeOffPos, 0.15f);
 
-    Vector<int> dmgNumToBeRemoved;
+    Vector<String> dmgNumToBeRemoved;
     for(int i = 0; i < dmgNumbers.size(); ++i){
         dmgNumbers[i]->step();
         if(dmgNumbers[i]->destroyed){
-            dmgNumToBeRemoved.push_back(dmgNumbers[i]->id);   
+            dmgNumToBeRemoved.push_back(dmgNumbers[i]->symRefId);   
         }
     }
     for(int i = 0; i < dmgNumToBeRemoved.size(); ++i){
         for(int j = 0; j < dmgNumbers.size(); ++j){
-            if(dmgNumbers[j]->id == dmgNumToBeRemoved[i]){
+            if(dmgNumbers[j]->symRefId == dmgNumToBeRemoved[i]){
                 dmgNumbers.erase(dmgNumbers.begin() + j);
                 break;
             }

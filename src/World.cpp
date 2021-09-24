@@ -9,8 +9,13 @@ void Game::World::init(int width, int height){
     tickrate = 1000.0f / 60.0f;
     lastStep = nite::getTicks();
     tick = 0;
+    useCameraFollow = false;
 }
 
+void Game::World::setFollowObject(bool v, const String &followObject){
+    this->useCameraFollow = v;
+    this->followObject = followObject;
+}
 
 static bool testCollision(Game::Object *a, Game::Object *b, const nite::Vec2 &diff, nite::Vec2 &limit, nite::Vec2 &normal){
 	bool collision = false;
@@ -82,10 +87,24 @@ static bool testCollision(Game::Object *a, Game::Object *b, const nite::Vec2 &di
 void Game::World::step(){
 
     // run object step
-    for(unsigned i = 0; i < objects.size(); ++i){
-        auto &obj = objects[i];
-        obj->step();
-    }	
+    for(auto &it : objects){
+        auto &obj = it.second;
+        obj->step();  
+        if(useCameraFollow && obj->symRefId == followObject){
+            static const float mu = 0.25f;
+
+            nite::Vec2 &v = obj->position;
+            nite::setView(true, nite::RenderTargetGame);
+            nite::Vec2 p = nite::getView(nite::RenderTargetGame);
+            cameraFollowNewPos = v - nite::getSize() * 0.5f;
+
+
+	        p.lerpDiscrete(cameraFollowNewPos, mu);
+	        setViewPosition(p, nite::RenderTargetGame);            
+
+        }
+    }
+
 
     // run physics
     if(nite::getTicks()-lastStep >= tickrate){
@@ -108,42 +127,44 @@ void Game::World::step(){
             obj->vel.y *= ffactor;
             obj->accel.x *= ffactor;
             obj->accel.y *= ffactor;
-            for(unsigned i = 0; i < objects.size(); ++i){
-                if(objects[i].get() == obj.get()){
+            for(auto &it : objects){
+                auto &obj2 = it.second;     
+                if(obj2.get() == obj.get()){
                     continue;
                 }
-                if(testCollision(obj.get(), objects[i].get(), diff, limit, normal)){				
+                if(testCollision(obj.get(), obj2.get(), diff, limit, normal)){				
                     if(limit.x == 0.0f && limit.y == 0.0f){
                         break;
                     }
-                }                
-            }
+                }    
+            }       
             obj->position = obj->position + diff * limit;
         };
 
-        for(unsigned i = 0; i < objects.size(); ++i){
-            auto &obj = objects[i];
+        for(auto &it : objects){
+            auto &obj = it.second;
             auto origPos = obj->position;
             update(obj);
             if(obj->position.x != origPos.x || obj->position.y != origPos.y){
                 // TODO
             }
         }
+
         ++tick;
     }
 }
 
 bool Game::World::add(const Shared<Object> &obj){
-    objects.push_back(obj);
+    objects[obj->symRefId] = obj;
     obj->create();
     return true;
 }
 
 void Game::World::render(){
     nite::setRenderTarget(nite::RenderTargetGame);
-    for(unsigned i = 0; i < objects.size(); ++i){
-        auto &obj = objects[i];
+    for(auto &it : objects){
+        auto &obj = it.second;
         obj->lerpPos.lerpDiscrete(obj->position, 0.25f);
-        objects[i]->render();
+        obj->render();        
     }
 }

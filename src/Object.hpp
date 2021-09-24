@@ -5,8 +5,13 @@
 
     namespace Game {
 
-        struct Object {
-            UInt16 id;
+        struct Identifier {
+            int refId;
+            String symRefId;
+            Identifier();
+        };
+
+        struct Object : Identifier {
             nite::Vec2 position;
             nite::Vec2 vel;
             nite::Vec2 accel;

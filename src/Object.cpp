@@ -1,13 +1,16 @@
 #include "Object.hpp"
 
-static int lastId = nite::randomInt(25, 50);
 
-static int getId(){
-	return ++lastId;
+static int indCounter = nite::randomInt(1000, 2000);
+
+Game::Identifier::Identifier(){
+    refId = ++indCounter;
+    static hashidsxx::Hashids hash("STORY LINE OBJECT IDENTIFIER SALT");
+    symRefId = hash.encode({refId, 8493, 1004});
 }
 
+
 Game::Object::Object(){
-	id = getId();
     friction = 0.0f;
     destroyed = false;
     setMass(0.0f);

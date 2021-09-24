@@ -289,7 +289,7 @@ void Game::Entity::printInfo(){
 	String p = this->position.str();
 	#define str nite::toStr
 	String ms = str(GAME_MAX_STAT);
-	nite::print("ID "+str(id)+" | Name: "+nickname+" | LV "+str(healthStat.lv)+" | Carry "+str(complexStat.maxCarry)+" | Position "+p);
+	nite::print("ID "+symRefId+" | Name: "+nickname+" | LV "+str(healthStat.lv)+" | Carry "+str(complexStat.maxCarry)+" | Position "+p);
 	nite::print("HP "+str(healthStat.maxHealth)+" | Mana "+str(healthStat.maxMana)+" | Stamina "+str(healthStat.maxStamina)+" | StatPoints "+str(baseStat.statPoints));
 	nite::print("Str "+str(baseStat.strAdd)+"/"+ms+" | Agi "+str(baseStat.agiAdd)+"/"+ms+
 	" | Dex "+str(baseStat.dexAdd)+"/"+ms+" | Endurance "+str(baseStat.enduAdd)+"/"+ms+
