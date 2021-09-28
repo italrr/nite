@@ -86,23 +86,35 @@ static bool testCollision(Game::Object *a, Game::Object *b, const nite::Vec2 &di
 
 void Game::World::step(){
 
+    auto checkNearEntity = [&](Shared<Object> &obj){
+        if(obj->objType != ObjectType::ENTITY){
+            return;
+        }
+        for(auto &it : objects){
+            auto &obj2 = it.second;
+            if(nite::distance(obj->position + obj->size * 0.5f, obj2->position + obj2->size * 0.5f) < 64.0f){
+                nite::print("xD");
+            }
+        }    
+    };
+
     // run object step
     for(auto &it : objects){
         auto &obj = it.second;
         obj->step();  
+        // follow camera
         if(useCameraFollow && obj->symRefId == followObject){
             static const float mu = 0.25f;
-
             nite::Vec2 &v = obj->position;
             nite::setView(true, nite::RenderTargetGame);
             nite::Vec2 p = nite::getView(nite::RenderTargetGame);
             cameraFollowNewPos = v - nite::getSize() * 0.5f;
 
-
 	        p.lerpDiscrete(cameraFollowNewPos, mu);
 	        setViewPosition(p, nite::RenderTargetGame);            
-
         }
+        // checkNearEntity(obj);
+        
     }
 
 
@@ -113,6 +125,7 @@ void Game::World::step(){
         lastStep = nite::getTicks();
 
         auto update = [&](Shared<Object> &obj){
+            // intertia
             if(obj->accel.x == 0 && obj->accel.y == 0){
                 return;
             }

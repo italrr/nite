@@ -2,6 +2,7 @@
     #define GAME_ENTITY_HPP
 	
 	#include "Engine/Texture.hpp"
+	#include "Engine/Animation.hpp"
     #include "Object.hpp"
 
 	#define GAME_MAX_LEVEL 48
@@ -191,18 +192,158 @@
 			}
 		};
 
-        struct Entity : Object, EntityStat {
+		namespace OverworldAnimType {
+			enum OverworldAnimType {
+				NONE,
 
+				WALK_RIGHT,
+				WALK_LEFT,
+				WALK_DOWN,
+				WALK_UP,			
+				WALK_UP_RIGHT,				
+				WALK_DOWN_RIGHT,
+				WALK_UP_LEFT,
+				WALK_DOWN_LEFT,
+
+				RUN_RIGHT,
+				RUN_LEFT,
+				RUN_DOWN,
+				RUN_UP,			
+				RUN_UP_RIGHT,				
+				RUN_DOWN_RIGHT,
+				RUN_UP_LEFT,
+				RUN_DOWN_LEFT,				
+
+				EMOTE_RIGHT,
+				EMOTE_LEFT,
+				EMOTE_UP,
+				EMOTE_DOWN,
+				EMOTE_UP_RIGHT,
+				EMOTE_DOWN_RIGHT,
+				EMOTE_UP_LEFT,
+				EMOTE_DOWN_LEFT
+			};
+			static int type(const String &value){
+				if(value == "WALK_RIGHT"){
+					return WALK_RIGHT;
+				}else
+				if(value == "WALK_LEFT"){
+					return WALK_LEFT;
+				}else
+				if(value == "WALK_DOWN"){
+					return WALK_DOWN;
+				}else
+				if(value == "WALK_UP"){
+					return WALK_UP;
+				}else
+				if(value == "WALK_UP_RIGHT"){
+					return WALK_UP_RIGHT;
+				}else
+				if(value == "WALK_DOWN_RIGHT"){
+					return WALK_DOWN_RIGHT;
+				}else
+				if(value == "WALK_UP_LEFT"){
+					return WALK_UP_LEFT;
+				}else
+				if(value == "WALK_DOWN_LEFT"){
+					return WALK_DOWN_LEFT;
+				}else
+				if(value == "RUN_RIGHT"){
+					return RUN_RIGHT;
+				}else
+				if(value == "RUN_LEFT"){
+					return RUN_LEFT;
+				}else
+				if(value == "RUN_DOWN"){
+					return RUN_DOWN;
+				}else
+				if(value == "RUN_UP"){
+					return RUN_UP;
+				}else
+				if(value == "RUN_UP_RIGHT"){
+					return RUN_UP_RIGHT;
+				}else
+				if(value == "RUN_DOWN_RIGHT"){
+					return RUN_DOWN_RIGHT;
+				}else
+				if(value == "RUN_UP_LEFT"){
+					return RUN_UP_LEFT;
+				}else
+				if(value == "RUN_DOWN_LEFT"){
+					return RUN_DOWN_LEFT;
+				}else
+				if(value == "EMOTE_RIGHT"){
+					return EMOTE_RIGHT;
+				}else
+				if(value == "EMOTE_LEFT"){
+					return EMOTE_LEFT;
+				}else
+				if(value == "EMOTE_UP"){
+					return EMOTE_UP;
+				}else
+				if(value == "EMOTE_DOWN"){
+					return EMOTE_DOWN;
+				}else
+				if(value == "EMOTE_UP_RIGHT"){
+					return EMOTE_UP_RIGHT;
+				}else
+				if(value == "EMOTE_DOWN_RIGHT"){
+					return EMOTE_DOWN_RIGHT;
+				}else
+				if(value == "EMOTE_UP_LEFT"){
+					return EMOTE_UP_LEFT;
+				}else
+				if(value == "EMOTE_DOWN_LEFT"){
+					return EMOTE_DOWN_LEFT;
+				}else{
+					return NONE;
+				}		
+			}
+		}
+
+		namespace OverworldAnimEmoteType {
+			enum OverworldAnimEmoteType {
+				SAYS_HI,
+				SAYS_BYE,
+				KISS,
+				SIGH,
+				GRUNT
+			};
+		}
+
+		struct Entity;
+		struct EntityOverworldAnim {
+			int id;
+			int frameRate; //timeout
+		};
+		struct EntityOverworld {
+			nite::Texture base;
+			nite::Animation frames;
+			Dict<int, Shared<EntityOverworldAnim>> animations;
+			bool load(const String &path);
+		};
+
+        struct Entity : Object, EntityStat {
+			Shared<EntityOverworld> animOverworld;
 			nite::Texture battleAnim;
+
+			int ovwAnim;
+			int ovwFrame;
+
+			UInt64 ovwFrameRate;
+			UInt64 ovwFrameTick;
 
 			int entityType;
 			String nickname;
 			float walkSpeed;
+			void setAnim(int anim, int frame);
 			Entity();
 			void printInfo();
 			void loadAnim();
+			void stepAnim();
 			void moveEntity(float x, float y);
 			bool damage(DamageInfo &info);
+			void renderOverworld();
         };
 
 

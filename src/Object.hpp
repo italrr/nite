@@ -11,7 +11,16 @@
             Identifier();
         };
 
+        namespace ObjectType {
+            enum ObjectType {
+                BASE,
+                ENTITY,
+                PROP
+            };
+        }
+
         struct Object : Identifier {
+            int objType;
             nite::Vec2 position;
             nite::Vec2 vel;
             nite::Vec2 accel;

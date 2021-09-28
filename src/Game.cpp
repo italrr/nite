@@ -16,18 +16,21 @@ struct Player : Game::Entity {
 		this->friction = 4.0f;
 		this->nickname = "Player";
 		entityType = Game::EntityType::PLAYER;
+		this->animOverworld->load("data/entity/human_class.json");
+		this->setAnim(Game::OverworldAnimType::RUN_DOWN, 0);
 	}
 	
 	void step(){
-		
-	}
+		stepAnim();
+	}	
 
 	void render(){
 		nite::setRenderTarget(nite::RenderTargetGame);
 		nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
 		nite::setDepth(-lerpPos.y);
 		nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
-		auto ref = nite::Draw::Rectangle(lerpPos.x, lerpPos.y, size.x, size.y, true, 0.5f, 0.5f, 0.0f);
+		// auto ref = nite::Draw::Rectangle(lerpPos.x, lerpPos.y, size.x, size.y, true, 0.5f, 0.5f, 0.0f);
+		this->renderOverworld();
 	}
 };
 

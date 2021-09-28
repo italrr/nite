@@ -1,0 +1,61 @@
+{
+	"name": "Human",
+	"description": "Human",
+	"author": "pepper",
+	"class": "human",
+	"texture": "data/texture/entity/human2.png",
+	"width": 1200,
+	"height": 340,
+	"frameWidth": 50,
+	"frameHeight": 85,
+	"frames": {
+		"WALK_RIGHT": {
+			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+		},
+		"WALK_LEFT": {
+			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+		},
+		"WALK_DOWN": {
+			"x": 0, "y": 0, "vert": false, "n": 3, "frameRate": 120
+		},
+		"WALK_UP": {
+			"x": 0, "y": 3, "vert": false, "n": 3, "frameRate": 120
+		},			
+		"WALK_UP_RIGHT": {
+			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+		},				
+		"WALK_DOWN_RIGHT": {
+			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+		},
+		"WALK_UP_LEFT": {
+			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+		},
+		"WALK_DOWN_LEFT": {
+			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+		},
+		"RUN_RIGHT": {
+			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+		},
+		"RUN_LEFT": {
+			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+		},
+		"RUN_DOWN": {
+			"x": 0, "y": 0, "vert": false, "n": 3, "frameRate": 120
+		},
+		"RUN_UP": {
+			"x": 0, "y": 3, "vert": false, "n": 3, "frameRate": 120
+		},			
+		"RUN_UP_RIGHT": {
+			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+		},				
+		"RUN_DOWN_RIGHT": {
+			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+		},
+		"RUN_UP_LEFT": {
+			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+		},
+		"RUN_DOWN_LEFT": {
+			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+		}
+	}
+}

@@ -11,11 +11,12 @@ Game::Identifier::Identifier(){
 
 
 Game::Object::Object(){
+    objType = ObjectType::BASE;
     friction = 0.0f;
     destroyed = false;
     setMass(0.0f);
     setPosition(nite::Vec2(0.0f));  
-    reshape(nite::Vec2(64.0f));
+    reshape(nite::Vec2(50.0f, 85.0f));
 }
 
 void Game::Object::setMass(float mass){

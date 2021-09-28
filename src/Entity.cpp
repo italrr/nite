@@ -273,6 +273,9 @@ Game::Entity::Entity(){
 	walkSpeed = 1.0f;	
 	nickname = "Entity";
 	entityType = EntityType::UNDEFINED;
+	objType = ObjectType::ENTITY;
+	ovwFrameTick = nite::getTicks();
+	this->animOverworld = Shared<EntityOverworld>(new EntityOverworld());
 }
 
 void Game::Entity::loadAnim(){
@@ -355,5 +358,82 @@ bool Game::Entity::damage(Game::DamageInfo &info){
 	}
 
 	info.dmg = dmg;
+	return true;
+}
+
+void Game::Entity::setAnim(int anim, int frame){
+	auto &currentAnim = this->animOverworld->animations[anim];
+	this->ovwAnim = anim;
+	this->ovwFrame = frame;
+	this->ovwFrameRate = currentAnim->frameRate; 
+	this->ovwFrameTick = nite::getTicks();
+}
+
+void Game::Entity::stepAnim(){
+	if(nite::getTicks()-ovwFrameTick > ovwFrameRate){
+		auto &currentAnim = this->animOverworld->animations[ovwAnim];
+		++ovwFrame;
+		if(ovwFrame >= this->animOverworld->frames.getFrameNumber(currentAnim->id)){
+			ovwFrame = 0;
+		}
+		ovwFrameTick = nite::getTicks();	
+	}
+}
+
+void Game::Entity::renderOverworld(){
+	nite::setRenderTarget(nite::RenderTargetGame);
+	nite::setDepth(-lerpPos.y);
+	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+	auto &currentAnim = this->animOverworld->animations[ovwAnim];
+	animOverworld->frames.draw(currentAnim->id, this->lerpPos.x, this->lerpPos.y, this->size.x, this->size.y, 0.5f, 0.5f, 0.0f);
+	animOverworld->frames.setManualClicking(currentAnim->id, false);
+	animOverworld->frames.setFrame(currentAnim->id, ovwFrame);
+}
+
+
+bool Game::EntityOverworld::load(const String &path){
+	Jzon::Parser parser;
+	if(!nite::fileExists(path)){
+		nite::print("EntityOverworld::load: failed to read "+path+": it doesn't exist");
+		return false;
+	}
+	auto json = parser.parseFile(path);
+	if(!json.isValid()){
+		nite::print("EntityOverworld::load: failed to read "+path+": "+parser.getError());
+		return false;
+	}
+
+	auto name = json.get("name").toString("UNDEFINED");
+	auto description = json.get("description").toString("UNDEFINED");
+	auto author = json.get("author").toString("UNDEFINED");
+	auto entClass = json.get("class").toString("UNDEFINED");
+	auto texture = json.get("texture").toString("data/texture/empty.png");
+	float width = json.get("width").toFloat(1);
+	float height = json.get("height").toFloat(1);
+	auto frameWidth = json.get("frameWidth").toInt(1);
+	auto frameHeight = json.get("frameHeight").toInt(1);
+
+	this->base.load(texture);
+	frames.set(this->base);
+
+	for(auto &key : json.get("frames")){
+		auto &frame = key.second;
+		auto val = OverworldAnimType::type(key.first);
+		if(val == OverworldAnimType::NONE){
+			nite::print("EntityOverworld::load: failed to parse frame '"+key.first+"'");
+			continue;
+		}
+		float _x = frame.get("x").toFloat(0);
+		float _y = frame.get("y").toFloat(0);
+		int _n = frame.get("n").toInt(0);
+		bool _vert = frame.get("vert").toBool();
+
+		auto anim = Shared<EntityOverworldAnim>(new EntityOverworldAnim());
+		anim->id = this->frames.add(_x * frameWidth, _y * frameHeight, frameWidth, frameHeight, _n, 0.0f, _vert, false);
+		anim->frameRate = frame.get("frameRate").toInt(0);
+
+		this->animations[val] = anim;
+	}
+
 	return true;
 }
