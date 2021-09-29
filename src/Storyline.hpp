@@ -118,6 +118,20 @@
                     DIALOG, // Player chooses something
                     REACTION
                 };
+                static String name(int type){
+                    switch(type){
+                        case NONE:
+                            return "NONE";
+                        case CONTACT:
+                            return "CONTACT";
+                        case EXPOSITION:
+                            return "EXPOSITION";
+                        case DIALOG:
+                            return "DIALOG";
+                        case REACTION:
+                            return "REACTION";
+                    }
+                }
             }
 
             struct InteractionDevice;

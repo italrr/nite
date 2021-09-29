@@ -18,6 +18,7 @@ struct Player : Game::Entity {
 		entityType = Game::EntityType::PLAYER;
 		this->animOverworld->load("data/entity/human_class.json");
 		this->setAnim(Game::OverworldAnimType::RUN_DOWN, 0);
+		updateStandAnim();
 	}
 	
 	void step(){
@@ -26,10 +27,8 @@ struct Player : Game::Entity {
 
 	void render(){
 		nite::setRenderTarget(nite::RenderTargetGame);
-		nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
+		nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 		nite::setDepth(-lerpPos.y);
-		nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
-		// auto ref = nite::Draw::Rectangle(lerpPos.x, lerpPos.y, size.x, size.y, true, 0.5f, 0.5f, 0.0f);
 		this->renderOverworld();
 	}
 };
@@ -43,18 +42,20 @@ struct Mob : Game::Entity {
 		this->friction = 4.0f;
 		this->nickname = "Jeremy";
 		entityType = Game::EntityType::MOB;
+		this->animOverworld->load("data/entity/human_class.json");
+		this->setAnim(Game::OverworldAnimType::RUN_DOWN, 0);
+		updateStandAnim();		
 	}
 	
 	void step(){
-		
+		stepAnim();
 	}
 
 	void render(){
 		nite::setRenderTarget(nite::RenderTargetGame);
-		nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
+		nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 		nite::setDepth(-lerpPos.y);
-		nite::setColor(1.0f, 0.0f, 1.0f, 1.0f);
-		auto ref = nite::Draw::Rectangle(lerpPos.x, lerpPos.y, size.x, size.y, true, 0.5f, 0.5f, 0.0f);
+		this->renderOverworld();
 	}
 };
 
@@ -66,18 +67,21 @@ struct Mob2 : Game::Entity {
 		setMass(1.0f);
 		this->friction = 4.0f;
 		this->nickname = "Billy";
+		entityType = Game::EntityType::MOB;
+		this->animOverworld->load("data/entity/human_class.json");
+		this->setAnim(Game::OverworldAnimType::RUN_DOWN, 0);
+		updateStandAnim();		
 	}
 	
 	void step(){
-		
+		stepAnim();		
 	}
 
 	void render(){
 		nite::setRenderTarget(nite::RenderTargetGame);
-		nite::setColor(1.0f, 0.0f, 0.0f, 1.0f);
 		nite::setDepth(-lerpPos.y);
-		nite::setColor(1.0f, 0.0f, 1.0f, 1.0f);
-		auto ref = nite::Draw::Rectangle(lerpPos.x, lerpPos.y, size.x, size.y, true, 0.5f, 0.5f, 0.0f);
+		nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+		this->renderOverworld();
 	}
 };
 

@@ -284,13 +284,13 @@ void Game::Story::InteractionDevice::addInter(Shared<InteractionTree> inter){
 }
 
 void Game::Story::InteractionDevice::next(const String &symRefId){
-    nite::print("[debug] interactions device: started node '"+symRefId+"'");
     auto iter = interactions.find(symRefId);
     if(iter == interactions.end()){
         nite::print("InteractionDevice: fatal failure: jumping to unexinsting node '"+symRefId+"': broken interaction");
         end();
         return;
     }
+    nite::print("[debug] interactions device: started node '"+symRefId+"' ["+InteractionTreeType::name(iter->second->interType)+"]");
     iter->second->run();
 }
 

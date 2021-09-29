@@ -274,6 +274,7 @@ Game::Entity::Entity(){
 	nickname = "Entity";
 	entityType = EntityType::UNDEFINED;
 	objType = ObjectType::ENTITY;
+	isMoving = false;
 	ovwFrameTick = nite::getTicks();
 	this->animOverworld = Shared<EntityOverworld>(new EntityOverworld());
 }
@@ -286,6 +287,40 @@ void Game::Entity::loadAnim(){
 
 void Game::Entity::moveEntity(float x, float y){
 	move(walkSpeed * x, walkSpeed * y);
+	int angle = nite::toDegrees(nite::arctan(this->accel.y, this->accel.x));
+	this->moveTriggerTimeout = nite::getTicks();
+	//UP
+	if(angle >= -92 && angle <= -88){
+		faceDir = EntityFaceDir::UP;
+	}else
+	//RIGHT
+	if(angle >= -2 && angle <= 2){
+		faceDir = EntityFaceDir::RIGHT;
+	}else
+	// LEFT
+	if(angle >= 178 || angle <= -178){
+		faceDir = EntityFaceDir::LEFT;
+	}else
+	// DOWN
+	if(angle <= 92 && angle >= 88){
+		faceDir = EntityFaceDir::DOWN;
+	}else
+	// UP LEFT
+	if(angle > -178 && angle < -92){
+		faceDir = EntityFaceDir::UP_LEFT;
+	}else	
+	// UP RIGHT
+	if(angle < -2 && angle > -88){
+		faceDir = EntityFaceDir::UP_RIGHT;
+	}else	
+	// DOWN LEFT
+	if(angle > 92 && angle < 178){
+		faceDir = EntityFaceDir::DOWN_LEFT;
+	}else
+	// DOWN RIGHT
+	if(angle < 92 && angle > 2){
+		faceDir = EntityFaceDir::DOWN_RIGHT;
+	}
 }
 
 void Game::Entity::printInfo(){
@@ -363,10 +398,44 @@ bool Game::Entity::damage(Game::DamageInfo &info){
 
 void Game::Entity::setAnim(int anim, int frame){
 	auto &currentAnim = this->animOverworld->animations[anim];
+	if(this->ovwAnim != anim){
+		this->ovwFrameTick = nite::getTicks();
+		this->ovwFrame = frame;
+	}
 	this->ovwAnim = anim;
-	this->ovwFrame = frame;
 	this->ovwFrameRate = currentAnim->frameRate; 
-	this->ovwFrameTick = nite::getTicks();
+	if(this->ovwFrame > this->animOverworld->frames.getFrameNumber(currentAnim->id)){
+		this->ovwFrame = 0;
+	}
+}
+
+void Game::Entity::updateStandAnim(){
+	switch(faceDir){
+		case EntityFaceDir::UP: {
+			setAnim(OverworldAnimType::STAND_UP, 0);
+		} break;
+		case EntityFaceDir::UP_RIGHT:{
+			setAnim(OverworldAnimType::STAND_UP_RIGHT, 0);
+		} break;	
+		case EntityFaceDir::RIGHT:{
+			setAnim(OverworldAnimType::STAND_RIGHT, 0);
+		} break;
+		case EntityFaceDir::DOWN_RIGHT:{
+			setAnim(OverworldAnimType::STAND_DOWN_RIGHT, 0);
+		} break;		
+		case EntityFaceDir::DOWN:{
+			setAnim(OverworldAnimType::STAND_DOWN, 0);
+		} break;	
+		case EntityFaceDir::DOWN_LEFT: {
+			setAnim(OverworldAnimType::STAND_DOWN_LEFT, 0);
+		} break;	
+		case EntityFaceDir::LEFT: {
+			setAnim(OverworldAnimType::STAND_LEFT, 0);
+		} break;	
+		case EntityFaceDir::UP_LEFT: {
+			setAnim(OverworldAnimType::STAND_UP_LEFT, 0);
+		} break;																	
+	}
 }
 
 void Game::Entity::stepAnim(){
@@ -378,6 +447,42 @@ void Game::Entity::stepAnim(){
 		}
 		ovwFrameTick = nite::getTicks();	
 	}
+	if(nite::getTicks()-this->moveTriggerTimeout < 100){
+		this->isMoving = true;	
+	}
+	if(this->isMoving && nite::getTicks()-this->moveTriggerTimeout >= 100){
+		this->isMoving = false;	
+		updateStandAnim();
+	}
+	
+	if(this->isMoving){
+		switch(faceDir){
+			case EntityFaceDir::UP: {
+				setAnim(OverworldAnimType::RUN_UP, 0);
+			} break;
+			case EntityFaceDir::UP_RIGHT:{
+				setAnim(OverworldAnimType::RUN_UP_RIGHT, 0);
+			} break;	
+			case EntityFaceDir::RIGHT:{
+				setAnim(OverworldAnimType::RUN_RIGHT, 0);
+			} break;
+			case EntityFaceDir::DOWN_RIGHT:{
+				setAnim(OverworldAnimType::RUN_DOWN_RIGHT, 0);
+			} break;		
+			case EntityFaceDir::DOWN:{
+				setAnim(OverworldAnimType::RUN_DOWN, 0);
+			} break;	
+			case EntityFaceDir::DOWN_LEFT: {
+				setAnim(OverworldAnimType::RUN_DOWN_LEFT, 0);
+			} break;	
+			case EntityFaceDir::LEFT: {
+				setAnim(OverworldAnimType::RUN_LEFT, 0);
+			} break;	
+			case EntityFaceDir::UP_LEFT: {
+				setAnim(OverworldAnimType::RUN_UP_LEFT, 0);
+			} break;																	
+		}
+	}
 }
 
 void Game::Entity::renderOverworld(){
@@ -385,7 +490,10 @@ void Game::Entity::renderOverworld(){
 	nite::setDepth(-lerpPos.y);
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	auto &currentAnim = this->animOverworld->animations[ovwAnim];
-	animOverworld->frames.draw(currentAnim->id, this->lerpPos.x, this->lerpPos.y, this->size.x, this->size.y, 0.5f, 0.5f, 0.0f);
+	auto ref = animOverworld->frames.draw(currentAnim->id, this->lerpPos.x, this->lerpPos.y, this->size.x, this->size.y, 0.5f, 0.5f, 0.0f);
+	if(ref != NULL){
+		ref->smooth = true;
+	}
 	animOverworld->frames.setManualClicking(currentAnim->id, false);
 	animOverworld->frames.setFrame(currentAnim->id, ovwFrame);
 }

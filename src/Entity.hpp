@@ -196,6 +196,15 @@
 			enum OverworldAnimType {
 				NONE,
 
+				STAND_RIGHT,
+				STAND_LEFT,
+				STAND_DOWN,
+				STAND_UP,			
+				STAND_UP_RIGHT,				
+				STAND_DOWN_RIGHT,
+				STAND_UP_LEFT,
+				STAND_DOWN_LEFT,
+
 				WALK_RIGHT,
 				WALK_LEFT,
 				WALK_DOWN,
@@ -224,6 +233,32 @@
 				EMOTE_DOWN_LEFT
 			};
 			static int type(const String &value){
+				
+				if(value == "STAND_RIGHT"){
+					return STAND_RIGHT;
+				}else
+				if(value == "STAND_LEFT"){
+					return STAND_LEFT;
+				}else
+				if(value == "STAND_DOWN"){
+					return STAND_DOWN;
+				}else
+				if(value == "STAND_UP"){
+					return STAND_UP;
+				}else
+				if(value == "STAND_UP_RIGHT"){
+					return STAND_UP_RIGHT;
+				}else
+				if(value == "STAND_DOWN_RIGHT"){
+					return STAND_DOWN_RIGHT;
+				}else
+				if(value == "STAND_UP_LEFT"){
+					return STAND_UP_LEFT;
+				}else
+				if(value == "STAND_DOWN_LEFT"){
+					return STAND_DOWN_LEFT;
+				}else
+
 				if(value == "WALK_RIGHT"){
 					return WALK_RIGHT;
 				}else
@@ -311,6 +346,19 @@
 			};
 		}
 
+		namespace EntityFaceDir {
+			enum EntityFaceDir {
+				RIGHT,
+				UP,
+				LEFT,
+				DOWN,
+				UP_RIGHT,
+				DOWN_RIGHT,
+				UP_LEFT,
+				DOWN_LEFT
+			};
+		}
+
 		struct Entity;
 		struct EntityOverworldAnim {
 			int id;
@@ -329,6 +377,9 @@
 
 			int ovwAnim;
 			int ovwFrame;
+			int faceDir; // 0 = RIGHT
+			bool isMoving;
+			UInt64 moveTriggerTimeout;
 
 			UInt64 ovwFrameRate;
 			UInt64 ovwFrameTick;
@@ -337,6 +388,7 @@
 			String nickname;
 			float walkSpeed;
 			void setAnim(int anim, int frame);
+			void updateStandAnim();
 			Entity();
 			void printInfo();
 			void loadAnim();
