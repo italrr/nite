@@ -16,7 +16,7 @@ Game::Object::Object(){
     destroyed = false;
     setMass(0.0f);
     setPosition(nite::Vec2(0.0f));  
-    reshape(nite::Vec2(50.0f, 85.0f));
+    reshape(nite::Vec2(150, 225));
 }
 
 void Game::Object::setMass(float mass){

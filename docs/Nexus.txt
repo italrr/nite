@@ -1,0 +1,31 @@
+Nexus was originally an earth colony in a very distant planet called Meson, established in 1870. Earth was destroyed in a world war by 1900.
+The last 45 years Nexus has been invaded multiple times by different aliens from distant planets. By the year 1945, there are sitll humans living
+in Nexus, although now Nexus is shared with an alien race called Othtalians.
+
+Nexus is a very self suficient city in the sky. It keeps itself afloat with a technology called Low Gravity Suspenders. Each one of the units use
+around 125 kWh. 
+
+Nexus is suspended at around 35,000 feet over the clouds to able to receive sunlight from the nearest star.
+
+Nexus features around 25 automatons that carry out some of the main maintance tasks.
+
+Nexus features 6 platforms. 
+1 - [MAIN] Residential areas, Consulate offices, hospital
+2 - Comercial + Residential areas
+3 - Comercial + Residential areas
+4 - Automated hydroponic farms. Using prodcuts from the organic waste and water reprocessing facilities to grow and harvest different types of
+Vegetables, fruits and some forms of protein tasting closer to beef, pork, and fish.
+5 - Spaceship hangar and helipad
+6 - Elevator: Used by scouts to descend to the ground level to fetch materials and go to other colonies in the planet.
+
+Underdeck facilities:
+- Nuclear fusion reactor able to generate around 50MW of electricity
+- Water reprocessing
+- Organic waste reprocessing
+- Trash recycling
+- Automaton Factory
+- Generic Material reprocessing
+- Generic Assmbly machine
+
+
+By the year 1945 there are around 1500 people living in Nexus.

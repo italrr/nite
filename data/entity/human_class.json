@@ -3,86 +3,94 @@
 	"description": "Human",
 	"author": "pepper",
 	"class": "human",
-	"texture": "data/texture/entity/human2.png",
-	"width": 1200,
-	"height": 340,
-	"frameWidth": 50,
-	"frameHeight": 85,
+	"texture": "data/texture/entity/human6.png",
+	"width": 1350,
+	"height": 1800,
+	"frameWidth": 150,
+	"frameHeight": 225,
+	"frontFace": {
+		"x":1500.0, "y":0, "w":25.0,  "h":25.0
+	},
+	"frontStand": {
+		"x":1525.0, "y":0, "w":150.0, "h":275.0
+	},	
 	"frames": {
 		
 		"STAND_RIGHT": {
-			"x": 1, "y": 2, "vert": false, "n": 1, "frameRate": 120
+			"x": 0, "y": 0, "vert": false, "n": 10, "frameRate": 120
 		},
 		"STAND_LEFT": {
-			"x": 1, "y": 1, "vert": false, "n": 1, "frameRate": 120
+			"x": 0, "y": 1, "vert": false, "n": 10, "frameRate": 120
 		},
 		"STAND_DOWN": {
-			"x": 1, "y": 0, "vert": false, "n": 1, "frameRate": 120
+			"x": 0, "y": 2, "vert": false, "n": 10, "frameRate": 120
 		},
 		"STAND_UP": {
-			"x": 1, "y": 3, "vert": false, "n": 1, "frameRate": 120
+			"x": 0, "y": 3, "vert": false, "n": 10, "frameRate": 120
 		},			
 		"STAND_UP_RIGHT": {
-			"x": 1, "y": 2, "vert": false, "n": 1, "frameRate": 120
+			"x": 0, "y": 4, "vert": false, "n": 10, "frameRate": 120
 		},				
 		"STAND_DOWN_RIGHT": {
-			"x": 1, "y": 2, "vert": false, "n": 1, "frameRate": 120
+			"x": 0, "y": 5, "vert": false, "n": 10, "frameRate": 120
 		},
 		"STAND_UP_LEFT": {
-			"x": 1, "y": 1, "vert": false, "n": 1, "frameRate": 120
+			"x": 0, "y": 6, "vert": false, "n": 10, "frameRate": 120
 		},
 		"STAND_DOWN_LEFT": {
-			"x": 1, "y": 1, "vert": false, "n": 1, "frameRate": 120
+			"x": 0, "y": 7, "vert": false, "n": 10, "frameRate": 120
 		},		
 		
 		
 		"WALK_RIGHT": {
-			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 8, "vert": false, "n": 9, "frameRate": 60
 		},
 		"WALK_LEFT": {
-			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 9, "vert": false, "n": 9, "frameRate": 60
 		},
 		"WALK_DOWN": {
-			"x": 0, "y": 0, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 10, "vert": false, "n": 9, "frameRate": 60
 		},
 		"WALK_UP": {
-			"x": 0, "y": 3, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 11, "vert": false, "n": 9, "frameRate": 60
 		},			
+		
 		"WALK_UP_RIGHT": {
-			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 12, "vert": false, "n": 9, "frameRate": 60
 		},				
 		"WALK_DOWN_RIGHT": {
-			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 13, "vert": false, "n": 9, "frameRate": 60
 		},
 		"WALK_UP_LEFT": {
-			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 14, "vert": false, "n": 9, "frameRate": 60
 		},
 		"WALK_DOWN_LEFT": {
-			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 15, "vert": false, "n": 9, "frameRate": 60
 		},
+		
 		"RUN_RIGHT": {
-			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 8, "vert": false, "n": 9, "frameRate": 60
 		},
 		"RUN_LEFT": {
-			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 9, "vert": false, "n": 9, "frameRate": 60
 		},
 		"RUN_DOWN": {
-			"x": 0, "y": 0, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 10, "vert": false, "n": 9, "frameRate": 60
 		},
 		"RUN_UP": {
-			"x": 0, "y": 3, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 11, "vert": false, "n": 9, "frameRate": 60
 		},			
 		"RUN_UP_RIGHT": {
-			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 12, "vert": false, "n": 9, "frameRate": 60
 		},				
 		"RUN_DOWN_RIGHT": {
-			"x": 0, "y": 2, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 13, "vert": false, "n": 9, "frameRate": 60
 		},
 		"RUN_UP_LEFT": {
-			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 14, "vert": false, "n": 9, "frameRate": 60
 		},
 		"RUN_DOWN_LEFT": {
-			"x": 0, "y": 1, "vert": false, "n": 3, "frameRate": 120
+			"x": 0, "y": 15, "vert": false, "n": 9, "frameRate": 60
 		}
 	}
 }

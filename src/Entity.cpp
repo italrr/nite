@@ -280,9 +280,9 @@ Game::Entity::Entity(){
 }
 
 void Game::Entity::loadAnim(){
-	if(!battleAnim.isLoaded()){
-		battleAnim.load("data/texture/kekkers.png", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
-	}
+	// if(!battleAnim.isLoaded()){
+	// 	battleAnim.load("data/texture/kekkers.png", nite::Color(1.0f, 1.0f, 1.0f, 1.0f));
+	// }
 }
 
 void Game::Entity::moveEntity(float x, float y){
@@ -488,14 +488,21 @@ void Game::Entity::stepAnim(){
 void Game::Entity::renderOverworld(){
 	nite::setRenderTarget(nite::RenderTargetGame);
 	nite::setDepth(-lerpPos.y);
-	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+	// nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 	auto &currentAnim = this->animOverworld->animations[ovwAnim];
-	auto ref = animOverworld->frames.draw(currentAnim->id, this->lerpPos.x, this->lerpPos.y, this->size.x, this->size.y, 0.5f, 0.5f, 0.0f);
+	auto ref = animOverworld->frames.draw(currentAnim->id, this->lerpPos.x + size.x * 0.5f, this->lerpPos.y + size.y * 0.5f, animOverworld->frameSize.x, animOverworld->frameSize.y, 0.5f, 0.5f, 0.0f);
 	if(ref != NULL){
 		ref->smooth = true;
 	}
 	animOverworld->frames.setManualClicking(currentAnim->id, false);
 	animOverworld->frames.setFrame(currentAnim->id, ovwFrame);
+
+	// static nite::Texture tex;
+	// if(!tex.isLoaded()){
+	// 	tex.load("data/texture/empty.png");
+	// }
+	// nite::setColor(1.0f, 0.0f, 0.0f, 0.9f);
+	// tex.draw( this->position.x, this->position.y, size.x, size.y, 0.0f, 0.0f, 0.0f);
 }
 
 
@@ -524,6 +531,23 @@ bool Game::EntityOverworld::load(const String &path){
 	this->base.load(texture);
 	frames.set(this->base);
 
+	frameSize.set(frameWidth, frameHeight);
+
+	struct SpecObj {
+		nite::Vec2 pos;
+		nite::Vec2 size;
+	};
+
+	auto readSpecObj = [&](const Jzon::Node &root, const String &name, SpecObj &out){
+		auto obj = root.get(name);
+		if(!obj.isValid()){
+			return false;
+		}
+		out.pos.set(obj.get("x").toFloat(0), obj.get("y").toFloat(0));
+		out.size.set(obj.get("w").toFloat(0), obj.get("h").toFloat(0));
+		return true;
+	};
+
 	for(auto &key : json.get("frames")){
 		auto &frame = key.second;
 		auto val = OverworldAnimType::type(key.first);
@@ -542,6 +566,16 @@ bool Game::EntityOverworld::load(const String &path){
 
 		this->animations[val] = anim;
 	}
+
+	auto outspec = SpecObj();
+	if(readSpecObj(json, "frontFace", outspec)){
+		facePos = outspec.pos;
+		faceSize = outspec.size;
+	}
+	if(readSpecObj(json, "frontStand", outspec)){
+		standPos = outspec.pos;
+		standSize = outspec.size;
+	}	
 
 	return true;
 }

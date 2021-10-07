@@ -957,7 +957,7 @@ bool Game::BattleEntity::isOut(){
 }
 
 void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
-    auto &battleAnim = entity->battleAnim;
+    auto &battleAnim = entity->animOverworld;
 
 	float rateExp = 0.0f;
 	float maxExp = 0.0f;
@@ -1071,21 +1071,28 @@ void Game::BattleEntity::renderBattleAnim(float x, float y, bool blink){
 
 
     nite::setColor(0.1f, 0.1f, 0.1f, 1.0f);
-	float ratio = battleAnim.getWidth() / battleAnim.getHeight();
+	// float ratio = battleAnim.getWidth() / battleAnim.getHeight();
+	float ratio = battleAnim->standSize.x / battleAnim->standSize.y;
     nite::lerpDiscrete(this->angle, targetAngle, 0.08f);
     posLerp.set(xoff + x + posOffset.x, yoff + y + posOffset.y);
     position.lerpDiscrete(posLerp, 0.10f);
-	auto fshad = battleAnim.draw(position.x - 5, position.y + 5, battleAnim.getWidth() * 2.0f + maxExp * rateExp * ratio, battleAnim.getHeight() * 2.0f + maxExp * rateExp, origin.x, origin.y, this->angle);
+    
+    
+	
+    auto fshad = battleAnim->base.draw(position.x + 5, position.y + 5, battleAnim->standSize.x * 1.0f + maxExp * rateExp * ratio, battleAnim->standSize.y * 1.0f + maxExp * rateExp, origin.x, origin.y, this->angle);
+    battleAnim->base.setRegion(nite::Rect(battleAnim->standPos.x, battleAnim->standPos.y, battleAnim->standSize.x, battleAnim->standSize.y));
 	nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+		nite::setColor(nite::Color("#ecbcb4", 1.0f));
+
 	if(blink){
 		nite::setColor(1.0f -  0.5f * rateExp, 1.0f -  0.5f * rateExp, 1.0f - 0.5f * rateExp, 1.0f);
 	}
-	auto f = battleAnim.draw(position.x, position.y, battleAnim.getWidth() * 2.0f + maxExp * rateExp * ratio, battleAnim.getHeight() * 2.0f + maxExp * rateExp, origin.x, origin.y, this->angle);
+	auto f = battleAnim->base.draw(position.x, position.y, battleAnim->standSize.x * 1.0f + maxExp * rateExp * ratio, battleAnim->standSize.y * 1.0f + maxExp * rateExp, origin.x, origin.y, this->angle);
 
     auto winSize = statusWindow->size * nite::Vec2(0.5f, 0.25f);
     
     statusWindow->step();
-    statusWindow->position = nite::Vec2(position.x - winSize.x, (position.y  + battleAnim.getHeight()) + winSize.y);
+    statusWindow->position = nite::Vec2(position.x - winSize.x, (position.y  + battleAnim->standSize.y * 0.5f) + winSize.y);
     statusWindow->render();
     
 

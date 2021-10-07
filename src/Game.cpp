@@ -19,6 +19,7 @@ struct Player : Game::Entity {
 		this->animOverworld->load("data/entity/human_class.json");
 		this->setAnim(Game::OverworldAnimType::RUN_DOWN, 0);
 		updateStandAnim();
+    	reshape(nite::Vec2(43, 125));
 	}
 	
 	void step(){
@@ -27,7 +28,7 @@ struct Player : Game::Entity {
 
 	void render(){
 		nite::setRenderTarget(nite::RenderTargetGame);
-		nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+		nite::setColor(nite::Color("#503335", 1.0f));
 		nite::setDepth(-lerpPos.y);
 		this->renderOverworld();
 	}
@@ -45,6 +46,7 @@ struct Mob : Game::Entity {
 		this->animOverworld->load("data/entity/human_class.json");
 		this->setAnim(Game::OverworldAnimType::RUN_DOWN, 0);
 		updateStandAnim();		
+		reshape(nite::Vec2(43, 125));
 	}
 	
 	void step(){
@@ -53,7 +55,7 @@ struct Mob : Game::Entity {
 
 	void render(){
 		nite::setRenderTarget(nite::RenderTargetGame);
-		nite::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+		nite::setColor(nite::Color("#ecbcb4", 1.0f));
 		nite::setDepth(-lerpPos.y);
 		this->renderOverworld();
 	}
@@ -70,6 +72,7 @@ struct Mob2 : Game::Entity {
 		entityType = Game::EntityType::MOB;
 		this->animOverworld->load("data/entity/human_class.json");
 		this->setAnim(Game::OverworldAnimType::RUN_DOWN, 0);
+		reshape(nite::Vec2(43, 125));
 		updateStandAnim();		
 	}
 	
@@ -193,58 +196,58 @@ void Game::GameCore::step(){
 			}	
 		}		
 		if(nite::keyboardPressed(nite::keyZ)){
-			// if(!battle->isShowing()){
-			// 	battle->start({player}, {mob}); // this could go so wrong lol
-			// }
+			if(!battle->isShowing()){
+				battle->start({player}, {mob}); // this could go so wrong lol
+			}
 
 			// greetings
-			if(!storyLine->interDevice->busy){
-				Vector<Shared<DialogLine>> greetingsLine;
-				greetingsLine.push_back(Game::buildLine("Kid", "My father suffers from the L5 condition"));
-				greetingsLine.push_back(Game::buildLine("Kid", "Could you help me find the medicine?"));
+			// if(!storyLine->interDevice->busy){
+			// 	Vector<Shared<DialogLine>> greetingsLine;
+			// 	greetingsLine.push_back(Game::buildLine("Kid", "My father suffers from the L5 condition"));
+			// 	greetingsLine.push_back(Game::buildLine("Kid", "Could you help me find the medicine?"));
 				
 
-				Vector<Shared<DialogLine>> rejectLine;
-				rejectLine.push_back(Game::buildLine("Kid", "Wow, you're a terrible person."));
-				auto rejectFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
-				rejectFirst->lines = rejectLine;
+			// 	Vector<Shared<DialogLine>> rejectLine;
+			// 	rejectLine.push_back(Game::buildLine("Kid", "Wow, you're a terrible person."));
+			// 	auto rejectFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
+			// 	rejectFirst->lines = rejectLine;
 
 
-				Vector<Shared<DialogLine>> approvalLine;
-				approvalLine.push_back(Game::buildLine("Kid", "Thanks mister, I really appreciate it!"));				
-				auto approvalFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
-				approvalFirst->lines = approvalLine;								
+			// 	Vector<Shared<DialogLine>> approvalLine;
+			// 	approvalLine.push_back(Game::buildLine("Kid", "Thanks mister, I really appreciate it!"));				
+			// 	auto approvalFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
+			// 	approvalFirst->lines = approvalLine;								
 
 
-				auto requestFirst = std::make_shared<Game::Story::InteractionTreeDialog>(Game::Story::InteractionTreeDialog());
-				Vector<Shared<Game::Story::InteractionTreeDialogOption>> requestFirstOptions;
-				requestFirstOptions.push_back(Game::Story::buildTreeDialogOption("Yes", approvalFirst->symRefId));
-				requestFirstOptions.push_back(Game::Story::buildTreeDialogOption("No", rejectFirst->symRefId));
-				requestFirst->options = requestFirstOptions;
-				requestFirst->title = "Could you help me find the medicine?";
+			// 	auto requestFirst = std::make_shared<Game::Story::InteractionTreeDialog>(Game::Story::InteractionTreeDialog());
+			// 	Vector<Shared<Game::Story::InteractionTreeDialogOption>> requestFirstOptions;
+			// 	requestFirstOptions.push_back(Game::Story::buildTreeDialogOption("Yes", approvalFirst->symRefId));
+			// 	requestFirstOptions.push_back(Game::Story::buildTreeDialogOption("No", rejectFirst->symRefId));
+			// 	requestFirst->options = requestFirstOptions;
+			// 	requestFirst->title = "Could you help me find the medicine?";
 
 
 
-				auto greetingsFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
-				greetingsFirst->lines = greetingsLine;
-				greetingsFirst->next.push_back(requestFirst->symRefId);
+			// 	auto greetingsFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
+			// 	greetingsFirst->lines = greetingsLine;
+			// 	greetingsFirst->next.push_back(requestFirst->symRefId);
 
-				auto greetingsStart = std::make_shared<Game::Story::InteractionTreeContact>(Game::Story::InteractionTreeContact());
-				greetingsStart->next.push_back(greetingsFirst->symRefId);
+			// 	auto greetingsStart = std::make_shared<Game::Story::InteractionTreeContact>(Game::Story::InteractionTreeContact());
+			// 	greetingsStart->next.push_back(greetingsFirst->symRefId);
 				
-				storyLine->interDevice->addInter(approvalFirst);
-				storyLine->interDevice->addInter(rejectFirst);
-				storyLine->interDevice->addInter(requestFirst);
-				storyLine->interDevice->addInter(greetingsStart);
-				storyLine->interDevice->addInter(greetingsFirst);
-				storyLine->interDevice->start();
-			}
+			// 	storyLine->interDevice->addInter(approvalFirst);
+			// 	storyLine->interDevice->addInter(rejectFirst);
+			// 	storyLine->interDevice->addInter(requestFirst);
+			// 	storyLine->interDevice->addInter(greetingsStart);
+			// 	storyLine->interDevice->addInter(greetingsFirst);
+			// 	storyLine->interDevice->start();
+			// }
 				
 
 			// if(dialog->isReady() && !dialog->isShowing()){
 			// 	dialog->reset();
 			// 	dialog->add("betsy", "Can I ask you a question?", nite::Color("#d20021"));
-			// 	dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::Color("#3740c0"));
+			// 	dialog->add("runner", "when i was a pretty boy, gey sex fuck", nite::aColor("#3740c0"));
 			// 	dialog->add("betsy", "lol it was you all along", nite::Color("#d20021"));
 			// 	dialog->add("runner", "WAKE UP SHEEPLE. DONT YOU SEE?", nite::Color("#3740c0"));
 			// 	dialog->start(nite::Vec2(0.0f), 720, 3);

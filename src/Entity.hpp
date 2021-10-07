@@ -205,6 +205,15 @@
 				STAND_UP_LEFT,
 				STAND_DOWN_LEFT,
 
+				SIT_RIGHT,
+				SIT_LEFT,
+				SIT_DOWN,
+				SIT_UP,			
+				SIT_UP_RIGHT,				
+				SIT_DOWN_RIGHT,
+				SIT_UP_LEFT,
+				SIT_DOWN_LEFT,				
+
 				WALK_RIGHT,
 				WALK_LEFT,
 				WALK_DOWN,
@@ -367,13 +376,18 @@
 		struct EntityOverworld {
 			nite::Texture base;
 			nite::Animation frames;
+			nite::Vec2 frameSize;
+			nite::Vec2 facePos;
+			nite::Vec2 faceSize;
+			nite::Vec2 standPos;
+			nite::Vec2 standSize;			
 			Dict<int, Shared<EntityOverworldAnim>> animations;
 			bool load(const String &path);
 		};
 
         struct Entity : Object, EntityStat {
 			Shared<EntityOverworld> animOverworld;
-			nite::Texture battleAnim;
+			// nite::Texture battleAnim;
 
 			int ovwAnim;
 			int ovwFrame;
