@@ -11,28 +11,27 @@
     namespace Game {
 
 
-
+        struct EntityOverworld;
         struct DialogLine {
             String emitter;
             String message;
             nite::Color color;
             int order;
-            DialogLine(){
-                emitter = "[UNDEFINED]";
-                message = "Undefined Dialog Text Line";
-                color.set(0.0f, 0.0f, 0.0f, 1.0f);
-                order = 0;
-            }
-            DialogLine(const String &emt, const String &text, const nite::Color &color = nite::White){
-                this->emitter = emt;
-                this->message = text;
-                this->color = color;
-            }            
+            Shared<EntityOverworld> overworld;
+            DialogLine();
+            DialogLine(const String &emt, const String &text, const nite::Color &color = nite::White);
+            DialogLine(Shared<EntityOverworld> &overworld, const String &emt, const String &text, const nite::Color &color = nite::White);                
+                   
         };
 
         static inline Shared<DialogLine> buildLine(const String &emt, const String &text, const nite::Color &color = nite::White){
             return std::make_shared<DialogLine>(emt, text, color);
         }
+
+        static inline Shared<DialogLine> buildLine(Shared<EntityOverworld> &overworld, const String &emt, const String &text, const nite::Color &color = nite::White){
+            return std::make_shared<DialogLine>(overworld, emt, text, color);
+        }
+
 
         struct DialogHook {
             int currentDiag;
@@ -62,6 +61,7 @@
             DialogHook();
             UInt64 getLastReady();
             bool canNext();
+            void add(Shared<EntityOverworld> &overworld, const String &emt, const String &text, const nite::Color &color = nite::White);
             void add(const String &emt, const String &text, const nite::Color &color = nite::White);
             void start();
             void reset();

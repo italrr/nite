@@ -373,6 +373,7 @@
 			int id;
 			int frameRate; //timeout
 		};
+
 		struct EntityOverworld {
 			nite::Texture base;
 			nite::Animation frames;
@@ -383,6 +384,7 @@
 			nite::Vec2 standSize;			
 			Dict<int, Shared<EntityOverworldAnim>> animations;
 			bool load(const String &path);
+			nite::Color skinShadeColor;
 		};
 
         struct Entity : Object, EntityStat {

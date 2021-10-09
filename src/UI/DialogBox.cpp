@@ -1,5 +1,5 @@
 #include "DialogBox.hpp"
-
+#include "../Entity.hpp"
 
 struct Token {
 	int type;
@@ -127,6 +127,7 @@ void Game::UIDialogBox::onCreate(){
     if(!selArrowWhite.isLoaded()){
         selArrowWhite.load("data/texture/ui/arrow_white.png", nite::Color(1.0f, 0.0f, 0.0f, 1.0f));
     } 
+    overworld = Shared<EntityOverworld>(NULL);
     setTitle(false);
 }
 
@@ -149,10 +150,31 @@ void Game::UIDialogBox::render(){
     }
     // message
     nite::Vec2 p = position;
+
+    if(overworld.get() != NULL){
+        nite::Vec2 faceSize(size.y);
+        nite::Vec2 pos = p;
+        
+        
+        nite::setColor(theme->borderColor);
+        theme->base.draw(pos.x + 4, pos.y + 4, faceSize.x, faceSize.y, 0.0f, 0.0f, 0.0f);
+        nite::setColor(theme->backgroundColor);
+        theme->base.draw(pos.x, pos.y, faceSize.x, faceSize.y, 0.0f, 0.0f, 0.0f);
+
+     	nite::setColor(nite::Color("#503335", 1.0f));
+
+
+
+        overworld->base.setRegion(nite::Rect(overworld->facePos.x, overworld->facePos.y, overworld->faceSize.x, overworld->faceSize.y));
+        overworld->base.draw(pos.x, pos.y, faceSize.x, faceSize.y, 0.0f, 0.0f, 0.0f);
+        
+        p.x += faceSize.x + 8.0f;
+    }
+
     nite::setColor(theme->borderColor);
-    theme->base.draw(position.x + 4, position.y + 4, size.x, size.y, 0.0f, 0.0f, 0.0f);
+    theme->base.draw(p.x + 4, p.y + 4, size.x, size.y, 0.0f, 0.0f, 0.0f);
     nite::setColor(theme->backgroundColor);
-    theme->base.draw(position.x, position.y, size.x, size.y, 0.0f, 0.0f, 0.0f);
+    theme->base.draw(p.x, p.y, size.x, size.y, 0.0f, 0.0f, 0.0f);
     nite::setColor(theme->fontColor);
     theme->bigFont.draw(targetText, p.x + margin.x * 0.5f, p.y + margin.y * 0.5f, 0.0f, 0.0f, 0.0f);
 
@@ -161,7 +183,7 @@ void Game::UIDialogBox::render(){
         auto pmargin = nite::Vec2(0.0f, 8.0f);
         float lh = theme->smallFont.getHeight() + margin.x * 0.5f;
         float lw = theme->smallFont.getWidth(title) + margin.y * 0.5f;
-        nite::Vec2 pos = p - nite::Vec2(0.0f, lh) - pmargin;
+        nite::Vec2 pos = p - nite::Vec2(0.0f, lh) - pmargin - nite::Vec2(overworld.get() != NULL ? size.y+8.0f : 0.0f,0.0f);
         
         nite::setColor(theme->borderColor);
         theme->base.draw(pos.x + 4, pos.y + 4, lw, lh, 0.0f, 0.0f, 0.0f);

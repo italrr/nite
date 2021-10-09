@@ -1,5 +1,29 @@
 #include "Dialog.hpp"
+#include "Entity.hpp"
 #include <memory>
+
+Game::DialogLine::DialogLine(){
+    emitter = "[UNDEFINED]";
+    message = "Undefined Dialog Text Line";
+    color.set(0.0f, 0.0f, 0.0f, 1.0f);
+    order = 0;
+    this->overworld = Shared<EntityOverworld>(NULL);
+}
+
+Game::DialogLine::DialogLine(const String &emt, const String &text, const nite::Color &color){
+    this->emitter = emt;
+    this->message = text;
+    this->color = color;
+    this->overworld = Shared<EntityOverworld>(NULL);
+} 
+
+Game::DialogLine::DialogLine(Shared<EntityOverworld> &overworld, const String &emt, const String &text, const nite::Color &color){
+    this->emitter = emt;
+    this->message = text;
+    this->color = color;
+    this->overworld = overworld;
+}   
+
 
 struct Token {
 	int type;
@@ -101,6 +125,11 @@ Game::DialogHook::DialogHook(){
 
     };        
     reset();
+}
+
+void Game::DialogHook::add(Shared<EntityOverworld> &overworld, const String &emt, const String &text, const nite::Color &color){
+    auto line = std::make_shared<Game::DialogLine>(Game::DialogLine(overworld, emt, text, color));
+    this->lines.push_back(line);
 }
 
 void Game::DialogHook::add(const String &emt, const String &text, const nite::Color &color){
@@ -228,6 +257,7 @@ Game::DialogBox::DialogBox(){
     onReset = [&](){
         dialogBox->setText("");  
         dialogBox->setVisible(false);
+        dialogBox->overworld = Shared<EntityOverworld>(NULL);
     };
 
     onUpdateText = [&](){
@@ -236,6 +266,10 @@ Game::DialogBox::DialogBox(){
 
     onNextLine = [&](const Shared<DialogLine> &line){
         dialogBox->setTitle(line->emitter.size() > 0, line->emitter, line->color);
+        dialogBox->overworld = line->overworld;
+        if(line->overworld.get() != NULL){
+            nite::print("NOT NULL");
+        }
     };
 
 }
@@ -254,7 +288,8 @@ void Game::DialogBox::start(const nite::Vec2 &pos, int width, int nlines, bool u
 
     dialogBox->setVisible(true);
     dialogBox->setSize(nite::Vec2(nite::getWidth() * 0.75f, dialogBox->theme->bigFont.getHeight() * 4.0f));
-    dialogBox->position = nite::Vec2(nite::getWidth() * 0.5f - dialogBox->size.x * 0.5f, nite::getHeight() - dialogBox->size.y - 16);
+    float w = dialogBox->overworld.get() != NULL ?  ((dialogBox->size.x + dialogBox->size.y + 8.0f) * 0.5f) : dialogBox->size.x * 0.5f;
+    dialogBox->position = nite::Vec2(nite::getWidth() * 0.5f - w, nite::getHeight() - dialogBox->size.y - 16);
 
     nite::print("[debug] started dialog");
 }
@@ -264,6 +299,10 @@ bool Game::DialogBox::isShowing(){
 }
 
 void Game::DialogBox::update(){
+
+    float w = dialogBox->overworld.get() != NULL ?  ((dialogBox->size.x + dialogBox->size.y + 8.0f)*0.5f) : dialogBox->size.x * 0.5f;
+    dialogBox->position = nite::Vec2(nite::getWidth() * 0.5f - w, nite::getHeight() - dialogBox->size.y - 16);
+
     step();
     dialogBox->showArrow = canNext() && !autocont;
     dialogBox->step();

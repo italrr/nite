@@ -4,7 +4,8 @@
     #include "Theming.hpp"
 
     namespace Game {
-
+        
+        struct EntityOverworld;
         struct UIDialogBox : Game::UIObject {
             nite::Vec2 margin;
             String targetText;
@@ -22,6 +23,7 @@
             bool visible;
             nite::Vec2 size;
             void setVisible(bool v);
+            Shared<EntityOverworld> overworld;
             void clear();
             void setText(const String &text);
             void refresh();

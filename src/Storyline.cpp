@@ -206,7 +206,7 @@ Game::Story::InteractionTreeContact::InteractionTreeContact(){
 void Game::Story::InteractionTreeExposition::run(){
     dialogDevice->reset();
     for(int i = 0; i < lines.size(); ++i){
-        dialogDevice->add(lines[i]->emitter, lines[i]->message, lines[i]->color);
+        dialogDevice->add(lines[i]->overworld, lines[i]->emitter, lines[i]->message, lines[i]->color);
     }
     dialogDevice->onEndCallback = [&](){
         // TODO: check conditions
