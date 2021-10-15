@@ -203,7 +203,7 @@ void Game::GameCore::step(){
 			// greetings
 			if(!storyLine->interDevice->busy){
 				Vector<Shared<DialogLine>> greetingsLine;
-				greetingsLine.push_back(Game::buildLine("Kid", "My father suffers from the L5 condition"));
+				greetingsLine.push_back(Game::buildLine(mob->animOverworld, "Kid", "My father suffers from the L5 condition"));
 				greetingsLine.push_back(Game::buildLine(mob->animOverworld, "Kid", "Could you help me find the medicine?"));
 				
 
