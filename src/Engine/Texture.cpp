@@ -463,6 +463,8 @@ static inline bool isClippingOut(float x, float y, float w, float h, float origX
 static void drawTextureBatch(nite::Renderable *object){
 	if(!renTextureBatches) return;
 	flushFont();
+
+
 	auto obj = static_cast<nite::RenderableTextureBatchT*>(object);
 	auto batch = static_cast<nite::TextureCellBatch*>(obj->batch);
 	GLuint currentBind = textureList[obj->objectId].texture;
@@ -539,6 +541,7 @@ static void drawTextureBatch(nite::Renderable *object){
 	size_t objSize = sizeof(nite::TextureRegionSingle);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
+
 	for(int _x = 0; _x < obj->vpw; ++_x){
 		if(batch->cells == NULL){
 			break;
@@ -611,7 +614,7 @@ void nite::Texture::setRegion(const nite::Rect &R){
 	region.set(R);
 }
 
-nite::RenderableTextureBatchT *nite::Texture::drawCellBatch(nite::TextureCellBatch *batch, float x, float y, float vpx, float vpy, float vpw, float vph){
+nite::RenderableTextureBatchT *nite::Texture::drawCellBatch(nite::TextureCellBatch *batch, float x, float y, float vpx, float vpy, float vpw, float vph){	
 	if(objectId <= -1 || batch == NULL) return NULL;
 	nite::RenderableTextureBatchT *obj = new nite::RenderableTextureBatchT();
 	obj->objectId = objectId;
@@ -623,7 +626,8 @@ nite::RenderableTextureBatchT *nite::Texture::drawCellBatch(nite::TextureCellBat
 	obj->vpx = vpx;
 	obj->vpy = vpy;
 	obj->vpw = vpw;
-	obj->vph = vph;	
+	obj->vph = vph;
+	
 	nite::addRenderList((nite::Renderable*)obj);
 	return obj;
 }

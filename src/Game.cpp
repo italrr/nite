@@ -4,7 +4,6 @@
 #include "Engine/UI/UI.hpp"
 #include "Engine/Network.hpp"
 #include "Engine/Shapes.hpp"
-
 #include "Game.hpp"
 
 
@@ -166,6 +165,13 @@ void Game::GameCore::init(){
 	world->setFollowObject(true, player->symRefId);
 
 
+	map = Shared<nite::Map>(new nite::Map());
+
+	// map->load("Map.json");
+	if(!map->load("data/map/romdo/Map.json")){
+		nite::print("failed to load map");
+	}
+
 }
 
 void Game::GameCore::step(){
@@ -176,6 +182,7 @@ void Game::GameCore::step(){
 	optionsMenu->step();
 	dialog->update();
 	storyLine->step();
+
 
 
 
@@ -196,52 +203,52 @@ void Game::GameCore::step(){
 			}	
 		}		
 		if(nite::keyboardPressed(nite::keyZ)){
-			// if(!battle->isShowing()){
-			// 	battle->start({player}, {mob}); // this could go so wrong lol
-			// }
-
-			// greetings
-			if(!storyLine->interDevice->busy){
-				Vector<Shared<DialogLine>> greetingsLine;
-				greetingsLine.push_back(Game::buildLine(mob->animOverworld, "Kid", "My father suffers from the L5 condition"));
-				greetingsLine.push_back(Game::buildLine(mob->animOverworld, "Kid", "Could you help me find the medicine?"));
-				
-
-				Vector<Shared<DialogLine>> rejectLine;
-				rejectLine.push_back(Game::buildLine(mob->animOverworld,"Kid", "Wow, you're a terrible person."));
-				auto rejectFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
-				rejectFirst->lines = rejectLine;
-
-
-				Vector<Shared<DialogLine>> approvalLine;
-				approvalLine.push_back(Game::buildLine(mob->animOverworld,"Kid", "Thanks mister, I really appreciate it!"));				
-				auto approvalFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
-				approvalFirst->lines = approvalLine;								
-
-
-				auto requestFirst = std::make_shared<Game::Story::InteractionTreeDialog>(Game::Story::InteractionTreeDialog());
-				Vector<Shared<Game::Story::InteractionTreeDialogOption>> requestFirstOptions;
-				requestFirstOptions.push_back(Game::Story::buildTreeDialogOption("Yes", approvalFirst->symRefId));
-				requestFirstOptions.push_back(Game::Story::buildTreeDialogOption("No", rejectFirst->symRefId));
-				requestFirst->options = requestFirstOptions;
-				requestFirst->title = "Could you help me find the medicine?";
-
-
-
-				auto greetingsFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
-				greetingsFirst->lines = greetingsLine;
-				greetingsFirst->next.push_back(requestFirst->symRefId);
-
-				auto greetingsStart = std::make_shared<Game::Story::InteractionTreeContact>(Game::Story::InteractionTreeContact());
-				greetingsStart->next.push_back(greetingsFirst->symRefId);
-				
-				storyLine->interDevice->addInter(approvalFirst);
-				storyLine->interDevice->addInter(rejectFirst);
-				storyLine->interDevice->addInter(requestFirst);
-				storyLine->interDevice->addInter(greetingsStart);
-				storyLine->interDevice->addInter(greetingsFirst);
-				storyLine->interDevice->start();
+			if(!battle->isShowing()){
+				battle->start({player}, {mob}); // this could go so wrong lol
 			}
+
+			// // greetings
+			// if(!storyLine->interDevice->busy){
+			// 	Vector<Shared<DialogLine>> greetingsLine;
+			// 	greetingsLine.push_back(Game::buildLine(mob->animOverworld, "Kid", "My father suffers from the L5 condition"));
+			// 	greetingsLine.push_back(Game::buildLine(mob->animOverworld, "Kid", "Could you help me find the medicine?"));
+				
+
+			// 	Vector<Shared<DialogLine>> rejectLine;
+			// 	rejectLine.push_back(Game::buildLine(mob->animOverworld,"Kid", "Wow, you're a terrible person."));
+			// 	auto rejectFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
+			// 	rejectFirst->lines = rejectLine;
+
+
+			// 	Vector<Shared<DialogLine>> approvalLine;
+			// 	approvalLine.push_back(Game::buildLine(mob->animOverworld,"Kid", "Thanks mister, I really appreciate it!"));				
+			// 	auto approvalFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
+			// 	approvalFirst->lines = approvalLine;								
+
+
+			// 	auto requestFirst = std::make_shared<Game::Story::InteractionTreeDialog>(Game::Story::InteractionTreeDialog());
+			// 	Vector<Shared<Game::Story::InteractionTreeDialogOption>> requestFirstOptions;
+			// 	requestFirstOptions.push_back(Game::Story::buildTreeDialogOption("Yes", approvalFirst->symRefId));
+			// 	requestFirstOptions.push_back(Game::Story::buildTreeDialogOption("No", rejectFirst->symRefId));
+			// 	requestFirst->options = requestFirstOptions;
+			// 	requestFirst->title = "Could you help me find the medicine?";
+
+
+
+			// 	auto greetingsFirst = std::make_shared<Game::Story::InteractionTreeExposition>(Game::Story::InteractionTreeExposition());
+			// 	greetingsFirst->lines = greetingsLine;
+			// 	greetingsFirst->next.push_back(requestFirst->symRefId);
+
+			// 	auto greetingsStart = std::make_shared<Game::Story::InteractionTreeContact>(Game::Story::InteractionTreeContact());
+			// 	greetingsStart->next.push_back(greetingsFirst->symRefId);
+				
+			// 	storyLine->interDevice->addInter(approvalFirst);
+			// 	storyLine->interDevice->addInter(rejectFirst);
+			// 	storyLine->interDevice->addInter(requestFirst);
+			// 	storyLine->interDevice->addInter(greetingsStart);
+			// 	storyLine->interDevice->addInter(greetingsFirst);
+			// 	storyLine->interDevice->start();
+			// }
 				
 
 			// if(dialog->isReady() && !dialog->isShowing()){
@@ -259,13 +266,24 @@ void Game::GameCore::step(){
 }
 
 void Game::GameCore::render(){
+
+	// render map
+	nite::setZoom(nite::RenderTargetGame, 0.65f);
+	nite::Vec2 vpPos = world->cameraFollowNewPos - map->size * 2.0f;
+	nite::Vec2 vpSize = nite::getSize() + map->size * 4.0f;
+	map->render(nite::Vec2(0.0f), nite::Rect(vpPos, vpSize));
+	
+	// overworld
 	world->render();	
 	dialog->render();
+
+	// everything else
     nite::setDepth(nite::DepthTop);
     nite::setRenderTarget(nite::RenderTargetUI);  	
 	optionsMenu->render();
 	battle->render();
 	storyLine->render();
+
 	nite::graphicsRender();
 }
 
@@ -277,6 +295,7 @@ Shared<Game::GameCore> Game::getGameIns(){
 
 int main(int argc, char* argv[]){
 	
+
 	Vector<String> params;
 	for(int i = 0; i < argc; ++i){
 		params.push_back(String(argv[i]));

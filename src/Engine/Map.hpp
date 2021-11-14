@@ -66,6 +66,12 @@
             Int32 *cells;
             String srcHash;
             UInt32 total;
+            nite::Vec2 position;    
+            bool depthTest;
+            String name;
+            bool visible;
+            bool ySort;
+            bool floorDepth;
             UInt16 w;
             UInt16 h;
             Int8 depth;
@@ -142,7 +148,7 @@
 
             bool setup(int n, const nite::Vec2 &size, const nite::Vec2 &tileSize, const nite::Vec2 &margin, const nite::Vec2 &spacing);
             bool add(int *cells, int depth, const String &src, const String &type = "generic", bool dynamicY = false);
-            void draw(const nite::Vec2 &pos, const nite::Rect &vwp);
+            void render(const nite::Vec2 &pos, const nite::Rect &vwp);
             void unload();
             bool exportToJson(const String &path, bool allowOverwrite = true);
         };

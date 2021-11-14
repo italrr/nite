@@ -146,6 +146,7 @@
 		struct Rect {
 			Rect();
 			Rect(float x, float y, float w, float h);
+			Rect(const nite::Vec2 &xy, const nite::Vec2 &wh);
 			Rect(float x);			
 			Rect(const Rect &r);
 			float x;

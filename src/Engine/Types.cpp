@@ -539,6 +539,10 @@ nite::Rect::Rect(float X, float Y, float W, float H){
 	set(X, Y, W, H);
 }
 
+nite::Rect::Rect(const nite::Vec2 &xy, const nite::Vec2 &wh){
+	set(xy, wh);
+}
+
 void nite::Rect::set(const Vec2 &P, const Vec2 &Q){
 	x = P.x;
 	y = P.y;

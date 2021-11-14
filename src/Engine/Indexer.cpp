@@ -145,8 +145,12 @@ nite::IndexedFile *nite::Indexer::indexGhostFile(const String &path, const Strin
 	return &this->indexed[hash]; 
 }
 
+#include <iostream>
 nite::IndexedFile *nite::Indexer::get(const String &hash){
     pthread_mutex_lock(&mutex); 
+    for(auto &it : indexed){
+        std::cout << it.second.hash << std::endl;
+    }
     auto it = indexed.find(hash);
     if(it == indexed.end()){
         return NULL;

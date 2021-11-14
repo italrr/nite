@@ -8,10 +8,13 @@
     #include "Object.hpp"
     #include "World.hpp"
     #include "Storyline.hpp"
+    #include "Engine/Map.hpp"
+
     
     namespace Game {
 
         struct GameCore {
+            Shared<nite::Map> map;
             Shared<Game::Story::StoryLine> storyLine;
             Shared<Game::UIListMenu> optionsMenu;
             Shared<Game::World> world;
