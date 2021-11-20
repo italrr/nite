@@ -115,12 +115,27 @@ bool buildTiledMap(nite::Map *target, const Jzon::Node &node, const String &path
         if(layers.get(i).get("type").toString() != "objectgroup") continue;
         Jzon::Node objs = layers.get(i).get("objects");
         for(int c = 0; c < objs.getCount(); ++c){
-        if(objs.get(c).get("type").toString() != "depth_mask") continue;
-        nite::Vec2 position = nite::Vec2(objs.get(c).get("x").toFloat(), objs.get(c).get("y").toFloat());
-        nite::Vec2 absSize = nite::Vec2(objs.get(c).get("width").toFloat(), objs.get(c).get("height").toFloat());
-        float depthOffset = objs.get(c).get("properties").get("depth_offset").toFloat();
-        String depthScope = objs.get(c).get("properties").get("depth_layer").toString();
-        masks.push_back(DepthMask(position, position + absSize, depthOffset, depthScope));
+            // collision
+            
+            // teleporter
+            
+            // sign
+            if(objs.get(c).get("type").toString() == "sign"){
+                auto sign = objs.get(c).get("properties");
+                for(int j = 0; j < sign.getCount(); ++j){
+                    auto prop = sign.get(j);
+                    nite::print(prop.get())
+                }
+            }
+
+            // depth mask
+            if(objs.get(c).get("type").toString() == "depth_mask"){
+                nite::Vec2 position = nite::Vec2(objs.get(c).get("x").toFloat(), objs.get(c).get("y").toFloat());
+                nite::Vec2 absSize = nite::Vec2(objs.get(c).get("width").toFloat(), objs.get(c).get("height").toFloat());
+                float depthOffset = objs.get(c).get("properties").get("depth_offset").toFloat();
+                String depthScope = objs.get(c).get("properties").get("depth_layer").toString();
+                masks.push_back(DepthMask(position, position + absSize, depthOffset, depthScope));
+            }
         }
     }
 
@@ -179,7 +194,7 @@ bool buildTiledMap(nite::Map *target, const Jzon::Node &node, const String &path
             //     depth = currentMask.correct(inMapCoors);
             // }
             nite::TextureRegionSingle single;
-
+            layer->cells[c] = p;
 
             int tw = imageSize.x; // Texture width
             int th = imageSize.y; // Texture height

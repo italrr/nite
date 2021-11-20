@@ -8,7 +8,7 @@ Did you make it alright? - Miss Greene.
 
 Yes, Mother. - Player responds.
 
-Very well. Just look for some Doctor Mayer. I'll get back to you when you do - Miss Greene.
+Very well. Just look for someone named Mayer. I'll get back to you when you do - Miss Greene.
 
 Understood. - Player
 
@@ -30,7 +30,7 @@ I am sorry. I'm just a visitor. I'm lost - Player
 
 [The man pulled out some sort of weapon device. Aimed it at the player. And started yelling]
 
-YOU ARE ONE OF THOSE GHOSTS. AREN'T YOU - Man
+YOU ARE ONE OF THOSE GHOSTS, AREN'T YOU - Man
 
 [The man was shaking aiming at the player. The player was utterly confused and scared]
 
@@ -40,13 +40,13 @@ EVERYONE LISTEN THIS GHOST IS TRYING TO ROB MY TEETH - Man
 
 W-what? - Player
 
-Nord, what the fuck are you doing? Who is this man? - One of the men 
+Nord, what the fuck are you doing? Who is this man? - One of the men that just entered the room
 
 STOP. HIM. - Man
 
 Wait Do-don't! - Player
 
-[The pulled the trigger of the weapon device. Some sort of yellow-colored energy beam emitted from the muzzle. It quickly expanded reaching the player's head.]
+[The man pulled the trigger of the weapon device. Some sort of yellow-colored energy beam emitted from the muzzle. It quickly expanded reaching the player's head.]
 
 [The player immediatly dropped at the floor. Convulsing.]
 

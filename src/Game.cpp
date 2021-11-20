@@ -171,6 +171,9 @@ void Game::GameCore::init(){
 	if(!map->load("data/map/romdo/Map.json")){
 		nite::print("failed to load map");
 	}
+	// map->exportToJson("data/map/romdo/test_map.json", true);
+	// map->unload();
+	// map->load("data/map/romdo/test_map.json");
 
 }
 
