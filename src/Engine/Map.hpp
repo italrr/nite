@@ -4,7 +4,7 @@
     #include "Types.hpp"
     #include "Texture.hpp"
     #include "Graphics.hpp"
-    #include "Object.hpp"
+    // #include "Object.hpp"
     #include "Indexer.hpp"
 
     namespace nite {

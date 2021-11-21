@@ -118,14 +118,45 @@ bool buildTiledMap(nite::Map *target, const Jzon::Node &node, const String &path
             // collision
             
             // teleporter
-            
+            if(objs.get(c).get("type").toString() == "collision"){
+                auto node = objs.get(c);
+                nite::MapWallMask mask;
+                mask.position.x = node.get("x").toFloat(-1);
+                mask.position.y = node.get("y").toFloat(-1);
+                mask.size.x = node.get("width").toFloat(-1);
+                mask.size.y = node.get("height").toFloat(-1);        
+                // mask.index = node.get("i").toInt(-1);        
+                target->masks.push_back(mask);
+            }
+
+            // teleporter
+            if(objs.get(c).get("type").toString() == "teleporter"){
+                auto teleporter = objs.get(c).get("properties");
+                String special = "none";
+                String target = "#UNDEFINED";
+                for(int j = 0; j < teleporter.getCount(); ++j){
+                    auto prop = teleporter.get(j);
+                    if(prop.get("name").toString() == "target"){
+                        target = prop.get("value").toString();
+                    }
+                    if(prop.get("name").toString() == "special"){
+                        special = prop.get("value").toString();
+                    }
+                }
+                // todo add
+            }
+
             // sign
             if(objs.get(c).get("type").toString() == "sign"){
                 auto sign = objs.get(c).get("properties");
+                String label = "[EMPTY]";
                 for(int j = 0; j < sign.getCount(); ++j){
                     auto prop = sign.get(j);
-                    nite::print(prop.get())
+                    if(prop.get("name").toString() == "label"){
+                        label = prop.get("value").toString();
+                    }
                 }
+                // todo add
             }
 
             // depth mask

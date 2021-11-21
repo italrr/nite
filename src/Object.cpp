@@ -14,6 +14,8 @@ Game::Object::Object(){
     objType = ObjectType::BASE;
     friction = 0.0f;
     destroyed = false;
+    unmovable = true;
+    solid = true;
     setMass(0.0f);
     setPosition(nite::Vec2(0.0f));  
     reshape(nite::Vec2(150, 225));

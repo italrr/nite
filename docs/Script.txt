@@ -62,11 +62,11 @@ You're finally awake - says the woman
 
 Where am I? - says the player
 
-You are in Romdo's central hospital. You were paralyzed by a Wretch Gun. It usually just hurts a lot. But in your case, you were hit directly in the head.- Explains the woman
+You are in Romdo's central hospital. You were shot by a Wretch Paralyzing Gun. It usually just hurts a lot. But in your case, you were hit directly in the head.- Explains the woman
 
 Who are you? - says the player
 
-My name is Dr. Lois Redfield. I am the head of this hospital. - Says Lois
+My name is Dr. Lois Red. I am the head of this hospital. - Says Lois
 
 [Lois raises her finger in front of the player's face]
 
@@ -80,7 +80,7 @@ I feel fine - Says the player.
 
 That's amazing. I'm preparing your discharge papers. Do you know your name? - Says Lois
 
-[The player is asked is for their name. Gender and skin color now]
+[The player is asked is for their name. Gender and skin color through the game]
 
 Do you know why are you here? says Lois
 

@@ -1,9 +1,12 @@
 #include <limits>
 
 #include "Engine/Graphics.hpp"
-
+#include "Engine/Console.hpp"
+#include "Engine/Shapes.hpp"
 #include "World.hpp"
 
+static bool showMasks = false;
+static nite::Console::CreateProxy cpAnDatTo("cl_show_masks", nite::Console::ProxyType::Bool, sizeof(bool), &showMasks);
 
 void Game::World::init(int width, int height){
     tickrate = 1000.0f / 60.0f;
@@ -165,6 +168,16 @@ void Game::World::step(){
 
         ++tick;
     }
+
+    // clean up detroyed obects
+    if(removeQueue.size() > 0){
+        for(int i = 0; i < removeQueue.size(); ++i){
+            auto &symId = removeQueue[i];
+            objects[symId]->onDestroy();
+            objects.erase(symId);
+        }  
+        removeQueue.clear();
+    }
 }
 
 bool Game::World::add(const Shared<Object> &obj){
@@ -173,8 +186,79 @@ bool Game::World::add(const Shared<Object> &obj){
     return true;
 }
 
+bool Game::World::remove(const String &symId){
+
+    auto it = objects.find(symId);
+    if(it == objects.end()){
+        return false;
+    }
+    if(isToRemove(symId)){
+        return true;
+    }
+
+    removeQueue.push_back(symId);
+    it->second->destroyed = true;
+
+    return true;
+}
+
+bool Game::World::remove(int refId){
+    for(auto &it : objects){
+        if(it.second->refId == refId){
+            if(!isToRemove(it.second->symRefId)){
+                removeQueue.push_back(it.second->symRefId);
+            }
+            it.second->destroyed = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Game::World::isToRemove(const String &symId){
+    for(int i = 0; i < removeQueue.size(); ++i){
+        if(removeQueue[i] == symId){
+            return true;
+        }
+    }
+    return false;
+}
+
+void Game::World::useMap(const Shared<nite::Map> &map){
+    currentMap = map;
+    for(int i = 0 ; i < map->masks.size(); ++i){
+        auto &mask = map->masks[i];
+        auto wmask = Shared<Game::WallMask>(new Game::WallMask());
+        wmask->reshape(mask.size);
+        wmask->setPosition(mask.position);
+        this->wallMasks.push_back(wmask);
+        this->add(wmask);
+    }
+    nite::print("[MAP] placed "+nite::toStr(this->wallMasks.size())+" wall masks");
+}
+
+void Game::World::resetMap(){
+    currentMap = Shared<nite::Map>(NULL);
+    for(int i = 0; i < wallMasks.size(); ++i){
+        remove(wallMasks[i]->symRefId);
+    }
+}
+
 void Game::World::render(){
     nite::setRenderTarget(nite::RenderTargetGame);
+
+    if(showMasks){
+        for(auto &it : objects){
+            nite::setColor(1.0f, 0.0f, 0.0f, 0.08f);
+            auto ref = nite::Draw::Rectangle(it.second->position.x, it.second->position.y, it.second->size.x, it.second->size.y, true, 0.0f, 0.0f, 0.0f);
+            nite::setColor(1.0f, 0.0f, 0.0f, 0.75f);
+            auto refline = nite::Draw::Rectangle(it.second->position.x, it.second->position.y, it.second->size.x, it.second->size.y, false, 0.0f, 0.0f, 0.0f);
+            if(refline != NULL){
+                 refline->thickness = 4.0f;
+            }
+        }
+    }
+
     for(auto &it : objects){
         auto &obj = it.second;
         obj->lerpPos.lerpDiscrete(obj->position, 0.25f);

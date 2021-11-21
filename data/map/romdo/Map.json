@@ -282,34 +282,23 @@
                  "height":64,
                  "id":80,
                  "name":"teleporter",
+                 "properties":[
+                        {
+                         "name":"special",
+                         "type":"string",
+                         "value":"none"
+                        }, 
+                        {
+                         "name":"target",
+                         "type":"string",
+                         "value":"inner_regular_house_1"
+                        }],
                  "rotation":0,
                  "type":"teleporter",
                  "visible":true,
                  "width":72,
                  "x":1058,
                  "y":924
-                }, 
-                {
-                 "height":64,
-                 "id":85,
-                 "name":"teleporter",
-                 "rotation":0,
-                 "type":"teleporter",
-                 "visible":true,
-                 "width":72,
-                 "x":1562,
-                 "y":914
-                }, 
-                {
-                 "height":64,
-                 "id":86,
-                 "name":"teleporter",
-                 "rotation":0,
-                 "type":"teleporter",
-                 "visible":true,
-                 "width":72,
-                 "x":2080,
-                 "y":914
                 }, 
                 {
                  "height":72,
@@ -416,28 +405,6 @@
                  "width":78,
                  "x":3415,
                  "y":918
-                }, 
-                {
-                 "height":64,
-                 "id":97,
-                 "name":"teleporter",
-                 "rotation":0,
-                 "type":"teleporter",
-                 "visible":true,
-                 "width":72,
-                 "x":2652,
-                 "y":808
-                }, 
-                {
-                 "height":64,
-                 "id":98,
-                 "name":"teleporter",
-                 "rotation":0,
-                 "type":"teleporter",
-                 "visible":true,
-                 "width":72,
-                 "x":3292,
-                 "y":828
                 }, 
                 {
                  "height":344,
@@ -642,6 +609,17 @@
                  "height":64,
                  "id":116,
                  "name":"teleporter",
+                 "properties":[
+                        {
+                         "name":"special",
+                         "type":"string",
+                         "value":"none"
+                        }, 
+                        {
+                         "name":"target",
+                         "type":"string",
+                         "value":"inner_regular_house_1"
+                        }],
                  "rotation":0,
                  "type":"teleporter",
                  "visible":true,
@@ -653,6 +631,17 @@
                  "height":64,
                  "id":117,
                  "name":"teleporter",
+                 "properties":[
+                        {
+                         "name":"special",
+                         "type":"string",
+                         "value":"none"
+                        }, 
+                        {
+                         "name":"target",
+                         "type":"string",
+                         "value":"inner_regular_house_1"
+                        }],
                  "rotation":0,
                  "type":"teleporter",
                  "visible":true,
@@ -664,6 +653,17 @@
                  "height":64,
                  "id":118,
                  "name":"teleporter",
+                 "properties":[
+                        {
+                         "name":"special",
+                         "type":"string",
+                         "value":"none"
+                        }, 
+                        {
+                         "name":"target",
+                         "type":"string",
+                         "value":"inner_regular_house_1"
+                        }],
                  "rotation":0,
                  "type":"teleporter",
                  "visible":true,
@@ -781,6 +781,17 @@
                  "height":64,
                  "id":127,
                  "name":"teleporter",
+                 "properties":[
+                        {
+                         "name":"special",
+                         "type":"string",
+                         "value":"none"
+                        }, 
+                        {
+                         "name":"target",
+                         "type":"string",
+                         "value":"inner_regular_house_1"
+                        }],
                  "rotation":0,
                  "type":"teleporter",
                  "visible":true,
@@ -792,12 +803,111 @@
                  "height":64,
                  "id":128,
                  "name":"teleporter",
+                 "properties":[
+                        {
+                         "name":"special",
+                         "type":"string",
+                         "value":"none"
+                        }, 
+                        {
+                         "name":"target",
+                         "type":"string",
+                         "value":"inner_regular_house_1"
+                        }],
                  "rotation":0,
                  "type":"teleporter",
                  "visible":true,
                  "width":72,
                  "x":3290.502,
                  "y":1788.665
+                }, 
+                {
+                 "height":64,
+                 "id":160,
+                 "name":"teleporter",
+                 "properties":[
+                        {
+                         "name":"special",
+                         "type":"string",
+                         "value":"none"
+                        }, 
+                        {
+                         "name":"target",
+                         "type":"string",
+                         "value":"inner_regular_house_1"
+                        }],
+                 "rotation":0,
+                 "type":"teleporter",
+                 "visible":true,
+                 "width":72,
+                 "x":1564,
+                 "y":908
+                }, 
+                {
+                 "height":64,
+                 "id":161,
+                 "name":"teleporter",
+                 "properties":[
+                        {
+                         "name":"special",
+                         "type":"string",
+                         "value":"none"
+                        }, 
+                        {
+                         "name":"target",
+                         "type":"string",
+                         "value":"inner_regular_house_1"
+                        }],
+                 "rotation":0,
+                 "type":"teleporter",
+                 "visible":true,
+                 "width":72,
+                 "x":2072,
+                 "y":908
+                }, 
+                {
+                 "height":64,
+                 "id":162,
+                 "name":"teleporter",
+                 "properties":[
+                        {
+                         "name":"special",
+                         "type":"string",
+                         "value":"none"
+                        }, 
+                        {
+                         "name":"target",
+                         "type":"string",
+                         "value":"inner_regular_house_1"
+                        }],
+                 "rotation":0,
+                 "type":"teleporter",
+                 "visible":true,
+                 "width":72,
+                 "x":2644,
+                 "y":812
+                }, 
+                {
+                 "height":64,
+                 "id":163,
+                 "name":"teleporter",
+                 "properties":[
+                        {
+                         "name":"special",
+                         "type":"string",
+                         "value":"none"
+                        }, 
+                        {
+                         "name":"target",
+                         "type":"string",
+                         "value":"inner_regular_house_1"
+                        }],
+                 "rotation":0,
+                 "type":"teleporter",
+                 "visible":true,
+                 "width":72,
+                 "x":3292,
+                 "y":824
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -806,7 +916,7 @@
          "y":0
         }],
  "nextlayerid":29,
- "nextobjectid":159,
+ "nextobjectid":164,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.7.2",

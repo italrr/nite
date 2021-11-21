@@ -27,9 +27,11 @@
             nite::Vec2 size;
             nite::Vec2 lerpPos;
             float mass;
+            bool solid;
             float invMass;
             float friction;
             bool destroyed;
+            bool unmovable;
             
             UInt8 moveState;
 
@@ -57,6 +59,15 @@
             void move(float x = 0.0f, float y = 0.0f);
             virtual void setPosition(const nite::Vec2 &p);
         };     
+
+        struct WallMask : Game::Object {
+            WallMask(){
+                objType = ObjectType::PROP; 
+                unmovable = false;
+                solid = true;
+            }
+        };
+
 
     }
 

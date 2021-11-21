@@ -2,6 +2,7 @@
 #include "Engine/Input.hpp"
 #include "Engine/View.hpp"
 #include "Engine/UI/UI.hpp"
+#include "Engine/nScript.hpp"
 #include "Engine/Network.hpp"
 #include "Engine/Shapes.hpp"
 #include "Game.hpp"
@@ -130,6 +131,9 @@ void Game::GameCore::init(){
 	optionsMenu->theme = theme;
 	optionsMenu->onCreate();
 
+	nite::nScript debugScripts;
+	debugScripts.execute("./debug.ns");
+
 
 	storyLine->setup(optionsMenu, dialog);
 
@@ -171,6 +175,7 @@ void Game::GameCore::init(){
 	if(!map->load("data/map/romdo/Map.json")){
 		nite::print("failed to load map");
 	}
+	world->useMap(map);
 	// map->exportToJson("data/map/romdo/test_map.json", true);
 	// map->unload();
 	// map->load("data/map/romdo/test_map.json");
