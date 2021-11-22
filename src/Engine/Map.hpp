@@ -24,6 +24,16 @@
             build the composed one and send it to all the clients (including the client who requested it)
         */
 
+        namespace MapMaskType {
+            enum MapMaskType : int {
+                UNDEFINED,
+                COLLISION,
+                TELEPORTER,
+                SIGN,
+                EVENT
+            };
+        }
+
         struct MapCell {
             Int32 x; // these are in units, not pixels
             Int32 y;
@@ -82,10 +92,44 @@
             void clear();
         };      
 
-        struct MapWallMask {
+        struct MapMask {
             nite::Vec2 position;
             nite::Vec2 size;
+            int type;
+            MapMask(){
+                type = MapMaskType::UNDEFINED;
+            }
+        };
+
+        struct MapWallMask : MapMask {
             Int32 index;
+            MapWallMask(){
+                type = MapMaskType::COLLISION;
+            }
+        };
+
+        struct MapSignMask : MapMask{
+            String onInteractScript;
+            String label;
+            MapSignMask(){
+                type = MapMaskType::SIGN;
+            }
+        };
+
+        struct MapTeleporterMask : MapMask{
+            String onInteractScript;
+            String target;
+            MapTeleporterMask(){
+                type = MapMaskType::TELEPORTER;
+            }
+        };
+
+        struct MapCheckEventMask : MapMask {
+            String onTouchScript;
+            String onInteractScript;
+            MapCheckEventMask(){
+                type = MapMaskType::EVENT;
+            }
         };
 
         struct MapDynamicTileGroup {
@@ -125,7 +169,7 @@
 
             Dict<String, nite::MapTilesetSource> sources;
             Vector<nite::MapLayer*> layers; 
-            Vector<nite::MapWallMask> masks;
+            Vector<Shared<nite::MapMask>> masks;
             
             // Vector
             Map();

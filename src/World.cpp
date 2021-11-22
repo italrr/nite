@@ -5,8 +5,12 @@
 #include "Engine/Shapes.hpp"
 #include "World.hpp"
 
-static bool showMasks = false;
-static nite::Console::CreateProxy cpAnDatTo("cl_show_masks", nite::Console::ProxyType::Bool, sizeof(bool), &showMasks);
+static bool showCMasks = false;
+static nite::Console::CreateProxy cpShowCMasks("cl_show_cmasks", nite::Console::ProxyType::Bool, sizeof(bool), &showCMasks);
+
+static bool showSMasks = false;
+static nite::Console::CreateProxy cpShowSMasks("cl_show_smasks", nite::Console::ProxyType::Bool, sizeof(bool), &showSMasks);
+
 
 void Game::World::init(int width, int height){
     tickrate = 1000.0f / 60.0f;
@@ -227,14 +231,18 @@ bool Game::World::isToRemove(const String &symId){
 void Game::World::useMap(const Shared<nite::Map> &map){
     currentMap = map;
     for(int i = 0 ; i < map->masks.size(); ++i){
-        auto &mask = map->masks[i];
+        // setup collisions
+        if(map->masks[i]->type != nite::MapMaskType::COLLISION){
+            continue;
+        }
+        auto mask = std::static_pointer_cast<nite::MapWallMask>(map->masks[i]);
         auto wmask = Shared<Game::WallMask>(new Game::WallMask());
-        wmask->reshape(mask.size);
-        wmask->setPosition(mask.position);
+        wmask->reshape(mask->size);
+        wmask->setPosition(mask->position);
         this->wallMasks.push_back(wmask);
         this->add(wmask);
     }
-    nite::print("[MAP] placed "+nite::toStr(this->wallMasks.size())+" wall masks");
+    nite::print("[MAP] placed "+nite::toStr(this->wallMasks.size())+" mask(s)");
 }
 
 void Game::World::resetMap(){
@@ -247,7 +255,7 @@ void Game::World::resetMap(){
 void Game::World::render(){
     nite::setRenderTarget(nite::RenderTargetGame);
 
-    if(showMasks){
+    if(showCMasks){
         for(auto &it : objects){
             nite::setColor(1.0f, 0.0f, 0.0f, 0.08f);
             auto ref = nite::Draw::Rectangle(it.second->position.x, it.second->position.y, it.second->size.x, it.second->size.y, true, 0.0f, 0.0f, 0.0f);
@@ -257,6 +265,38 @@ void Game::World::render(){
                  refline->thickness = 4.0f;
             }
         }
+    }
+
+    if(showSMasks && currentMap.get() != NULL){
+        for(int i = 0; i < currentMap->masks.size(); ++i){
+            auto &currentMask = currentMap->masks[i];
+            switch(currentMask->type){
+                case nite::MapMaskType::SIGN: {
+                    static nite::Color useColor("#2460e1");
+                    nite::setColor(useColor.r, useColor.g, useColor.b, 0.08f);
+                    auto ref = nite::Draw::Rectangle(currentMask->position.x, currentMask->position.y, currentMask->size.x, currentMask->size.y, true, 0.0f, 0.0f, 0.0f);
+                    nite::setColor(useColor.r, useColor.g, useColor.b, 0.75f);
+                    auto refline = nite::Draw::Rectangle(currentMask->position.x, currentMask->position.y, currentMask->size.x, currentMask->size.y, false, 0.0f, 0.0f, 0.0f);
+                    // nite::print(currentMask->position);
+                    if(refline != NULL){
+                        refline->thickness = 4.0f;
+                    }
+                } break;
+                case nite::MapMaskType::TELEPORTER: {
+                    static nite::Color useColor("#54ff05");
+                    nite::setColor(useColor.r, useColor.g, useColor.b, 0.08f);
+                    auto ref = nite::Draw::Rectangle(currentMask->position.x, currentMask->position.y, currentMask->size.x, currentMask->size.y, true, 0.0f, 0.0f, 0.0f);
+                    nite::setColor(useColor.r, useColor.g, useColor.b, 0.75f);
+                    auto refline = nite::Draw::Rectangle(currentMask->position.x, currentMask->position.y, currentMask->size.x, currentMask->size.y, false, 0.0f, 0.0f, 0.0f);
+                    if(refline != NULL){
+                        refline->thickness = 4.0f;
+                    }
+                } break;
+                case nite::MapMaskType::EVENT: {
+
+                } break;
+            }
+        }   
     }
 
     for(auto &it : objects){

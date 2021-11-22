@@ -78,7 +78,7 @@ I feel fine - Says the player.
 
 [Lisa shines a light from her pen into the player's eyes]
 
-That's amazing. I'm preparing your discharge papers. Do you know your name? - Says Lois
+That's amazing. I'm preparing your discharge papers. Do you remember your name? - Says Lois
 
 [The player is asked is for their name. Gender and skin color through the game]
 
@@ -100,7 +100,7 @@ They're these telepathic beings. They project paranoia and fear into their preys
 
 Holy shit - Says Player
 
-Yes. They're very dangerous. I suggest you be vigilant. These past months it's been very rough here - Says Lois
+Yes. They're very dangerous. I suggest you be vigilant. These past months have been very rough here - Says Lois
 
 [Lois stands up and starts walking towards the door]
 

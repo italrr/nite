@@ -115,35 +115,41 @@ bool buildTiledMap(nite::Map *target, const Jzon::Node &node, const String &path
         if(layers.get(i).get("type").toString() != "objectgroup") continue;
         Jzon::Node objs = layers.get(i).get("objects");
         for(int c = 0; c < objs.getCount(); ++c){
+
             // collision
-            
-            // teleporter
             if(objs.get(c).get("type").toString() == "collision"){
                 auto node = objs.get(c);
-                nite::MapWallMask mask;
-                mask.position.x = node.get("x").toFloat(-1);
-                mask.position.y = node.get("y").toFloat(-1);
-                mask.size.x = node.get("width").toFloat(-1);
-                mask.size.y = node.get("height").toFloat(-1);        
-                // mask.index = node.get("i").toInt(-1);        
+                auto mask = Shared<nite::MapWallMask>(new nite::MapWallMask());
+                mask->position.x = node.get("x").toFloat(-1);
+                mask->position.y = node.get("y").toFloat(-1);
+                mask->size.x = node.get("width").toFloat(-1);
+                mask->size.y = node.get("height").toFloat(-1);        
+                mask->index = node.get("i").toInt(-1);        
                 target->masks.push_back(mask);
             }
 
             // teleporter
             if(objs.get(c).get("type").toString() == "teleporter"){
                 auto teleporter = objs.get(c).get("properties");
-                String special = "none";
-                String target = "#UNDEFINED";
+                String special = "noop";
+                String targetName = "#UNDEFINED";
                 for(int j = 0; j < teleporter.getCount(); ++j){
                     auto prop = teleporter.get(j);
                     if(prop.get("name").toString() == "target"){
-                        target = prop.get("value").toString();
+                        targetName = prop.get("value").toString();
                     }
                     if(prop.get("name").toString() == "special"){
                         special = prop.get("value").toString();
                     }
                 }
-                // todo add
+                auto mask = Shared<nite::MapTeleporterMask>(new nite::MapTeleporterMask());
+                mask->position.x = objs.get(c).get("x").toFloat(-1);
+                mask->position.y = objs.get(c).get("y").toFloat(-1);
+                mask->size.x = objs.get(c).get("width").toFloat(-1);
+                mask->size.y = objs.get(c).get("height").toFloat(-1);   
+                mask->target = targetName;
+                mask->onInteractScript = special;     
+                target->masks.push_back(mask);
             }
 
             // sign
@@ -156,7 +162,13 @@ bool buildTiledMap(nite::Map *target, const Jzon::Node &node, const String &path
                         label = prop.get("value").toString();
                     }
                 }
-                // todo add
+                auto mask = Shared<nite::MapSignMask>(new nite::MapSignMask());
+                mask->position.x = objs.get(c).get("x").toFloat(-1);
+                mask->position.y = objs.get(c).get("y").toFloat(-1);
+                mask->size.x = objs.get(c).get("width").toFloat(-1);
+                mask->size.y = objs.get(c).get("height").toFloat(-1);   
+                mask->label = label;
+                target->masks.push_back(mask);
             }
 
             // depth mask
@@ -426,12 +438,12 @@ bool buildNiteMap(nite::Map *target, const Jzon::Node &node, const String &path)
     auto masksNode = node.get("masks");
     for(int i = 0; i < masksNode.getCount(); ++i){
         auto node = masksNode.get(i);
-        nite::MapWallMask mask;
-        mask.position.x = node.get("x").toFloat(-1);
-        mask.position.y = node.get("y").toFloat(-1);
-        mask.size.x = node.get("w").toFloat(-1);
-        mask.size.y = node.get("h").toFloat(-1);        
-        mask.index = node.get("i").toInt(-1);        
+        auto mask = Shared<nite::MapWallMask>(new nite::MapWallMask());
+        mask->position.x = node.get("x").toFloat(-1);
+        mask->position.y = node.get("y").toFloat(-1);
+        mask->size.x = node.get("w").toFloat(-1);
+        mask->size.y = node.get("h").toFloat(-1);        
+        mask->index = node.get("i").toInt(-1);        
         target->masks.push_back(mask);
     }
 
@@ -711,11 +723,14 @@ bool nite::Map::exportToJson(const String &path, bool allowOverwrite){
     Jzon::Node masksArr = Jzon::array();
     for(int i = 0; i < masks.size(); ++i){
         Jzon::Node maskObj = Jzon::object();
-        maskObj.add("x", masks[i].position.x);
-        maskObj.add("y", masks[i].position.y);
-        maskObj.add("w", masks[i].size.x);
-        maskObj.add("h", masks[i].size.y);
-        maskObj.add("i", masks[i].index);
+        // only collisions for now
+        if(masks[i]->type != MapMaskType::COLLISION) continue;
+        auto cmask = std::static_pointer_cast<nite::MapWallMask>(masks[i]);
+        maskObj.add("x", cmask->position.x);
+        maskObj.add("y", cmask->position.y);
+        maskObj.add("w", cmask->size.x);
+        maskObj.add("h", cmask->size.y);
+        maskObj.add("i", cmask->index);
         masksArr.add(maskObj);
     }
     file.add("masks", masksArr);

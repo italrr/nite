@@ -1,1 +1,2 @@
-bind F1 "t_flip cl_show_masks"
+bind F1 "t_flip cl_show_cmasks"
+bind F2 "t_flip cl_show_smasks"
