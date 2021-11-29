@@ -19,7 +19,7 @@ struct Player : Game::Entity {
 		this->animOverworld->load("data/entity/human_class.json");
 		this->setAnim(Game::OverworldAnimType::RUN_DOWN, 0);
 		updateStandAnim();
-    	reshape(nite::Vec2(43, 125));
+    	reshape(nite::Vec2(43, 62));
 	}
 	
 	void step(){
@@ -46,7 +46,7 @@ struct Mob : Game::Entity {
 		this->animOverworld->load("data/entity/human_class.json");
 		this->setAnim(Game::OverworldAnimType::RUN_DOWN, 0);
 		updateStandAnim();		
-		reshape(nite::Vec2(43, 125));
+    	reshape(nite::Vec2(43, 62));
 	}
 	
 	void step(){
@@ -72,7 +72,7 @@ struct Mob2 : Game::Entity {
 		entityType = Game::EntityType::MOB;
 		this->animOverworld->load("data/entity/human_class.json");
 		this->setAnim(Game::OverworldAnimType::RUN_DOWN, 0);
-		reshape(nite::Vec2(43, 125));
+    	reshape(nite::Vec2(43, 62));
 		updateStandAnim();		
 	}
 	
