@@ -571,7 +571,7 @@ void Game::Battle::step(){
                 dmginfo.owner = current.owner->entity;
                 dmginfo.target = current.target->entity;
 			    dmginfo.tryingBlock = current.target->tryBlocking;
-			    dmginfo.tryingDodge = current.target->tryDodging;;                   
+			    dmginfo.tryingDodge = current.target->tryDodging;                   
                 dmginfo.target->damage(dmginfo);
                 targetMissed = dmginfo.dodged;
                 current.owner->onAffect();
