@@ -1,6 +1,10 @@
 nite Engine
 ----------
 
+
+*THIS PROJECT IS NO LONGER BEING DEVELOPED. SEE https://github.com/italrr/cavernrush*
+
+
 nite is a 2D game engine in C++11. It uses OpenGL 3.0 for rendering and SDL2 for input, window and event handling.
 
 nite features some modern asynchronous event-driven pipelines such as `nite::AsyncTask` and Network's `bindOnAckFor()`,
